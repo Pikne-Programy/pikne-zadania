@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Logowanie</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <style type="text/css">
+        .page-def {
+            min-height: 400px;
+            padding-top: 2%;
+            padding-bottom: 5%;
+        }
+    </style>
+    <script>
+        function signIn() {
+            document.getElementById("signInButton").classList.add("is-loading");
+        }
+    </script>
+</head>
+
+<body style="height: 100vh;">
+    <div style="height: 100%;" class="is-flex is-justify-content-center is-align-items-center">
+        <section class="section">
+            <div class="container is-flex is-flex-direction-column is-align-items-center">
+                <figure class="image is-128x128">
+                    <img style="height: 100%;" src="https://bulma.io/images/css-book/css-in-44-minutes-book-cover.png">
+                </figure>
+                <h1 class="title mt-2">
+                    Astrofiz 2.0/Inna fajna nazwa
+                </h1>
+                <div style="width: 75%; margin-top: 2rem;">
+                    <div class="field is-align-self-stretch">
+                        <p class="control has-icons-left has-icons-right">
+                            <input class="input" type="text" placeholder="Nazwa użytkownika">
+                            <span class="icon is-small is-left">
+                                <i class="fas fa-user"></i>
+                            </span>
+                        </p>
+                    </div>
+                    <div class="field is-align-self-stretch">
+                        <p class="control has-icons-left">
+                            <input class="input" type="password" placeholder="Hasło">
+                            <span class="icon is-small is-left">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                        </p>
+                    </div>
+                </div>
+                <button id="signInButton" style="margin-top: 1.5rem;" class="button is-primary is-rounded" onclick="signIn();">Zaloguj</button>
+            </div>
+        </section>
+    </div>
+</body>
+
+</html>
