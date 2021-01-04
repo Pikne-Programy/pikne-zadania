@@ -1,0 +1,11 @@
+# don't forget to `git submodule update --init --recursive`
+# and then `git submodule update --remote --recursive`
+
+[submodule "exercises"]
+	path = exercises
+	url = https://github.com/Pikne-Programy/pikne-zadania-exercises
+
+[submodule "frontend"]
+	path = frontend
+	url = https://github.com/Pikne-Programy/pikne-zadania-frontend
+	branch = release-0.0
