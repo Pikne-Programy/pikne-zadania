@@ -1,14 +1,10 @@
-export abstract class Exercise {
-  type: string; // EqEx
-  name: string; // Pociągi dwa 2
-  properties: Map<string, string>; // tags: kinematyka
+export default abstract class Exercise {
+  public abstract readonly type: string; // EqEx
   constructor(
-    readonly id: string, // pociągi-dwa
-  ) {
-    this.type = "";
-    this.name = "";
-    this.properties = new Map<string, string>();
-  }
+    readonly name: string, // Pociągi dwa 2
+    _content: string, // pociągi-dwa
+    readonly properties: { [key: string]: string }, // tags: kinematyka
+  ) {}
   abstract render(uid: string): string; // GET
   abstract check(uid: string, answer: string): string; // POST
 }

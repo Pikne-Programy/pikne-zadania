@@ -1,4 +1,4 @@
-import { Exercise } from "../exercise.ts";
+import Exercise from "../exercise.ts";
 class RNG {
   constructor(readonly seed: number) {}
   rand(min: number, max: number, step: number): number {
@@ -12,14 +12,28 @@ class RPN {
   push(what: string | number) {
     this.stack.push(what);
   }
-  pop(): string | number {
-    if (this.index >= this.stack.length) {
+  private empty(): boolean {
+    return this.index >= this.stack.length;
+  }
+  private pop(): string | number {
+    if (this.empty()) {
       throw RangeError();
     }
     return this.stack[this.index++];
   }
-  reset() {
+  private reset() {
     this.index = 0;
+  }
+  calculate(variables: Map<string, number>): number {
+    // TODO
+    let result = 0;
+    while (!this.empty()) {
+      let _: number | string = this.pop();
+      // change string to number from variables
+      // calculate
+    }
+    this.reset();
+    return result;
   }
 }
 class Range {
@@ -32,26 +46,26 @@ class Range {
     return r.rand(this.min, this.max, this.step);
   }
 }
-export class EquationExercise extends Exercise {
+export default class EquationExercise extends Exercise {
+  type = "EqEx";
   readonly parsedContent: string; // "lorem ipsum \(d=300\mathrm{km\}\) foo \(v_a=\mathrm{\frac{m}{s}}\) bar \(v_b=\frac{m}{s}\)."
-  readonly ranges: Map<number, string>; // index -> var name
-  readonly variables: Map<string, RPN | Range | number>; // var name -> RPN or Range
-  readonly unknowns: Map<string, string>; // unknown' name -> unknown' unit
+  readonly ranges: { [key: number]: string }; // index -> var name
+  readonly variables: { [key: string]: RPN | Range | number }; // var name -> RPN or Range
+  readonly unknowns: { [key: string]: string }; // unknown' name -> unknown' unit
   readonly order: string[]; // order of variables to calculate
   // content -> parse to latex, extract NPM or Range or number -> return parsed text
-  constructor(id: string) {
-    // TODO
-    super(id);
-    // get file from disk
-    // get properties (name, tags...)
-    this.name = "";
-    this.properties = new Map<string, string>();
+  constructor(
+    readonly name: string,
+    content: string,
+    readonly properties: { [key: string]: string },
+  ) {
+    super(name, content, properties);// TODO
     // parse content
     this.parsedContent =
       "lorem ipsum (d=300mathrm{km}) foo (v_a=mathrm{\frac{m}{s}}) bar (v_b=\frac{m}{s}).";
-    this.ranges = new Map<number, string>();
-    this.variables = new Map<string, RPN | Range | number>();
-    this.unknowns = new Map<string, string>();
+    this.ranges = {};
+    this.variables = {};
+    this.unknowns = {};
     this.order = [];
     // parsed content -> user
     // unknowns -> equation object -> user
@@ -66,10 +80,10 @@ export class EquationExercise extends Exercise {
   }
   check(uid: string, answer: string): string {
     // TODO
-    let variables : Map<string, number>;
+    let variables: { [key: string]: number };
     // get numbers
     // randomize ranges (in order defined in this.ranges)
-    // calculate RNPs (in order defined in this.order)
+    // calculate RPNs (in order defined in this.order)
     // return unknowns
     return "";
   }
