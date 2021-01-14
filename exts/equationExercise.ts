@@ -1,4 +1,5 @@
 import Exercise from "../exercise.ts";
+import { JSONType, YAMLType } from "../types.ts";
 class RNG {
   constructor(readonly seed: number) {}
   rand(min: number, max: number, step: number): number {
@@ -57,9 +58,9 @@ export default class EquationExercise extends Exercise {
   constructor(
     readonly name: string,
     content: string,
-    readonly properties: { [key: string]: string },
+    readonly properties: { [key: string]: YAMLType },
   ) {
-    super(name, content, properties);// TODO
+    super(name, content, properties); // TODO
     // parse content
     this.parsedContent =
       "lorem ipsum (d=300mathrm{km}) foo (v_a=mathrm{\frac{m}{s}}) bar (v_b=\frac{m}{s}).";
@@ -71,14 +72,14 @@ export default class EquationExercise extends Exercise {
     // unknowns -> equation object -> user
   }
 
-  render(uid: string): string {
+  render(uid: string): JSONType {
     // TODO
     // gets all ranges and randomize it
     // pastes all randomized variables into (local)parsedContent
     // returns parsedContent
     return "";
   }
-  check(uid: string, answer: string): string {
+  check(uid: string, answer: JSONType): JSONType {
     // TODO
     let variables: { [key: string]: number };
     // get numbers
