@@ -1,1 +1,8 @@
-export { Application, Router, Context, send } from "https://deno.land/x/oak@v6.4.1/mod.ts";
+export {
+  Application,
+  Router,
+  send,
+} from "https://deno.land/x/oak@v6.4.1/mod.ts";
+export type { RouterContext } from "https://deno.land/x/oak@v6.4.1/mod.ts";
+export { parse, parseAll } from "https://deno.land/std@0.83.0/encoding/yaml.ts";
+export { walk, walkSync } from "https://deno.land/std@0.83.0/fs/mod.ts";

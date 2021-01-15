@@ -77,7 +77,19 @@ export default class EquationExercise extends Exercise {
     // gets all ranges and randomize it
     // pastes all randomized variables into (local)parsedContent
     // returns parsedContent
-    return "";
+    return {
+      "type": "EqEx",
+      "name": "Pociągi dwa 2",
+      "content": {
+        "main":
+          "Z miast A i B odległych o \\(d=300\\mathrm{km}\\) wyruszają jednocześnie dwa pociągi z prędkościami \\(v_a=50\\mathrm{\\frac{m}{s}}\\) oraz \\(v_b=67\\mathrm{\\frac{m}{s}}\\).\nW jakiej odległości \\(x\\) od miasta A spotkają się te pociągi? Po jakim czasie \\(t\\) się to stanie?",
+        "imgs": ["1.png", "2.png"],
+        "unknowns": [
+          ["\\(x\\)", "\\(\\mathrm{km}\\)"],
+          ["\\(t\\)", "\\(\\mathrm{s}\\)"],
+        ],
+      },
+    };
   }
   check(uid: string, answer: JSONType): JSONType {
     // TODO
@@ -86,6 +98,8 @@ export default class EquationExercise extends Exercise {
     // randomize ranges (in order defined in this.ranges)
     // calculate RPNs (in order defined in this.order)
     // return unknowns
-    return "";
+    return {
+      success: false,
+    };
   }
 }
