@@ -17,7 +17,7 @@ $.getScript('/helper/imports.js').then(() => {
  * Main code of the controller. Must be executed after all dependencies have been imported.
  */
 function main() {
-    startModel(onListLoaded, onExerciseLoaded);
+    startModel(onMenuChanged, onExerciseLoaded);
     adjustView();
     let screenSize = getScreenSize();
     window.onresize = function() {
@@ -58,14 +58,75 @@ function adjustView(screenSize = getScreenSize()) {
     }
 }
 
-function onListLoaded() {
-    if (exerciseList.get() != null) {
-        console.log('new list')
+/**
+ * Updates view according to the current Menu
+ */
+function onMenuChanged() {
+    const menu = currentMenu.get();
+    if (menu != null) {
+        $('#menu-list').empty();
+        menu.children.forEach(child => {
+            const element = createElement("a", ["menu-element"], [], child.value);
+            const li = createElement("li", [], [element]);
+            $(li).attr('tabIndex', 0);
+            li.onclick = () => {
+                if (child.select()) {
+                    $('#breadcrumbs').children().each((_, node) => {
+                        $(node).children().removeClass('is-active');
+                        $(node).children().removeAttr('aria-current');
+                    });
+                    const a = createElement('a', ['is-active'], [], child.value);
+                    $(a).attr('href', '#');
+                    $(a).attr('aria-current', 'page');
+                    const breadcrumb = createElement('li', [], [a])
+                    breadcrumb.onclick = () => {
+                        selectMenu(breadcrumb, child);
+                    }
+                    $('#breadcrumbs').append(breadcrumb);
+                } else {
+                    $('#menu-list').children().children().removeClass('is-active');
+                    $(li).children().addClass('is-active');
+                }
+            }
+            $('#menu-list').append(li);
+        });
+        //$('#menu-loading').hide()
+
+        toggleMenuLoading(false);
+        $('#breadcrumbs').show();
+        $('#menu-list').show();
     }
 }
 
+/**
+ * Updates view according to the current selected Exercise
+ */
 function onExerciseLoaded() {
     if (currentExercise.get() != null) {
 
+    }
+}
+
+/**
+ * Selects provided Menu
+ * @param {HTMLElement} element HTMLElement associated with the Menu
+ * @param {TreeNode} menu Menu object
+ */
+function selectMenu(element, menu = exerciseTree) {
+    menu.select();
+    $(element).nextAll().remove();
+}
+
+/**
+ * Shows or hides loading progress bar for Menu
+ * @param {boolean} state True - shows progress bar; False - hides progress bar
+ */
+function toggleMenuLoading(state) {
+    if (state) {
+        $('#menu-loading').add('is-flex');
+        $('#menu-loading').show();
+    } else {
+        $('#menu-loading').hide();
+        $('#menu-loading').removeClass('is-flex');
     }
 }

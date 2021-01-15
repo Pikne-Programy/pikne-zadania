@@ -32,9 +32,23 @@
             <div class="columns full-height root">
                 <div id="menu" class="full-height column is-one-quarter-tablet is-one-fifth-desktop">
                     <div class="box full-height">
-                        <aside class="menu">
-                            <p class="menu-label">Zadania</p>
-                            <ul id="list" class="menu-list"></ul>
+                        <aside class="menu full-height">
+                            <div id="menu-loading" class="full-height is-flex is-flex-direction-column is-align-items-center is-justify-content-center">
+                                <progress class="progress is-small is-primary my-3" max="100" style="width: 70%">15%</progress>
+                            </div>
+                            <nav class="breadcrumb" aria-label="breadcrumbs">
+                                <ul id="breadcrumbs" style="display: none;">
+                                    <li onclick="selectMenu(this);">
+                                        <a href="#" aria-current="page">
+                                            <span class="icon is-small">
+                                                <i class="fas fa-home" aria-hidden="true"></i>
+                                            </span>
+                                            <span>Zadania</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                            <ul id="menu-list" class="menu-list" style="display: none;"></ul>
                         </aside>
                     </div>
                 </div>
@@ -46,10 +60,11 @@
                             </span>
                         </button>
                         <div id="container"></div>
-                        <div id="loading" class="full-height is-flex is-flex-direction-column is-align-items-center is-justify-content-center py-6">
-                            <progress class="progress is-small is-primary" max="100" style="width: 70%">
+                        <div id="content-loading" class="full-height is-flex is-flex-direction-column is-align-items-center is-justify-content-center py-3">
+                            <!--<progress class="progress is-small is-primary" max="100" style="width: 70%">
                                 15%
-                            </progress>
+                            </progress>-->
+                            <a class="title">Tu będzie jakieś menu</a>
                         </div>
                     </div>
                 </div>

@@ -85,6 +85,12 @@ function toggleClasses(element, toggleClassesList, add) {
 }
 
 class Observable {
+    /**
+     * Object with custom callback on value change
+     * @param {any} initialValue Initially set value
+     * @param {function} callback Function executed on value change
+     * @class
+     */
     constructor(initialValue = null, callback = null) {
         this.target = initialValue;
         this.callback = callback;
