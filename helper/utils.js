@@ -105,3 +105,15 @@ export class Observable {
             this.callback();
     };
 }
+
+/**
+ * Capitalizes first letter of the string
+ * @param {string} string Text to be capitalized
+ * @param {string} locale Used Locale
+ */
+export function capitalize(string, locale = navigator.language) {
+    if (string == null || string == undefined)
+        return string;
+    else
+        return string.charAt(0).toLocaleUpperCase(locale) + string.slice(1);
+}

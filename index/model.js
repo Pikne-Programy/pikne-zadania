@@ -51,9 +51,9 @@ function createExerciseTree(value, children, parent = null) {
             }
         }
         if (Array.isArray(child.children)) {
-            node.children.push(createExerciseTree(child.name, child.children, node));
+            node.children.push(createExerciseTree(Utils.capitalize(child.name), child.children, node));
         } else {
-            node.children.push(new TreeNode(child.name, node, child.children));
+            node.children.push(new TreeNode(Utils.capitalize(child.name), node, child.children));
         }
     }
     return node;
