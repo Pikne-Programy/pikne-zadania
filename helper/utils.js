@@ -11,7 +11,7 @@
  * 
  * 'fullhd': 1408px and more
  */
-function getScreenSize() {
+export function getScreenSize() {
     const width = window.innerWidth
     if (width <= 768)
         return 'mobile'
@@ -32,7 +32,7 @@ function getScreenSize() {
  * @param {HTMLElement[]} children
  * @param {string} innerHTML
  */
-function createElement(type, classes = [], children = [], innerHTML = '') {
+export function createElement(type, classes = [], children = [], innerHTML = '') {
     var element = document.createElement(type)
     for (var i = 0; i < classes.length; i++)
         element.classList.add(classes[i])
@@ -47,7 +47,7 @@ function createElement(type, classes = [], children = [], innerHTML = '') {
  * @param {HTMLElement} element
  * @param {('visible' | 'hidden' | 'collapse')} state 
  */
-function setVisibility(element, state) {
+export function setVisibility(element, state) {
     element.style.visibility = state
 }
 
@@ -55,7 +55,7 @@ function setVisibility(element, state) {
  * Support class used in toggleClasses function
  * @see toggleClasses
  */
-class ToggleClasses {
+export class ToggleClasses {
     /**
      * @param {string} parent
      * @param {string} toToggle
@@ -72,7 +72,7 @@ class ToggleClasses {
  * @param {ToggleClasses[]} toggleClassesList 
  * @param {boolean} add True - adds classes; False - removes classes
  */
-function toggleClasses(element, toggleClassesList, add) {
+export function toggleClasses(element, toggleClassesList, add) {
     toggleClassesList.forEach(toggleClass => {
         if (add) {
             if ($(element).hasClass(toggleClass.parent) && !$(element).hasClass(toggleClass.toToggle))
@@ -84,7 +84,7 @@ function toggleClasses(element, toggleClassesList, add) {
     });
 }
 
-class Observable {
+export class Observable {
     /**
      * Object with custom callback on value change
      * @param {any} initialValue Initially set value

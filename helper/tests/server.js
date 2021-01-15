@@ -40,6 +40,10 @@ export function startServer() {
                             "children": "atom"
                         }]
                     }]
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
                 }
             ]));
             this.get("/api/reminders", () => ({

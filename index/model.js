@@ -1,6 +1,8 @@
-let exerciseTree = null;
-const currentMenu = new Observable()
-const currentExercise = new Observable();
+import * as Utils from '../helper/utils.js';
+
+export let exerciseTree = null;
+export const currentMenu = new Utils.Observable()
+export const currentExercise = new Utils.Observable();
 
 /**
  * Function starting the Model. Sets provided callbacks and fetches Exercise list.
@@ -8,7 +10,7 @@ const currentExercise = new Observable();
  * @param {function} exerciseChangeCallback Function executed on current Exercise change
  * @async
  */
-async function startModel(menuChangeCallback, exerciseChangeCallback) {
+export async function startModel(menuChangeCallback, exerciseChangeCallback) {
     currentMenu.callback = menuChangeCallback;
     currentExercise.callback = exerciseChangeCallback;
     fetchExerciseList().then((result) => {
@@ -57,10 +59,10 @@ function createExerciseTree(value, children, parent = null) {
     return node;
 }
 
-class TreeNode {
+export class TreeNode {
     /**
      * Node element of the Exercise tree structure
-     * @param {anu} value Value held by the node
+     * @param {any} value Value held by the node
      * @param {(TreeNode | null)} parent Parent node (root node's is null)
      * @param {(string | null)} url URL held by the node (only for deepest nodes)
      */

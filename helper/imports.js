@@ -3,7 +3,7 @@
  * @param {string[]} urls List of URLs to import
  * @param {function} success Function to execute after successful import 
  */
-function importScripts(urls, success) {
+export function importScripts(urls, success) {
     const promises = [];
     for (let i = 0; i < urls.length; i++) {
         promises.push($.getScript(urls[i], () => {

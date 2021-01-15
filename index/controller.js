@@ -1,27 +1,30 @@
-//Imports
-$.getScript('/helper/imports.js').then(() => {
-    const urls = [
-        '/helper/utils.js',
-        '/index/model.js',
+import * as Imports from '../helper/imports.js'
+import * as Utils from '../helper/utils.js';
+import * as Model from './model.js';
+
+/**
+ * Imports dependencies of the controller from CDN and starts main
+ */
+export function importDependencies() {
+    Imports.importScripts([
         'https://polyfill.io/v3/polyfill.min.js?features=es6',
         'https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-MML-AM_CHTML-full'
-    ];
-    importScripts(urls, () => {
+    ], () => {
         $(() => {
             main();
         });
     });
-});
+}
 
 /**
  * Main code of the controller. Must be executed after all dependencies have been imported.
  */
-function main() {
-    startModel(onMenuChanged, onExerciseLoaded);
+export function main() {
+    Model.startModel(onMenuChanged, onExerciseLoaded);
     adjustView();
-    let screenSize = getScreenSize();
+    let screenSize = Utils.getScreenSize();
     window.onresize = function() {
-        const newScreenSize = getScreenSize();
+        const newScreenSize = Utils.getScreenSize();
         if (screenSize != newScreenSize) {
             screenSize = newScreenSize;
             adjustView(screenSize);
@@ -29,28 +32,27 @@ function main() {
     }
 }
 
-
 /**
  * Adjusts view according to current screen size
  * @param {('mobile' | 'tablet' | 'desktop' | 'widescreen' | 'fullhd')} screenSize 
  */
-function adjustView(screenSize = getScreenSize()) {
+function adjustView(screenSize = Utils.getScreenSize()) {
     const classList = [
-        new ToggleClasses('box', 'mobile-root-padding'),
-        new ToggleClasses('hero-body', 'mobile-padding'),
-        new ToggleClasses('title', 'is-4'),
-        new ToggleClasses('subtitle', 'is-6')
+        new Utils.ToggleClasses('box', 'mobile-root-padding'),
+        new Utils.ToggleClasses('hero-body', 'mobile-padding'),
+        new Utils.ToggleClasses('title', 'is-4'),
+        new Utils.ToggleClasses('subtitle', 'is-6')
     ];
     if (screenSize == 'mobile') {
         $('.mobile-changing').each((_, element) => {
-            toggleClasses(element, classList, true);
+            Utils.toggleClasses(element, classList, true);
         });
 
         $('#content').hide();
         $('#back_button').show();
     } else {
         $('.mobile-changing').each((_, element) => {
-            toggleClasses(element, classList, false);
+            Utils.toggleClasses(element, classList, false);
         });
 
         $('#content').show();
@@ -62,12 +64,19 @@ function adjustView(screenSize = getScreenSize()) {
  * Updates view according to the current Menu
  */
 function onMenuChanged() {
-    const menu = currentMenu.get();
+    const home = document.getElementById('menu-home');
+    if (home.onclick == null) {
+        home.onclick = () => {
+            selectMenu(home, Model.exerciseTree);
+        };
+    }
+
+    const menu = Model.currentMenu.get();
     if (menu != null) {
         $('#menu-list').empty();
         menu.children.forEach(child => {
-            const element = createElement("a", ["menu-element"], [], child.value);
-            const li = createElement("li", [], [element]);
+            const element = Utils.createElement("a", ["menu-element"], [], child.value);
+            const li = Utils.createElement("li", [], [element]);
             $(li).attr('tabIndex', 0);
             li.onclick = () => {
                 if (child.select()) {
@@ -75,10 +84,9 @@ function onMenuChanged() {
                         $(node).children().removeClass('is-active');
                         $(node).children().removeAttr('aria-current');
                     });
-                    const a = createElement('a', ['is-active'], [], child.value);
-                    $(a).attr('href', '#');
+                    const a = Utils.createElement('a', ['is-active'], [], child.value);
                     $(a).attr('aria-current', 'page');
-                    const breadcrumb = createElement('li', [], [a])
+                    const breadcrumb = Utils.createElement('li', [], [a])
                     breadcrumb.onclick = () => {
                         selectMenu(breadcrumb, child);
                     }
@@ -102,7 +110,7 @@ function onMenuChanged() {
  * Updates view according to the current selected Exercise
  */
 function onExerciseLoaded() {
-    if (currentExercise.get() != null) {
+    if (Model.currentExercise.get() != null) {
 
     }
 }
@@ -110,9 +118,9 @@ function onExerciseLoaded() {
 /**
  * Selects provided Menu
  * @param {HTMLElement} element HTMLElement associated with the Menu
- * @param {TreeNode} menu Menu object
+ * @param {Model.TreeNode} menu Menu object
  */
-function selectMenu(element, menu = exerciseTree) {
+function selectMenu(element, menu = Model.exerciseTree) {
     menu.select();
     $(element).nextAll().remove();
 }
