@@ -44,11 +44,100 @@ export function startServer() {
                 {
                     "name": "no category",
                     "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
+                },
+                {
+                    "name": "no category",
+                    "children": "no-category"
                 }
             ]));
-            this.get("/api/reminders", () => ({
-                reminders: [],
-            }))
         }
     })
     console.log('server online');

@@ -24,12 +24,21 @@ body {
 }
 
 .section.root {
-    height: inherit;
+    overflow: hidden;
+    height: 100%;
     padding: 0.5% 1% 1%;
 }
 
 .columns.root {
     margin: 0;
+}
+
+.scrollable {
+    overflow: auto;
+}
+
+.border-bottom {
+    border-bottom: 1px solid rgba(10, 10, 10, .1);
 }
 
 .box.mobile-root-padding {
@@ -42,6 +51,10 @@ body {
 
 .justified {
     text-align: justify;
+}
+
+.p-4-5 {
+    padding: 1.25rem !important;
 }
 
 .mjx-chtml {

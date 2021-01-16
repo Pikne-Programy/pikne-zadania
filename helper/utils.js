@@ -117,3 +117,30 @@ export function capitalize(string, locale = navigator.language) {
     else
         return string.charAt(0).toLocaleUpperCase(locale) + string.slice(1);
 }
+
+export function recycleListElements(list) {
+    $(list).children().each((_, element) => {
+        if (checkIfOutOfBounds(element, list)) {
+            $(element).hide();
+        } else {
+            $(element).show();
+        }
+    })
+}
+
+export function checkIfOutOfBounds(element, parent) {
+    const elementRect = element.getBoundingClientRect();
+    const parentRect = parent.getBoundingClientRect();
+    const windowWidth = (window.innerWidth || document.documentElement.clientWidth);
+    const windowHeight = (window.innerHeight || document.documentElement.clientHeight);
+    return (
+        //elementRect.bottom < (parentRect.top - elementRect.height) ||
+        //elementRect.top > (parentRect.bottom + elementRect.height) ||
+        //elementRect.left < (parentRect.left - elementRect.width) ||
+        //elementRect.right > (parentRect.right + elementRect.width) ||
+        elementRect.top <= 0 ||
+        elementRect.bottom >= windowHeight ||
+        elementRect.left <= 0 ||
+        elementRect.right >= windowWidth
+    );
+}

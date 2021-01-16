@@ -34,13 +34,13 @@
         <section class="section root">
             <div class="columns full-height root">
                 <div id="menu" class="full-height column is-one-quarter-tablet is-one-fifth-desktop">
-                    <div class="box full-height">
-                        <aside class="menu full-height">
+                    <div class="box full-height p-0">
+                        <aside class="menu full-height is-flex is-flex-direction-column">
                             <div id="menu-loading" class="full-height is-flex is-flex-direction-column is-align-items-center is-justify-content-center">
                                 <progress class="progress is-small is-primary my-3" max="100" style="width: 70%">15%</progress>
                             </div>
-                            <nav class="breadcrumb" aria-label="breadcrumbs">
-                                <ul id="breadcrumbs" style="display: none;">
+                            <nav class="breadcrumb border-bottom p-4-5 pb-4 mb-0" aria-label="breadcrumbs" style="display: none;">
+                                <ul id="breadcrumbs">
                                     <li id="menu-home">
                                         <a aria-current="page">
                                             <span class="icon is-small">
@@ -51,18 +51,20 @@
                                     </li>
                                 </ul>
                             </nav>
-                            <ul id="menu-list" class="menu-list" style="display: none;"></ul>
+                            <div class="full-height scrollable px-4">
+                                <ul id="menu-list" class="menu-list py-3" style="display: none;"></ul>
+                            </div>
                         </aside>
                     </div>
                 </div>
                 <div id="content" class="column">
                     <div class="box full-height mobile-changing">
-                        <button id="back_button" class="button is-rounded mb-3" style="position: absolute; display: none">
+                        <button id="back_button" class="button is-rounded mb-3" style="display: none">
                             <span class="icon">
                                 <i class="fas fa-chevron-left"></i>
                             </span>
                         </button>
-                        <div id="container"></div>
+                        <div id="container" class="scrollable"></div>
                         <div id="content-loading" class="full-height is-flex is-flex-direction-column is-align-items-center is-justify-content-center py-3">
                             <!--<progress class="progress is-small is-primary" max="100" style="width: 70%">
                                 15%

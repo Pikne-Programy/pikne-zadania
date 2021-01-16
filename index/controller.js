@@ -98,10 +98,9 @@ function onMenuChanged() {
             }
             $('#menu-list').append(li);
         });
-        //$('#menu-loading').hide()
 
         toggleMenuLoading(false);
-        $('#breadcrumbs').show();
+        $('#breadcrumbs').parent().show();
         $('#menu-list').show();
     }
 }
