@@ -8,6 +8,13 @@ body {
     scrollbar-width: none;
 }
 
+body {
+    height: 100vh;
+    width: 100vw;
+    position: fixed;
+    -webkit-overflow-scrolling: touch;
+}
+
 ::-webkit-scrollbar {
     /* Chrome, Safari and Opera */
     display: none;
