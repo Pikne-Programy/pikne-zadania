@@ -1,4 +1,23 @@
 /**
+ * Imports every URL specified in the URL list
+ * @param {string[]} urls List of URLs to import
+ * @param {function} success Function to execute after successful import 
+ */
+export function importScripts(urls, success) {
+    const promises = [];
+    for (let i = 0; i < urls.length; i++) {
+        promises.push($.getScript(urls[i], () => {
+            console.log(urls[i] + ' loaded');
+        }));
+    }
+    $.when.apply($, promises).then(() => {
+        success();
+    }, () => {
+        console.log('import error');
+    });
+}
+
+/**
  * Returns current screen size breakpoint:
  * @returns
  * 'mobile': 768px and less
@@ -23,6 +42,15 @@ export function getScreenSize() {
         return 'widescreen'
     else
         return 'fullhd'
+}
+
+/**
+ * Returns if the device is used in touch mode
+ */
+export function isTouch() {
+    return (('ontouchstart' in window) ||
+        (navigator.maxTouchPoints > 0) ||
+        (navigator.msMaxTouchPoints > 0));
 }
 
 /**

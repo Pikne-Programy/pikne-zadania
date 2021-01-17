@@ -1,4 +1,3 @@
-import * as Imports from '../helper/imports.js'
 import * as Utils from '../helper/utils.js';
 import * as Model from './model.js';
 
@@ -6,7 +5,7 @@ import * as Model from './model.js';
  * Imports dependencies of the controller from CDN and starts main
  */
 export function importDependencies() {
-    Imports.importScripts([
+    Utils.importScripts([
         'https://polyfill.io/v3/polyfill.min.js?features=es6',
         'https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-MML-AM_CHTML-full'
     ], () => {
@@ -29,6 +28,7 @@ export function main() {
             screenSize = newScreenSize;
             adjustView(screenSize);
         }
+        onMenuChanged();
     }
 }
 
@@ -64,6 +64,8 @@ function adjustView(screenSize = Utils.getScreenSize()) {
  * Updates view according to the current Menu
  */
 function onMenuChanged() {
+    toggleMenuLoading(true);
+    $('#menu-list-container').clearCustomScrollbars();
     const home = document.getElementById('menu-home');
     if (home.onclick == null) {
         home.onclick = () => {
@@ -102,6 +104,10 @@ function onMenuChanged() {
         toggleMenuLoading(false);
         $('#breadcrumbs').parent().show();
         $('#menu-list').show();
+        $('#menu-list-container').setCustomScrollbars({
+            autohide: !Utils.isTouch(),
+            padding: 10
+        });
     }
 }
 
