@@ -3,7 +3,7 @@ EXPOSE 8000
 WORKDIR /app
 USER deno
 COPY deps.ts .
-RUN deno cache deps.ts
+RUN deno cache --unstable deps.ts
 ADD . .
-RUN deno cache server.ts # --unstable?
+RUN deno cache --unstable server.ts
 CMD ["./run.sh"]
