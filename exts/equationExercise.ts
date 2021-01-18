@@ -1,10 +1,30 @@
 import Exercise from "../exercise.ts";
 import { JSONType, YAMLType } from "../types.ts";
+import { MersenneTwister19937, Random } from "../deps.ts";
 class RNG {
-  constructor(readonly seed: number) {}
-  rand(min: number, max: number, step: number): number {
-    // TODO
-    return 0;
+  readonly rng: Random;
+  static precision(a: number) {
+    // SRC: https://stackoverflow.com/a/27865285/6732111
+    if (!isFinite(a)) return 0;
+    let e = 1, p = 0;
+    while (Math.round(a * e) / e !== a) {
+      e *= 10;
+      p++;
+    }
+    return p;
+  }
+  constructor(readonly seed: number) {
+    this.rng = new Random(MersenneTwister19937.seed(seed));
+  }
+  rand(min: number, max: number, step?: number): number {
+    let guess = this.rng.real(min, max, true);
+    if (step) { // it's not usable if it's 0
+      return +(min + Math.round((guess - min) / step) * step).toFixed(
+        RNG.precision(step),
+      );
+    } else {
+      return +guess.toPrecision(3);
+    }
   }
 }
 class RPN {
