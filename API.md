@@ -1,5 +1,12 @@
 # Endpoints (discuss at [#1](https://github.com/Pikne-Programy/pikne-zadania/issues/1))
 
+If there is an error (`4xx` or `5xx` status code), the API will return either no content or the JSON object with an error message:
+```
+{
+  "msg": "<error message>"
+}
+```
+
 ## `GET /api/public`
 | Method | URL | Description |
 | - | - | - |
@@ -52,7 +59,7 @@
   }
 }
 ```
-**note**: content is ExT-dependent, shown above is the EqEx one
+**note**: `content` is ExT-dependent, shown above is the EqEx one
 
 ***
 
