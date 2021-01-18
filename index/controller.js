@@ -66,6 +66,7 @@ function adjustView(screenSize = Utils.getScreenSize()) {
  */
 function onMenuChanged(update = false) {
     toggleMenuLoading(true);
+    const selectedPos = $('#menu-list').find('.is-active').parent().index();
     const initPos = $('#menu-list-container').clearCustomScrollbars();
     const home = document.getElementById('menu-home');
     if (home.onclick == null) {
@@ -101,6 +102,8 @@ function onMenuChanged(update = false) {
             }
             $('#menu-list').append(li);
         });
+        if (selectedPos > -1 && update)
+            $('#menu-list').children().eq(selectedPos).children().addClass('is-active');
 
         toggleMenuLoading(false);
         $('#breadcrumbs').parent().show();
