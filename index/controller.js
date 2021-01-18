@@ -28,7 +28,7 @@ export function main() {
             screenSize = newScreenSize;
             adjustView(screenSize);
         }
-        onMenuChanged();
+        onMenuChanged(true);
     }
 }
 
@@ -62,10 +62,11 @@ function adjustView(screenSize = Utils.getScreenSize()) {
 
 /**
  * Updates view according to the current Menu
+ * @param {boolean} update Determines if Menu changed or is just being updated
  */
-function onMenuChanged() {
+function onMenuChanged(update = false) {
     toggleMenuLoading(true);
-    $('#menu-list-container').clearCustomScrollbars();
+    const initPos = $('#menu-list-container').clearCustomScrollbars();
     const home = document.getElementById('menu-home');
     if (home.onclick == null) {
         home.onclick = () => {
@@ -108,6 +109,8 @@ function onMenuChanged() {
             autohide: !Utils.isTouch(),
             padding: 10
         });
+        if (update)
+            $('#menu-list-container').scrollToPosition(initPos);
     }
 }
 

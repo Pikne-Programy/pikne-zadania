@@ -489,22 +489,21 @@
         });
     };
 
-    $.fn.clearCustomScrollbars = function() {
-        /*const elements = $(this);
-        for (let i = 0; elements[i] !== undefined; i++) {
-            const element = elements[i];
-            console.log(element);
-            /*element.removeClass('lb-scroll-container-overflow-auto');
-            element.removeClass('lb-scroll-container-overflow-hidden');
-            element.removeClass('lb-scroll-container-position-relative');
-            const content = element.children('.lb-wrap').children().children();
-            console.log(content);*/
+    $.fn.scrollToPosition = function(position) {
+        $(this).children().scrollTop($(window).height() * position);
+    };
 
-        //}
+    $.fn.clearCustomScrollbars = function() {
+        const scrollPos = $(this).find('.lb-wrap').scrollTop();
         $(this).removeClass('lb-scroll-container-overflow-auto lb-scroll-container-overflow-hidden lb-scroll-container-position-relative');
         $(this).append($(this).children('.lb-wrap').children().children());
         $(this).children().remove('.lb-wrap');
         $(this).children().remove('.lb-v-scrollbar');
         $(this).children().remove('.lb-h-scrollbar');
+        if (scrollPos !== undefined) {
+            return scrollPos / $(window).height();
+        } else {
+            return 0;
+        }
     }
 })(jQuery);
