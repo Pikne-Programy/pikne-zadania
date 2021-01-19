@@ -22,6 +22,10 @@ body {
     height: 100%;
 }
 
+.full-width {
+    width: 100%;
+}
+
 .menu-element {
     text-align: justify;
     overflow: hidden;
@@ -52,6 +56,10 @@ body {
 
 .hero-body.mobile-padding {
     padding: 1.75rem 1.5rem;
+}
+
+.unknowns-width {
+    min-width: 2em;
 }
 
 .justify {

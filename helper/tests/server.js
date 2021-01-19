@@ -145,9 +145,9 @@ export function startServer() {
                     "main": "Z miast A i B odległych o \\(d=300\\mathrm{km}\\) wyruszają jednocześnie dwa pociągi z prędkościami \\(v_a=50\\mathrm{\\frac{m}{s}}\\) oraz \\(v_b=67\\mathrm{\\frac{m}{s}}\\).\n\rW jakiej odległości \\(x\\) od miasta A spotkają się te pociągi? Po jakim czasie \\(t\\) się to stanie?",
                     "imgs": ["https://bulma.io/images/placeholders/720x240.png", "https://bulma.io/images/placeholders/640x480.png", "https://bulma.io/images/placeholders/240x720.png"],
                     "unknowns": [
-                        ["\\(x =\\)", "\\(\\mathrm{km}\\)"],
-                        ["\\(F =\\)", "\\(\\mathrm{N}\\)"],
-                        ["\\(t =\\)", "\\(\\mathrm{s}\\)"]
+                        ["x", "\\mathrm{km}"],
+                        ["F", "\\mathrm{N}"],
+                        ["t", "\\mathrm{s}"]
                     ]
                 }
             }));

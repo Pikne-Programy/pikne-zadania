@@ -83,8 +83,8 @@ function createUnknown(name, unit) {
     const warningLabel = Utils.createElement('p', ['help', 'is-warning'], [], 'Wymagana liczba');
     Utils.setVisibility(warningLabel, 'hidden');
     ControllerUtils.setInputChecking(Model.inputRegex, input, warningLabel);
-    const nameLabel = Utils.createElement('div', ['subtitle', 'full-height', 'is-flex', 'is-align-items-center', 'is-justify-content-right'], [], name);
-    const unitLabel = Utils.createElement('div', ['subtitle', 'full-height', 'is-flex', 'is-align-items-center'], [], unit);
+    const nameLabel = Utils.createElement('div', ['subtitle', 'full-height', 'unknowns-width', 'is-flex', 'is-align-items-center', 'is-justify-content-right'], [], '\\(' + name + '=\\)');
+    const unitLabel = Utils.createElement('div', ['subtitle', 'full-height', 'unknowns-width', 'is-flex', 'is-align-items-center'], [], '\\(' + unit + '\\)');
 
     const nameColumn = Utils.createElement('div', ['column', 'is-narrow', 'pb-5-5'], [nameLabel]);
     const inputColumn = Utils.createElement('div', ['column', 'px-0'], [input, warningLabel]);

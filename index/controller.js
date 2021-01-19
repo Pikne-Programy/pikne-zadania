@@ -35,12 +35,13 @@ export function main() {
         onMenuChanged(true);
     });
     $('#home-button').on('click', () => {
-        if (currentExerciseController != null)
-            currentExerciseController.abort();
-        Model.clearCurrentExercise();
-        ControllerUtils.toggleContentLoading(null);
-        $('#menu-list').children().children().removeClass('is-active');
-    })
+        clearCurrentExercise();
+    });
+    $('#back-button').on('click', () => {
+        clearCurrentExercise();
+        $('#menu').show();
+        $('#content').hide();
+    });
 }
 
 /**
@@ -59,16 +60,20 @@ function adjustView(screenSize = Utils.getScreenSize()) {
             Utils.toggleClasses(element, classList, true);
         });
 
-        $('#content').hide();
-        $('#home-button').hide();
+        if (currentExerciseController == null)
+            $('#content').hide();
+        else
+            $('#menu').hide()
+        $('#home-button').parent().hide();
         $('#back-button').show();
     } else {
         $('.mobile-changing').each((_, element) => {
             Utils.toggleClasses(element, classList, false);
         });
 
+        $('#menu').show()
         $('#content').show();
-        $('#home-button').show();
+        $('#home-button').parent().show();
         $('#back-button').hide();
     }
 }
@@ -112,6 +117,8 @@ function onMenuChanged(update = false) {
                     $('#menu-list').children().children().removeClass('is-active');
                     $(li).children().addClass('is-active');
                     ControllerUtils.toggleContentLoading(true);
+                    if (Utils.getScreenSize() == 'mobile')
+                        $('#menu').hide();
                 }
             }
             $('#menu-list').append(li);
@@ -157,4 +164,13 @@ function onExerciseLoaded() {
 function selectMenu(element, menu = Model.exerciseTree) {
     menu.select();
     $(element).nextAll().remove();
+}
+
+function clearCurrentExercise() {
+    if (currentExerciseController != null)
+        currentExerciseController.abort();
+    currentExerciseController = null;
+    Model.clearCurrentExercise();
+    ControllerUtils.toggleContentLoading(null);
+    $('#menu-list').children().children().removeClass('is-active');
 }

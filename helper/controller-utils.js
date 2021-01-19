@@ -19,6 +19,7 @@ export function toggleMenuLoading(state) {
  * @param {boolean} state True - shows progress bar; False - shows content; Null - shows content menu
  */
 export function toggleContentLoading(state) {
+    $('#content').show();
     if (state == true) {
         $('#content-menu').hide();
         $('#content-menu').removeClass('is-flex');
