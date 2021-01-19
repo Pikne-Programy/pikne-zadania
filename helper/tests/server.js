@@ -151,7 +151,7 @@ export function startServer() {
                     ]
                 }
             }));
-            this.passthrough('eqex/eqex.html');
+            this.passthrough('./eqex/eqex.html');
             this.passthrough('https://bulma.io/images/placeholders/720x240.png');
             this.passthrough('https://bulma.io/images/placeholders/640x480.png');
             this.passthrough('https://bulma.io/images/placeholders/240x720.png');
