@@ -1,6 +1,10 @@
 import * as Utils from '../helper/utils.js';
+import { EquationExercise } from '../eqex/model.js';
 
-export let exerciseTree = null;
+/**
+ * @type {TreeNode}
+ */
+export var exerciseTree = null;
 export const currentMenu = new Utils.Observable()
 export const currentExercise = new Utils.Observable();
 
@@ -31,8 +35,12 @@ async function fetchExerciseList() {
     return result;
 }
 
-async function fetchExercise(id) {
-
+async function fetchExercise(url) {
+    let result;
+    await $.getJSON('/api/public/' + url, (data) => {
+        result = data;
+    });
+    return result;
 }
 
 /**
@@ -63,8 +71,8 @@ export class TreeNode {
     /**
      * Node element of the Exercise tree structure
      * @param {any} value Value held by the node
-     * @param {(TreeNode | null)} parent Parent node (root node's is null)
-     * @param {(string | null)} url URL held by the node (only for deepest nodes)
+     * @param {TreeNode?} parent Parent node (root node's is null)
+     * @param {string?} url URL held by the node (only for deepest nodes)
      */
     constructor(value, parent, url = null) {
         this.value = value;
@@ -82,8 +90,19 @@ export class TreeNode {
             currentMenu.set(this);
             return true;
         } else {
-            fetchExercise(this.url);
+            fetchExercise(this.url).then((result) => {
+                currentExercise.set(new EquationExercise(this.url, result));
+            });
             return false;
         }
     }
+}
+
+/**
+ * Resets currently selected Exercise
+ * @async
+ */
+export async function clearCurrentExercise() {
+    currentExercise.set(null);
+    $('#content-container').empty();
 }

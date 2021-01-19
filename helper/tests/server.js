@@ -138,6 +138,23 @@ export function startServer() {
                     "children": "no-category"
                 }
             ]));
+            this.get('api/public/no-category', () => ({
+                "type": "EqEx",
+                "name": "Bez kategorii",
+                "content": {
+                    "main": "Z miast A i B odległych o \\(d=300\\mathrm{km}\\) wyruszają jednocześnie dwa pociągi z prędkościami \\(v_a=50\\mathrm{\\frac{m}{s}}\\) oraz \\(v_b=67\\mathrm{\\frac{m}{s}}\\).\n\rW jakiej odległości \\(x\\) od miasta A spotkają się te pociągi? Po jakim czasie \\(t\\) się to stanie?",
+                    "imgs": ["https://bulma.io/images/placeholders/720x240.png", "https://bulma.io/images/placeholders/640x480.png", "https://bulma.io/images/placeholders/240x720.png"],
+                    "unknowns": [
+                        ["\\(x =\\)", "\\(\\mathrm{km}\\)"],
+                        ["\\(F =\\)", "\\(\\mathrm{N}\\)"],
+                        ["\\(t =\\)", "\\(\\mathrm{s}\\)"]
+                    ]
+                }
+            }));
+            this.passthrough('eqex/eqex.html');
+            this.passthrough('https://bulma.io/images/placeholders/720x240.png');
+            this.passthrough('https://bulma.io/images/placeholders/640x480.png');
+            this.passthrough('https://bulma.io/images/placeholders/240x720.png');
         }
     })
     console.log('server online');

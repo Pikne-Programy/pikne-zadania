@@ -1,3 +1,7 @@
+export const ExerciseType = Object.freeze({
+    EqEx: 1
+})
+
 /**
  * Imports every URL specified in the URL list
  * @param {string[]} urls List of URLs to import
@@ -54,19 +58,21 @@ export function isTouch() {
 }
 
 /**
- * Creates HTMLElement with provided classes, innerHTML & appends children
+ * Creates HTMLElement with provided classes, innerHTML & children
  * @param {string} type
  * @param {string[]} classes
  * @param {HTMLElement[]} children
  * @param {string} innerHTML
  */
 export function createElement(type, classes = [], children = [], innerHTML = '') {
-    var element = document.createElement(type)
-    for (var i = 0; i < classes.length; i++)
-        element.classList.add(classes[i])
-    element.innerHTML = innerHTML
-    for (var i = 0; i < children.length; i++)
-        element.appendChild(children[i])
+    const element = document.createElement(type);
+    classes.forEach(className => {
+        $(element).addClass(className);
+    });
+    $(element).html(innerHTML);
+    children.forEach(child => {
+        $(element).append(child);
+    });
     return element;
 }
 
@@ -76,7 +82,7 @@ export function createElement(type, classes = [], children = [], innerHTML = '')
  * @param {('visible' | 'hidden' | 'collapse')} state 
  */
 export function setVisibility(element, state) {
-    element.style.visibility = state
+    $(element).css('visibility', state);
 }
 
 /**
@@ -162,10 +168,6 @@ export function checkIfOutOfBounds(element, parent) {
     const windowWidth = (window.innerWidth || document.documentElement.clientWidth);
     const windowHeight = (window.innerHeight || document.documentElement.clientHeight);
     return (
-        //elementRect.bottom < (parentRect.top - elementRect.height) ||
-        //elementRect.top > (parentRect.bottom + elementRect.height) ||
-        //elementRect.left < (parentRect.left - elementRect.width) ||
-        //elementRect.right > (parentRect.right + elementRect.width) ||
         elementRect.top <= 0 ||
         elementRect.bottom >= windowHeight ||
         elementRect.left <= 0 ||

@@ -60,17 +60,36 @@
                     </div>
                 </div>
                 <div id="content" class="column">
-                    <div class="box full-height mobile-changing">
-                        <button id="back_button" class="button is-rounded mb-3" style="display: none">
-                            <span class="icon">
-                                <i class="fas fa-chevron-left"></i>
-                            </span>
-                        </button>
-                        <div id="container" class="scrollable"></div>
-                        <div id="content-loading" class="full-height is-flex is-flex-direction-column is-align-items-center is-justify-content-center py-3">
-                            <!--<progress class="progress is-small is-primary" max="100" style="width: 70%">
+                    <div class="box full-height is-flex is-flex-direction-column mobile-changing p-0">
+                        <nav class="level p-4 m-0 border-bottom">
+                            <div class="level-left">
+                                <div class="level-item">
+                                    <button id="back-button" class="button is-rounded" style="display: none">
+                                        <span class="icon">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </span>
+                                        <span>Wróć</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="level-right">
+                                <div class="level-item">
+                                    <button id="home-button" class="button is-rounded" style="display: none">
+                                        <span class="icon">
+                                            <i class="fas fa-home"></i>
+                                        </span>
+                                        <span>Home</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </nav>
+                        <div id="content-container" class="full-height scrollable" style="display: none;"></div>
+                        <div id="content-loading" class="full-height is-flex-direction-column is-align-items-center is-justify-content-center py-3" style="display: none;">
+                            <progress class="progress is-small is-primary" max="100" style="width: 70%">
                                 15%
-                            </progress>-->
+                            </progress>
+                        </div>
+                        <div id="content-menu" class="full-height is-flex is-flex-direction-column is-align-items-center is-justify-content-center py-3">
                             <a class="title">Tu będzie jakieś menu</a>
                         </div>
                     </div>

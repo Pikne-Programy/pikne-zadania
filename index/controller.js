@@ -1,5 +1,9 @@
 import * as Utils from '../helper/utils.js';
+import * as ControllerUtils from '../helper/controller-utils.js';
 import * as Model from './model.js';
+import * as EqEx from '../eqex/controller.js';
+
+let currentExerciseController = null;
 
 /**
  * Imports dependencies of the controller from CDN and starts main
@@ -22,14 +26,21 @@ export function main() {
     Model.startModel(onMenuChanged, onExerciseLoaded);
     adjustView();
     let screenSize = Utils.getScreenSize();
-    window.onresize = function() {
+    $(window).on('resize', () => {
         const newScreenSize = Utils.getScreenSize();
         if (screenSize != newScreenSize) {
             screenSize = newScreenSize;
             adjustView(screenSize);
         }
         onMenuChanged(true);
-    }
+    });
+    $('#home-button').on('click', () => {
+        if (currentExerciseController != null)
+            currentExerciseController.abort();
+        Model.clearCurrentExercise();
+        ControllerUtils.toggleContentLoading(null);
+        $('#menu-list').children().children().removeClass('is-active');
+    })
 }
 
 /**
@@ -49,14 +60,16 @@ function adjustView(screenSize = Utils.getScreenSize()) {
         });
 
         $('#content').hide();
-        $('#back_button').show();
+        $('#home-button').hide();
+        $('#back-button').show();
     } else {
         $('.mobile-changing').each((_, element) => {
             Utils.toggleClasses(element, classList, false);
         });
 
         $('#content').show();
-        $('#back_button').hide();
+        $('#home-button').show();
+        $('#back-button').hide();
     }
 }
 
@@ -65,7 +78,7 @@ function adjustView(screenSize = Utils.getScreenSize()) {
  * @param {boolean} update Determines if Menu changed or is just being updated
  */
 function onMenuChanged(update = false) {
-    toggleMenuLoading(true);
+    ControllerUtils.toggleMenuLoading(true);
     const selectedPos = $('#menu-list').find('.is-active').parent().index();
     const initPos = $('#menu-list-container').clearCustomScrollbars();
     const home = document.getElementById('menu-home');
@@ -98,6 +111,7 @@ function onMenuChanged(update = false) {
                 } else {
                     $('#menu-list').children().children().removeClass('is-active');
                     $(li).children().addClass('is-active');
+                    ControllerUtils.toggleContentLoading(true);
                 }
             }
             $('#menu-list').append(li);
@@ -105,7 +119,7 @@ function onMenuChanged(update = false) {
         if (selectedPos > -1 && update)
             $('#menu-list').children().eq(selectedPos).children().addClass('is-active');
 
-        toggleMenuLoading(false);
+        ControllerUtils.toggleMenuLoading(false);
         $('#breadcrumbs').parent().show();
         $('#menu-list').show();
         $('#menu-list-container').setCustomScrollbars({
@@ -121,31 +135,26 @@ function onMenuChanged(update = false) {
  * Updates view according to the current selected Exercise
  */
 function onExerciseLoaded() {
-    if (Model.currentExercise.get() != null) {
-
-    }
+    $('#content-container').clearCustomScrollbars();
+    const exercise = Model.currentExercise.get();
+    if (exercise != null) {
+        if (currentExerciseController != null)
+            currentExerciseController.abort();
+        switch (exercise.type) {
+            case Utils.ExerciseType.EqEx:
+                currentExerciseController = new EqEx.Controller(exercise);
+                break;
+        }
+    } else
+        ControllerUtils.toggleContentLoading(null);
 }
 
 /**
  * Selects provided Menu
- * @param {HTMLElement} element HTMLElement associated with the Menu
+ * @param {HTMLElement} element Breadcrumb associated with the Menu
  * @param {Model.TreeNode} menu Menu object
  */
 function selectMenu(element, menu = Model.exerciseTree) {
     menu.select();
     $(element).nextAll().remove();
-}
-
-/**
- * Shows or hides loading progress bar for Menu
- * @param {boolean} state True - shows progress bar; False - hides progress bar
- */
-function toggleMenuLoading(state) {
-    if (state) {
-        $('#menu-loading').add('is-flex');
-        $('#menu-loading').show();
-    } else {
-        $('#menu-loading').hide();
-        $('#menu-loading').removeClass('is-flex');
-    }
 }

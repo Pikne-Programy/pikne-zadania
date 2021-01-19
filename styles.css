@@ -43,23 +43,35 @@ body {
 }
 
 .border-bottom {
-    border-bottom: 1px solid rgba(10, 10, 10, .1);
+    border-bottom: 1px solid rgba(10, 10, 10, 0.1);
 }
 
 .box.mobile-root-padding {
-    padding: 1rem .5rem !important;
+    padding: 1rem 0.5rem !important;
 }
 
 .hero-body.mobile-padding {
     padding: 1.75rem 1.5rem;
 }
 
-.justified {
+.justify {
     text-align: justify;
+}
+
+.use-line-break {
+    white-space: pre-line;
+}
+
+.img {
+    max-height: 20vh;
 }
 
 .p-4-5 {
     padding: 1.25rem !important;
+}
+
+.pb-5-5 {
+    padding-bottom: 2rem !important;
 }
 
 .mjx-chtml {
