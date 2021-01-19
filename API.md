@@ -55,7 +55,7 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
   "content": {
     "main": "Z miast A i B odległych o \\(d=300\\mathrm{km}\\) wyruszają jednocześnie dwa pociągi z prędkościami \\(v_a=50\\mathrm{\\frac{m}{s}}\\) oraz \\(v_b=67\\mathrm{\\frac{m}{s}}\\).\nW jakiej odległości \\(x\\) od miasta A spotkają się te pociągi? Po jakim czasie \\(t\\) się to stanie?",
     "imgs": ["1.png", "2.png"],
-    "unknowns": [["\\(x\\)", "\\(\\mathrm{km}\\)"], ["\\(t\\)", "\\(\\mathrm{s}\\)"]]
+    "unknowns": [["x", "\\mathrm{km}"], ["t", "\\mathrm{s}"]]
   }
 }
 ```
