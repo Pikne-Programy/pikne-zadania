@@ -100,27 +100,31 @@ function onMenuChanged(update = false) {
             const element = Utils.createElement("a", ["menu-element"], [], child.value);
             const li = Utils.createElement("li", [], [element]);
             $(li).attr('tabIndex', 0);
-            li.onclick = () => {
-                if (child.select()) {
-                    $('#breadcrumbs').children().each((_, node) => {
-                        $(node).children().removeClass('is-active');
-                        $(node).children().removeAttr('aria-current');
-                    });
-                    const a = Utils.createElement('a', ['is-active'], [], child.value);
-                    $(a).attr('aria-current', 'page');
-                    const breadcrumb = Utils.createElement('li', [], [a])
-                    breadcrumb.onclick = () => {
-                        selectMenu(breadcrumb, child);
+            ['click', 'keydown'].forEach((eventName) => {
+                $(li).on(eventName, (event) => {
+                    if (eventName != 'keydown' || event.which == 13) {
+                        if (child.select()) {
+                            $('#breadcrumbs').children().each((_, node) => {
+                                $(node).children().removeClass('is-active');
+                                $(node).children().removeAttr('aria-current');
+                            });
+                            const a = Utils.createElement('a', ['is-active'], [], child.value);
+                            $(a).attr('aria-current', 'page');
+                            const breadcrumb = Utils.createElement('li', [], [a])
+                            breadcrumb.onclick = () => {
+                                selectMenu(breadcrumb, child);
+                            }
+                            $('#breadcrumbs').append(breadcrumb);
+                        } else {
+                            $('#menu-list').children().children().removeClass('is-active');
+                            $(li).children().addClass('is-active');
+                            ControllerUtils.toggleContentLoading(true);
+                            if (Utils.getScreenSize() == 'mobile')
+                                $('#menu').hide();
+                        }
                     }
-                    $('#breadcrumbs').append(breadcrumb);
-                } else {
-                    $('#menu-list').children().children().removeClass('is-active');
-                    $(li).children().addClass('is-active');
-                    ControllerUtils.toggleContentLoading(true);
-                    if (Utils.getScreenSize() == 'mobile')
-                        $('#menu').hide();
-                }
-            }
+                });
+            });
             $('#menu-list').append(li);
         });
         if (selectedPos > -1 && update)

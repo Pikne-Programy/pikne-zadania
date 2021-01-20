@@ -21,6 +21,8 @@ export class Controller {
                     $('#content-container').empty();
                     $('#content-container').append($(container).children())
                     MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'math-panel'], [() => {
+                        $('.mjx-chtml').attr('tabIndex', '-1');
+                    }], [() => {
                         ControllerUtils.toggleContentLoading(false);
                         $('#content-container').setCustomScrollbars({
                             autohide: !Utils.isTouch(),
@@ -53,11 +55,37 @@ export class Controller {
 function bindView(container) {
     $(container).find('#ex-title').text(Model.exercise.name);
     $(container).find('#ex-content').text(Model.exercise.content);
-    Model.exercise.imgs.forEach(url => {
-        $(container).find('#ex-image-container').append(createImage(url));
-    });
+    if (Model.exercise.imgs !== undefined) {
+        Model.exercise.imgs.forEach(url => {
+            $(container).find('#ex-image-container').append(createImage(url));
+        });
+    }
     Model.exercise.unknowns.forEach(unknown => {
         $(container).find('#ex-unknowns').append(createUnknown(unknown.name, unknown.unit));
+    });
+    const submitButton = $(container).find('#submit-button');
+    submitButton.on('click', () => {
+        submitButton.addClass('is-loading');
+        let result = true;
+        $('#ex-unknowns').find('input').each((i, element) => {
+            ControllerUtils.clearInputVerifiedStated(element);
+            if (Model.answerRegex.test(element.value))
+                Model.exercise.unknowns[i].value = parseFloat(element.value.replace(',', '.'));
+            else {
+                result = false;
+                return;
+            }
+        });
+        if (result) {
+            Model.sendAnswers((result) => {
+                submitButton.removeClass('is-loading');
+                //TODO Success for separate answers
+                $('#ex-unknowns').find('input').each((_, input) => {
+                    ControllerUtils.setInputVerifiedState(input, result.success);
+                });
+            });
+        } else
+            submitButton.removeClass('is-loading');
     });
 }
 
@@ -81,14 +109,20 @@ function createImage(url) {
  */
 function createUnknown(name, unit) {
     const input = Utils.createElement('input', ['input', 'is-primary']);
+    const icon = Utils.createElement('i', ['fas', 'fa-exclamation-triangle']);
+    const span = Utils.createElement('span', ['icon', 'is-small', 'is-right', 'has-text-warning'], [icon]);
+    $(span).hide();
+    const inputControl = Utils.createElement('div', ['control', 'has-icons-right'], [input, span]);
     const warningLabel = Utils.createElement('p', ['help', 'is-warning'], [], 'Wymagana liczba');
     Utils.setVisibility(warningLabel, 'hidden');
+    const inputField = Utils.createElement('div', ['field'], [inputControl, warningLabel]);
     ControllerUtils.setInputChecking(Model.inputRegex, input, warningLabel);
+
     const nameLabel = Utils.createElement('div', ['subtitle', 'full-height', 'unknowns-width', 'is-flex', 'is-align-items-center', 'is-justify-content-right'], [], '\\(' + name + '=\\)');
     const unitLabel = Utils.createElement('div', ['subtitle', 'full-height', 'unknowns-width', 'is-flex', 'is-align-items-center'], [], '\\(' + unit + '\\)');
 
     const nameColumn = Utils.createElement('div', ['column', 'is-narrow', 'pb-5-5'], [nameLabel]);
-    const inputColumn = Utils.createElement('div', ['column', 'px-0'], [input, warningLabel]);
+    const inputColumn = Utils.createElement('div', ['column', 'px-0'], [inputField]);
     const unitColumn = Utils.createElement('div', ['column', 'is-narrow', 'pb-5-5'], [unitLabel]);
 
     const columns = Utils.createElement('div', ['columns', 'is-mobile'], [nameColumn, inputColumn, unitColumn]);

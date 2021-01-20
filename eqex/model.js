@@ -5,6 +5,11 @@ import * as Utils from '../helper/utils.js';
  * @type {RegExp}
  */
 export const inputRegex = /^[+-]?\d*[,\.]?\d*$/;
+/**
+ * Regex for sending exercise's answer
+ * @type {RegExp}
+ */
+export const answerRegex = /^[+-]?\d*[,\.]?\d+$/;
 
 /**
  * @type {EquationExercise}
@@ -26,12 +31,8 @@ export function startModel(eqex) {
  */
 export async function sendAnswers(resultCallback) {
     if (exercise != null) {
-        $.ajax({
-            type: 'POST',
-            url: exercise.id,
-            data: exercise.convertUnknowns()
-        }).then((result) => {
-            resultCallback(result);
+        $.post('/api/public/' + exercise.id, JSON.stringify(exercise.convertUnknowns())).done((data) => {
+            resultCallback(data);
         });
     }
 }

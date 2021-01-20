@@ -174,3 +174,20 @@ export function checkIfOutOfBounds(element, parent) {
         elementRect.right >= windowWidth
     );
 }
+
+(function($) {
+    /**
+     * Removes all old classes and adds all new classes
+     * @param {string[]} oldClasses Classes to remove
+     * @param {string[]} newClasses Classes to add
+     */
+    $.fn.replaceClasses = function(oldClasses, newClasses) {
+        oldClasses.forEach((oldClass) => {
+            this.removeClass(oldClass);
+        });
+        newClasses.forEach((newClass) => {
+            if (!this.hasClass(newClass))
+                this.addClass(newClass);
+        });
+    }
+})(jQuery);
