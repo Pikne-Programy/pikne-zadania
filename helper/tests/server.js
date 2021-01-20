@@ -1,4 +1,5 @@
 import { Server } from 'https://cdn.skypack.dev/@miragejs/server';
+import { getBasePath } from './path-manager.js';
 
 export function startServer() {
     new Server({
@@ -151,7 +152,7 @@ export function startServer() {
                     ]
                 }
             }));
-            this.passthrough('./eqex/eqex.html');
+            this.passthrough(getBasePath() + '/eqex/eqex.html');
             this.passthrough('https://bulma.io/images/placeholders/720x240.png');
             this.passthrough('https://bulma.io/images/placeholders/640x480.png');
             this.passthrough('https://bulma.io/images/placeholders/240x720.png');

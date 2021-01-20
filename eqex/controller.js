@@ -1,6 +1,7 @@
 import * as Utils from '../helper/utils.js';
 import * as ControllerUtils from '../helper/controller-utils.js';
 import * as Model from './model.js';
+import { getBasePath } from '../helper/tests/path-manager.js'
 
 export class Controller {
     isAborted = false;
@@ -13,7 +14,7 @@ export class Controller {
         $('#content-container').clearCustomScrollbars();
         Model.startModel(exercise);
         const container = Utils.createElement('div');
-        $(container).load('/eqex/eqex.html', () => {
+        $(container).load(getBasePath() + '/eqex/eqex.html', () => {
             if (!this.isAborted) {
                 bindView(container);
                 if (!this.isAborted) {
