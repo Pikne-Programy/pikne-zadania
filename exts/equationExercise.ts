@@ -159,10 +159,17 @@ export default class EquationExercise extends Exercise {
   static readonly operationsR = "[\\+\\-*\\/\\^\\-]";
   // regexes used to extract and parse content
   static readonly equationR = new RegExp(
-    `(${EquationExercise.variableR})=((?:(?:[\\+\\-]?(?:${EquationExercise.functionsR})?[\\^a-zA-Z_0-9.\\(\\)]+${EquationExercise.operationsR}*)+))`);
-  static readonly numberEqR = new RegExp(`(${EquationExercise.variableR})=(${EquationExercise.numberR})(${EquationExercise.unitR})`);
-  static readonly unknownEqR = new RegExp(`(${EquationExercise.variableR})=\\?(${EquationExercise.unitR})`);
-  static readonly rangeEqR = new RegExp(`(${EquationExercise.variableR})=\\[(${EquationExercise.numberR});(${EquationExercise.numberR})\\](${EquationExercise.unitR})`);
+    `(${EquationExercise.variableR})=((?:(?:[\\+\\-]?(?:${EquationExercise.functionsR})?[\\^a-zA-Z_0-9.\\(\\)]+${EquationExercise.operationsR}*)+))`,
+  );
+  static readonly numberEqR = new RegExp(
+    `(${EquationExercise.variableR})=(${EquationExercise.numberR})(${EquationExercise.unitR})`,
+  );
+  static readonly unknownEqR = new RegExp(
+    `(${EquationExercise.variableR})=\\?(${EquationExercise.unitR})`,
+  );
+  static readonly rangeEqR = new RegExp(
+    `(${EquationExercise.variableR})=\\[(${EquationExercise.numberR});(${EquationExercise.numberR})\\](${EquationExercise.unitR})`,
+  );
   type = "EqEx";
   readonly parsedContent: string; // "lorem ipsum \(d=300\mathrm{km\}\) foo \(v_a=\mathrm{\frac{m}{s}}\) bar \(v_b=\frac{m}{s}\)."
   readonly ranges: [number, string][] = []; // index -> var name
@@ -266,22 +273,30 @@ export default class EquationExercise extends Exercise {
     this.parsedContent = parsingContent;
   }
 
-  render(seed: number): JSONType {
-    // TODO
-    // gets all ranges and randomize it
-    // pastes all randomized variables into (local)parsedContent
-    // returns parsedContent
+  render(seed: number): {
+    type: string;
+    name: string;
+    content: {
+      main: string;
+      unknowns: [string, string][];
+    };
+  } {
+    const rng = new RNG(seed);
+    let parsingContent = this.parsedContent;
+    for (let i = this.ranges.length - 1; i >= 0; --i) {
+      const name = this.ranges[i][1];
+      const index = this.ranges[i][0];
+      const value = (this.variables[name] as Range).rand(rng);
+      parsingContent = parsingContent.substr(0, index) +
+        value +
+        parsingContent.substr(index);
+    }
     return {
-      type: "EqEx",
-      name: "Pociągi dwa 2",
+      type: this.type,
+      name: this.name,
       content: {
-        main:
-          "Z miast A i B odległych o \\(d=300\\mathrm{km}\\) wyruszają jednocześnie dwa pociągi z prędkościami \\(v_a=50\\mathrm{\\frac{m}{s}}\\) oraz \\(v_b=67\\mathrm{\\frac{m}{s}}\\).\nW jakiej odległości \\(x\\) od miasta A spotkają się te pociągi? Po jakim czasie \\(t\\) się to stanie?",
-        //imgs: ["1.png", "2.png"],
-        unknowns: [
-          ["x", "\\mathrm{km}"],
-          ["t", "\\mathrm{s}"],
-        ],
+        main: parsingContent,
+        unknowns: this.unknowns,
       },
     };
   }
