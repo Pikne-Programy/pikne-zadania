@@ -1,7 +1,11 @@
 import { Application, send } from "./deps.ts";
 import router from "./router.ts";
 
-const app = new Application();
+interface State {
+  seed: number;
+}
+
+const app = new Application<State>();
 
 app.use(router.routes());
 app.use(router.allowedMethods());

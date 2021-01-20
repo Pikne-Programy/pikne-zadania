@@ -3,11 +3,13 @@ GET http://localhost:8000/api/public/ HTTP/1.1
 
 ### Get the exercise
 GET http://localhost:8000/api/public/pociagi-dwa HTTP/1.1
+Cookie: seed=0
 
 
 ### Check the solution of exercise
 POST http://localhost:8000/api/public/pociagi-dwa HTTP/1.1
 Content-Type: application/json
+Cookie: seed=0
 
 {
     "x": 23030,

@@ -63,13 +63,12 @@ export class ExercisesController {
     }
   }
   get(ctx: RouterContext) {
-    const seed = 0; // TODO
     try {
       if (ctx.params.id) {
         const exercise = this.dict.get(ctx.params.id);
         if (exercise) {
           ctx.response.status = 200;
-          ctx.response.body = exercise.render(seed);
+          ctx.response.body = exercise.render(ctx.state.seed);
         } else {
           ctx.response.status = 404;
         }
@@ -83,7 +82,6 @@ export class ExercisesController {
     }
   }
   async check(ctx: RouterContext) {
-    const seed = 0; // TODO
     try {
       if (ctx.request.hasBody && ctx.params.id) {
         const uanswer: JSONType = await ctx.request.body({ type: "json" })
@@ -91,7 +89,7 @@ export class ExercisesController {
         const exercise = this.dict.get(ctx.params.id);
         if (exercise) {
           ctx.response.status = 200;
-          ctx.response.body = exercise.check(seed, uanswer);
+          ctx.response.body = exercise.check(ctx.state.seed, uanswer);
         }
       }
     } catch (error) {
