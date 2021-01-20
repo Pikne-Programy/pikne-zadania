@@ -157,28 +157,113 @@ export default class EquationExercise extends Exercise {
   static readonly unitR = "(?:[a-zA-Z_0-9\\/\\*\\^\\(\\)]+)?";
   static readonly functionsR = "(?:sin|cos|tan)h?r?|abs|exp|ln|log2|log10";
   static readonly operationsR = "[\\+\\-*\\/\\^\\-]";
+  // regexes used to extract and parse content
+  static readonly equationR = new RegExp(
+    `(${EquationExercise.variableR})=((?:(?:[\\+\\-]?(?:${EquationExercise.functionsR})?[\\^a-zA-Z_0-9.\\(\\)]+${EquationExercise.operationsR}*)+))`);
+  static readonly numberEqR = new RegExp(`(${EquationExercise.variableR})=(${EquationExercise.numberR})(${EquationExercise.unitR})`);
+  static readonly unknownEqR = new RegExp(`(${EquationExercise.variableR})=\\?(${EquationExercise.unitR})`);
+  static readonly rangeEqR = new RegExp(`(${EquationExercise.variableR})=\\[(${EquationExercise.numberR});(${EquationExercise.numberR})\\](${EquationExercise.unitR})`);
   type = "EqEx";
   readonly parsedContent: string; // "lorem ipsum \(d=300\mathrm{km\}\) foo \(v_a=\mathrm{\frac{m}{s}}\) bar \(v_b=\frac{m}{s}\)."
-  readonly ranges: { [key: number]: string }; // index -> var name
-  readonly variables: { [key: string]: RPN | Range | number }; // var name -> RPN or Range
-  readonly unknowns: { [key: string]: string }; // unknown' name -> unknown' unit
-  readonly order: string[]; // order of variables to calculate
-  // content -> parse to latex, extract NPM or Range or number -> return parsed text
+  readonly ranges: [number, string][] = []; // index -> var name
+  readonly variables: { [key: string]: RPN | Range | number } = {}; // var name -> RPN or Range
+  readonly unknowns: [string, string][] = []; // unknown' name - unknown' unit
+  readonly order: string[] = []; // order of variables to calculate
+  readonly answerPrecision: number = 0.02; // such number x that: ans*(100-x)% <= user ans <= ans*(100-x)% returns correct answer
+
+  // content -> parse to latex, extract RPN, Range and number -> return parsed text
   constructor(
     readonly name: string,
     content: string,
     readonly properties: { [key: string]: YAMLType },
   ) {
-    super(name, content, properties); // TODO
-    // parse content
-    this.parsedContent =
-      "lorem ipsum (d=300mathrm{km}) foo (v_a=mathrm{\frac{m}{s}}) bar (v_b=\frac{m}{s}).";
-    this.ranges = {};
-    this.variables = {};
-    this.unknowns = {};
-    this.order = [];
-    // parsed content -> user
-    // unknowns -> equation object -> user
+    super(name, content, properties);
+
+    let segment = 0; // segment 0: problem's content; segment 1: system of equations
+    let index = 0; // global index (different than the index of the current line)
+    let parsingContent = ""; // content without ranges ([number;number]) and unknowns (=?unit)
+    let parsedLine = ""; // line without ranges ([number;number]) and unknowns (=?unit)
+    content.split("\n").forEach((line: string) => {
+      if (line == "") return;
+      else if (line == "---") {
+        segment++;
+        return;
+      } else if (segment == 0) {
+        let eqR: RegExp;
+        let m: RegExpExecArray | null;
+        // --------------------------------------------------
+        // considered regex: numberR (variable)=(value)(unit)
+        parsedLine = "";
+        while ((m = EquationExercise.numberEqR.exec(line)) != null) {
+          const numberMatch = {
+            name: m[1],
+            index: [
+              m.index + m[1].length + 1,
+              m.index + m[0].length - m[3].length,
+            ],
+            value: parseFloat(m[2]),
+            unit: m[3],
+          };
+          parsedLine += line.substring(0, numberMatch.index[1]);
+          line = line.substr(numberMatch.index[1]);
+          this.variables[numberMatch.name] = numberMatch.value;
+        }
+        parsedLine += line;
+        // --------------------------------------------------
+        // considered regex: unknownEqR (variable)=?(unit)
+        line = parsedLine;
+        parsedLine = "";
+        while ((m = EquationExercise.unknownEqR.exec(line)) != null) {
+          const unknownMatch = {
+            index: [m.index + m[1].length, m.index + m[0].length],
+            name: m[1],
+            unit: m[2],
+          };
+          this.unknowns.push([unknownMatch.name, unknownMatch.unit]);
+          parsedLine += line.substring(0, unknownMatch.index[0]);
+          line = line.substring(unknownMatch.index[1]);
+        }
+        parsedLine += line;
+        // --------------------------------------------------
+        // considered regex: unknownEqR (variable)=[(min);(max)](unit)
+        line = parsedLine;
+        parsedLine = "";
+        while ((m = EquationExercise.rangeEqR.exec(line)) != null) {
+          const rangeMatch = {
+            name: m[1],
+            index: [
+              m.index + m[1].length + 1,
+              m.index + m[0].length - m[4].length,
+            ],
+            rangeMin: parseFloat(m[2]),
+            rangeMax: parseFloat(m[3]),
+            unit: m[4],
+          };
+          this.variables[rangeMatch.name] = new Range(
+            rangeMatch.rangeMin,
+            rangeMatch.rangeMax,
+            1,
+          );
+          parsedLine += line.substring(0, rangeMatch.index[0]);
+          line = line.substring(rangeMatch.index[1]);
+          index += rangeMatch.index[0];
+          this.ranges.push([index, rangeMatch.name]);
+        }
+        parsedLine += line;
+        parsingContent += parsedLine + "\n";
+        index += line.length + 1; // what's left + '/n'
+      } else if (segment == 1) {
+        if (!EquationExercise.equationR.test(line)) {
+          throw new Error("LINE DOESNT MATCH PATTERN");
+        }
+        const m = line.match(EquationExercise.equationR);
+        const name = m![1];
+        const RPNeq = EquationExercise.convertToRPN(m![2]);
+        this.variables[name] = RPNeq;
+        this.order.push(name);
+      }
+    });
+    this.parsedContent = parsingContent;
   }
 
   render(seed: number): JSONType {
