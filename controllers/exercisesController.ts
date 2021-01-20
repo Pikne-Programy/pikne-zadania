@@ -1,5 +1,6 @@
 import { parse, RouterContext, walkSync } from "../deps.ts";
-import EquationExercise from "../exts/equationExercise.ts";
+import exts from "../exts/exts.ts";
+import Exercise from "../exercise.ts";
 import { JSONType, YAMLType } from "../types.ts";
 
 interface section {
@@ -7,98 +8,114 @@ interface section {
   children: string | section;
 }
 export class ExercisesController {
-  readonly dict = new Map<string, EquationExercise>();
+  readonly dict: { [key: string]: Exercise } = {};
   readonly _list: (string | section)[] = [];
+
+  static analyze(file: string) {
+    const re = /^---$/gm;
+    let occur;
+    // find 2nd occurence of `---`
+    if (re.exec(file) && (occur = re.exec(file))) {
+      const properties = <{ [key: string]: YAMLType }> parse(
+        file.substring(0, occur.index),
+      ) ?? {};
+      const { type, name } = properties as { type: string; name: string };
+      delete properties.name, properties.type;
+      const content = file.substring(re.lastIndex);
+      if (typeof type == "string" && typeof name == "string") {
+        if (type in exts) {
+          return new exts[type](
+            name,
+            content,
+            properties,
+          ); // it can throw an error
+        } else throw new Error("unknown type");
+      } else throw new Error("type and name are necessary");
+    } else throw new Error("the header is necessary");
+  }
+
   constructor() {
-    for (const entry of walkSync("./exercises")) {
-      const path = entry.path.substring(0, entry.path.length - 4);
-      const _ext = entry.path.substring(entry.path.length - 4);
-      try {
-        if (_ext === ".txt") {
-          const text = Deno.readTextFileSync(entry.path);
-          const re = /^---\r?\n/gm;
-          let occur;
-          // find 2nd occurence of `---`
-          if (re.exec(text) && (occur = re.exec(text))) {
-            const content = text.substring(re.lastIndex);
-            const tags = path.split("\\").reverse();
-            const properties = <{ [key: string]: YAMLType }> (
-              parse(text.substring(0, occur.index))
-            );
-            const id = tags.splice(0, 1)[0];
-            if ("name" in properties && typeof properties.name == "string") {
-              const obj: EquationExercise = new EquationExercise(
-                properties.name,
-                content,
-                {},
-              ); // can throw an error
-              let el: section | string;
-              el = id;
-              for (const e of tags.slice(0, -1)) {
-                const temp: section | string = el;
-                el = { name: e, children: temp };
-              }
-              this.dict.set(id, obj);
-              this._list.push(el);
-            }
-          } else {
-            throw new Error("Second `---` not found.");
+    Deno.chdir("./exercises");
+    try {
+      for (
+        const entry of walkSync(".", { includeDirs: false, match: [/.*.txt/] })
+      ) {
+        try {
+          const tags = entry.path.slice(0, -4).split("/").reverse();
+          const id = tags.splice(0, 1)[0];
+          const file = Deno.readTextFileSync(entry.path); // a content of file
+          const obj = ExercisesController.analyze(file);
+          let el: section | string = id;
+          for (const e of tags) {
+            el = { name: e, children: el };
           }
+          this.dict[id] = obj;
+          this._list.push(el);
+        } catch (e) {
+          console.error(`ERROR (exercise file ${entry.path}):`, e);
         }
-      } catch (e) {
-        console.error(`ERROR (file ${path}):`, e);
       }
+    } finally {
+      Deno.chdir("..");
     }
   }
-  list(ctx: RouterContext) {
+
+  static async predictDeath(ctx: RouterContext, inner: () => Promise<void>) {
     try {
+      await inner();
+    } catch (e) {
+      ctx.response.status = 500;
+      ctx.response.body = { msg: e.message };
+      console.error(e.message, e.stack);
+    }
+  }
+
+  static async exists<T>(
+    ctx: RouterContext,
+    x: T,
+    next: (x: T) => Promise<void>,
+  ) {
+    if (x) {
+      ctx.response.status = 200;
+      await next(x);
+    } else {
+      ctx.response.status = 404;
+    }
+  }
+
+  async list(ctx: RouterContext) {
+    await ExercisesController.predictDeath(ctx, async () => {
       ctx.response.status = 200;
       ctx.response.body = this._list;
-    } catch (error) {
-      console.error(error);
-      ctx.response.status = 500;
-      ctx.response.body = {
-        msg: error.toString(),
-      };
-    }
+    });
   }
-  get(ctx: RouterContext) {
-    try {
+  async get(ctx: RouterContext) {
+    await ExercisesController.predictDeath(ctx, async () => {
       if (ctx.params.id) {
-        const exercise = this.dict.get(ctx.params.id);
-        if (exercise) {
-          ctx.response.status = 200;
-          ctx.response.body = exercise.render(ctx.state.seed);
-        } else {
-          ctx.response.status = 404;
-        }
-      }
-    } catch (error) {
-      console.error(error);
-      ctx.response.status = 500;
-      ctx.response.body = {
-        msg: error.toString(),
-      };
-    }
+        await ExercisesController.exists(
+          ctx,
+          this.dict[ctx.params.id],
+          async (ex) => {
+            ctx.response.body = ex.render(ctx.state.seed ?? 0);
+          },
+        );
+      } else throw new Error("params.id is necessary");
+    });
   }
   async check(ctx: RouterContext) {
-    try {
+    await ExercisesController.predictDeath(ctx, async () => {
       if (ctx.request.hasBody && ctx.params.id) {
         const uanswer: JSONType = await ctx.request.body({ type: "json" })
           .value;
-        const exercise = this.dict.get(ctx.params.id);
-        if (exercise) {
-          ctx.response.status = 200;
-          ctx.response.body = exercise.check(ctx.state.seed, uanswer);
-        }
-      }
-    } catch (error) {
-      console.error(error);
-      ctx.response.status = 500;
-      ctx.response.body = {
-        msg: error.toString(),
-      };
-    }
+        await ExercisesController.exists(
+          ctx,
+          this.dict[ctx.params.id],
+          async (ex) => {
+            ctx.response.body = ex.check(ctx.state.seed, uanswer);
+          },
+        );
+      } else throw new Error("body and params.id are necessary");
+    });
   }
 }
 export default new ExercisesController();

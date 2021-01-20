@@ -2,9 +2,9 @@ import EquationExercise from "./equationExercise.ts";
 import Exercise from "../exercise.ts";
 export default <{
   [key: string]: new (
-    name: string,
+    name: typeof Exercise.prototype.name,
     context: string,
-    properties: { [key: string]: string },
+    properties: typeof Exercise.prototype.properties,
   ) => Exercise;
 }> {
   "": EquationExercise,
