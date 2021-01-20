@@ -23,23 +23,35 @@ export class Controller {
                     MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'math-panel'], [() => {
                         $('.mjx-chtml').attr('tabIndex', '-1');
                     }], [() => {
+                        adjustView(this.screenSize);
                         ControllerUtils.toggleContentLoading(false);
-                        $('#content-container').setCustomScrollbars({
-                            autohide: !Utils.isTouch(),
-                            padding: 10
-                        });
+                        if (!Utils.isTouch()) {
+                            $('#content-container').setCustomScrollbars({
+                                autohide: true,
+                                padding: 10
+                            });
+                        }
                     }]);
                 }
             }
         });
+        this.screenSize = Utils.getScreenSize();
         $(window).on('resize', () => {
             const container = $('#content-container');
             const initPos = container.clearCustomScrollbars();
-            container.setCustomScrollbars({
-                autohide: !Utils.isTouch(),
-                padding: 10
-            });
+            if (!Utils.isTouch()) {
+                container.setCustomScrollbars({
+                    autohide: true,
+                    padding: 10
+                });
+            }
             container.scrollToPosition(initPos);
+
+            const newScreenSize = Utils.getScreenSize();
+            if (this.screenSize != newScreenSize) {
+                this.screenSize = newScreenSize;
+                adjustView(this.screenSize);
+            }
         });
     }
 
@@ -128,4 +140,25 @@ function createUnknown(name, unit) {
     const columns = Utils.createElement('div', ['columns', 'is-mobile'], [nameColumn, inputColumn, unitColumn]);
     const tile = Utils.createElement('div', ['tile', 'column', 'is-flex', 'is-justify-content-center', 'pt-0', 'pb-2'], [columns]);
     return tile;
+}
+
+/**
+ * Adjusts view according to current screen size
+ * @param {('mobile' | 'tablet' | 'desktop' | 'widescreen' | 'fullhd')} screenSize 
+ */
+function adjustView(screenSize) {
+    $(() => {
+        const container = $('#content-container');
+        if (screenSize == 'mobile') {
+            container.children('section').replaceClasses(['py-4'], ['p-3']);
+            container.find('#ex-title').addClass('mb-3');
+            container.find('#ex-content').replaceClasses(['mx-4', 'mb-5'], ['mx-1', 'mb-2']);
+            container.find('#ex-unknowns').addClass('mb-0');
+        } else {
+            container.children('section').replaceClasses(['p-3'], ['py-4']);
+            container.find('#ex-title').removeClass('mb-3');
+            container.find('#ex-content').replaceClasses(['mx-1', 'mb-2'], ['mx-4', 'mb-5']);
+            container.find('#ex-unknowns').removeClass('mb-0');
+        }
+    });
 }

@@ -152,29 +152,6 @@ export function capitalize(string, locale = navigator.language) {
         return string.charAt(0).toLocaleUpperCase(locale) + string.slice(1);
 }
 
-export function recycleListElements(list) {
-    $(list).children().each((_, element) => {
-        if (checkIfOutOfBounds(element, list)) {
-            $(element).hide();
-        } else {
-            $(element).show();
-        }
-    })
-}
-
-export function checkIfOutOfBounds(element, parent) {
-    const elementRect = element.getBoundingClientRect();
-    const parentRect = parent.getBoundingClientRect();
-    const windowWidth = (window.innerWidth || document.documentElement.clientWidth);
-    const windowHeight = (window.innerHeight || document.documentElement.clientHeight);
-    return (
-        elementRect.top <= 0 ||
-        elementRect.bottom >= windowHeight ||
-        elementRect.left <= 0 ||
-        elementRect.right >= windowWidth
-    );
-}
-
 (function($) {
     /**
      * Removes all old classes and adds all new classes

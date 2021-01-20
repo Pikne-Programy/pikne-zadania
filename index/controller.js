@@ -133,10 +133,12 @@ function onMenuChanged(update = false) {
         ControllerUtils.toggleMenuLoading(false);
         $('#breadcrumbs').parent().show();
         $('#menu-list').show();
-        $('#menu-list-container').setCustomScrollbars({
-            autohide: !Utils.isTouch(),
-            padding: 10
-        });
+        if (!Utils.isTouch()) {
+            $('#menu-list-container').setCustomScrollbars({
+                autohide: true,
+                padding: 10
+            });
+        }
         if (update)
             $('#menu-list-container').scrollToPosition(initPos);
     }

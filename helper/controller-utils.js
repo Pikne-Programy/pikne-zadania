@@ -113,8 +113,7 @@ export function clearInputVerifiedStated(container) {
         span.replaceClasses(['has-text-success', 'has-text-danger'], ['has-text-warning']);
         const i = span.find('i');
         i.replaceClasses(['fa-check', 'fa-times'], ['fa-exclamation-triangle'])
-
-
-        span.hide();
+        if (!$(input).hasClass('is-warning'))
+            span.hide();
     });
 }
