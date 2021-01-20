@@ -6,6 +6,6 @@ export default abstract class Exercise {
     _content: string, // pociągi-dwa
     readonly properties: { [key: string]: JSONType }, // tags: kinematyka
   ) {}
-  abstract render(uid: string): YAMLType; // GET
-  abstract check(uid: string, answer: JSONType): JSONType; // POST
+  abstract render(seed: number): YAMLType; // GET
+  abstract check(seed: number, answer: JSONType): JSONType; // POST
 }
