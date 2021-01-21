@@ -32,6 +32,10 @@ export function main() {
             screenSize = newScreenSize;
             adjustView(screenSize);
         }
+        if (window.innerHeight <= 450)
+            $('.hero').hide();
+        else
+            $('.hero').show();
         onMenuChanged(true);
     });
     $('#home-button').on('click', () => {
