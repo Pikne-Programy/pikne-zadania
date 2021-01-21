@@ -50,7 +50,7 @@ export function main() {
 
 /**
  * Adjusts view according to current screen size
- * @param {('mobile' | 'tablet' | 'desktop' | 'widescreen' | 'fullhd')} screenSize 
+ * @param {Utils.ScreenSize} screenSize 
  */
 function adjustView(screenSize = Utils.getScreenSize()) {
     const classList = [
@@ -59,7 +59,7 @@ function adjustView(screenSize = Utils.getScreenSize()) {
         new Utils.ToggleClasses('title', 'is-4'),
         new Utils.ToggleClasses('subtitle', 'is-6')
     ];
-    if (screenSize == 'mobile') {
+    if (screenSize == Utils.ScreenSize.MOBILE) {
         $('.mobile-changing').each((_, element) => {
             Utils.toggleClasses(element, classList, true);
         });
@@ -123,7 +123,7 @@ function onMenuChanged(update = false) {
                             $('#menu-list').children().children().removeClass('is-active');
                             $(li).children().addClass('is-active');
                             ControllerUtils.toggleContentLoading(true);
-                            if (Utils.getScreenSize() == 'mobile')
+                            if (Utils.getScreenSize() == Utils.ScreenSize.MOBILE)
                                 $('#menu').hide();
                         }
                     }

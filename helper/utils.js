@@ -1,5 +1,22 @@
+/**
+ */
+
+/**
+ * @enum {string}
+ */
 export const ExerciseType = Object.freeze({
-    EqEx: 1
+    EqEx: 'EqEx'
+})
+
+/**
+ * @enum {string}
+ */
+export const ScreenSize = Object.freeze({
+    MOBILE: 'mobile',
+    TABLET: 'tablet',
+    DESKTOP: 'desktop',
+    WIDESCREEN: 'widescreen',
+    FULLHD: 'fullhd'
 })
 
 /**
@@ -23,7 +40,7 @@ export function importScripts(urls, success) {
 
 /**
  * Returns current screen size breakpoint:
- * @returns
+ * @returns {ScreenSize}
  * 'mobile': 768px and less
  * 
  * 'tablet': 769px - 1023px
@@ -37,15 +54,15 @@ export function importScripts(urls, success) {
 export function getScreenSize() {
     const width = window.innerWidth
     if (width <= 768)
-        return 'mobile'
+        return ScreenSize.MOBILE;
     else if (width <= 1023)
-        return 'tablet'
+        return ScreenSize.TABLET;
     else if (width <= 1215)
-        return 'desktop'
+        return ScreenSize.DESKTOP;
     else if (width <= 1407)
-        return 'widescreen'
+        return ScreenSize.WIDESCREEN;
     else
-        return 'fullhd'
+        return ScreenSize.FULLHD;
 }
 
 /**

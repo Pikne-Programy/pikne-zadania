@@ -2,97 +2,93 @@
 <html>
 
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Niedostateczny.pl</title>
-    <link rel="stylesheet" href="styles.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" />
-    <link rel="stylesheet" href="helper/custom-scrollbar/customscroll.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="helper/custom-scrollbar/customscroll.js"></script>
-    <script type="module">
-        import * as Controller from './index/controller.js'; Controller.importDependencies();
-    </script>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Niedostateczny.pl</title>
+	<link rel="stylesheet" href="styles.css" />
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" />
+	<link rel="stylesheet" href="helper/custom-scrollbar/customscroll.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<script src="helper/custom-scrollbar/customscroll.js"></script>
+	<script type="module">
+		import * as Controller from './index/controller.js'; Controller.importDependencies();
+	</script>
 
-    <!-- Server Mock -->
-    <script type="module">
-        import * as Server from './helper/tests/server.js'; Server.startServer();
-    </script>
+	<!-- Server Mock -->
+	<script type="module">
+		import * as Server from './helper/tests/server.js'; Server.startServer();
+	</script>
 </head>
 
 <body>
-    <div class="full-height is-flex is-flex-direction-column">
-        <section class="hero is-primary is-bold">
-            <div class="hero-body mobile-changing">
-                <div class="container">
-                    <h1 class="title mobile-changing">Niedostateczny.pl</h1>
-                    <h2 class="subtitle mobile-changing">
-                        Zadania z fizyki i nie tylko!
-                    </h2>
-                </div>
-            </div>
-        </section>
-        <section class="section root">
-            <div class="columns full-height root">
-                <div id="menu" class="full-height column is-one-quarter-tablet is-one-fifth-desktop">
-                    <div class="box full-height p-0">
-                        <aside class="menu full-height is-flex is-flex-direction-column">
-                            <div id="menu-loading" class="full-height is-flex is-flex-direction-column is-align-items-center is-justify-content-center">
-                                <progress class="progress is-small is-primary my-3" max="100" style="width: 70%">15%</progress>
-                            </div>
-                            <nav class="breadcrumb border-bottom p-4-5 pb-4 mb-0" aria-label="breadcrumbs" style="display: none;">
-                                <ul id="breadcrumbs">
-                                    <li id="menu-home">
-                                        <a aria-current="page">
-                                            <span class="icon is-small">
-                                                <i class="fas fa-home" aria-hidden="true"></i>
-                                            </span>
-                                            <span>Zadania</span>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </nav>
-                            <div id="menu-list-container" class="full-height scrollable px-4">
-                                <ul id="menu-list" class="menu-list py-3" style="display: none;"></ul>
-                            </div>
-                        </aside>
-                    </div>
-                </div>
-                <div id="content" class="column full-height">
-                    <div class="box full-height is-flex is-flex-direction-column mobile-changing" style="padding: 0 !important;">
-                        <nav class="level p-4 m-0 border-bottom">
-                            <div class="level-left">
-                                <button id="back-button" class="button is-rounded" style="display: none">
-                                    <span class="icon">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </span>
-                                    <span>Wróć</span>
-                                </button>
-                            </div>
-                            <div class="level-right" style="display: none">
-                                <button id="home-button" class="button is-rounded">
-                                    <span class="icon">
-                                        <i class="fas fa-home"></i>
-                                    </span>
-                                    <span>Home</span>
-                                </button>
-                            </div>
-                        </nav>
-                        <div id="content-container" class="full-height scrollable" style="display: none;"></div>
-                        <div id="content-loading" class="full-height is-flex-direction-column is-align-items-center is-justify-content-center py-3" style="display: none;">
-                            <progress class="progress is-small is-primary" max="100" style="width: 70%">
-                                15%
-                            </progress>
-                        </div>
-                        <div id="content-menu" class="full-height is-flex is-flex-direction-column is-align-items-center is-justify-content-center py-3">
-                            <a class="title">Tu będzie jakieś menu</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
+	<div class="full-height is-flex is-flex-direction-column">
+		<section class="hero is-primary is-bold">
+			<div class="hero-body mobile-changing">
+				<div class="container">
+					<h1 class="title mobile-changing">Niedostateczny.pl</h1>
+					<h2 class="subtitle mobile-changing">Zadania z fizyki i nie tylko!</h2>
+				</div>
+			</div>
+		</section>
+		<section class="section root">
+			<div class="columns full-height root">
+				<div id="menu" class="full-height column is-one-quarter-tablet is-one-fifth-desktop">
+					<div class="box full-height p-0">
+						<aside class="menu full-height is-flex is-flex-direction-column">
+							<div id="menu-loading" class="full-height is-flex is-flex-direction-column is-align-items-center is-justify-content-center">
+								<progress class="progress is-small is-primary my-3" max="100" style="width: 70%">15%</progress>
+							</div>
+							<nav class="breadcrumb border-bottom p-4-5 pb-4 mb-0" aria-label="breadcrumbs" style="display: none;">
+								<ul id="breadcrumbs">
+									<li id="menu-home">
+										<a aria-current="page">
+											<span class="icon is-small">
+												<i class="fas fa-home" aria-hidden="true"></i>
+											</span>
+											<span>Zadania</span>
+										</a>
+									</li>
+								</ul>
+							</nav>
+							<div id="menu-list-container" class="full-height scrollable px-4">
+								<ul id="menu-list" class="menu-list py-3" style="display: none;"></ul>
+							</div>
+						</aside>
+					</div>
+				</div>
+				<div id="content" class="column full-height">
+					<div class="box full-height is-flex is-flex-direction-column mobile-changing" style="padding: 0 !important;">
+						<nav class="level p-4 m-0 border-bottom">
+							<div class="level-left">
+								<button id="back-button" class="button is-rounded" style="display: none">
+									<span class="icon">
+										<i class="fas fa-chevron-left"></i>
+									</span>
+									<span>Wróć</span>
+								</button>
+							</div>
+							<div class="level-right" style="display: none">
+								<button id="home-button" class="button is-rounded">
+									<span class="icon">
+										<i class="fas fa-home"></i>
+									</span>
+									<span>Home</span>
+								</button>
+							</div>
+						</nav>
+						<div id="content-container" class="full-height scrollable" style="display: none;"></div>
+						<div id="content-loading" class="full-height is-flex-direction-column is-align-items-center is-justify-content-center py-3" style="display: none;">
+							<progress class="progress is-small is-primary" max="100" style="width: 70%">15%</progress>
+						</div>
+						<div id="content-menu" class="full-height is-flex is-flex-direction-column is-align-items-center is-justify-content-center py-3">
+							<a class="title">Tu będzie jakieś menu</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+	</div>
 </body>
 
 </html>

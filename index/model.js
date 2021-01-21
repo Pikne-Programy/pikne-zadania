@@ -54,7 +54,7 @@ function createExerciseTree(value, children, parent = null) {
     for (let i = 0; i < children.length; i++) {
         const child = children[i];
         if (typeof Array.isArray === 'undefined') {
-            Array.isArray = function(obj) {
+            Array.isArray = function (obj) {
                 return Object.prototype.toString.call(obj) === '[object Array]';
             }
         }
@@ -91,6 +91,7 @@ export class TreeNode {
             return true;
         } else {
             fetchExercise(this.url).then((result) => {
+                //TODO Check for exercise type
                 currentExercise.set(new EquationExercise(this.url, result));
             });
             return false;

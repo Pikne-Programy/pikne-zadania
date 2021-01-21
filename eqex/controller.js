@@ -144,12 +144,12 @@ function createUnknown(name, unit) {
 
 /**
  * Adjusts view according to current screen size
- * @param {('mobile' | 'tablet' | 'desktop' | 'widescreen' | 'fullhd')} screenSize 
+ * @param {Utils.ScreenSize} screenSize 
  */
 function adjustView(screenSize) {
     $(() => {
         const container = $('#content-container');
-        if (screenSize == 'mobile') {
+        if (screenSize == Utils.ScreenSize.MOBILE) {
             container.children('section').replaceClasses(['py-4'], ['p-3']);
             container.find('#ex-title').addClass('mb-3');
             container.find('#ex-content').replaceClasses(['mx-4', 'mb-5'], ['mx-1', 'mb-2']);

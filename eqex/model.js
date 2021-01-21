@@ -39,7 +39,7 @@ export async function sendAnswers(resultCallback) {
 
 export class Unknown {
     /**
-     * @param {string?} name 
+     * @param {string} name 
      * @param {string} unit 
      */
     constructor(name, unit) {
