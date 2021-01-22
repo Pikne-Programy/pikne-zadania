@@ -12,9 +12,6 @@ Content-Type: application/json
 Cookie: seed=0
 
 {
-    "x": 23030,
-    "t": 0.432
+    "x": 167,
+    "t": 2.9
 }
-
-
-
