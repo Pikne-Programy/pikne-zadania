@@ -1,0 +1,87 @@
+html,
+body {
+    /* Hiding scrollbar */
+    overflow: hidden;
+    /* IE and Edge */
+    -ms-overflow-style: none;
+    /* Firefox */
+    scrollbar-width: none;
+}
+
+body {
+    height: 100vh;
+    width: 100vw;
+}
+
+::-webkit-scrollbar {
+    /* Chrome, Safari and Opera */
+    display: none;
+}
+
+.full-height {
+    height: 100%;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.menu-element {
+    text-align: justify;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.section.root {
+    overflow: hidden;
+    height: 100%;
+    padding: 0.5% 1% 1%;
+}
+
+.columns.root {
+    margin: 0;
+}
+
+.scrollable {
+    overflow: auto;
+}
+
+.border-bottom {
+    border-bottom: 1px solid rgba(10, 10, 10, 0.1);
+}
+
+.box.mobile-root-padding {
+    padding: 1rem 0.5rem !important;
+}
+
+.hero-body.mobile-padding {
+    padding: 1.75rem 1.5rem;
+}
+
+.unknowns-width {
+    min-width: 2em;
+}
+
+.justify {
+    text-align: justify;
+}
+
+.use-line-break {
+    white-space: pre-line;
+}
+
+.img {
+    max-height: 20vh;
+}
+
+.p-4-5 {
+    padding: 1.25rem !important;
+}
+
+.pb-5-5 {
+    padding-bottom: 2rem !important;
+}
+
+.mjx-chtml {
+    font-size: 113% !important;
+}
