@@ -40,6 +40,7 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
   }
 ]
 ```
+**note**: Elements of the root list must be subject objects
 
 ***
 
