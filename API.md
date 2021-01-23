@@ -19,29 +19,34 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 **Response**:
 ```json
 [
- {
-  "name": "mechanika",
-  "children": [
-   {
-    "name": "kinematyka",
+  {
+    "name": "fizyka",
     "children": [
-     {
-      "name": "Pociągi dwa 2",
-      "children": "pociągi-dwa"
-     }
+      {
+        "name": "mechanika",
+        "children": [
+          {
+            "name": "kinematyka",
+            "children": [
+              {
+                "name": "Pociągi dwa 2",
+                "children": "pociągi-dwa"
+              }
+            ]
+          }
+        ]
+      }
     ]
-   }
-  ]
- }
+  }
 ]
 ```
 
 ***
 
-## `GET /api/public/:id`
+## `GET /api/public/:subject/:id`
 | Method | URL | Description |
 | - | - | - |
-| GET | `/api/public/:id` | get one Exercise |
+| GET | `/api/public/:subject/:id` | get one Exercise |
 
 **Request**:
 ```json
@@ -63,10 +68,10 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ***
 
-## `POST /api/public/:id`
+## `POST /api/public/:subject/:id`
 | Method | URL | Description |
 | - | - | - |
-| POST | `/api/public/:id` | check answers |
+| POST | `/api/public/:subject/:id` | check answers |
 
 **Request**:
 ```json
