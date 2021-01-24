@@ -183,7 +183,7 @@ export default class EquationExercise extends Exercise {
   // regexes used to match specific expressions
   static readonly numberR = "[0-9]*\\.?[0-9]+(?:[eE][\\-\\+]?[0-9]+)?";
   static readonly variableR = "(?<![0-9])[a-zA-Z_][a-zA-Z_0-9]*";
-  static readonly unitR = "(?:[a-zA-Z_0-9\\/\\*\\^\\(\\)]+)?";
+  static readonly unitR = "(?:[a-zA-Z0-9\\+\\-\\/\\*\\^]+)?";
   static readonly operationR = "[\\+\\-*\\/\\^\\-]";
   static readonly functionR = "abs|exp|ln|log2|log10";
   static readonly trygonometryR = "a?(?:sin|cos|tan)h?r?";
@@ -198,7 +198,7 @@ export default class EquationExercise extends Exercise {
     `(${EquationExercise.variableR})=\\?(${EquationExercise.unitR})`,
   );
   static readonly rangeEqR = new RegExp(
-    `(${EquationExercise.variableR})=\\[(${EquationExercise.numberR});(${EquationExercise.numberR})\\](${EquationExercise.unitR})`,
+    `(${EquationExercise.variableR})=\\[(${EquationExercise.numberR});(${EquationExercise.numberR})(?:;(${EquationExercise.numberR}))?\\](${EquationExercise.unitR})`,
   );
   type = "EqEx";
   readonly parsedContent: string; // "lorem ipsum \(d=300\mathrm{km\}\) foo \(v_a=\mathrm{\frac{m}{s}}\) bar \(v_b=\frac{m}{s}\)."
@@ -230,18 +230,21 @@ export default class EquationExercise extends Exercise {
         // --------------------------------------------------
         // considered regex: numberR (variable)=(value)(unit)
         parsedLine = "";
-        while ((m = EquationExercise.numberEqR.exec(line)) != null) {
+        while ((m = EquationExercise.numberEqR.exec(line)) !== null) {
           const numberMatch = {
             name: m[1],
             index: [
-              m.index + m[1].length + 1,
-              m.index + m[0].length - m[3].length,
+              // {0} d= 300 km {1}
+              m.index,
+              m.index + m[0].length,
             ],
             value: parseFloat(m[2]),
-            unit: m[3],
+            unit: EquationExercise.convertToLaTeX(m[3]),
           };
-          parsedLine += line.substring(0, numberMatch.index[1]);
-          line = line.substr(numberMatch.index[1]);
+          parsedLine += line.substring(0, numberMatch.index[0]) + "\\(" +
+            numberMatch.name + "= " + numberMatch.value + numberMatch.unit +
+            "\\)"; // add space next to the '=' to prevent from matching multiple times
+          line = line.substring(numberMatch.index[1]); // remove this match from line
           this.variables[numberMatch.name] = numberMatch.value;
         }
         parsedLine += line;
@@ -249,45 +252,55 @@ export default class EquationExercise extends Exercise {
         // considered regex: unknownEqR (variable)=?(unit)
         line = parsedLine;
         parsedLine = "";
-        while ((m = EquationExercise.unknownEqR.exec(line)) != null) {
+        while ((m = EquationExercise.unknownEqR.exec(line)) !== null) {
           const unknownMatch = {
-            index: [m.index + m[1].length, m.index + m[0].length],
+            index: [
+              // {0} x {1} =? {2}
+              m.index,
+              m.index + m[0].length,
+            ],
             name: m[1],
-            unit: m[2],
+            unit: EquationExercise.convertToLaTeX(m[2]),
           };
+          parsedLine += line.substring(0, unknownMatch.index[0]) + "\\(" +
+            unknownMatch.name + "\\)";
+          line = line.substring(unknownMatch.index[1]); // remove this match
           this.unknowns.push([unknownMatch.name, unknownMatch.unit]);
-          parsedLine += line.substring(0, unknownMatch.index[0]);
-          line = line.substring(unknownMatch.index[1]);
         }
         parsedLine += line;
         // --------------------------------------------------
-        // considered regex: unknownEqR (variable)=[(min);(max)](unit)
+        // considered regex: rangeEqR (variable)=[(min);(max);(step=1)](unit)
         line = parsedLine;
         parsedLine = "";
-        while ((m = EquationExercise.rangeEqR.exec(line)) != null) {
+        while ((m = EquationExercise.rangeEqR.exec(line)) !== null) {
           const rangeMatch = {
             name: m[1],
             index: [
+              // {0} v_a= {1} [40;80;20] m/s {2}
+              m.index,
               m.index + m[1].length + 1,
-              m.index + m[0].length - m[4].length,
+              m.index + m[0].length,
             ],
             rangeMin: parseFloat(m[2]),
             rangeMax: parseFloat(m[3]),
-            unit: m[4],
+            step: parseFloat(m[4] ?? "1"),
+            unit: EquationExercise.convertToLaTeX(m[5]),
           };
           this.variables[rangeMatch.name] = new Range(
             rangeMatch.rangeMin,
             rangeMatch.rangeMax,
-            1,
-          );
-          parsedLine += line.substring(0, rangeMatch.index[0]);
-          line = line.substring(rangeMatch.index[1]);
-          index += rangeMatch.index[0];
+            rangeMatch.step,
+          );          
+          parsedLine += line.substring(0, rangeMatch.index[0]) + "\\(" +
+            rangeMatch.name + "=" + rangeMatch.unit + "\\)";
+          line = line.substring(rangeMatch.index[2]); // remove this match
+          index += 2 + rangeMatch.index[1]; // "\(" + name + "="
           this.ranges.push([index, rangeMatch.name]);
+          index += rangeMatch.unit.length + 2; // LaTeX unit + "\)"
         }
         parsedLine += line;
         parsingContent += parsedLine + "\n";
-        index += line.length + 1; // what's left + '/n'
+        index += line.length + 1; // what's left + '\n'
       } else if (segment == 1) {
         if (!EquationExercise.equationR.test(line)) {
           throw new Error("LINE DOESNT MATCH PATTERN");
@@ -396,7 +409,6 @@ export default class EquationExercise extends Exercise {
       const a: [string, Expressions] = [arr[0], RPN.getType(arr[0])];
       tab.push(a);
     }
-
     return tab;
   }
   // convert equation to an RPN object
@@ -470,5 +482,31 @@ export default class EquationExercise extends Exercise {
       RPNeq.push(stack.pop()!);
     }
     return RPNeq;
+  }
+  static convertToLaTeX(unit: string): string {
+    let parsedUnit = "";
+    let isFraction = false;
+    const r = "\\^([\\-\\+]?[0-9]+)|([a-zA-Z]+|[\\-\\+])|[\\*\\/\\^]";
+    const execR = new RegExp(r, "g");
+    const testR = new RegExp(`^(${r})+$`);
+    if (!testR.test(unit)) {
+      throw new Error("INVALID UNIT FORMAT");
+    }
+    let m: RegExpExecArray | null;
+    while ((m = execR.exec(unit)) !== null) {
+      if (m[2] !== undefined) {
+        parsedUnit += m[0];
+      } else if (m[1] !== undefined) {
+        parsedUnit += "^{" + m[1] + "}";
+      } else if (m[0] === "*") {
+        parsedUnit += "\\cdot ";
+      } else if (m[0] === "/") {
+        parsedUnit = parsedUnit + "}{";
+        isFraction = true;
+      }
+    }
+    parsedUnit = "\\mathrm{" + ((isFraction) ? "\\frac{" : "") + parsedUnit +
+      ((isFraction) ? "}" : "") + "}";
+    return parsedUnit;
   }
 }
