@@ -13,6 +13,10 @@ body {
 	width: 100vw;
 }
 
+progress.is70 {
+	width: 70%;
+}
+
 ::-webkit-scrollbar {
 	/* Chrome, Safari and Opera */
 	display: none;
@@ -24,6 +28,10 @@ body {
 
 .full-width {
 	width: 100%;
+}
+
+.max-full-height {
+	max-height: 100%;
 }
 
 .max-three-quarters {
@@ -47,8 +55,21 @@ body {
 	margin: 0;
 }
 
+.panel > .panel {
+	box-shadow: none !important;
+	border-radius: 0;
+}
+
 .scrollable {
 	overflow: auto;
+}
+
+.not-scrollable {
+	overflow: hidden;
+}
+
+.tabs.is-boxed .is-active {
+	color: initial;
 }
 
 .border-top {

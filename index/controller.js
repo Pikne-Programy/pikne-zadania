@@ -40,17 +40,18 @@ function main() {
 
 /**
  * Shows or hides header and footer depending on screen size
- * @param {Utils.ScreenSize} screenSize 
  */
-function toggleHeaderAndFooter(screenSize) {
+function toggleHeaderAndFooter() {
     if (window.innerHeight <= 450) {
         $('.hero').hide();
         $('footer').hide();
     }
     else {
         $('.hero').show();
-        if (screenSize == Utils.ScreenSize.MOBILE)
+        if ($('.navbar').find('.navbar-menu').css('display') == 'none')
             $('footer').show();
+        else
+            $('footer').hide();
     }
 }
 
