@@ -26,8 +26,31 @@
 <body>
 	<div class="full-height is-flex is-flex-direction-column">
 		<section class="hero is-primary is-bold">
+			<div class="hero-head">
+				<nav class="navbar">
+					<div class="container">
+						<div class="navbar-brand">
+							<a class="navbar-item" href="">
+								<img src="https://via.placeholder.com/460x120?text=Logo" alt="Logo">
+							</a>
+						</div>
+						<div class="navbar-menu">
+							<div class="navbar-end">
+								<span class="navbar-item">
+									<a class="button is-primary is-inverted" href="https://github.com/Pikne-Programy/pikne-zadania-frontend" target="_blank">
+										<span class="icon">
+											<i class="fab fa-github"></i>
+										</span>
+										<span>GitHub</span>
+									</a>
+								</span>
+							</div>
+						</div>
+					</div>
+				</nav>
+			</div>
 			<div class="hero-body mobile-changing">
-				<div class="container">
+				<div class="container has-text-centered">
 					<h1 class="title mobile-changing">Niedostateczny.pl</h1>
 					<h2 class="subtitle mobile-changing">Zadania z fizyki i nie tylko!</h2>
 				</div>
@@ -61,21 +84,13 @@
 				</div>
 				<div id="content" class="column full-height">
 					<div class="box full-height is-flex is-flex-direction-column mobile-changing" style="padding: 0 !important;">
-						<nav class="level p-4 m-0 border-bottom">
+						<nav class="level p-4 m-0 border-bottom" style="display: none">
 							<div class="level-left">
-								<button id="back-button" class="button is-rounded" style="display: none">
+								<button id="back-button" class="button is-rounded">
 									<span class="icon">
 										<i class="fas fa-chevron-left"></i>
 									</span>
 									<span>Wróć</span>
-								</button>
-							</div>
-							<div class="level-right" style="display: none">
-								<button id="home-button" class="button is-rounded">
-									<span class="icon">
-										<i class="fas fa-home"></i>
-									</span>
-									<span>Home</span>
 								</button>
 							</div>
 						</nav>
@@ -84,12 +99,21 @@
 							<progress class="progress is-small is-primary" max="100" style="width: 70%">15%</progress>
 						</div>
 						<div id="content-menu" class="full-height is-flex is-flex-direction-column is-align-items-center is-justify-content-center py-3">
-							<a class="title">Tu będzie jakaś grafika</a>
+							<img class="max-three-quarters" src="https://via.placeholder.com/1024x1024.png?text=Tu+będzie+jakaś+grafika">
 						</div>
 					</div>
 				</div>
 			</div>
 		</section>
+		<footer id="footer" class="footer border-top p-3" style="display: none;">
+			<div class="content has-text-centered">
+				<span class="icon">
+					<a href="https://github.com/Pikne-Programy/pikne-zadania-frontend" target="_blank" style="color: unset;">
+						<i class="fab fa-lg fa-github"></i>
+					</a>
+				</span>
+			</div>
+		</footer>
 	</div>
 </body>
 

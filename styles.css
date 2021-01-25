@@ -1,87 +1,96 @@
 html,
 body {
-    /* Hiding scrollbar */
-    overflow: hidden;
-    /* IE and Edge */
-    -ms-overflow-style: none;
-    /* Firefox */
-    scrollbar-width: none;
+	/* Hiding scrollbar */
+	overflow: hidden;
+	/* IE and Edge */
+	-ms-overflow-style: none;
+	/* Firefox */
+	scrollbar-width: none;
 }
 
 body {
-    height: 100vh;
-    width: 100vw;
+	height: 100vh;
+	width: 100vw;
 }
 
 ::-webkit-scrollbar {
-    /* Chrome, Safari and Opera */
-    display: none;
+	/* Chrome, Safari and Opera */
+	display: none;
 }
 
 .full-height {
-    height: 100%;
+	height: 100%;
 }
 
 .full-width {
-    width: 100%;
+	width: 100%;
+}
+
+.max-three-quarters {
+	max-width: 75%;
+	max-height: 75%;
 }
 
 .menu-element {
-    text-align: justify;
-    overflow: hidden;
-    text-overflow: ellipsis;
+	text-align: justify;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .section.root {
-    overflow: hidden;
-    height: 100%;
-    padding: 0.5% 1% 1%;
+	overflow: hidden;
+	height: 100%;
+	padding: 0.5% 1% 1%;
 }
 
 .columns.root {
-    margin: 0;
+	margin: 0;
 }
 
 .scrollable {
-    overflow: auto;
+	overflow: auto;
+}
+
+.border-top {
+	border-top: 1px solid rgba(10, 10, 10, 0.1);
 }
 
 .border-bottom {
-    border-bottom: 1px solid rgba(10, 10, 10, 0.1);
+	border-bottom: 1px solid rgba(10, 10, 10, 0.1);
 }
 
 .box.mobile-root-padding {
-    padding: 1rem 0.5rem !important;
+	padding: 1rem 0.5rem !important;
 }
 
 .hero-body.mobile-padding {
-    padding: 1.75rem 1.5rem;
+	padding: 0.5rem 1.75rem 1.5rem;
 }
 
 .unknowns-width {
-    min-width: 2em;
+	min-width: 2em;
 }
 
 .justify {
-    text-align: justify;
+	text-align: justify;
 }
 
 .use-line-break {
-    white-space: pre-line;
+	white-space: pre-line;
 }
 
 .img {
-    max-height: 20vh;
+	max-height: 20vh;
 }
 
 .p-4-5 {
-    padding: 1.25rem !important;
+	padding: 1.25rem !important;
 }
 
 .pb-5-5 {
-    padding-bottom: 2rem !important;
+	padding-bottom: 2rem !important;
 }
 
 .mjx-chtml {
-    font-size: 113% !important;
+	font-size: 113% !important;
 }

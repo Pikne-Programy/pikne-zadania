@@ -21,26 +21,37 @@ function main() {
     Model.startModel(onMenuChanged, onExerciseLoaded);
     adjustView();
     let screenSize = Utils.getScreenSize();
+    toggleHeaderAndFooter(screenSize);
     $(window).on('resize', () => {
         const newScreenSize = Utils.getScreenSize();
         if (screenSize != newScreenSize) {
             screenSize = newScreenSize;
             adjustView(screenSize);
         }
-        if (window.innerHeight <= 450)
-            $('.hero').hide();
-        else
-            $('.hero').show();
+        toggleHeaderAndFooter(screenSize);
         onMenuChanged(true);
-    });
-    $('#home-button').on('click', () => {
-        clearCurrentExercise();
     });
     $('#back-button').on('click', () => {
         clearCurrentExercise();
         $('#menu').show();
         $('#content').hide();
     });
+}
+
+/**
+ * Shows or hides header and footer depending on screen size
+ * @param {Utils.ScreenSize} screenSize 
+ */
+function toggleHeaderAndFooter(screenSize) {
+    if (window.innerHeight <= 450) {
+        $('.hero').hide();
+        $('footer').hide();
+    }
+    else {
+        $('.hero').show();
+        if (screenSize == Utils.ScreenSize.MOBILE)
+            $('footer').show();
+    }
 }
 
 /**
@@ -63,8 +74,8 @@ function adjustView(screenSize = Utils.getScreenSize()) {
             $('#content').hide();
         else
             $('#menu').hide()
-        $('#home-button').parent().hide();
-        $('#back-button').show();
+        $('#back-button').parent().parent().show();
+        $('footer').show();
     } else {
         $('.mobile-changing').each((_, element) => {
             Utils.toggleClasses(element, classList, false);
@@ -72,8 +83,8 @@ function adjustView(screenSize = Utils.getScreenSize()) {
 
         $('#menu').show()
         $('#content').show();
-        $('#home-button').parent().show();
-        $('#back-button').hide();
+        $('#back-button').parent().parent().hide();
+        $('footer').hide();
     }
 }
 
