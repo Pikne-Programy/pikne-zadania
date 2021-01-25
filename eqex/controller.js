@@ -23,14 +23,16 @@ export class Controller {
                     MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'math-panel'], [() => {
                         $('.mjx-chtml').attr('tabIndex', '-1');
                     }], [() => {
-                        adjustView(this.screenSize);
-                        ControllerUtils.toggleContentLoading(false);
-                        if (!Utils.isTouch()) {
-                            $('#content-container').setCustomScrollbars({
-                                autohide: true,
-                                padding: 10
-                            });
-                        }
+                        $(() => {
+                            adjustView(this.screenSize);
+                            ControllerUtils.toggleContentLoading(false);
+                            if (!Utils.isTouch()) {
+                                $('#content-container').setCustomScrollbars({
+                                    autohide: true,
+                                    padding: 10
+                                });
+                            }
+                        });
                     }]);
                 }
             }

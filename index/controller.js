@@ -6,23 +6,18 @@ import * as EqEx from '../eqex/controller.js';
 let currentExerciseController = null;
 
 /**
- * Imports dependencies of the controller from CDN and starts main
+ * Starts main when all scripts have been loaded
  */
-export function importDependencies() {
-    Utils.importScripts([
-        'https://polyfill.io/v3/polyfill.min.js?features=es6',
-        'https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-MML-AM_CHTML-full'
-    ], () => {
-        $(() => {
-            main();
-        });
+export function startOnLoad() {
+    $(() => {
+        main();
     });
 }
 
 /**
  * Main code of the controller. Must be executed after all dependencies have been imported.
  */
-export function main() {
+function main() {
     Model.startModel(onMenuChanged, onExerciseLoaded);
     adjustView();
     let screenSize = Utils.getScreenSize();
