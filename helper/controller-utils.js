@@ -16,7 +16,7 @@ export function toggleMenuLoading(state) {
 
 /**
  * Shows or hides loading progress bar for Content
- * @param {boolean} state True - shows progress bar; False - shows content; Null - shows content menu
+ * @param {boolean} state True - shows progress bar; False - shows content; Null - shows content placeholder
  */
 export function toggleContentLoading(state) {
     $('#content').show();
