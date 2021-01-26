@@ -17,15 +17,8 @@ export class Controller {
             }], ["Typeset", MathJax.Hub, 'math-panel'], [() => {
                 $('.mjx-chtml').attr('tabIndex', '-1');
             }], [() => {
-                if (!this.isAborted) {
+                if (!this.isAborted)
                     ControllerUtils.toggleContentLoading(false);
-                    if (!Utils.isTouch()) {
-                        $('#content-container').setCustomScrollbars({
-                            autohide: true,
-                            padding: 10
-                        });
-                    }
-                }
             }]);
         }
     });
@@ -35,7 +28,6 @@ export class Controller {
      * @param {Model.EquationExercise} exercise Fetched EqEx exercise
      */
     constructor(exercise) {
-        $('#content-container').clearCustomScrollbars();
         Model.startModel(exercise);
         const container = Utils.createElement('div');
         $(container).load(getBasePath() + '/eqex/eqex.html', () => {
@@ -51,16 +43,6 @@ export class Controller {
         });
         this.screenSize = Utils.getScreenSize();
         $(window).on('resize', () => {
-            const container = $('#content-container');
-            const initPos = container.clearCustomScrollbars();
-            if (!Utils.isTouch()) {
-                container.setCustomScrollbars({
-                    autohide: true,
-                    padding: 10
-                });
-            }
-            container.scrollToPosition(initPos);
-
             const newScreenSize = Utils.getScreenSize();
             if (this.screenSize != newScreenSize) {
                 this.screenSize = newScreenSize;

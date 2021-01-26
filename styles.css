@@ -8,6 +8,16 @@ body {
 	scrollbar-width: none;
 }
 
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+	/* Chrome, Safari and Opera */
+	display: none;
+}
+
+.hero.is-primary .tabs.is-boxed a:not(.button):not(.dropdown-item):not(.tag):not(.pagination-link.is-current) {
+	color: #00d1b2;
+}
+
 body {
 	height: 100vh;
 	width: 100vw;
@@ -15,11 +25,6 @@ body {
 
 progress.is70 {
 	width: 70%;
-}
-
-::-webkit-scrollbar {
-	/* Chrome, Safari and Opera */
-	display: none;
 }
 
 .full-height {
@@ -66,10 +71,6 @@ progress.is70 {
 
 .not-scrollable {
 	overflow: hidden;
-}
-
-.tabs.is-boxed .is-active {
-	color: #363636;
 }
 
 .border-top {

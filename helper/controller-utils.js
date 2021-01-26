@@ -117,3 +117,18 @@ export function clearInputVerifiedStated(container) {
             span.hide();
     });
 }
+
+/**
+ * Sets listener for click or enter key press on the provided element
+ * @param {(HTMLElement | string)} element HTMLElement or JQuery selector
+ * @param {function} callback Function executed on click
+ */
+export function setOnClickOrEnterListener(element, callback) {
+    ['click', 'keydown'].forEach((eventName) => {
+        $(element).on(eventName, (event) => {
+            if (eventName != 'keydown' || event.which == 13) {
+                callback();
+            }
+        });
+    });
+}

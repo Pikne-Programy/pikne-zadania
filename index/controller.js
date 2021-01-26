@@ -37,7 +37,7 @@ function main() {
         $('#menu').show();
         $('#content').hide();
     });
-    $('#page-tab-home').on('click', () => {
+    ControllerUtils.setOnClickOrEnterListener('#page-tab-home', () => {
         $('#section-exercise-list').hide();
         $('#section-subject-list').show();
         onSubjectsLoaded(true);
@@ -104,7 +104,6 @@ function adjustView(screenSize = Utils.getScreenSize()) {
 function onSubjectsLoaded(update = false) {
     const subjectPanel = $('#panel-subjects');
     const container = subjectPanel.find('nav');
-    const initPos = container.clearCustomScrollbars();
     if (!update) {
         const subjectList = Model.subjectList.get();
         container.empty();
@@ -114,14 +113,6 @@ function onSubjectsLoaded(update = false) {
         subjectPanel.find('progress').parent().removeClass('is-flex');
         container.show();
     }
-    if (!Utils.isTouch()) {
-        container.setCustomScrollbars({
-            autohide: true,
-            padding: 5
-        });
-    }
-    if (update)
-        container.scrollToPosition(initPos);
 }
 
 /**
@@ -134,7 +125,8 @@ function createSubjectPanelElement(subjectName) {
     const iconSpan = Utils.createElement('span', ['panel-icon'], [icon]);
     const nameSpan = Utils.createElement('span', [], [], Utils.capitalize(subjectName))
     const a = Utils.createElement('a', ['panel-block'], [iconSpan, nameSpan]);
-    $(a).on('click', () => {
+    $(a).attr('tabIndex', '0');
+    ControllerUtils.setOnClickOrEnterListener(a, () => {
         $('#menu-home').find('span').last().html(Utils.capitalize(subjectName));
         $('#section-subject-list').hide();
         $('#section-exercise-list').show();
@@ -151,7 +143,6 @@ function createSubjectPanelElement(subjectName) {
 function onMenuChanged(update = false) {
     ControllerUtils.toggleMenuLoading(true);
     const selectedPos = $('#menu-list').find('.is-active').parent().index();
-    const initPos = $('#menu-list-container').clearCustomScrollbars();
     const home = document.getElementById('menu-home');
     if (home.onclick == null) {
         home.onclick = () => {
@@ -166,30 +157,26 @@ function onMenuChanged(update = false) {
             const element = Utils.createElement('a', ['menu-element'], [], child.value);
             const li = Utils.createElement('li', [], [element]);
             $(li).attr('tabIndex', 0);
-            ['click', 'keydown'].forEach((eventName) => {
-                $(li).on(eventName, (event) => {
-                    if (eventName != 'keydown' || event.which == 13) {
-                        if (child.select()) {
-                            $('#breadcrumbs').children().each((_, node) => {
-                                $(node).children().removeClass('is-active');
-                                $(node).children().removeAttr('aria-current');
-                            });
-                            const a = Utils.createElement('a', ['is-active'], [], child.value);
-                            $(a).attr('aria-current', 'page');
-                            const breadcrumb = Utils.createElement('li', [], [a])
-                            breadcrumb.onclick = () => {
-                                selectMenu(breadcrumb, child);
-                            }
-                            $('#breadcrumbs').append(breadcrumb);
-                        } else {
-                            $('#menu-list').children().children().removeClass('is-active');
-                            $(li).children().addClass('is-active');
-                            ControllerUtils.toggleContentLoading(true);
-                            if (Utils.getScreenSize() == Utils.ScreenSize.MOBILE)
-                                $('#menu').hide();
-                        }
+            ControllerUtils.setOnClickOrEnterListener(li, () => {
+                if (child.select()) {
+                    $('#breadcrumbs').children().each((_, node) => {
+                        $(node).children().removeClass('is-active');
+                        $(node).children().removeAttr('aria-current');
+                    });
+                    const a = Utils.createElement('a', ['is-active'], [], child.value);
+                    $(a).attr('aria-current', 'page');
+                    const breadcrumb = Utils.createElement('li', [], [a])
+                    breadcrumb.onclick = () => {
+                        selectMenu(breadcrumb, child);
                     }
-                });
+                    $('#breadcrumbs').append(breadcrumb);
+                } else {
+                    $('#menu-list').children().children().removeClass('is-active');
+                    $(li).children().addClass('is-active');
+                    ControllerUtils.toggleContentLoading(true);
+                    if (Utils.getScreenSize() == Utils.ScreenSize.MOBILE)
+                        $('#menu').hide();
+                }
             });
             $('#menu-list').append(li);
         });
@@ -199,14 +186,6 @@ function onMenuChanged(update = false) {
         ControllerUtils.toggleMenuLoading(false);
         $('#breadcrumbs').parent().show();
         $('#menu-list').show();
-        if (!Utils.isTouch()) {
-            $('#menu-list-container').setCustomScrollbars({
-                autohide: true,
-                padding: 10
-            });
-        }
-        if (update)
-            $('#menu-list-container').scrollToPosition(initPos);
     }
 }
 
@@ -214,7 +193,6 @@ function onMenuChanged(update = false) {
  * Updates view according to the current selected Exercise
  */
 function onExerciseLoaded() {
-    $('#content-container').clearCustomScrollbars();
     const exercise = Model.currentExercise.get();
     if (exercise != null) {
         if (currentExerciseController != null)
