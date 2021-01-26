@@ -29,8 +29,8 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
             "name": "kinematyka",
             "children": [
               {
-                "name": "Pociągi dwa 2",
-                "children": "pociągi-dwa"
+                "name": "Pociągi dwa",
+                "children": "pociagi-dwa"
               }
             ]
           }
