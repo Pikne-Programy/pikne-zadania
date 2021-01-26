@@ -12,11 +12,12 @@ export class Controller {
             ControllerUtils.toggleContentLoading(null)
         }
         else if (list.every((val) => { return val })) {
-            MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'math-panel'], [() => {
+            MathJax.Hub.Queue([() => {
+                adjustView(this.screenSize);
+            }], ["Typeset", MathJax.Hub, 'math-panel'], [() => {
                 $('.mjx-chtml').attr('tabIndex', '-1');
             }], [() => {
                 if (!this.isAborted) {
-                    adjustView(this.screenSize);
                     ControllerUtils.toggleContentLoading(false);
                     if (!Utils.isTouch()) {
                         $('#content-container').setCustomScrollbars({

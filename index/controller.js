@@ -9,6 +9,7 @@ let currentExerciseController = null;
  * Starts main when all scripts have been loaded
  */
 export function startOnLoad() {
+    adjustView();
     $(() => {
         main();
     });
@@ -18,8 +19,7 @@ export function startOnLoad() {
  * Main code of the controller. Must be executed after all dependencies have been imported.
  */
 function main() {
-    Model.startModel(onMenuChanged, onExerciseLoaded);
-    adjustView();
+    Model.startModel(onSubjectsLoaded, onMenuChanged, onExerciseLoaded);
     let screenSize = Utils.getScreenSize();
     toggleHeaderAndFooter(screenSize);
     $(window).on('resize', () => {
@@ -29,12 +29,20 @@ function main() {
             adjustView(screenSize);
         }
         toggleHeaderAndFooter(screenSize);
+        onSubjectsLoaded(true);
         onMenuChanged(true);
     });
     $('#back-button').on('click', () => {
         clearCurrentExercise();
         $('#menu').show();
         $('#content').hide();
+    });
+    $('#page-tab-home').on('click', () => {
+        $('#section-exercise-list').hide();
+        $('#section-subject-list').show();
+        onSubjectsLoaded(true);
+        clearCurrentExercise();
+        Model.selectSubject(null);
     });
 }
 
@@ -90,6 +98,53 @@ function adjustView(screenSize = Utils.getScreenSize()) {
 }
 
 /**
+ * Populates Panel with elements from subject list
+ * @param {boolean} update Determines if subject list changed or the view is just being updated
+ */
+function onSubjectsLoaded(update = false) {
+    const subjectPanel = $('#panel-subjects');
+    const container = subjectPanel.find('nav');
+    const initPos = container.clearCustomScrollbars();
+    if (!update) {
+        const subjectList = Model.subjectList.get();
+        container.empty();
+        subjectList.forEach(subject => {
+            container.append(createSubjectPanelElement(subject.name));
+        });
+        subjectPanel.find('progress').parent().removeClass('is-flex');
+        container.show();
+    }
+    if (!Utils.isTouch()) {
+        container.setCustomScrollbars({
+            autohide: true,
+            padding: 5
+        });
+    }
+    if (update)
+        container.scrollToPosition(initPos);
+}
+
+/**
+ * Creates a HTMLElement for subject Panel
+ * @param {string} subjectName Name of the subject
+ */
+function createSubjectPanelElement(subjectName) {
+    const icon = Utils.createElement('i', ['fas', 'fa-book']);
+    $(icon).attr('aria-hidden', 'true');
+    const iconSpan = Utils.createElement('span', ['panel-icon'], [icon]);
+    const nameSpan = Utils.createElement('span', [], [], Utils.capitalize(subjectName))
+    const a = Utils.createElement('a', ['panel-block'], [iconSpan, nameSpan]);
+    $(a).on('click', () => {
+        $('#menu-home').find('span').last().html(Utils.capitalize(subjectName));
+        $('#section-subject-list').hide();
+        $('#section-exercise-list').show();
+        const i = $(a).index();
+        Model.selectSubject(i)
+    });
+    return a;
+}
+
+/**
  * Updates view according to the current Menu
  * @param {boolean} update Determines if Menu changed or is just being updated
  */
@@ -108,8 +163,8 @@ function onMenuChanged(update = false) {
     if (menu != null) {
         $('#menu-list').empty();
         menu.children.forEach(child => {
-            const element = Utils.createElement("a", ["menu-element"], [], child.value);
-            const li = Utils.createElement("li", [], [element]);
+            const element = Utils.createElement('a', ['menu-element'], [], child.value);
+            const li = Utils.createElement('li', [], [element]);
             $(li).attr('tabIndex', 0);
             ['click', 'keydown'].forEach((eventName) => {
                 $(li).on(eventName, (event) => {
@@ -179,8 +234,10 @@ function onExerciseLoaded() {
  * @param {Model.TreeNode} menu Menu object
  */
 function selectMenu(element, menu = Model.exerciseTree) {
-    menu.select();
-    $(element).nextAll().remove();
+    if ($(element).next().length != 0) {
+        menu.select();
+        $(element).nextAll().remove();
+    }
 }
 
 function clearCurrentExercise() {
