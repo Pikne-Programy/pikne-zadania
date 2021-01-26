@@ -8,14 +8,23 @@ body {
 	scrollbar-width: none;
 }
 
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+	/* Chrome, Safari and Opera */
+	display: none;
+}
+
+.hero.is-primary .tabs.is-boxed a:not(.button):not(.dropdown-item):not(.tag):not(.pagination-link.is-current) {
+	color: #00d1b2;
+}
+
 body {
 	height: 100vh;
 	width: 100vw;
 }
 
-::-webkit-scrollbar {
-	/* Chrome, Safari and Opera */
-	display: none;
+progress.is70 {
+	width: 70%;
 }
 
 .full-height {
@@ -24,6 +33,10 @@ body {
 
 .full-width {
 	width: 100%;
+}
+
+.max-full-height {
+	max-height: 100%;
 }
 
 .max-three-quarters {
@@ -47,8 +60,17 @@ body {
 	margin: 0;
 }
 
+.panel > .panel {
+	box-shadow: none !important;
+	border-radius: 0;
+}
+
 .scrollable {
 	overflow: auto;
+}
+
+.not-scrollable {
+	overflow: hidden;
 }
 
 .border-top {
