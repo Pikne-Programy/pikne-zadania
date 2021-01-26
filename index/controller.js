@@ -37,9 +37,10 @@ function main() {
         $('#menu').show();
         $('#content').hide();
     });
-    ControllerUtils.setOnClickOrEnterListener('#page-tab-home', () => {
+    $('#menu-subjects').on('click', () => {
         $('#section-exercise-list').hide();
         $('#section-subject-list').show();
+        $('#menu-home').nextAll().remove();
         onSubjectsLoaded(true);
         clearCurrentExercise();
         Model.selectSubject(null);
@@ -50,7 +51,7 @@ function main() {
  * Shows or hides header and footer depending on screen size
  */
 function toggleHeaderAndFooter() {
-    if (window.innerHeight <= 450) {
+    if (window.innerHeight <= 350) {
         $('.hero').hide();
         $('footer').hide();
     }
