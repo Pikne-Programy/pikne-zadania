@@ -16,7 +16,7 @@ export function toggleMenuLoading(state) {
 
 /**
  * Shows or hides loading progress bar for Content
- * @param {boolean} state True - shows progress bar; False - shows content; Null - shows content menu
+ * @param {boolean} state True - shows progress bar; False - shows content; Null - shows content placeholder
  */
 export function toggleContentLoading(state) {
     $('#content').show();
@@ -115,5 +115,20 @@ export function clearInputVerifiedStated(container) {
         i.replaceClasses(['fa-check', 'fa-times'], ['fa-exclamation-triangle'])
         if (!$(input).hasClass('is-warning'))
             span.hide();
+    });
+}
+
+/**
+ * Sets listener for click or enter key press on the provided element
+ * @param {(HTMLElement | string)} element HTMLElement or JQuery selector
+ * @param {function} callback Function executed on click
+ */
+export function setOnClickOrEnterListener(element, callback) {
+    ['click', 'keydown'].forEach((eventName) => {
+        $(element).on(eventName, (event) => {
+            if (eventName != 'keydown' || event.which == 13) {
+                callback();
+            }
+        });
     });
 }

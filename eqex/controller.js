@@ -5,48 +5,44 @@ import { getBasePath } from '../helper/tests/path-manager.js'
 
 export class Controller {
     isAborted = false;
+    contentReady = new Utils.Observable([], () => {
+        const list = this.contentReady.get();
+        if (list === null) {
+            this.abort();
+            ControllerUtils.toggleContentLoading(null)
+        }
+        else if (list.every((val) => { return val })) {
+            MathJax.Hub.Queue([() => {
+                adjustView(this.screenSize);
+            }], ["Typeset", MathJax.Hub, 'math-panel'], [() => {
+                $('.mjx-chtml').attr('tabIndex', '-1');
+            }], [() => {
+                if (!this.isAborted)
+                    ControllerUtils.toggleContentLoading(false);
+            }]);
+        }
+    });
 
     /**
      * Sets up view for Equation Exercise
      * @param {Model.EquationExercise} exercise Fetched EqEx exercise
      */
     constructor(exercise) {
-        $('#content-container').clearCustomScrollbars();
         Model.startModel(exercise);
         const container = Utils.createElement('div');
         $(container).load(getBasePath() + '/eqex/eqex.html', () => {
             if (!this.isAborted) {
-                bindView(container);
+                bindView(container, this.contentReady);
                 if (!this.isAborted) {
                     $('#content-container').empty();
-                    $('#content-container').append($(container).children())
-                    MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'math-panel'], [() => {
-                        $('.mjx-chtml').attr('tabIndex', '-1');
-                    }], [() => {
-                        adjustView(this.screenSize);
-                        ControllerUtils.toggleContentLoading(false);
-                        if (!Utils.isTouch()) {
-                            $('#content-container').setCustomScrollbars({
-                                autohide: true,
-                                padding: 10
-                            });
-                        }
-                    }]);
+                    $('#content-container').append($(container).children());
+                    if (this.contentReady.get().length == 0)
+                        this.contentReady.set([true]);
                 }
             }
         });
         this.screenSize = Utils.getScreenSize();
         $(window).on('resize', () => {
-            const container = $('#content-container');
-            const initPos = container.clearCustomScrollbars();
-            if (!Utils.isTouch()) {
-                container.setCustomScrollbars({
-                    autohide: true,
-                    padding: 10
-                });
-            }
-            container.scrollToPosition(initPos);
-
             const newScreenSize = Utils.getScreenSize();
             if (this.screenSize != newScreenSize) {
                 this.screenSize = newScreenSize;
@@ -63,13 +59,19 @@ export class Controller {
 /**
  * Sets data according to the current EqEx
  * @param {HTMLElement} container View with fields for EqEx
+ * @param {Utils.Observable} contentObserver Observable for images
  */
-function bindView(container) {
+function bindView(container, contentObserver) {
     $(container).find('#ex-title').text(Model.exercise.name);
     $(container).find('#ex-content').text(Model.exercise.content);
     if (Model.exercise.imgs !== undefined) {
-        Model.exercise.imgs.forEach(url => {
-            $(container).find('#ex-image-container').append(createImage(url));
+        const loadedImageList = [];
+        Model.exercise.imgs.forEach(() => {
+            loadedImageList.push(false);
+        });
+        contentObserver.set(loadedImageList);
+        Model.exercise.imgs.forEach((url, i) => {
+            $(container).find('#ex-image-container').append(createImage(url, i, contentObserver));
         });
     }
     Model.exercise.unknowns.forEach(unknown => {
@@ -104,9 +106,19 @@ function bindView(container) {
 /**
  * Appends view with an image
  * @param {string} url URL of the image
+ * @param {number} i Index of the image in the container
+ * @param {Utils.Observable} contentObserver Observable for images
  */
-function createImage(url) {
+function createImage(url, i, contentObserver) {
     const img = Utils.createElement('img', ['img']);
+    $(img).on('load', () => {
+        const result = contentObserver.get();
+        result[i] = true;
+        contentObserver.set(result);
+    });
+    $(img).on('error', () => {
+        contentObserver.set(null);
+    });
     img.src = url;
     const figure = Utils.createElement('div', ['full-height', 'is-flex', 'is-align-items-center', 'is-justify-content-center'], [img]);
     const box = Utils.createElement('div', ['box', 'full-height', 'p-0'], [figure]);

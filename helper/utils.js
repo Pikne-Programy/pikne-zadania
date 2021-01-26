@@ -6,7 +6,7 @@
  */
 export const ExerciseType = Object.freeze({
     EqEx: 'EqEx'
-})
+});
 
 /**
  * @enum {string}
@@ -17,26 +17,7 @@ export const ScreenSize = Object.freeze({
     DESKTOP: 'desktop',
     WIDESCREEN: 'widescreen',
     FULLHD: 'fullhd'
-})
-
-/**
- * Imports every URL specified in the URL list
- * @param {string[]} urls List of URLs to import
- * @param {function} success Function to execute after successful import 
- */
-export function importScripts(urls, success) {
-    const promises = [];
-    for (let i = 0; i < urls.length; i++) {
-        promises.push($.getScript(urls[i], () => {
-            console.log(urls[i] + ' loaded');
-        }));
-    }
-    $.when.apply($, promises).then(() => {
-        success();
-    }, () => {
-        console.log('import error');
-    });
-}
+});
 
 /**
  * Returns current screen size breakpoint:
@@ -167,13 +148,13 @@ export function capitalize(string, locale = navigator.language) {
         return string.charAt(0).toLocaleUpperCase(locale) + string.slice(1);
 }
 
-(function($) {
+(function ($) {
     /**
      * Removes all old classes and adds all new classes
      * @param {string[]} oldClasses Classes to remove
      * @param {string[]} newClasses Classes to add
      */
-    $.fn.replaceClasses = function(oldClasses, newClasses) {
+    $.fn.replaceClasses = function (oldClasses, newClasses) {
         oldClasses.forEach((oldClass) => {
             this.removeClass(oldClass);
         });

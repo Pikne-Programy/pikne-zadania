@@ -5,141 +5,71 @@ export function startServer() {
     new Server({
         routes() {
             this.get('/api/public', () => {
-                return JSON.stringify([{
-                        "name": "mechanika",
+                const list = [
+                    {
+                        "name": "fizyka",
                         "children": [{
+                            "name": "mechanika",
+                            "children": [{
                                 "name": "kinematyka",
                                 "children": [{
-                                        "name": "Pociągi dwa",
-                                        "children": "pociągi-dwa"
-                                    },
-                                    {
-                                        "name": "Pociągi dwa 2",
-                                        "children": "pociągi-dwa-2"
-                                    }
+                                    "name": "Pociągi dwa",
+                                    "children": "pociągi-dwa"
+                                },
+                                {
+                                    "name": "Pociągi dwa 2",
+                                    "children": "pociągi-dwa-2"
+                                }
                                 ]
                             },
                             {
                                 "name": "grawitacja",
                                 "children": [{
-                                        "name": "Pociągi trzy",
-                                        "children": "pociągi-trzy"
-                                    },
-                                    {
-                                        "name": "Pociągi trzy 2",
-                                        "children": "pociągi-trzy-2"
-                                    }
+                                    "name": "Pociągi trzy",
+                                    "children": "pociągi-trzy"
+                                },
+                                {
+                                    "name": "Pociągi trzy 2",
+                                    "children": "pociągi-trzy-2"
+                                }
                                 ]
                             }
-                        ]
-                    },
-                    {
-                        "name": "fizyka atomowa",
-                        "children": [{
-                            "name": "rozpad",
+                            ]
+                        },
+                        {
+                            "name": "fizyka atomowa",
                             "children": [{
-                                "name": "atom",
-                                "children": "atom"
+                                "name": "rozpad",
+                                "children": [{
+                                    "name": "atom",
+                                    "children": "atom"
+                                }]
                             }]
                         }]
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
-                    },
-                    {
-                        "name": "no category",
-                        "children": "no-category"
                     }
-                ]);
+                ];
+
+                for (let i = 0; i < 25; i++)
+                    list[0].children.push(
+                        {
+                            "name": "no category",
+                            "children": "no-category"
+                        }
+                    );
+                for (let i = 0; i < 25; i++)
+                    list.push(
+                        {
+                            "name": "subject",
+                            "children": [
+                                {
+                                    "name": "Kąt",
+                                    "children": "angle"
+                                }
+                            ]
+                        }
+                    )
+
+                return JSON.stringify(list);
             });
             [
                 'pociągi-dwa',
@@ -147,7 +77,7 @@ export function startServer() {
                 'pociągi-trzy',
                 'pociągi-trzy-2'
             ].forEach((url) => {
-                this.get('api/public/' + url, () => {
+                this.get('api/public/fizyka/' + url, () => {
                     let name;
                     switch (url) {
                         case 'pociągi-dwa-2':
@@ -166,7 +96,7 @@ export function startServer() {
                         "type": "EqEx",
                         "name": name,
                         "content": {
-                            "main": "Z miast A i B odległych o \\(d=300\\mathrm{km}\\) wyruszają jednocześnie dwa pociągi z prędkościami \\(v_a=50\\mathrm{\\frac{m}{s}}\\) oraz \\(v_b=67\\mathrm{\\frac{m}{s}}\\).\n\rW jakiej odległości \\(x\\) od miasta A spotkają się te pociągi? Po jakim czasie \\(t\\) się to stanie?",
+                            "main": "Z miast A i B odległych o \\(d=300\\mathrm{km}\\) wyruszają jednocześnie dwa pociągi z prędkościami \\(v_a=50\\mathrm{\\frac{m}{s}}\\) oraz \\(v_b=67\\mathrm{\\frac{m}{s}}\\).\nW jakiej odległości \\(x\\) od miasta A spotkają się te pociągi? Po jakim czasie \\(t\\) się to stanie?",
                             "imgs": ["https://bulma.io/images/placeholders/480x640.png"],
                             "unknowns": [
                                 ["x", "\\mathrm{km}"],
@@ -176,7 +106,7 @@ export function startServer() {
                     });
                 });
             });
-            this.get('api/public/atom', () => {
+            this.get('api/public/fizyka/atom', () => {
                 return JSON.stringify({
                     "type": "EqEx",
                     "name": "Atom",
@@ -188,12 +118,12 @@ export function startServer() {
                     }
                 });
             });
-            this.get('api/public/no-category', () => {
+            this.get('api/public/fizyka/no-category', () => {
                 return JSON.stringify({
                     "type": "EqEx",
                     "name": "Bez kategorii",
                     "content": {
-                        "main": "Z miast A i B odległych o \\(d=300\\mathrm{km}\\) wyruszają jednocześnie dwa pociągi z prędkościami \\(v_a=50\\mathrm{\\frac{m}{s}}\\) oraz \\(v_b=67\\mathrm{\\frac{m}{s}}\\).\n\rW jakiej odległości \\(x\\) od miasta A spotkają się te pociągi? Po jakim czasie \\(t\\) się to stanie?",
+                        "main": "Z miast A i B odległych o \\(d=300\\mathrm{km}\\) wyruszają jednocześnie dwa pociągi z prędkościami \\(v_a=50\\mathrm{\\frac{m}{s}}\\) oraz \\(v_b=67\\mathrm{\\frac{m}{s}}\\).\nW jakiej odległości \\(x\\) od miasta A spotkają się te pociągi? Po jakim czasie \\(t\\) się to stanie?",
                         "imgs": ["https://bulma.io/images/placeholders/720x240.png", "https://bulma.io/images/placeholders/640x480.png", "https://bulma.io/images/placeholders/240x720.png"],
                         "unknowns": [
                             ["x", "\\mathrm{km}"],
@@ -203,13 +133,27 @@ export function startServer() {
                     }
                 });
             });
+            this.get('api/public/subject/angle', () => {
+                return JSON.stringify({
+                    "type": "EqEx",
+                    "name": "Kąt",
+                    "content": {
+                        "main": "Człowiek pracujący w polu w punkcie \\(A\\) zobaczył idącego szosą sąsiada w punkcie \\(B\\).\nRuszył mu na spotkanie idąc do punktu \\(C\\) szosy z prędkością \\(v_1=5.4\\mathrm{\\frac{m}{s}}\\).\nZ jaką prędkością szedł sąsiad, jeżeli obydwaj doszli do punktu \\(C\\) jednocześnie?\nKąt \\(\\alpha=36°\\), a \\(\\beta=59°\\).",
+                        "imgs": ["https://bulma.io/images/placeholders/256x256.png"],
+                        "unknowns": [
+                            ["v_2", "\\mathrm{\\frac{m}{s}}"]
+                        ]
+                    }
+                });
+            });
             [
-                'pociągi-dwa',
-                'pociągi-dwa-2',
-                'pociągi-trzy',
-                'pociągi-trzy-2',
-                'atom',
-                'no-category'
+                'fizyka/pociągi-dwa',
+                'fizyka/pociągi-dwa-2',
+                'fizyka/pociągi-trzy',
+                'fizyka/pociągi-trzy-2',
+                'fizyka/atom',
+                'fizyka/no-category',
+                'subject/angle'
             ].forEach((url) => {
                 this.post('api/public/' + url, (schema, request) => {
                     const attrs = JSON.parse(request.requestBody);
@@ -219,11 +163,16 @@ export function startServer() {
                     });
                     return JSON.stringify({ success: result.every((e) => e) });
                 });
-            })
-            this.passthrough(getBasePath() + '/eqex/eqex.html');
-            this.passthrough('https://bulma.io/images/placeholders/720x240.png');
-            this.passthrough('https://bulma.io/images/placeholders/640x480.png');
-            this.passthrough('https://bulma.io/images/placeholders/240x720.png');
+            });
+            [
+                getBasePath() + '/eqex/eqex.html',
+                'https://bulma.io/images/placeholders/720x240.png',
+                'https://bulma.io/images/placeholders/640x480.png',
+                'https://bulma.io/images/placeholders/240x720.png',
+                'https://bulma.io/images/placeholders/256x256.png'
+            ].forEach((url) => {
+                this.passthrough(url);
+            });
         }
     })
     console.log('server online');
