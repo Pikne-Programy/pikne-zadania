@@ -11,12 +11,12 @@ router
   })
   .get("/api/public", exercisesController.list.bind(exercisesController))
   .get(
-    "/api/public/:id",
+    "/api/public/:subject/:id",
     seed,
     exercisesController.get.bind(exercisesController),
   )
   .post(
-    "/api/public/:id",
+    "/api/public/:subject/:id",
     seed,
     exercisesController.check.bind(exercisesController),
   );

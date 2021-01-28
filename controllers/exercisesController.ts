@@ -5,13 +5,19 @@ import { JSONType, YAMLType } from "../types.ts";
 
 interface section {
   name: string;
-  children: string | section;
+  children: section[] | string;
 }
-export class ExercisesController {
-  readonly dict: { [key: string]: Exercise } = {};
-  readonly _list: (string | section)[] = [];
 
-  static analyze(file: string) {
+interface YAMLSection {
+  // we assume that there is only one key, feel free to tell TypeScript that
+  [key: string]: (YAMLSection | string)[];
+}
+
+export class ExercisesController {
+  readonly dict: { [key: string]: Exercise } = {}; // subject/id
+  readonly _list: section[] = [];
+
+  static analyze(file: string): Exercise {
     const re = /^---$/gm;
     let occur;
     // find 2nd occurence of `---`
@@ -34,29 +40,66 @@ export class ExercisesController {
     } else throw new Error("the header is necessary");
   }
 
+  static getCurrentFolder() {
+    return Deno.cwd().split("/").slice(-1).pop();
+  }
+
+  private getExercise(id: string): Exercise {
+    // TODO
+    if (!(id in this.dict)) {
+      // get a content of file
+      // analyze it
+      // construct it and add it to dict as `$(getCurrentFolder())/$(id)`
+    }
+    // return it
+  }
+  private buildExercise(id: string): section {
+    return {
+      name: this.getExercise(id).name,
+      children: id,
+    };
+  }
+  private buildSection(section: YAMLSection): section {
+    const name = Object.keys(section)[0];
+    return {
+      name,
+      children: this._build(section[name]),
+    };
+  }
+  private _build(elements: (YAMLSection | string)[]): section[] {
+    const r: section[] = [];
+    for (const el in elements) {
+      if (typeof el === "string") {
+        r.push(this.buildExercise(el));
+      } else {
+        r.push(this.buildSection(el));
+      }
+    }
+    return r;
+  }
+  private build(elements: YAMLSection[]): section[] {
+    return this._build(elements);
+  }
+
   constructor() {
-    Deno.chdir("./exercises");
+    // TODO
+    const cwd = Deno.cwd();
     try {
+      Deno.chdir("./exercises");
       for (
-        const entry of walkSync(".", { includeDirs: false, match: [/.*.txt/] })
+        const subject of [
+          ...walkSync(".", { includeFiles: false, maxDepth: 1 }),
+        ].slice(1)
+        // all folders in "."
       ) {
-        try {
-          const tags = entry.path.slice(0, -4).split("/").reverse();
-          const id = tags.splice(0, 1)[0];
-          const file = Deno.readTextFileSync(entry.path); // a content of file
-          const obj = ExercisesController.analyze(file);
-          let el: section | string = id;
-          for (const e of tags) {
-            el = { name: e, children: el };
-          }
-          this.dict[id] = obj;
-          this._list.push(el);
-        } catch (e) {
-          console.error(`ERROR (exercise file ${entry.path}):`, e);
-        }
+        Deno.chdir(subject.path);
+        console.log(ExercisesController.getCurrentFolder()); // DEBUG
+        // check if index.yml exists
+        // build its content
+        Deno.chdir("..");
       }
     } finally {
-      Deno.chdir("..");
+      Deno.chdir(cwd);
     }
   }
 
@@ -94,7 +137,7 @@ export class ExercisesController {
       if (ctx.params.id) {
         await ExercisesController.exists(
           ctx,
-          this.dict[ctx.params.id],
+          this.dict[`${ctx.params.subject}/${ctx.params.id}`],
           async (ex) => {
             ctx.response.body = ex.render(ctx.state.seed ?? 0);
           },
@@ -109,7 +152,7 @@ export class ExercisesController {
           .value;
         await ExercisesController.exists(
           ctx,
-          this.dict[ctx.params.id],
+          this.dict[`${ctx.params.subject}/${ctx.params.id}`],
           async (ex) => {
             ctx.response.body = ex.check(ctx.state.seed, uanswer);
           },
