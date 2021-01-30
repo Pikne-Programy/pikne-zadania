@@ -1,8 +1,7 @@
-import { parse, RouterContext, walkSync } from "../deps.ts";
+import { existsSync, parse, RouterContext, walkSync } from "../deps.ts";
 import exts from "../exts/exts.ts";
 import Exercise from "../exercise.ts";
 import { JSONType, YAMLType } from "../types.ts";
-
 interface section {
   name: string;
   children: section[] | string;
@@ -41,23 +40,34 @@ export class ExercisesController {
   }
 
   static getCurrentFolder() {
-    return Deno.cwd().split("/").slice(-1).pop();
+    return Deno.cwd().split("/").slice(-1).pop() ?? "";
   }
 
-  private getExercise(id: string): Exercise {
-    // TODO
-    if (!(id in this.dict)) {
-      // get a content of file
-      // analyze it
-      // construct it and add it to dict as `$(getCurrentFolder())/$(id)`
+  private getExercise(id: string): Exercise | null {
+    const uid = `${ExercisesController.getCurrentFolder()}/${id}`;
+    if (!(uid in this.dict)) {
+      try {
+        const file = Deno.readTextFileSync(`${id}.txt`);
+        this.dict[uid] = ExercisesController.analyze(file);
+      } catch (e) {
+        console.error(
+          `ERROR (exercise ${uid}):`,
+          e,
+        );
+        return null;
+      }
     }
-    // return it
+    return this.dict[uid];
   }
-  private buildExercise(id: string): section {
-    return {
-      name: this.getExercise(id).name,
-      children: id,
-    };
+  private buildExercise(id: string): section | null {
+    if (this.getExercise(id) !== null) {
+      return {
+        name: this.getExercise(id)!.name,
+        children: id,
+      };
+    } else {
+      return null;
+    }
   }
   private buildSection(section: YAMLSection): section {
     const name = Object.keys(section)[0];
@@ -68,9 +78,11 @@ export class ExercisesController {
   }
   private _build(elements: (YAMLSection | string)[]): section[] {
     const r: section[] = [];
-    for (const el in elements) {
+    for (const el of elements) {
       if (typeof el === "string") {
-        r.push(this.buildExercise(el));
+        if (this.buildExercise(el) !== null) {
+          r.push(this.buildExercise(el)!);
+        }
       } else {
         r.push(this.buildSection(el));
       }
@@ -82,7 +94,6 @@ export class ExercisesController {
   }
 
   constructor() {
-    // TODO
     const cwd = Deno.cwd();
     try {
       Deno.chdir("./exercises");
@@ -90,13 +101,22 @@ export class ExercisesController {
         const subject of [
           ...walkSync(".", { includeFiles: false, maxDepth: 1 }),
         ].slice(1)
-        // all folders in "."
       ) {
-        Deno.chdir(subject.path);
-        console.log(ExercisesController.getCurrentFolder()); // DEBUG
-        // check if index.yml exists
-        // build its content
-        Deno.chdir("..");
+        Deno.chdir(`./${subject.name}`);
+        try {
+          if (existsSync("index.yml")) {
+            const content: YAMLSection[] = <YAMLSection[]> parse(
+              Deno.readTextFileSync("index.yml"),
+            );
+            this._list.push({
+              name: ExercisesController.getCurrentFolder(),
+              children: this.build(content),
+            });
+          }
+        } catch (e) {
+          console.error(`${ExercisesController.getCurrentFolder()}: ${e}`);
+          Deno.chdir("..");
+        }
       }
     } finally {
       Deno.chdir(cwd);
