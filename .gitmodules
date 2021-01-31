@@ -8,4 +8,4 @@
 [submodule "frontend"]
 	path = frontend
 	url = https://github.com/Pikne-Programy/pikne-zadania-frontend
-	branch = release-0.0
+	branch = master

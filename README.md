@@ -33,3 +33,14 @@ Perform updates automatically with the [Watchtower](https://github.com/containrr
 ```sh
 docker run --name watchtower -dv /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower
 ```
+
+
+## Build
+
+```sh
+git clone --recursive https://github.com/Pikne-Programy/pikne-zadania.git # clone via HTTPS
+git clone --recursive git@github.com:Pikne-Programy/pikne-zadania.git # clone via SSH
+cd pikne-zadania
+# build and run, can be repeated on and on
+docker build . -t pikne-zadania && docker run --name pikne-zadania -itp 8000:8000 --rm pikne-zadania
+```
