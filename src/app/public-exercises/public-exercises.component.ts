@@ -4,7 +4,7 @@ import { NavService } from '../navigation/navingation.service';
 @Component({
   selector: 'app-public-exercises',
   templateUrl: './public-exercises.component.html',
-  styleUrls: ['./public-exercises.component.scss'],
+  styleUrls: ['./public-exercises.component.scss', '../app.component.scss'],
 })
 export class PublicExercisesComponent {
   constructor(private navService: NavService) {}

@@ -5,6 +5,9 @@ $directions: "" "", "-top" "t", "-bottom" "b", "-left" "l", "-right" "r";
 $size_breakpoints: "mobile" 0px 768px, "tablet" 769px 1023px,
   "desktop" 1024px 1215px, "widescreen" 1216px 1407px, "full-hd" 1408px;
 
+$color_primary: hsl(171, 100%, 41%);
+$color_primary_dark: hsl(171, 100%, 29%);
+
 html,
 body {
   height: 100vh;
@@ -21,10 +24,43 @@ body {
   }
 }
 
+//#region Overriding stylesheets
 .mat-drawer-container {
   background-color: inherit;
   color: inherit;
 }
+
+.hero.is-primary a.navbar-item {
+  &:focus:not(:hover) {
+    color: $color_primary !important;
+  }
+  &:focus-within:not(:hover) {
+    color: $color_primary !important;
+  }
+}
+
+.button.is-primary.is-inverted {
+  &:active {
+    background-color: hsl(0, 0%, 95%);
+  }
+  &:focus:not(:active) {
+    box-shadow: 0 0 0 0.125em rgba(255, 255, 255, 0.25);
+  }
+}
+
+.button.is-primary.dark {
+  background-color: $color_primary_dark;
+  &:hover {
+    background-color: hsl(171, 100%, 26%);
+  }
+  &:active {
+    background-color: hsl(171, 100%, 24%);
+  }
+  &:focus:not(:active) {
+    box-shadow: 0 0 0 0.125em hsla(171, 100%, 29%, 0.25);
+  }
+}
+//#endregion
 
 .root {
   height: 100vh;
@@ -37,6 +73,15 @@ body {
   height: 100%;
 }
 
+.scrollable {
+  overflow: auto !important;
+}
+
+.unscrollable {
+  overflow: hidden !important;
+}
+
+//#region Borders
 @mixin borders($name, $size, $style, $color) {
   @each $dir, $dir_ab in $directions {
     .#{$name}#{$dir} {
@@ -45,6 +90,10 @@ body {
   }
 }
 
+@include borders(divider, 1px, solid, rgba(0, 0, 0, 0.12));
+//#endregion
+
+//#region Spaces(margins & padding) and Sizes(widths & height)
 @mixin breakpoint-spaces($property, $name) {
   @each $dir, $dir_ab in $directions {
     @for $i from 0 through 6 {
@@ -71,4 +120,26 @@ body {
 @include breakpoint-spaces(margin, m);
 @include breakpoint-spaces(padding, p);
 
-@include borders(divider, 1px, solid, rgba(0, 0, 0, 0.12));
+@mixin sizes {
+  $i: 0;
+  @while $i <= 100 {
+    $prefixes: "", "max-", "min-";
+    $types: "height", "width";
+    @each $type in $types {
+      @each $prefix in $prefixes {
+        @if $i == 100 {
+          .#{$prefix}#{$type}-full {
+            #{$prefix}#{$type}: $i * 1%;
+          }
+        } @else {
+          .#{$prefix}#{$type}-#{$i} {
+            #{$prefix}#{$type}: $i * 1%;
+          }
+        }
+      }
+    }
+    $i: $i + 5;
+  }
+}
+@include sizes();
+//#endregion
