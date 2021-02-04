@@ -1,0 +1,36 @@
+<section class="hero is-primary is-bold">
+  <!-- Hero head: will stick at the top -->
+  <div class="hero-head">
+    <header class="navbar" role="navigation" aria-label="main navigation">
+      <div class="navbar-brand">
+        <a role="button" class="navbar-burger has-burger-left" aria-label="menu" aria-expanded="false" data-target="navbarTop" [ngClass]="{'is-active': sideNavOpened}" (click)="toggleNavbar()">
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+        </a>
+        <a class="navbar-item" routerLink="">
+          <img src="https://via.placeholder.com/460x120?text=Logo" alt="Logo">
+        </a>
+      </div>
+
+      <div id="navbarTop" class="navbar-menu">
+        <div class="navbar-start">
+          <a *ngFor="let item of menuElements" class="navbar-item" [routerLink]="item.first">{{ item.second }}</a>
+        </div>
+
+        <div class="navbar-end">
+          <div class="navbar-item">
+            <div class="buttons">
+              <a *ngFor="let button of buttonElements" [class]="button.third" [routerLink]="button.first"><strong>{{ button.second }}</strong></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+  </div>
+
+  <!-- Hero footer: will stick at the bottom -->
+  <div *ngIf="showTabs" class="hero-foot">
+    <app-tab></app-tab>
+  </div>
+</section>

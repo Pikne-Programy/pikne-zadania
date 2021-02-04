@@ -1,6 +1,10 @@
 @import "~@angular/material/prebuilt-themes/deeppurple-amber.css";
 /* You can add global styles to this file, and also import other style files */
 
+$directions: "" "", "-top" "t", "-bottom" "b", "-left" "l", "-right" "r";
+$size_breakpoints: "mobile" 0px 768px, "tablet" 769px 1023px,
+  "desktop" 1024px 1215px, "widescreen" 1216px 1407px, "full-hd" 1408px;
+
 html,
 body {
   height: 100vh;
@@ -21,3 +25,50 @@ body {
   background-color: inherit;
   color: inherit;
 }
+
+.root {
+  height: 100vh;
+  width: 100vw;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.full-height {
+  height: 100%;
+}
+
+@mixin borders($name, $size, $style, $color) {
+  @each $dir, $dir_ab in $directions {
+    .#{$name}#{$dir} {
+      border#{$dir}: $size $style $color;
+    }
+  }
+}
+
+@mixin breakpoint-spaces($property, $name) {
+  @each $dir, $dir_ab in $directions {
+    @for $i from 0 through 6 {
+      @each $br_name, $br_bottom, $br_top in $size_breakpoints {
+        .#{$name}#{$dir_ab}-#{$br_name}-#{$i} {
+          @media only screen and (min-width: $br_bottom) {
+            @if $i == 5 {
+              @include space($property, $dir, 1.5rem);
+            } @else if $i == 6 {
+              @include space($property, $dir, 3rem);
+            } @else {
+              @include space($property, $dir, 0.25rem * $i);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+@mixin space($property, $dir, $size) {
+  #{$property}#{$dir}: $size !important;
+}
+
+@include breakpoint-spaces(margin, m);
+@include breakpoint-spaces(padding, p);
+
+@include borders(divider, 1px, solid, rgba(0, 0, 0, 0.12));
