@@ -7,7 +7,7 @@
           <progress class="progress width-70 is-small is-primary" max="100">15%</progress>
         </div>
         <nav class="panel full-height scrollable">
-          <a class="panel-block" *ngFor="let subject of list" [routerLink]="[{ outlets: { 'content': ['subjects', subject.name] } }]">
+          <a class="panel-block" *ngFor="let subject of list; index as i" [routerLink]="['subjects', i, subject.name]">
             <span class="panel-icon">
               <i class="fas fa-book" aria-hidden="true"></i>
             </span>

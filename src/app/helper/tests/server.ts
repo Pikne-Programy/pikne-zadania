@@ -21,11 +21,11 @@ export function startServer() {
                     children: [
                       {
                         name: 'Pociągi dwa',
-                        children: 'pociągi-dwa',
+                        children: 'pociagi-dwa',
                       },
                       {
                         name: 'Pociągi dwa 2',
-                        children: 'pociągi-dwa-2',
+                        children: 'pociagi-dwa-2',
                       },
                     ],
                   },
@@ -34,11 +34,11 @@ export function startServer() {
                     children: [
                       {
                         name: 'Pociągi trzy',
-                        children: 'pociągi-trzy',
+                        children: 'pociagi-trzy',
                       },
                       {
                         name: 'Pociągi trzy 2',
-                        children: 'pociągi-trzy-2',
+                        children: 'pociagi-trzy-2',
                       },
                     ],
                   },
@@ -82,21 +82,21 @@ export function startServer() {
         return list;
       });
       [
-        'pociągi-dwa',
-        'pociągi-dwa-2',
-        'pociągi-trzy',
-        'pociągi-trzy-2',
+        'pociagi-dwa',
+        'pociagi-dwa-2',
+        'pociagi-trzy',
+        'pociagi-trzy-2',
       ].forEach((url) => {
         this.get('api/public/fizyka/' + url, () => {
           let name;
           switch (url) {
-            case 'pociągi-dwa-2':
+            case 'pociagi-dwa-2':
               name = 'Pociągi dwa 2';
               break;
-            case 'pociągi-trzy':
+            case 'pociagi-trzy':
               name = 'Pociągi trzy';
               break;
-            case 'pociągi-trzy-2':
+            case 'pociagi-trzy-2':
               name = 'Pociągi trzy 2';
               break;
             default:
@@ -160,10 +160,10 @@ export function startServer() {
         };
       });
       [
-        'fizyka/pociągi-dwa',
-        'fizyka/pociągi-dwa-2',
-        'fizyka/pociągi-trzy',
-        'fizyka/pociągi-trzy-2',
+        'fizyka/pociagi-dwa',
+        'fizyka/pociagi-dwa-2',
+        'fizyka/pociagi-trzy',
+        'fizyka/pociagi-trzy-2',
         'fizyka/atom',
         'fizyka/no-category',
         'subject/angle',

@@ -12,6 +12,8 @@ import { SidenavComponent } from './navigation/sidenav/sidenav.component';
 import { SidenavDirective } from './navigation/sidenav/sidenav.directive';
 import { PublicExercisesComponent } from './public-exercises/public-exercises.component';
 import { SubjectSelectComponent } from './subject-select/subject-select.component';
+import { ContentComponent } from './public-exercises/content/content.component';
+import { ExerciseComponent } from './exercises/exercise.component';
 
 @NgModule({
   declarations: [
@@ -22,6 +24,8 @@ import { SubjectSelectComponent } from './subject-select/subject-select.componen
     TabComponent,
     PublicExercisesComponent,
     SubjectSelectComponent,
+    ContentComponent,
+    ExerciseComponent,
   ],
   imports: [
     BrowserModule,

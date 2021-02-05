@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { ExerciseComponent } from './exercises/exercise.component';
 import { ContentComponent } from './public-exercises/content/content.component';
 import { PublicExercisesComponent } from './public-exercises/public-exercises.component';
 import { SubjectSelectComponent } from './subject-select/subject-select.component';
@@ -14,25 +15,10 @@ const routes: Routes = [
         path: '',
         pathMatch: 'full',
         component: SubjectSelectComponent,
-        outlet: 'content',
       },
       {
-        path: 'subjects/:subjectId',
+        path: 'subjects/:subjectIndex/:subjectId',
         component: ContentComponent,
-        outlet: 'content',
-        children: [
-          {
-            path: 'categories/:categoryIds',
-            component: ContentComponent,
-            outlet: 'categories',
-          },
-          {
-            path: 'exercises/:exerciseId',
-            component: ContentComponent,
-            outlet: 'exercise',
-            children: [],
-          },
-        ],
       },
     ],
   },

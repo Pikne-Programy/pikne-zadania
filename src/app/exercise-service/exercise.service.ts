@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, OnDestroy, OnInit } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 import { capitalize } from '../helper/utils';
 import * as ServerRoutes from './server-routes';
 
@@ -76,7 +76,7 @@ export class ExerciseService {
       list.push(
         new Subject(
           node.name,
-          this.createExerciseTree(null, node.children, node.name)
+          this.createExerciseTree(node.name, node.children, node.name)
         )
       );
     });
@@ -85,7 +85,7 @@ export class ExerciseService {
 
   private createExerciseTree(
     value: string | null,
-    children: ExerciseTreeNode[],
+    children: ServerResponseNode[],
     subject: string,
     parent: ExerciseTreeNode | null = null
   ): ExerciseTreeNode {
@@ -93,20 +93,11 @@ export class ExerciseService {
     children.forEach((child) => {
       if (Array.isArray(child.children)) {
         node.children.push(
-          this.createExerciseTree(
-            capitalize(child.value),
-            child.children,
-            subject,
-            node
-          )
+          this.createExerciseTree(child.name, child.children, subject, node)
         );
       } else {
         node.children.push(
-          new ExerciseTreeNode(
-            capitalize(child.value),
-            node,
-            subject + '/' + child.children
-          )
+          new ExerciseTreeNode(capitalize(child.name), node, child.children)
         );
       }
     });
@@ -115,6 +106,13 @@ export class ExerciseService {
 
   getSubjectList(): BehaviorSubject<Subject[] | null> {
     return this.subjectList;
+  }
+
+  getExerciseList(subjectPos: number): ExerciseTreeNode | null {
+    const list = this.subjectList.getValue();
+    if (list !== null && subjectPos < list.length && subjectPos >= 0)
+      return list[subjectPos].exerciseTree;
+    else return null;
   }
 
   private fetchExercises() {

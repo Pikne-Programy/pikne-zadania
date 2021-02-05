@@ -1,3 +1,51 @@
-<p>
-  content works!
-</p>
+<div class="columns height-full m-0">
+  <div class="height-full column is-one-quarter-tablet is-one-fifth-desktop">
+    <div class="box height-full p-0">
+      <aside class="menu height-full is-flex is-flex-direction-column">
+        <nav class="breadcrumb divider-bottom p-4 pb-4 mb-0" aria-label="breadcrumbs">
+          <ul>
+            <li>
+              <a routerLink="">
+                <span class="icon is-very-small">
+                  <i class="fas fa-home" aria-hidden="true"></i>
+                </span>
+              </a>
+            </li>
+            <li *ngFor="let breadcrumb of breadcrumbs; index as i">
+              <a (click)="navigateToBreadcrumb(i)" aria-current="page">
+                <span>{{ capitalize(breadcrumb.value) }}</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+        <div class="height-full scrollable px-4">
+          <ul class="menu-list py-3">
+            <li *ngFor="let node of list; index as i" tabindex="0">
+              <a [ngClass]="{ 'is-active': isExerciseSelected(node, i)}" (click)="navigate(node, i)" class="menu-element">{{ capitalize(node.value) }}</a>
+            </li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+  <div class="column height-full">
+    <div class="box height-full is-flex is-flex-direction-column p-0">
+      <nav class="level p-2 m-0 divider-bottom" style="display: none">
+        <div class="level-left">
+          <button class="button is-rounded is-small">
+            <span class="icon">
+              <i class="fas fa-chevron-left"></i>
+            </span>
+            <span>Wróć</span>
+          </button>
+        </div>
+      </nav>
+      <div *ngIf="exercise !== null" class="height-full scrollable">
+        <app-exercise [exerciseUrl]="getExerciseUrl()"></app-exercise>
+      </div>
+      <div *ngIf="exercise === null" class="height-full is-flex is-flex-direction-column is-align-items-center is-justify-content-center py-3">
+        <img class="max-width-75 max-height-75" src="https://via.placeholder.com/1024x1024.png?text=Tu+będzie+jakaś+grafika">
+      </div>
+    </div>
+  </div>
+</div>
