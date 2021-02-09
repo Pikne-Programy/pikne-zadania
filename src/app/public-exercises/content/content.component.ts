@@ -20,7 +20,6 @@ export class ContentComponent implements OnInit, OnDestroy {
   subject?: Subject;
   indices: string = '';
   private subjectList?: Subscription;
-  private params?: Subscription;
   private queryParams?: Subscription;
 
   constructor(
@@ -53,7 +52,6 @@ export class ContentComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subjectList?.unsubscribe();
-    this.params?.unsubscribe();
     this.queryParams?.unsubscribe();
   }
 

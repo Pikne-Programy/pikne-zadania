@@ -1,4 +1,10 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  Output,
+} from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ExerciseService } from 'src/app/exercise-service/exercise.service';
 import { ExerciseComponent } from '../exercises';
@@ -29,7 +35,7 @@ class Unknown {
   templateUrl: './eqex.component.html',
   styleUrls: ['./eqex.component.scss'],
 })
-export class EqexComponent implements ExerciseComponent {
+export class EqexComponent implements ExerciseComponent, OnDestroy {
   @Output() loaded = new EventEmitter<string>();
   isLoading = true;
 
@@ -100,6 +106,10 @@ export class EqexComponent implements ExerciseComponent {
           }
         );
     }
+  }
+
+  ngOnDestroy() {
+    this.answerSubscription?.unsubscribe();
   }
 
   onImageLoaded() {

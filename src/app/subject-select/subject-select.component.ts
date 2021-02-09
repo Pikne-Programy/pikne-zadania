@@ -1,5 +1,6 @@
-import { AfterContentInit, Component } from '@angular/core';
+import { AfterContentInit, Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { ExerciseService, Subject } from '../exercise-service/exercise.service';
 import { capitalize } from '../helper/utils';
 
@@ -8,11 +9,12 @@ import { capitalize } from '../helper/utils';
   templateUrl: './subject-select.component.html',
   styleUrls: ['./subject-select.component.scss'],
 })
-export class SubjectSelectComponent implements AfterContentInit {
+export class SubjectSelectComponent implements AfterContentInit, OnDestroy {
   list: Subject[] = [];
   isLoading = true;
   isError = false;
 
+  private subjectListSub?: Subscription;
   constructor(
     private exerciseService: ExerciseService,
     private router: Router,
@@ -20,7 +22,7 @@ export class SubjectSelectComponent implements AfterContentInit {
   ) {}
 
   ngAfterContentInit(): void {
-    this.exerciseService
+    this.subjectListSub = this.exerciseService
       .getSubjectList()
       .subscribe((response: Subject[] | null) => {
         if (response === null) {
@@ -37,6 +39,10 @@ export class SubjectSelectComponent implements AfterContentInit {
           });
         }
       });
+  }
+
+  ngOnDestroy() {
+    this.subjectListSub?.unsubscribe();
   }
 
   capitalize(string: string): string | null {

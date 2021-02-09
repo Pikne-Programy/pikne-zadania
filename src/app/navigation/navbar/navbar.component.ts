@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Tuple } from 'src/app/helper/utils';
 import {
   buttonElements,
@@ -11,7 +11,7 @@ import {
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss'],
 })
-export class NavbarComponent implements OnInit {
+export class NavbarComponent implements OnInit, OnDestroy {
   sideNavOpened: boolean = false;
   showTabs: boolean = false;
   menuElements: Tuple<string, string, null>[];
@@ -26,6 +26,10 @@ export class NavbarComponent implements OnInit {
     this.navService.sideNavOpened.subscribe((val) => {
       this.sideNavOpened = val;
     });
+  }
+
+  ngOnDestroy() {
+    this.navService.sideNavOpened.unsubscribe();
   }
 
   toggleNavbar() {

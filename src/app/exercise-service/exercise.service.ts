@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Injectable, OnDestroy } from '@angular/core';
+import { BehaviorSubject, Subscription } from 'rxjs';
 import { capitalize } from '../helper/utils';
 import * as ServerRoutes from './server-routes';
 
@@ -49,12 +49,12 @@ function instanceOfSRN(object: any): object is ServerResponseNode {
 @Injectable({
   providedIn: 'root',
 })
-export class ExerciseService {
+export class ExerciseService implements OnDestroy {
   private subjectList = new BehaviorSubject<Subject[] | null>([]);
-  private subjectObservable = this.fetchExercises();
+  private subjectSubscription: Subscription;
 
   constructor(private http: HttpClient) {
-    this.subjectObservable.subscribe(
+    this.subjectSubscription = this.fetchExercises().subscribe(
       (response) => {
         if (
           Array.isArray(response) &&
@@ -64,10 +64,14 @@ export class ExerciseService {
           this.subjectList.next(this.createSubjectList(response));
         else this.subjectList.next(null);
       },
-      (error) => {
+      () => {
         this.subjectList.next(null);
       }
     );
+  }
+
+  ngOnDestroy() {
+    this.subjectSubscription.unsubscribe();
   }
 
   private createSubjectList(serverResponse: ServerResponseNode[]): Subject[] {
