@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -14,6 +15,7 @@ import { PublicExercisesComponent } from './public-exercises/public-exercises.co
 import { SubjectSelectComponent } from './subject-select/subject-select.component';
 import { ContentComponent } from './public-exercises/content/content.component';
 import { ExerciseComponent } from './exercises/exercise.component';
+import { EqexComponent } from './exercises/eqex/eqex.component';
 
 @NgModule({
   declarations: [
@@ -26,6 +28,7 @@ import { ExerciseComponent } from './exercises/exercise.component';
     SubjectSelectComponent,
     ContentComponent,
     ExerciseComponent,
+    EqexComponent,
   ],
   imports: [
     BrowserModule,
@@ -33,6 +36,7 @@ import { ExerciseComponent } from './exercises/exercise.component';
     AppRoutingModule,
     BrowserAnimationsModule,
     MatSidenavModule,
+    FormsModule,
   ],
   providers: [],
   bootstrap: [AppComponent],

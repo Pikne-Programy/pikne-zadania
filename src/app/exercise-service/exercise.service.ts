@@ -118,4 +118,17 @@ export class ExerciseService {
   private fetchExercises() {
     return this.http.get(ServerRoutes.publicExerciseListPath);
   }
+
+  getExercise(subject: string, id: string) {
+    return this.http.get(
+      `${ServerRoutes.publicExerciseListPath}/${subject}/${id}`
+    );
+  }
+
+  postAnswers(subject: string, id: string, answers: any) {
+    return this.http.post(
+      `${ServerRoutes.publicExerciseListPath}/${subject}/${id}`,
+      answers
+    );
+  }
 }

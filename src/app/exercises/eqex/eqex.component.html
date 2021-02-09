@@ -1,0 +1,52 @@
+<section [ngClass]="{ 'view-loading': isLoading }" class="section py-4 p-only-mobile-3">
+  <div class="height-full is-flex is-flex-direction-column">
+    <p class="title use-line-break is-1 is-size-4-mobile mb-only-mobile-3">{{ title }}</p>
+    <p class="subtitle is-size-6-mobile justified mx-4 mx-only-mobile-1 mb-5 mb-only-mobile-2 mt-0">{{ subtitle }}</p>
+    <div *ngIf="images" class="columns is-justify-content-center mb-5 mt-0">
+      <div *ngFor="let img of images" class="column">
+        <div class="box height-full p-0">
+          <div class="height-full is-flex is-align-items-center is-justify-content-center">
+            <img [src]="img" (load)="onImageLoaded()">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="columns mt-0 mb-only-mobile-0">
+      <div *ngFor="let unknown of unknowns" class="tile column is-flex is-justify-content-center pt-0 pb-2">
+        <div class="columns is-mobile">
+          <div class="column is-narrow pb-2r">
+            <div class="subtitle height-full unknowns-width is-flex is-align-items-center is-justify-content-flex-end">{{ getTextAsMath(unknown.name + '=') }}</div>
+          </div>
+          <div class="column px-0">
+            <div class="field">
+              <div class="control has-icons-right">
+                <input type="text" class="input" [ngClass]="{
+                  'is-primary': !(unknown.isWrongFormat || unknown.isCorrect || unknown.isWrong),
+                  'is-warning': unknown.isWrongFormat,
+                  'is-success': unknown.isCorrect,
+                  'is-danger': unknown.isWrong
+                }" [(ngModel)]="unknown.input" (input)="unknown.checkFormat()">
+                <span *ngIf="unknown.isWrongFormat" class="icon is-small is-right has-text-warning">
+                  <i class="fas fa-exclamation-triangle"></i>
+                </span>
+                <span *ngIf="unknown.isCorrect" class="icon is-small is-right has-text-success">
+                  <i class="fas fa-check"></i>
+                </span>
+                <span *ngIf="unknown.isWrong" class="icon is-small is-right has-text-danger">
+                  <i class="fas fa-times"></i>
+                </span>
+              </div>
+              <p [ngClass]="{ 'hidden': !unknown.isWrongFormat }" class="help is-warning">Wymagana liczba</p>
+            </div>
+          </div>
+          <div class="column is-narrow pb-2r">
+            <div class="subtitle height-full unknowns-width is-flex is-align-items-center">{{ getTextAsMath(unknown.unit) }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="width-full is-flex is-justify-content-center">
+      <button class="button is-primary width-30" [ngClass]="{ 'is-loading': isSubmitted }" (click)="submitAnswers()">Sprawdź</button>
+    </div>
+  </div>
+</section>

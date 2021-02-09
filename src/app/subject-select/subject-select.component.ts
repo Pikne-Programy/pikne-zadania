@@ -32,10 +32,9 @@ export class SubjectSelectComponent implements AfterContentInit {
           this.isLoading = false;
         }
         if (this.list.length == 1) {
-          this.router.navigate(
-            [{ outlets: { content: ['subjects', this.list[0].name] } }],
-            { relativeTo: this.route }
-          );
+          this.router.navigate(['subjects', 0, this.list[0].name], {
+            relativeTo: this.route,
+          });
         }
       });
   }

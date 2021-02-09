@@ -3,12 +3,12 @@ import { BehaviorSubject } from 'rxjs';
 import { Tuple } from '../helper/utils';
 
 export const menuElements: Tuple<string, string, null>[] = [
-  new Tuple('public-exercises', 'Baza zadań'),
+  new Tuple('/public-exercises', 'Baza zadań'),
 ];
 
 export const buttonElements: Tuple<string, string, string>[] = [
-  new Tuple('sign-in', 'Zaloguj', 'button is-primary is-inverted'),
-  new Tuple('register', 'Zarejestruj', 'button is-primary dark'),
+  new Tuple('/sign-in', 'Zaloguj', 'button is-primary is-inverted'),
+  new Tuple('/register', 'Zarejestruj', 'button is-primary dark'),
 ];
 
 @Injectable({

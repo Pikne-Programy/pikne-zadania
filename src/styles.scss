@@ -5,8 +5,24 @@ $directions: "" "", "-top" "t", "-bottom" "b", "-left" "l", "-right" "r";
 $size_breakpoints: "mobile" 0px 768px, "tablet" 769px 1023px,
   "desktop" 1024px 1215px, "widescreen" 1216px 1407px, "full-hd" 1408px;
 
-$color_primary: hsl(171, 100%, 41%);
-$color_primary_dark: hsl(171, 100%, 29%);
+//#region Colors
+//Primary
+$c_primary_hue: 171;
+$c_primary_saturation: 100%;
+$c_primary_lightness: 41%;
+$color_primary: hsl(
+  $c_primary_hue,
+  $c_primary_saturation,
+  $c_primary_lightness
+);
+//Primary dark
+$c_primary_dark_lightness: 29%;
+$color_primary_dark: hsl(
+  $c_primary_hue,
+  $c_primary_saturation,
+  $c_primary_dark_lightness
+);
+//#endregion
 
 html,
 body {
@@ -51,13 +67,27 @@ body {
 .button.is-primary.dark {
   background-color: $color_primary_dark;
   &:hover {
-    background-color: hsl(171, 100%, 26%);
+    background-color: hsl(
+      $c_primary_hue,
+      $c_primary_saturation,
+      $c_primary_dark_lightness - 3%
+    );
   }
   &:active {
-    background-color: hsl(171, 100%, 24%);
+    background-color: hsl(
+      $c_primary_hue,
+      $c_primary_saturation,
+      $c_primary_dark_lightness - 5%
+    );
   }
   &:focus:not(:active) {
-    box-shadow: 0 0 0 0.125em hsla(171, 100%, 29%, 0.25);
+    box-shadow: 0 0 0 0.125em
+      hsla(
+        $c_primary_hue,
+        $c_primary_saturation,
+        $c_primary_dark_lightness,
+        0.25
+      );
   }
 }
 //#endregion
@@ -81,6 +111,10 @@ body {
   overflow: hidden !important;
 }
 
+.justified {
+  text-align: justify;
+}
+
 //#region Borders
 @mixin borders($name, $size, $style, $color) {
   @each $dir, $dir_ab in $directions {
@@ -100,25 +134,69 @@ body {
       @each $br_name, $br_bottom, $br_top in $size_breakpoints {
         .#{$name}#{$dir_ab}-#{$br_name}-#{$i} {
           @media only screen and (min-width: $br_bottom) {
-            @if $i == 5 {
-              @include space($property, $dir, 1.5rem);
-            } @else if $i == 6 {
-              @include space($property, $dir, 3rem);
-            } @else {
-              @include space($property, $dir, 0.25rem * $i);
-            }
+            @include bulma-spaces($property, $dir, $i);
+          }
+        }
+        .#{$name}#{$dir_ab}-only-#{$br_name}-#{$i} {
+          @media only screen and (min-width: $br_bottom) and (max-width: $br_top) {
+            @include bulma-spaces($property, $dir, $i);
           }
         }
       }
     }
   }
 }
+@mixin combined-breakpoint-spaces($property, $name) {
+  $dirs: "x" "-left" "-right", "y" "-top" "-bottom";
+  @each $dirName, $dir1, $dir2 in $dirs {
+    @for $i from 0 through 6 {
+      @each $br_name, $br_bottom, $br_top in $size_breakpoints {
+        $directions: $dir1, $dir2;
+        .#{$name}#{$dirName}-#{$br_name}-#{$i} {
+          @media only screen and (min-width: $br_bottom) {
+            @include bulma-spaces($property, $directions, $i);
+          }
+        }
+        .#{$name}#{$dirName}-only-#{$br_name}-#{$i} {
+          @media only screen and (min-width: $br_bottom) and (max-width: $br_top) {
+            @include bulma-spaces($property, $directions, $i);
+          }
+        }
+      }
+    }
+  }
+}
+@mixin bulma-spaces($property, $dirs, $i) {
+  @if $i == 5 {
+    @each $dir in $dirs {
+      @include space($property, $dir, 1.5rem);
+    }
+  } @else if $i == 6 {
+    @each $dir in $dirs {
+      @include space($property, $dir, 3rem);
+    }
+  } @else {
+    @each $dir in $dirs {
+      @include space($property, $dir, $i * 0.25rem);
+    }
+  }
+}
 @mixin space($property, $dir, $size) {
   #{$property}#{$dir}: $size !important;
+}
+@mixin rem-directional-spaces($property, $name, $size) {
+  @each $dir, $dir_ab in $directions {
+    .#{$name}#{$dir_ab}-#{$size}r {
+      @include space($property, $dir, $size * 1rem);
+    }
+  }
 }
 
 @include breakpoint-spaces(margin, m);
 @include breakpoint-spaces(padding, p);
+@include combined-breakpoint-spaces(margin, m);
+@include combined-breakpoint-spaces(padding, p);
+@include rem-directional-spaces(padding, p, 2);
 
 @mixin sizes {
   $i: 0;

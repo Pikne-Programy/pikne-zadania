@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { ExerciseComponent } from './exercises/exercise.component';
 import { ContentComponent } from './public-exercises/content/content.component';
 import { PublicExercisesComponent } from './public-exercises/public-exercises.component';
 import { SubjectSelectComponent } from './subject-select/subject-select.component';
