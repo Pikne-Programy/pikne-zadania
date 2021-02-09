@@ -50,6 +50,7 @@ class RPN {
     "^": 3,
   };
   static readonly functionsDict: { [key: string]: (x: number) => number } = {
+    sqrt: Math.sqrt,
     exp: Math.exp,
     abs: Math.abs,
     ln: Math.log,
@@ -185,8 +186,8 @@ export default class EquationExercise extends Exercise {
   static readonly variableR = "(?<![0-9])[a-zA-Z_][a-zA-Z_0-9]*";
   static readonly unitR = "(?:[a-zA-Z0-9\\+\\-\\/\\*\\^]+)?";
   static readonly operationR = "[\\+\\-*\\/\\^\\-]";
-  static readonly functionR = "abs|exp|ln|log2|log10";
-  static readonly trygonometryR = "a?(?:sin|cos|tan)h?r?";
+  static readonly functionR = "sqrt|abs|exp|ln|log2|log10";
+  static readonly trygonometryR = "a?(?:sin|cos|tg|ctg)h?r?";
   // regexes used to extract and parse content
   static readonly equationR = new RegExp(
     `(${EquationExercise.variableR})=((?:(?:[\\+\\-]?(?:${EquationExercise.trygonometryR}|${EquationExercise.functionR})?[\\^a-zA-Z_0-9.\\(\\)]+${EquationExercise.operationR}*)+))`,
@@ -202,10 +203,10 @@ export default class EquationExercise extends Exercise {
   );
   type = "EqEx";
   readonly parsedContent: string; // "lorem ipsum \(d=300\mathrm{km\}\) foo \(v_a=\mathrm{\frac{m}{s}}\) bar \(v_b=\frac{m}{s}\)."
-  readonly ranges: [number, string][] = []; // index -> var name
-  readonly variables: { [key: string]: RPN | Range | number } = {}; // var name -> RPN or Range
+  readonly ranges: [number, number][] = []; // [index in variables, index in parsedContent]
+  readonly variables: [string, (RPN | Range | number)][] = []; // [var name, object]
   readonly unknowns: [string, string][] = []; // unknown' name - unknown' unit
-  readonly order: string[] = []; // order of variables to calculate
+  readonly order: number[] = []; // order of equations
   readonly answerPrecision: number = 0.02; // such number x that: ans*(100-x)% <= user ans <= ans*(100-x)% returns correct answer
 
   // content -> parse to latex, extract RPN, Range and number -> return parsed text
@@ -245,7 +246,7 @@ export default class EquationExercise extends Exercise {
             numberMatch.name + "= " + numberMatch.value + numberMatch.unit +
             "\\)"; // add space next to the '=' to prevent from matching multiple times
           line = line.substring(numberMatch.index[1]); // remove this match from line
-          this.variables[numberMatch.name] = numberMatch.value;
+          this.variables.push([numberMatch.name, numberMatch.value]);
         }
         parsedLine += line;
         // --------------------------------------------------
@@ -286,16 +287,19 @@ export default class EquationExercise extends Exercise {
             step: parseFloat(m[4] ?? "1"),
             unit: EquationExercise.convertToLaTeX(m[5]),
           };
-          this.variables[rangeMatch.name] = new Range(
-            rangeMatch.rangeMin,
-            rangeMatch.rangeMax,
-            rangeMatch.step,
-          );          
+          this.variables.push([
+            rangeMatch.name,
+            new Range(
+              rangeMatch.rangeMin,
+              rangeMatch.rangeMax,
+              rangeMatch.step,
+            ),
+          ]);
           parsedLine += line.substring(0, rangeMatch.index[0]) + "\\(" +
             rangeMatch.name + "=" + rangeMatch.unit + "\\)";
           line = line.substring(rangeMatch.index[2]); // remove this match
           index += 2 + rangeMatch.index[1]; // "\(" + name + "="
-          this.ranges.push([index, rangeMatch.name]);
+          this.ranges.push([this.variables.length - 1, index]); // [index in this.variables, index in this.parsedContent]
           index += rangeMatch.unit.length + 2; // LaTeX unit + "\)"
         }
         parsedLine += line;
@@ -308,8 +312,8 @@ export default class EquationExercise extends Exercise {
         const m = line.match(EquationExercise.equationR);
         const name = m![1];
         const RPNeq = EquationExercise.convertToRPN(m![2]);
-        this.variables[name] = RPNeq;
-        this.order.push(name);
+        this.variables.push([name, RPNeq]);
+        this.order.push(this.variables.length - 1); // index in this.variables
       }
     });
     this.parsedContent = parsingContent;
@@ -326,12 +330,12 @@ export default class EquationExercise extends Exercise {
     const rng = new RNG(seed);
     let parsingContent = this.parsedContent;
     for (let i = this.ranges.length - 1; i >= 0; --i) {
-      const name = this.ranges[i][1];
       const index = this.ranges[i][0];
-      const value = (this.variables[name] as Range).rand(rng);
-      parsingContent = parsingContent.substr(0, index) +
+      const textIndex = this.ranges[i][1];
+      const value = (this.variables[index][1] as Range).rand(rng);
+      parsingContent = parsingContent.substr(0, textIndex) +
         value +
-        parsingContent.substr(index);
+        parsingContent.substr(textIndex);
     }
     return {
       type: this.type,
@@ -347,23 +351,30 @@ export default class EquationExercise extends Exercise {
   } {
     const rng = new RNG(seed);
     const calculated: { [key: string]: number } = {};
-    // add already calculated numbers to variables
-    for (const key in this.variables) {
-      if (typeof this.variables[key] == "number") {
-        calculated[key] = this.variables[key] as number;
+    // add already calculated numbers to calculated variables
+    for (let i = 0; i < this.variables.length; ++i) {
+      const name = this.variables[i][0];
+      const val = this.variables[i][1];
+      if (typeof val == "number") {
+        calculated[name] = val as number;
       }
     }
-    // randomise ranges (in the correct order) and add them to variable
+    // randomise ranges (in the correct order) and add them to calculated variables
     for (let i = this.ranges.length - 1; i >= 0; --i) {
-      const name = this.ranges[i][1];
-      const value = (this.variables[name] as Range).rand(rng);
-      calculated[name] = value;
+      const index = this.ranges[i][0];
+      const name = this.variables[index][0];
+      const val = this.variables[index][1];
+      if (val instanceof Range) {
+        calculated[name] = (val as Range).rand(rng);
+      }
     }
-    // calculate RPN variables (in the correct order) and add them to vaiables
+    // calculate RPN variables (in the correct order) and add them to calculated vaiables
     for (let i = 0; i < this.order.length; ++i) {
-      const name = this.order[i];
-      if (this.variables[name] instanceof RPN) {
-        calculated[name] = (this.variables[name] as RPN).calculate(calculated);
+      const index = this.order[i];
+      const name = this.variables[index][0];
+      const val = this.variables[index][1];
+      if (val instanceof RPN) {
+        calculated[name] = (val as RPN).calculate(calculated);
       }
     }
     // check if answer is of a good type
@@ -453,7 +464,7 @@ export default class EquationExercise extends Exercise {
           const p1 = RPN.getPriority(exp[0]);
           while (stack.length > 0) {
             const p2 = RPN.getPriority(stack[stack.length - 1]);
-            if (p1 >= p2) break;
+            if (p1 > p2) break;
             RPNeq.push(stack.pop()!);
           }
           stack.push(exp[0]);
@@ -484,6 +495,9 @@ export default class EquationExercise extends Exercise {
     return RPNeq;
   }
   static convertToLaTeX(unit: string): string {
+    if (unit == "") {
+      return "";
+    }
     let parsedUnit = "";
     let isFraction = false;
     const r = "\\^([\\-\\+]?[0-9]+)|([a-zA-Z]+|[\\-\\+])|[\\*\\/\\^]";
@@ -505,8 +519,8 @@ export default class EquationExercise extends Exercise {
         isFraction = true;
       }
     }
-    parsedUnit = "\\mathrm{" + ((isFraction) ? "\\frac{" : "") + parsedUnit +
-      ((isFraction) ? "}" : "") + "}";
+    parsedUnit = "\\;\\mathrm{" + ((isFraction) ? "\\frac{" : "") +
+      parsedUnit + ((isFraction) ? "}" : "") + "}";
     return parsedUnit;
   }
 }
