@@ -161,6 +161,8 @@ class RPN {
         }
       }
       if (v === null || isNaN(v) || !isFinite(v)) {
+        console.log(this.RPNeq);
+        console.log(variables);
         throw new Error("INVALID EQUATION, UNEXPECTED VALUE WHILE CALCULATING");
       }
       stack.push(v);
@@ -255,7 +257,8 @@ export default class EquationExercise extends Exercise {
         parsedLine = "";
         while ((m = EquationExercise.numberEqR.exec(line)) !== null) {
           const numberMatch = {
-            name: EquationExercise.convertToGreek(
+            name: m[2] === undefined ? m[1] : `${m[1]}_${m[2].substring(1)}`,
+            formatedName: EquationExercise.convertToGreek(
               m[2] === undefined ? m[1] : `${m[1]}_{${m[2].substring(1)}}`,
             ),
             index: [
@@ -269,7 +272,7 @@ export default class EquationExercise extends Exercise {
           // add space next to the '=' to prevent from matching multiple times
           parsedLine += `${
             line.substring(0, numberMatch.index[0])
-          }\\(${numberMatch.name}= ${numberMatch.value}${numberMatch.unit}\\)`;
+          }\\(${numberMatch.formatedName}= ${numberMatch.value}${numberMatch.unit}\\)`,
           line = line.substring(numberMatch.index[1]); // remove this match from line
           this.variables.push([numberMatch.name, numberMatch.value]);
         }
@@ -280,7 +283,8 @@ export default class EquationExercise extends Exercise {
         parsedLine = "";
         while ((m = EquationExercise.unknownEqR.exec(line)) !== null) {
           const unknownMatch = {
-            name: EquationExercise.convertToGreek(
+            name: m[2] === undefined ? m[1] : `${m[1]}_${m[2].substring(1)}`,
+            formatedName: EquationExercise.convertToGreek(
               m[2] === undefined ? m[1] : `${m[1]}_{${m[2].substring(1)}}`,
             ),
             index: [
@@ -291,7 +295,7 @@ export default class EquationExercise extends Exercise {
             unit: EquationExercise.convertToLaTeX(m[3]),
           };
           parsedLine += line.substring(0, unknownMatch.index[0]) + "\\(" +
-            unknownMatch.name + "\\)";
+            unknownMatch.formatedName + "\\)";
           line = line.substring(unknownMatch.index[1]); // remove this match
           this.unknowns.push([unknownMatch.name, unknownMatch.unit]);
         }
@@ -302,7 +306,8 @@ export default class EquationExercise extends Exercise {
         parsedLine = "";
         while ((m = EquationExercise.rangeEqR.exec(line)) !== null) {
           const rangeMatch = { // TODO: rework
-            name: EquationExercise.convertToGreek(
+            name: m[2] === undefined ? m[1] : `${m[1]}_${m[2].substring(1)}`,
+            formatedName: EquationExercise.convertToGreek(
               m[2] === undefined ? m[1] : `${m[1]}_{${m[2].substring(1)}}`,
             ),
             index: [
@@ -325,9 +330,9 @@ export default class EquationExercise extends Exercise {
           ]);
           parsedLine += `${
             line.substring(0, rangeMatch.index[0])
-          }\\(${rangeMatch.name}= ${rangeMatch.unit}\\)`;
+          }\\(${rangeMatch.formatedName}= ${rangeMatch.unit}\\)`;
           line = line.substring(rangeMatch.index[1]); // remove this match
-          index += 2 + rangeMatch.index[0] + rangeMatch.name.length + 2; // "\(" + name + "= ";
+          index += 2 + rangeMatch.index[0] + rangeMatch.formatedName.length + 2; // "\(" + name + "= ";
           this.ranges.push([this.variables.length - 1, index]); // [index in this.variables, index in this.parsedContent]
           index += rangeMatch.unit.length + 2; // LaTeX unit + "\)"
         }
