@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   Component,
   EventEmitter,
   Input,
@@ -37,7 +38,8 @@ class Unknown {
   templateUrl: './eqex.component.html',
   styleUrls: ['./eqex.component.scss'],
 })
-export class EqexComponent implements ExerciseComponent, OnDestroy {
+export class EqexComponent
+  implements ExerciseComponent, AfterViewInit, OnDestroy {
   @Output() loaded = new EventEmitter<string>();
   isLoading = true;
 
@@ -117,9 +119,12 @@ export class EqexComponent implements ExerciseComponent, OnDestroy {
   }
 
   private onLoaded() {
-    MathJax.typeset();
-    removeMathTabIndex();
     this.loaded.emit('loaded');
     this.isLoading = false;
+  }
+
+  ngAfterViewInit() {
+    MathJax.typeset();
+    removeMathTabIndex();
   }
 }

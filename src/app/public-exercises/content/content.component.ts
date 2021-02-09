@@ -6,7 +6,11 @@ import {
   ExerciseTreeNode,
   Subject,
 } from 'src/app/exercise-service/exercise.service';
-import { capitalize, Tuple } from 'src/app/helper/utils';
+import {
+  ScreenSizeService,
+  ScreenSizes,
+} from 'src/app/helper/screen-size.service';
+import { capitalize } from 'src/app/helper/utils';
 
 @Component({
   selector: 'app-content',
@@ -22,10 +26,14 @@ export class ContentComponent implements OnInit, OnDestroy {
   subject?: Subject;
   indices: string = '';
 
+  readonly mobileSize = ScreenSizes.MOBILE;
+  screenSize: number = ScreenSizes.FULL_HD;
+  private screenSizeSub?: Subscription;
   private subjectList?: Subscription;
   private queryParams?: Subscription;
   constructor(
     private exerciseService: ExerciseService,
+    private screenSizeService: ScreenSizeService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
@@ -53,11 +61,18 @@ export class ContentComponent implements OnInit, OnDestroy {
       this.exercise = exerciseId;
       if (category !== null) this.navigateByIndices(category);
     });
+
+    this.screenSizeSub = this.screenSizeService.currentSize.subscribe(
+      (value) => {
+        this.screenSize = value;
+      }
+    );
   }
 
   ngOnDestroy() {
     this.subjectList?.unsubscribe();
     this.queryParams?.unsubscribe();
+    this.screenSizeSub?.unsubscribe();
   }
 
   navigateByIndices(newIndices: string | null) {
@@ -145,6 +160,14 @@ export class ContentComponent implements OnInit, OnDestroy {
 
       return match === null ? undefined : match[1];
     }
+  }
+
+  resetExercise() {
+    this.router.navigate(['./'], {
+      relativeTo: this.route,
+      queryParams: { exercise: null },
+      queryParamsHandling: 'merge',
+    });
   }
 
   capitalize(string: string | null): string | null {

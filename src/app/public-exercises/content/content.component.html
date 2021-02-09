@@ -1,5 +1,5 @@
 <div class="columns height-full m-0">
-  <div class="height-full column is-one-quarter-tablet is-one-fifth-desktop">
+  <div *ngIf="screenSize != mobileSize || exercise === null" class="height-full column is-one-quarter-tablet is-one-fifth-desktop">
     <div class="box height-full p-0">
       <aside class="menu height-full is-flex is-flex-direction-column">
         <nav class="breadcrumb divider-bottom p-4 pb-4 mb-0" aria-label="breadcrumbs">
@@ -31,9 +31,9 @@
       </aside>
     </div>
   </div>
-  <div class="column height-full">
+  <div *ngIf="screenSize != mobileSize || exercise !== null" class="column height-full">
     <div class="box height-full is-flex is-flex-direction-column p-0">
-      <nav class="level p-2 m-0 divider-bottom" style="display: none">
+      <nav *ngIf="screenSize == mobileSize" class="level divider-bottom p-2 m-0" (click)="resetExercise()">
         <div class="level-left">
           <button class="button is-rounded is-small">
             <span class="icon">

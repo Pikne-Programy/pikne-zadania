@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, fromEvent, Subscription } from 'rxjs';
+import { ScreenSizes, Sizes } from '../helper/screen-size.service';
 import { Tuple } from '../helper/utils';
 
 export const menuElements: Tuple<string, string, null>[] = [
@@ -18,7 +19,16 @@ export class NavService {
   sideNavOpened = new BehaviorSubject(false);
   showTabs = new BehaviorSubject(false);
 
-  constructor() {}
+  private eventSubscription: Subscription;
+  constructor() {
+    this.eventSubscription = fromEvent(window, 'resize').subscribe(() => {
+      if (
+        window.innerWidth > Sizes[ScreenSizes.TABLET][1] + 1 &&
+        this.sideNavOpened.getValue()
+      )
+        this.toggleSidenav();
+    });
+  }
 
   toggleSidenav() {
     this.sideNavOpened.next(!this.sideNavOpened.getValue());
