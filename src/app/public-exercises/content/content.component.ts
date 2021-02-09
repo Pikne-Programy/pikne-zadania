@@ -14,14 +14,16 @@ import { capitalize, Tuple } from 'src/app/helper/utils';
   styleUrls: ['./content.component.scss'],
 })
 export class ContentComponent implements OnInit, OnDestroy {
+  isSingleSubject = false;
+
   list?: ExerciseTreeNode[];
   breadcrumbs: ExerciseTreeNode[] = [];
   exercise: string | null = null;
   subject?: Subject;
   indices: string = '';
+
   private subjectList?: Subscription;
   private queryParams?: Subscription;
-
   constructor(
     private exerciseService: ExerciseService,
     private router: Router,
@@ -39,6 +41,9 @@ export class ContentComponent implements OnInit, OnDestroy {
           if (response && response.length > 0) {
             this.subject = response[index];
             this.navigateByIndices(indices);
+
+            if (response.length == 1) this.isSingleSubject = true;
+            else this.isSingleSubject = false;
           }
         });
     }
