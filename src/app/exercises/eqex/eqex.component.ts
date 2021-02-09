@@ -123,6 +123,10 @@ export class EqexComponent
     this.isLoading = false;
   }
 
+  checkIfSubmitDisabled(): boolean {
+    return this.unknowns?.some((unknown) => unknown.isWrongFormat) ?? false;
+  }
+
   ngAfterViewInit() {
     MathJax.typeset();
     removeMathTabIndex();

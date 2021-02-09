@@ -2,7 +2,7 @@
   <div *ngIf="screenSize != mobileSize || exercise === null" class="height-full column is-one-quarter-tablet is-one-fifth-desktop">
     <div class="box height-full p-0">
       <aside class="menu height-full is-flex is-flex-direction-column">
-        <nav class="breadcrumb divider-bottom p-4 pb-4 mb-0" aria-label="breadcrumbs">
+        <nav class="breadcrumb is-bold divider-bottom p-4 pb-4 mb-0" aria-label="breadcrumbs">
           <ul>
             <li *ngIf="!isSingleSubject">
               <a [routerLink]="['/']" tabindex="0">
