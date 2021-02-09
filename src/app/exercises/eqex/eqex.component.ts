@@ -7,7 +7,9 @@ import {
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ExerciseService } from 'src/app/exercise-service/exercise.service';
+import { removeMathTabIndex } from 'src/app/helper/utils';
 import { ExerciseComponent } from '../exercises';
+declare var MathJax: any;
 
 class Unknown {
   private formatRegex = /^[+-]?\d*[,\.]?\d*$/;
@@ -46,7 +48,6 @@ export class EqexComponent implements ExerciseComponent, OnDestroy {
     this._data = value;
     this.title = this._data.name;
     this.subtitle = this._data.content.main;
-    //TODO MathJax typesetting
     this.images = this._data.content.imgs;
     if (this._data.content.unknowns) {
       const tempList: Unknown[] = [];
@@ -55,10 +56,7 @@ export class EqexComponent implements ExerciseComponent, OnDestroy {
       });
       this.unknowns = tempList;
     }
-    if (!this.images || this.images.length == 0) {
-      this.loaded.emit('loaded');
-      this.isLoading = false;
-    }
+    if (!this.images || this.images.length == 0) this.onLoaded();
   }
   title?: string;
   subtitle?: string;
@@ -114,9 +112,14 @@ export class EqexComponent implements ExerciseComponent, OnDestroy {
 
   onImageLoaded() {
     this.loadedImages.push(true);
-    if (this.loadedImages.length == this.images?.length && this.isLoading) {
-      this.loaded.emit('loaded');
-      this.isLoading = false;
-    }
+    if (this.loadedImages.length == this.images?.length && this.isLoading)
+      this.onLoaded();
+  }
+
+  private onLoaded() {
+    MathJax.typeset();
+    removeMathTabIndex();
+    this.loaded.emit('loaded');
+    this.isLoading = false;
   }
 }

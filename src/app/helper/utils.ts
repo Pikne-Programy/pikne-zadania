@@ -18,3 +18,12 @@ export function capitalize(
   if (string == null || string == undefined) return string;
   else return string.charAt(0).toLocaleUpperCase(locale) + string.slice(1);
 }
+
+/**
+ * Sets tab index of all elements with class "MathJax" to -1
+ */
+export function removeMathTabIndex() {
+  document.querySelectorAll('.MathJax').forEach((element) => {
+    element.setAttribute('tabindex', '-1');
+  });
+}
