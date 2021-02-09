@@ -23,9 +23,9 @@ Run our container (use `sudo` if you are not in `docker` group):
 
 ```sh
 PORT=80
-docker run --name pikne-zadania -dp $PORT:8000 nircek/pikne-zadania
+docker run --name pikne-zadania -dp $PORT:8000 nircek/pikne-zadania:stable
 # or if you want to run it at the boot
-docker run --name pikne-zadania -dp $PORT:8000 --restart unless-stopped nircek/pikne-zadania
+docker run --name pikne-zadania -dp $PORT:8000 --restart unless-stopped nircek/pikne-zadania:stable
 ```
 
 Perform updates automatically with the [Watchtower](https://github.com/containrrr/watchtower):
