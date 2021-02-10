@@ -174,7 +174,9 @@ export function startServer() {
           Object.keys(attrs).forEach((field, i) => {
             result.push(attrs[field] == Number((1.1 * (i + 1)).toFixed(1)));
           });
-          return result;
+          //TODO Change for partial solutions
+          //return result;
+          return { success: result.every((value) => value) };
         });
       });
       [

@@ -28,6 +28,9 @@ class Unknown {
   }
 
   setAnswerCorrectness(value: boolean) {
+    this.isCorrect = false;
+    this.isWrong = false;
+    this.isWrongFormat = false;
     if (value) this.isCorrect = true;
     else this.isWrong = true;
   }
@@ -86,18 +89,20 @@ export class EqexComponent
       this.answerSubscription = this.exerciseService
         .postAnswers(this.subject, this.exerciseId, list)
         .subscribe(
-          (response) => {
+          (response: any) => {
             this.isSubmitted = false;
-            console.log('response', response);
-
-            if (Array.isArray(response) && this.unknowns) {
+            //TODO Change for partial solutions
+            /*if (Array.isArray(response) && this.unknowns) {
               for (
                 let i = 0;
                 i < response.length && i < this.unknowns.length;
                 i++
               )
                 this.unknowns[i].setAnswerCorrectness(response[i]);
-            }
+            }*/
+            this.unknowns?.forEach((unknown) => {
+              unknown.setAnswerCorrectness(response.success);
+            });
           },
           (error) => {
             this.isSubmitted = false;
