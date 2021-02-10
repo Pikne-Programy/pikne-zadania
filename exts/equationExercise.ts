@@ -86,15 +86,18 @@ class RPN {
   // return the type of an expression
   // example: 1234 -> Expressions.Number, v_a -> Expressions.Variable, sin -> Expressions.Operation
   static getType(exp: string | number): Expressions {
-    if (typeof exp === "number" || RegExp(EquationExercise.numberR).test(exp)) {
+    if (
+      typeof exp === "number" ||
+      RegExp(`^(${EquationExercise.numberR})$`).test(exp)
+    ) {
       return Expressions.Number;
-    } else if (RegExp(EquationExercise.functionR).test(exp)) {
+    } else if (RegExp(`^(${EquationExercise.functionR})$`).test(exp)) {
       return Expressions.Function;
-    } else if (RegExp(EquationExercise.trygonometryR).test(exp)) {
+    } else if (RegExp(`^(${EquationExercise.trygonometryR})$`).test(exp)) {
       return Expressions.Trygonometry;
-    } else if (RegExp(EquationExercise.variableR).test(exp)) {
+    } else if (RegExp(`^(${EquationExercise.variableR})$`).test(exp)) {
       return Expressions.Variable;
-    } else if (RegExp(EquationExercise.operationR).test(exp)) {
+    } else if (RegExp(`^(${EquationExercise.operationR})$`).test(exp)) {
       return Expressions.Operation;
     } else if (exp === "(" || exp === ")") return Expressions.Bracket;
     else return Expressions.Whitespace;
@@ -113,6 +116,10 @@ class RPN {
       } else if (type === Expressions.Variable) {
         if (exp in variables) {
           v = variables[exp];
+        } else {
+          throw new Error(
+            "INVALID EQUATION, UNDECLARED VARIABLE",
+          );
         }
       } else if (type === Expressions.Operation) {
         if (stack.length < 2) {
@@ -161,8 +168,6 @@ class RPN {
         }
       }
       if (v === null || isNaN(v) || !isFinite(v)) {
-        console.log(this.RPNeq);
-        console.log(variables);
         throw new Error("INVALID EQUATION, UNEXPECTED VALUE WHILE CALCULATING");
       }
       stack.push(v);
@@ -229,7 +234,7 @@ export default class EquationExercise extends Exercise {
   readonly parsedContent: string; // "lorem ipsum \(d=300\mathrm{km\}\) foo \(v_a=\mathrm{\frac{m}{s}}\) bar \(v_b=\frac{m}{s}\)."
   readonly ranges: [number, number][] = []; // [index in variables, index in parsedContent]
   readonly variables: [string, (RPN | Range | number)][] = []; // [var name, object]
-  readonly unknowns: [string, string][] = []; // unknown' name - unknown' unit
+  readonly unknowns: [string, string, string][] = []; // unknown' name - unknown' unit
   readonly order: number[] = []; // order of equations
   readonly answerPrecision: number = 0.02; // such number x that: ans*(100-x)% <= user ans <= ans*(100-x)% returns correct answer
 
@@ -257,7 +262,7 @@ export default class EquationExercise extends Exercise {
         parsedLine = "";
         while ((m = EquationExercise.numberEqR.exec(line)) !== null) {
           const numberMatch = {
-            name: m[2] === undefined ? m[1] : `${m[1]}_${m[2].substring(1)}`,
+            name: m[2] === undefined ? m[1] : `${m[1]}${m[2]}`,
             formatedName: EquationExercise.convertToGreek(
               m[2] === undefined ? m[1] : `${m[1]}_{${m[2].substring(1)}}`,
             ),
@@ -273,7 +278,7 @@ export default class EquationExercise extends Exercise {
           parsedLine += `${
             line.substring(0, numberMatch.index[0])
           }\\(${numberMatch.formatedName}= ${numberMatch.value}${numberMatch.unit}\\)`,
-          line = line.substring(numberMatch.index[1]); // remove this match from line
+            line = line.substring(numberMatch.index[1]); // remove this match from line
           this.variables.push([numberMatch.name, numberMatch.value]);
         }
         parsedLine += line;
@@ -283,7 +288,7 @@ export default class EquationExercise extends Exercise {
         parsedLine = "";
         while ((m = EquationExercise.unknownEqR.exec(line)) !== null) {
           const unknownMatch = {
-            name: m[2] === undefined ? m[1] : `${m[1]}_${m[2].substring(1)}`,
+            name: m[2] === undefined ? m[1] : `${m[1]}${m[2]}`,
             formatedName: EquationExercise.convertToGreek(
               m[2] === undefined ? m[1] : `${m[1]}_{${m[2].substring(1)}}`,
             ),
@@ -297,7 +302,11 @@ export default class EquationExercise extends Exercise {
           parsedLine += line.substring(0, unknownMatch.index[0]) + "\\(" +
             unknownMatch.formatedName + "\\)";
           line = line.substring(unknownMatch.index[1]); // remove this match
-          this.unknowns.push([unknownMatch.name, unknownMatch.unit]);
+          this.unknowns.push([
+            unknownMatch.name,
+            unknownMatch.formatedName,
+            unknownMatch.unit,
+          ]);
         }
         parsedLine += line;
         // --------------------------------------------------
@@ -306,7 +315,7 @@ export default class EquationExercise extends Exercise {
         parsedLine = "";
         while ((m = EquationExercise.rangeEqR.exec(line)) !== null) {
           const rangeMatch = { // TODO: rework
-            name: m[2] === undefined ? m[1] : `${m[1]}_${m[2].substring(1)}`,
+            name: m[2] === undefined ? m[1] : `${m[1]}${m[2]}`,
             formatedName: EquationExercise.convertToGreek(
               m[2] === undefined ? m[1] : `${m[1]}_{${m[2].substring(1)}}`,
             ),
@@ -322,11 +331,11 @@ export default class EquationExercise extends Exercise {
           };
           this.variables.push([
             rangeMatch.name,
-             new Range(
-                rangeMatch.rangeMin,
-                rangeMatch.rangeMax,
-                rangeMatch.step,
-              ),
+            new Range(
+              rangeMatch.rangeMin,
+              rangeMatch.rangeMax,
+              rangeMatch.step,
+            ),
           ]);
           parsedLine += `${
             line.substring(0, rangeMatch.index[0])
@@ -341,11 +350,12 @@ export default class EquationExercise extends Exercise {
         index += line.length + 1; // what's left + '\n'
       } else if (segment == 1) {
         const m = line.match(EquationExercise.equationR);
-        if (!EquationExercise.equationR.test(line) || m === null) {
+        if (m === null || m[0] !== line) {
           throw new Error("LINE DOESNT MATCH PATTERN");
         }
-        const name = EquationExercise.convertToGreek(
-          m[2] === undefined ? m[1] : `${m[1]}{${m[2].substring(1)}}`,
+        const name = m[2] === undefined ? m[1] : `${m[1]}${m[2]}`;
+        const formatedName = EquationExercise.convertToGreek(
+          m[2] === undefined ? m[1] : `${m[1]}_{${m[2].substring(1)}}`,
         );
         const RPNeq = EquationExercise.convertToRPN(m![3]);
         this.variables.push([name, RPNeq]);
@@ -373,12 +383,16 @@ export default class EquationExercise extends Exercise {
         value +
         parsingContent.substr(textIndex);
     }
+    const formatedUnknowns: [string, string][] = [];
+    for (let i = 0; i < this.unknowns.length; ++i) {
+      formatedUnknowns.push([this.unknowns[i][1], this.unknowns[i][2]]);
+    }
     return {
       type: this.type,
       name: this.name,
       content: {
         main: parsingContent,
-        unknowns: this.unknowns,
+        unknowns: formatedUnknowns,
       },
     };
   }
@@ -421,17 +435,19 @@ export default class EquationExercise extends Exercise {
       throw new Error("ANSWER IS NOT A DICTIONARY");
     }
     // go through each unknown and compare the answers to what's calculated
-    for (const [name, _] of this.unknowns) {
+    for (const [name, formatedName, _] of this.unknowns) {
       const correctAns = calculated[name];
-      if (name in userAnswer) {
-        const ans = userAnswer[name]!;
+      if (formatedName in userAnswer) {
+        const ans = userAnswer[formatedName]!;
         if (
           ans < (1 - this.answerPrecision) * correctAns ||
           ans > (1 + this.answerPrecision) * correctAns
         ) {
           return { success: false };
         }
-      } else return { success: false };
+      } else {
+        throw new Error("UNKNOWN IS NOT IN ANSWER");
+      }
     }
     return { success: true };
   }
