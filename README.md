@@ -49,6 +49,6 @@ docker run --name watchtower -dv /var/run/docker.sock:/var/run/docker.sock conta
 git clone --recursive https://github.com/Pikne-Programy/pikne-zadania.git # clone via HTTPS
 git clone --recursive git@github.com:Pikne-Programy/pikne-zadania.git # clone via SSH
 cd pikne-zadania
-# build and run, can be repeated on and on
+# build and run; it's using denon to auto-update
 docker-compose up --build
 ```
