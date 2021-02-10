@@ -43,7 +43,7 @@ app.use(router.allowedMethods());
 
 app.use(async (context) => {
   await send(context, context.request.url.pathname, {
-    root: `${Deno.cwd()}/frontend`,
+    root: `${Deno.cwd()}/dist`,
     index: "index.html",
   });
 });
