@@ -1,0 +1,13 @@
+<div class="root">
+  <app-navbar></app-navbar>
+  <mat-sidenav-container class="full-height" (backdropClick)="toggleSidenav()">
+    <mat-sidenav appSidenav>
+      <app-sidenav></app-sidenav>
+    </mat-sidenav>
+    <mat-sidenav-content>
+      <section class="section-root">
+        <router-outlet></router-outlet>
+      </section>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>

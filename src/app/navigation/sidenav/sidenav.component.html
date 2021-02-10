@@ -1,0 +1,13 @@
+<nav class="navbar full-height is-flex is-flex-direction-column" role="navigation" aria-label="main navigation">
+  <div class="navbar-start full-height scrollable">
+    <a *ngFor="let pair of menuElements" class="navbar-item" [routerLink]="pair.first" (click)="closeSidenav()">{{ pair.second }}</a>
+  </div>
+
+  <div class="navbar-end divider-top">
+    <div class="navbar-item">
+      <div class="buttons">
+        <a *ngFor="let button of buttonElements" [class]="button.third" [routerLink]="button.first" (click)="closeSidenav()"><strong>{{ button.second }}</strong></a>
+      </div>
+    </div>
+  </div>
+</nav>
