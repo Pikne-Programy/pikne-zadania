@@ -1,0 +1,16 @@
+version: "3.9"
+services:
+  web:
+    image: nircek/pikne-zadania:stable
+    ports:
+      - 80:8000
+    depends_on:
+      - redis
+    restart: unless-stopped
+  redis:
+    image: redis
+    expose:
+      - 6379
+    volumes:
+      - ./data:/data
+    restart: unless-stopped

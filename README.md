@@ -19,13 +19,21 @@ sudo service docker start
 sudo service docker enable
 ```
 
-Run our container (use `sudo` if you are not in `docker` group):
+Install [Docker Compose](https://docs.docker.com/compose/install/):
 
 ```sh
-PORT=80
-docker run --name pikne-zadania -dp $PORT:8000 nircek/pikne-zadania:stable
-# or if you want to run it at the boot
-docker run --name pikne-zadania -dp $PORT:8000 --restart unless-stopped nircek/pikne-zadania:stable
+sudo curl -L "https://github.com/docker/compose/releases/download/1.28.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+```
+
+Install our app (use `sudo` if you are not in `docker` group):
+
+```sh
+CHANNEL=stable # use latest if you want
+curl -L https://raw.githubusercontent.com/Pikne-Programy/pikne-zadania/master/docker-compose.$CHANNEL.yml --create-dirs -o pikne-zadania-$CHANNEL/docker-compose.yml
+cd pikne-zadania-$CHANNEL/
+docker-compose up -d
 ```
 
 Perform updates automatically with the [Watchtower](https://github.com/containrrr/watchtower):
@@ -42,5 +50,5 @@ git clone --recursive https://github.com/Pikne-Programy/pikne-zadania.git # clon
 git clone --recursive git@github.com:Pikne-Programy/pikne-zadania.git # clone via SSH
 cd pikne-zadania
 # build and run, can be repeated on and on
-docker build . -t pikne-zadania && docker run --name pikne-zadania -itp 8000:8000 --rm pikne-zadania
+docker-compose up --build
 ```
