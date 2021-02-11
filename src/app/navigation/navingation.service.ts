@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, fromEvent, Subscription } from 'rxjs';
 import { ScreenSizes, Sizes } from '../helper/screen-size.service';
 import { Tuple } from '../helper/utils';
@@ -15,7 +15,7 @@ export const buttonElements: Tuple<string, string, string>[] = [
 @Injectable({
   providedIn: 'root',
 })
-export class NavService {
+export class NavService implements OnDestroy {
   sideNavOpened = new BehaviorSubject(false);
   showTabs = new BehaviorSubject(false);
 
@@ -28,6 +28,10 @@ export class NavService {
       )
         this.toggleSidenav();
     });
+  }
+
+  ngOnDestroy() {
+    this.eventSubscription.unsubscribe();
   }
 
   toggleSidenav() {
