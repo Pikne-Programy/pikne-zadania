@@ -80,10 +80,10 @@ export class EqexComponent
   submitAnswers() {
     if (this.unknowns && this.subject && this.exerciseId) {
       this.isSubmitted = true;
-      const list: number[] = [];
+      const list: (number | null)[] = [];
       this.unknowns.forEach((unknown) => {
         const text = unknown.input;
-        list.push(Number(text.replace(',', '.')));
+        list.push(text !== '' ? Number(text.replace(',', '.')) : null);
       });
       this.answerSubscription?.unsubscribe();
       this.answerSubscription = this.exerciseService

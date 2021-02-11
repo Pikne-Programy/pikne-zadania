@@ -84,6 +84,11 @@ body {
       );
   }
 }
+
+.box .level {
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+}
 //#endregion
 
 .root {
@@ -91,10 +96,6 @@ body {
   width: 100vw;
   display: flex !important;
   flex-direction: column !important;
-}
-
-.full-height {
-  height: 100%;
 }
 
 .scrollable {

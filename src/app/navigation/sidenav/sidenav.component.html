@@ -1,5 +1,5 @@
-<nav class="navbar full-height is-flex is-flex-direction-column" role="navigation" aria-label="main navigation">
-  <div class="navbar-start full-height scrollable">
+<nav class="navbar height-full is-flex is-flex-direction-column" role="navigation" aria-label="main navigation">
+  <div class="navbar-start height-full scrollable">
     <a *ngFor="let pair of menuElements" class="navbar-item" [routerLink]="pair.first" (click)="closeSidenav()">{{ pair.second }}</a>
   </div>
 

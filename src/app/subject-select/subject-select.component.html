@@ -1,12 +1,12 @@
-<section class="section full-height full-width not-scrollable pb-0 px-5 pt-5">
-  <div class="columns is-align-items-center is-justify-content-center full-height">
-    <div class="column is-half-tablet is-two-fifths-desktop is-one-third-widescreen is-one-forth-fullhd full-height">
-      <nav id="panel-subjects" class="panel max-height-full not-scrollable is-flex is-flex-direction-column">
+<section class="section height-full pb-0 px-5 pt-5">
+  <div class="columns height-full is-align-items-center is-justify-content-center">
+    <div class="column height-full is-half-tablet is-two-fifths-desktop is-one-third-widescreen is-one-forth-fullhd py-only-mobile-0">
+      <nav class="panel max-height-full is-flex is-flex-direction-column">
         <p class="panel-heading">Przedmioty</p>
-        <div *ngIf="isLoading" class="full-height is-flex is-align-items-center is-justify-content-center p-6">
+        <div *ngIf="isLoading" class="height-full is-flex is-align-items-center is-justify-content-center p-6">
           <progress class="progress width-70 is-small is-primary" max="100">15%</progress>
         </div>
-        <nav class="panel full-height scrollable">
+        <nav class="panel height-full scrollable">
           <a class="panel-block" *ngFor="let subject of list; index as i" [routerLink]="['subjects', i, subject.name]">
             <span class="panel-icon">
               <i class="fas fa-book" aria-hidden="true"></i>
