@@ -17,6 +17,7 @@ import {
   ExerciseType,
   isExercise,
   ExerciseComponent as ExerciseComponentType,
+  categoryRegex,
 } from './exercises';
 
 @Component({
@@ -45,7 +46,7 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
 
     if (this.exerciseUrl && this.subject) {
       this.exercise = this.exerciseService
-        .getExercise(this.subject, this.exerciseUrl)
+        .getExercise(this.subject, this.getExerciseId(this.exerciseUrl))
         .subscribe(
           (response) => {
             if (isExercise(response)) {
@@ -74,21 +75,29 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
     type: Type<T>,
     exercise: Exercise
   ) {
-    const factory = this.factoryResolver.resolveComponentFactory(type);
-    this.container.clear();
-    const component = this.container.createComponent(factory);
-    this.componentRef = component;
-    component.instance.loaded.subscribe(() => {
-      this.isLoading = false;
-      component.instance.loaded.unsubscribe();
-    });
-    component.instance.data = exercise;
-    component.instance.subject = this.subject;
-    component.instance.exerciseId = this.exerciseUrl;
+    if (this.exerciseUrl) {
+      const factory = this.factoryResolver.resolveComponentFactory(type);
+      this.container.clear();
+      const component = this.container.createComponent(factory);
+      this.componentRef = component;
+      component.instance.loaded.subscribe(() => {
+        this.isLoading = false;
+        component.instance.loaded.unsubscribe();
+      });
+      component.instance.data = exercise;
+      component.instance.subject = this.subject;
+      component.instance.exerciseId = this.getExerciseId(this.exerciseUrl);
+    }
   }
 
   private throwError(error: any) {
     console.error('Exercise error', error);
     //TODO Handle response error
+  }
+
+  private getExerciseId(exercisePath: string) {
+    const matches = exercisePath.match(categoryRegex);
+    if (matches && matches.length > 0) return matches[matches.length - 1];
+    else return '';
   }
 }

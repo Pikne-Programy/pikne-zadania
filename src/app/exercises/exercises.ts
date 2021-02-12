@@ -4,6 +4,9 @@ export enum ExerciseType {
   EqEx,
 }
 
+export const categorySeparator = '~';
+export const categoryRegex = new RegExp(`([^\\${categorySeparator}]+)`, 'g');
+
 export class Exercise {
   constructor(public type: string, name: string, content: any) {}
 }

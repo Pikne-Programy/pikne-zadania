@@ -11,8 +11,8 @@
                 </span>
               </a>
             </li>
-            <li *ngFor="let breadcrumb of breadcrumbs; index as i" tabindex="0" (keydown.enter)="navigateToBreadcrumb(i)">
-              <a (click)="navigateToBreadcrumb(i)" aria-current="page">
+            <li *ngFor="let breadcrumb of breadcrumbs; index as i" tabindex="0" (keydown.enter)="navigateToBreadcrumb(breadcrumb)">
+              <a (click)="navigateToBreadcrumb(breadcrumb)" aria-current="page">
                 <span *ngIf="isSingleSubject && i == 0" class="icon">
                   <i class="fas fa-home" aria-hidden="true"></i>
                 </span>
@@ -24,7 +24,7 @@
         <div class="height-full scrollable px-4">
           <ul class="menu-list py-3">
             <li *ngFor="let node of list; index as i" tabindex="0" (keydown.enter)="navigate(node, i)">
-              <a [ngClass]="{ 'is-active': isExerciseSelected(node, i)}" (click)="navigate(node, i)" class="menu-element">{{ capitalize(node.value) }}</a>
+              <a [ngClass]="{ 'is-active': isExerciseSelected(node)}" (click)="navigate(node, i)" class="menu-element">{{ capitalize(node.value) }}</a>
             </li>
           </ul>
         </div>

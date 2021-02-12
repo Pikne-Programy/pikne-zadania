@@ -3,6 +3,8 @@ import { createServer } from 'miragejs';
 export function startServer() {
   createServer({
     routes() {
+      const noCategoryAmount = 25;
+
       this.get('/api/public', () => {
         interface ExerciseTree {
           name: string;
@@ -33,12 +35,12 @@ export function startServer() {
                     name: 'grawitacja',
                     children: [
                       {
-                        name: 'Pociągi trzy',
-                        children: 'pociagi-trzy',
+                        name: 'Pociągi dwa',
+                        children: 'pociagi-dwa',
                       },
                       {
-                        name: 'Pociągi trzy 2',
-                        children: 'pociagi-trzy-2',
+                        name: 'Pociągi dwa 2',
+                        children: 'pociagi-dwa-2',
                       },
                     ],
                   },
@@ -62,11 +64,11 @@ export function startServer() {
           },
         ];
 
-        for (let i = 0; i < 25; i++)
+        for (let i = 0; i < noCategoryAmount; i++)
           if (typeof list[0].children !== 'string')
             list[0].children.push({
               name: 'no category',
-              children: 'no-category',
+              children: `no-category-${i}`,
             });
         for (let i = 0; i < 25; i++)
           list.push({
@@ -81,23 +83,12 @@ export function startServer() {
 
         return list;
       });
-      [
-        'pociagi-dwa',
-        'pociagi-dwa-2',
-        'pociagi-trzy',
-        'pociagi-trzy-2',
-      ].forEach((url) => {
+      ['pociagi-dwa', 'pociagi-dwa-2'].forEach((url) => {
         this.get('api/public/fizyka/' + url, () => {
           let name;
           switch (url) {
             case 'pociagi-dwa-2':
               name = 'Pociągi dwa 2';
-              break;
-            case 'pociagi-trzy':
-              name = 'Pociągi trzy';
-              break;
-            case 'pociagi-trzy-2':
-              name = 'Pociągi trzy 2';
               break;
             default:
               name = 'Pociągi dwa';
@@ -127,26 +118,28 @@ export function startServer() {
           },
         };
       });
-      this.get('api/public/fizyka/no-category', () => {
-        return {
-          type: 'EqEx',
-          name: 'Bez kategorii',
-          content: {
-            main:
-              'Z miast A i B odległych o \\(d=300\\mathrm{km}\\) wyruszają jednocześnie dwa pociągi z prędkościami \\(v_a=50\\mathrm{\\frac{m}{s}}\\) oraz \\(v_b=67\\mathrm{\\frac{m}{s}}\\).\nW jakiej odległości \\(x\\) od miasta A spotkają się te pociągi? Po jakim czasie \\(t\\) się to stanie?',
-            imgs: [
-              'https://bulma.io/images/placeholders/720x240.png',
-              'https://bulma.io/images/placeholders/640x480.png',
-              'https://bulma.io/images/placeholders/240x720.png',
-            ],
-            unknowns: [
-              ['x', '\\mathrm{km}'],
-              ['F', '\\mathrm{N}'],
-              ['t', '\\mathrm{s}'],
-            ],
-          },
-        };
-      });
+      for (let i = 0; i < noCategoryAmount; i++) {
+        this.get(`api/public/fizyka/no-category-${i}`, () => {
+          return {
+            type: 'EqEx',
+            name: 'Bez kategorii',
+            content: {
+              main:
+                'Z miast A i B odległych o \\(d=300\\mathrm{km}\\) wyruszają jednocześnie dwa pociągi z prędkościami \\(v_a=50\\mathrm{\\frac{m}{s}}\\) oraz \\(v_b=67\\mathrm{\\frac{m}{s}}\\).\nW jakiej odległości \\(x\\) od miasta A spotkają się te pociągi? Po jakim czasie \\(t\\) się to stanie?',
+              imgs: [
+                'https://bulma.io/images/placeholders/720x240.png',
+                'https://bulma.io/images/placeholders/640x480.png',
+                'https://bulma.io/images/placeholders/240x720.png',
+              ],
+              unknowns: [
+                ['x', '\\mathrm{km}'],
+                ['F', '\\mathrm{N}'],
+                ['t', '\\mathrm{s}'],
+              ],
+            },
+          };
+        });
+      }
       this.get('api/public/subject/angle', () => {
         return {
           type: 'EqEx',
@@ -162,8 +155,6 @@ export function startServer() {
       [
         'fizyka/pociagi-dwa',
         'fizyka/pociagi-dwa-2',
-        'fizyka/pociagi-trzy',
-        'fizyka/pociagi-trzy-2',
         'fizyka/atom',
         'fizyka/no-category',
         'subject/angle',

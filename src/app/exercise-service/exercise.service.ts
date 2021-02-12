@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Subscription } from 'rxjs';
+import { categorySeparator } from '../exercises/exercises';
 import { capitalize } from '../helper/utils';
 import * as ServerRoutes from './server-routes';
 
@@ -32,6 +33,14 @@ export class ExerciseTreeNode {
       return false;
     }*/
     return false;
+  }
+
+  getPath(): string {
+    if (this.parent && this.parent.parent)
+      return `${this.parent.getPath()}${categorySeparator}${
+        this.url ? this.url : this.value
+      }`;
+    else return this.url ? this.url : this.value!;
   }
 }
 
@@ -110,6 +119,10 @@ export class ExerciseService implements OnDestroy {
 
   getSubjectList(): BehaviorSubject<Subject[] | null> {
     return this.subjectList;
+  }
+
+  findSubjectById(id: string, subjectList: Subject[]): Subject | null {
+    return subjectList.find((subject) => subject.name === id) ?? null;
   }
 
   getExerciseList(subjectPos: number): ExerciseTreeNode | null {

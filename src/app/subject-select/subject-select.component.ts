@@ -34,7 +34,7 @@ export class SubjectSelectComponent implements AfterContentInit, OnDestroy {
           this.isLoading = false;
         }
         if (this.list.length == 1) {
-          this.router.navigate(['subjects', 0, this.list[0].name], {
+          this.router.navigate(['subjects', this.list[0].name], {
             relativeTo: this.route,
           });
         }
