@@ -13,7 +13,7 @@ import { ExerciseComponent } from '../exercises';
 declare var MathJax: any;
 
 class Unknown {
-  private formatRegex = /^[+-]?\d*[,\.]?\d*$/;
+  private formatRegex = /^[+-]?\d*(?:[,\.]\d+)?(?:[eE][+-]?\d+)?$/;
   isWrongFormat = false;
   isCorrect = false;
   isWrong = false;
