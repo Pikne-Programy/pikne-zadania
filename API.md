@@ -1,22 +1,26 @@
 # Endpoints (discuss at [#1](https://github.com/Pikne-Programy/pikne-zadania/issues/1))
 
 If there is an error (`4xx` or `5xx` status code), the API will return either no content or the JSON object with an error message:
-```
+
+```json
 {
   "msg": "<error message>"
 }
 ```
 
 ## `GET /api/public`
+
 | Method | URL | Description |
 | - | - | - |
 | GET | `/api/public` | get all Exercises |
 
 **Request**:
+
 ```json
 ```
 
 **Response**:
+
 ```json
 [
   {
@@ -40,20 +44,24 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
   }
 ]
 ```
+
 **note**: Elements of the root list must be subject objects
 
 ***
 
 ## `GET /api/public/:subject/:id`
+
 | Method | URL | Description |
 | - | - | - |
 | GET | `/api/public/:subject/:id` | get one Exercise |
 
 **Request**:
+
 ```json
 ```
 
 **Response**:
+
 ```json
 {
   "type": "EqEx",
@@ -65,16 +73,19 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
   }
 }
 ```
+
 **note**: `content` is ExT-dependent, shown above is the EqEx one
 
 ***
 
 ## `POST /api/public/:subject/:id`
+
 | Method | URL | Description |
 | - | - | - |
 | POST | `/api/public/:subject/:id` | check answers |
 
 **Request**:
+
 ```json
 {
   "x": 15.000000000000004,
@@ -83,6 +94,7 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 ```
 
 **Response**:
+
 ```json
 {
   "success": false
