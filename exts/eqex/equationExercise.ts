@@ -1,16 +1,7 @@
-import Exercise from "../exercise.ts";
-import { JSONType, YAMLType } from "../types.ts";
-import { MersenneTwister19937, Random } from "../deps.ts";
-
-enum Expressions {
-  Whitespace, // 0
-  Number, // 1
-  Variable, // 2
-  Operation, // 3
-  Bracket, // 4
-  Function, // 5
-  Trigonometry, // 6
-}
+import Exercise from "../../exercise.ts";
+import { JSONType, YAMLType } from "../../types.ts";
+import { MersenneTwister19937, Random } from "../../deps.ts";
+import RPN from "./RPN-parser/parser.ts";
 
 class RNG {
   readonly rng: Random;
@@ -40,142 +31,6 @@ class RNG {
   }
 }
 
-class RPN {
-  readonly RPNeq: (string | number)[] = []; // Array containing the equation in RPN format
-  static readonly operations: { [key: string]: number } = {
-    "+": 1,
-    "-": 1,
-    "*": 2,
-    "/": 2,
-    "^": 3,
-  };
-  static readonly functionsDict: { [key: string]: (x: number) => number } = {
-    sqrt: Math.sqrt,
-    exp: Math.exp,
-    abs: Math.abs,
-    ln: Math.log,
-    log2: Math.log2,
-    log: Math.log10,
-    sin: Math.sin,
-    sinh: Math.sinh,
-    asin: Math.asin,
-    asinh: Math.asinh,
-    cos: Math.cos,
-    cosh: Math.cosh,
-    acos: Math.acos,
-    acosh: Math.acosh,
-    tg: Math.tan,
-    tgh: Math.tanh,
-    atg: Math.atan,
-    atgh: Math.atanh,
-    ctg: (v: number) => Math.cos(v) / Math.sin(v),
-    ctgh: (v: number) => Math.cosh(v) / Math.sinh(v),
-    actg: (v: number) => Math.PI / 2 - Math.atan(v),
-    actgh: (v: number) => Math.log(Math.sqrt((v + 1) / (v - 1))),
-  };
-
-  push(what: string | number) {
-    this.RPNeq.push(what);
-  }
-  // returns the priority of an operator
-  // example: "+" -> 1 and "^" -> 3
-  static getPriority(operator: string): number {
-    if (operator in RPN.operations) return RPN.operations[operator];
-    else return 0;
-  }
-  // return the type of an expression
-  // example: 1234 -> Expressions.Number, v_a -> Expressions.Variable, sin -> Expressions.Operation
-  static getType(exp: string | number): Expressions {
-    if (
-      typeof exp === "number" ||
-      RegExp(`^(${EquationExercise.numberR})$`).test(exp)
-    ) {
-      return Expressions.Number;
-    } else if (RegExp(`^(${EquationExercise.functionR})$`).test(exp)) {
-      return Expressions.Function;
-    } else if (RegExp(`^(${EquationExercise.trigonometryR})$`).test(exp)) {
-      return Expressions.Trigonometry;
-    } else if (RegExp(`^(${EquationExercise.variableR})$`).test(exp)) {
-      return Expressions.Variable;
-    } else if (RegExp(`^(${EquationExercise.operationR})$`).test(exp)) {
-      return Expressions.Operation;
-    } else if (exp === "(" || exp === ")") return Expressions.Bracket;
-    else return Expressions.Whitespace;
-  }
-  // calculates this.RPNeq and returns the value
-  // RPN { ONPeq: ["10", "0", "6", "-",  "4", "2", "^",  "+", "(", "*"] } -> 100
-  calculate(variables: { [key: string]: number }): number {
-    const stack: number[] = [];
-    this.RPNeq.forEach((exp) => {
-      const type = RPN.getType(exp);
-      let v: number | null = null;
-      if (typeof exp === "number") {
-        v = exp;
-      } else if (type === Expressions.Number) {
-        v = parseFloat(exp);
-      } else if (type === Expressions.Variable) {
-        if (exp in variables) {
-          v = variables[exp];
-        } else {
-          throw new Error(
-            "INVALID EQUATION, UNDECLARED VARIABLE",
-          );
-        }
-      } else if (type === Expressions.Operation) {
-        if (stack.length < 2) {
-          throw new Error(
-            "INVALID EQUATION, REMOVING OPERATION FROM EMPTY STACK",
-          );
-        }
-        const v2 = stack.pop()!;
-        v = stack.pop()!;
-        if (exp === "+") {
-          v += v2;
-        } else if (exp === "-") {
-          v -= v2;
-        } else if (exp === "*") {
-          v *= v2;
-        } else if (exp === "/") {
-          v /= v2;
-        } else if (exp === "^") {
-          v = Math.pow(v, v2);
-        }
-      } else if (type === Expressions.Function) {
-        if (stack.length < 1) {
-          throw new Error(
-            "INVALID EQUATION, REMOVING FUNCTION FROM EMPTY STACK",
-          );
-        }
-        v = stack.pop()!;
-        v = RPN.functionsDict[exp](v);
-      } else if (type === Expressions.Trigonometry) {
-        if (stack.length < 1) {
-          throw new Error(
-            "INVALID EQUATION, REMOVING FUNCTION FROM EMPTY STACK",
-          );
-        }
-        v = stack.pop()!;
-        if (exp[0] !== "a" && exp[exp.length - 1] !== "r") {
-          // convert degrees to radians
-          v = (v * Math.PI) / 180;
-        }
-        v = RPN.functionsDict[
-          exp[exp.length - 1] === "r" ? exp.slice(0, -1) : exp
-        ](v);
-        if (exp[0] === "a" && exp[exp.length - 1] !== "r") {
-          // convert radians to degrees
-          v = (v * 180) / Math.PI;
-        }
-      }
-      if (v === null || isNaN(v) || !isFinite(v)) {
-        throw new Error("INVALID EQUATION, UNEXPECTED VALUE WHILE CALCULATING");
-      }
-      stack.push(v);
-    });
-    return stack[0];
-  }
-}
-
 class Range {
   constructor(
     readonly min: number,
@@ -188,27 +43,20 @@ class Range {
 }
 
 export default class EquationExercise extends Exercise {
-  // regular expressions used to match specific expressions
-  static readonly numberR = "[0-9]*\\.?[0-9]+(?:[eE][\\-\\+]?[0-9]+)?";
-  static readonly variableR = "(?<![0-9])([a-zA-Z0-9]+)(_[a-zA-Z0-9]+)?";
-  static readonly unitR = "(?:[a-zA-Z0-9\\+\\-\\/\\*\\^]+)?";
-  static readonly operationR = "[\\+\\-*\\/\\^\\-]";
-  static readonly functionR = "sqrt|abs|exp|ln|log2|log10";
-  static readonly trigonometryR = "a?(?:sin|cos|tg|ctg)h?r?";
+  // regular expressions used to extract and parse content
   static readonly greekR =
     /alfa|beta|gamma|delta|epsilon|mi|pi|ro|sigma|tau|fi|psi|omega/;
-  // regular expressions used to extract and parse content
   static readonly equationR = new RegExp(
-    `${EquationExercise.variableR}=((?:(?:[\\+\\-]?(?:${EquationExercise.trigonometryR}|${EquationExercise.functionR})?[\\^a-zA-Z_0-9.\\(\\)]+${EquationExercise.operationR}*)+))`,
+    `${RPN.variableR}=((?:(?:[\\+\\-]?(?:${RPN.trigonometryR}|${RPN.functionR})?[\\^a-zA-Z_0-9.\\(\\)]+${RPN.operationR}*)+))`,
   );
   static readonly numberEqR = new RegExp(
-    `${EquationExercise.variableR}=(${EquationExercise.numberR})(${EquationExercise.unitR})`,
+    `${RPN.variableR}=(${RPN.numberR})(${RPN.unitR})`,
   );
   static readonly unknownEqR = new RegExp(
-    `${EquationExercise.variableR}=\\?(${EquationExercise.unitR})`,
+    `${RPN.variableR}=\\?(${RPN.unitR})`,
   );
   static readonly rangeEqR = new RegExp(
-    `${EquationExercise.variableR}=\\[(${EquationExercise.numberR});(${EquationExercise.numberR})(?:;(${EquationExercise.numberR}))?\\](${EquationExercise.unitR})`,
+    `${RPN.variableR}=\\[(${RPN.numberR});(${RPN.numberR})(?:;(${RPN.numberR}))?\\](${RPN.unitR})`,
   );
   static readonly greekAlphabet: { [key: string]: string } = {
     alfa: "\\alpha",
@@ -259,7 +107,7 @@ export default class EquationExercise extends Exercise {
         let m: RegExpExecArray | null;
         // --------------------------------------------------
         // considered regex: numberR (variable)(_underscore)=(value)(unit)
-        // TODO avoid repeating code between ..... 
+        // TODO avoid repeating code between .....
         // ................................................
         parsedLine = "";
         while ((m = EquationExercise.numberEqR.exec(line)) !== null) {
@@ -348,11 +196,8 @@ export default class EquationExercise extends Exercise {
           throw new Error("LINE DOESN'T MATCH PATTERN");
         }
         const name = m[2] === undefined ? m[1] : `${m[1]}${m[2]}`;
-        const formattedName = EquationExercise.convertToGreek(
-          m[2] === undefined ? m[1] : `${m[1]}_{${m[2].substring(1)}}`,
-        );
-        const RPNeq = EquationExercise.convertToRPN(m![3]);
-        this.variables.push([name, RPNeq]);
+        const rpn = new RPN(m[3]);
+        this.variables.push([name, rpn]);
         this.order.push(this.variables.length - 1); // index in this.variables
       }
     });
@@ -432,7 +277,7 @@ export default class EquationExercise extends Exercise {
     for (const [name, formattedName, _] of this.unknowns) {
       const correctAns = calculated[name];
       if (formattedName in userAnswer) {
-        const ans = userAnswer[formattedName]!;
+        const ans = userAnswer[formattedName];
         if (
           ans < (1 - this.answerPrecision) * correctAns ||
           ans > (1 + this.answerPrecision) * correctAns
@@ -444,101 +289,6 @@ export default class EquationExercise extends Exercise {
       }
     }
     return { success: true };
-  }
-  // Split equation string to an array of tuples [expression:string, type:Expressions]
-  // enum Expressions
-  //   Whitespace 0
-  //   Number 1
-  //   Variable 2
-  //   Operation 3
-  //   Bracket 4
-  //   Function 5
-  //   Trigonometry 6
-  // example: "10*(-6+4^2)" -> [[ "10", 0 ], [ "*", 2 ], [ "(", 4 ],  [ "-", 2 ], [ "6", 0 ],  [ "+", 2 ], [ "4", 0 ],  [ "^", 2 ], [ "2", 0 ]]
-  static extractEquation(eq: string): [string, Expressions][] {
-    const tab: [string, Expressions][] = [];
-    const r = new RegExp(
-      `(?:${this.operationR})|[\\(\\)]|(?:${this.trigonometryR})|(?:${this.functionR})|(?:${this.numberR})|(?:${this.variableR})`,
-      "g",
-    );
-    let arr: RegExpExecArray | null;
-    while ((arr = r.exec(eq)) !== null) {
-      const a: [string, Expressions] = [arr[0], RPN.getType(arr[0])];
-      tab.push(a);
-    }
-    return tab;
-  }
-  // convert equation to an RPN object
-  // example: "10*(-6+4^2)" -> RPN { ONPeq: ["10", "0", "6", "-",  "4", "2", "^",  "+", "(", "*"] }
-  static convertToRPN(eq: string): RPN {
-    const stack: string[] = []; // stack for operations/brackets/functions
-    const nestedFunctions: { [key: number]: string } = {}; // stack of nested functions; ex: sin(2*(1+cos(x)) -> {0:"sin", 2:"cos"}
-    let level = 0; // nesting level
-    let beginning = true; // true if previous expression wasn't a number or variable; used for converting (-x) -> 0-x
-    const RPNeq = new RPN();
-    const expEq = EquationExercise.extractEquation(eq);
-    expEq.forEach(function (exp: [string, Expressions]) {
-      if (exp[1] === Expressions.Whitespace) return;
-      else if (exp[1] === Expressions.Bracket) {
-        if (exp[0] === "(") {
-          stack.push("(");
-          beginning = true;
-          level++;
-        } else if (exp[0] === ")") {
-          while (stack.length > 0 && stack[stack.length - 1] !== "(") {
-            RPNeq.push(stack.pop()!);
-            if (stack.length === 0) {
-              throw new Error("MISSING BEGINNING OF A BRACKET");
-            }
-          }
-          stack.pop();
-          beginning = false;
-          level--;
-          if (level < 0) {
-            throw new Error("MISSING BEGINNING OF A BRACKET");
-          }
-        }
-      } else if (exp[1] === Expressions.Operation) {
-        if (beginning) {
-          if (exp[0] === "-") {
-            RPNeq.push("0");
-            nestedFunctions[level] = "-";
-          } else if (exp[0] !== "+") {
-            throw new Error("OPERATION IN UNEXPECTED POSITION");
-          }
-        } else {
-          const p1 = RPN.getPriority(exp[0]);
-          while (stack.length > 0) {
-            const p2 = RPN.getPriority(stack[stack.length - 1]);
-            if (p1 > p2) break;
-            RPNeq.push(stack.pop()!);
-          }
-          stack.push(exp[0]);
-          beginning = true;
-        }
-      } else if (
-        exp[1] === Expressions.Function || exp[1] === Expressions.Trigonometry
-      ) {
-        nestedFunctions[level] = exp[0];
-      } else {
-        RPNeq.push(exp[0]);
-        beginning = false;
-      }
-      if (
-        exp[1] === Expressions.Number ||
-        exp[1] === Expressions.Variable ||
-        exp[0] === ")"
-      ) {
-        if (level in nestedFunctions) {
-          RPNeq.push(nestedFunctions[level]);
-          delete nestedFunctions[level];
-        }
-      }
-    });
-    while (stack.length > 0) {
-      RPNeq.push(stack.pop()!);
-    }
-    return RPNeq;
   }
   static convertToLaTeX(unit: string): string {
     if (unit == "") {

@@ -9,3 +9,6 @@
 	path = frontend
 	url = https://github.com/Pikne-Programy/pikne-zadania-frontend
 	branch = master
+[submodule "exts/eqex/RPN-parser"]
+	path = exts/eqex/RPN-parser
+	url = https://github.com/Marwyk2003/RPN-parser.git
