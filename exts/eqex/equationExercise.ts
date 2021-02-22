@@ -81,8 +81,9 @@ export default class EquationExercise extends Exercise {
   type = "EqEx";
   readonly parsedContent: string; // "lorem ipsum \(d=300\mathrm{km\}\) foo \(v_a=\mathrm{\frac{m}{s}}\) bar \(v_b=\frac{m}{s}\)."
   readonly ranges: [number, number][] = []; // [index in variables, index in parsedContent]
-  readonly variables: [string, (RPN | Range | number)][] = []; // [var name, object]
-  readonly unknowns: [string, string, string][] = []; // unknown' name - unknown' unit
+  readonly variables: [string, (RPN | Range | number)][] = []; // [name, object]
+  readonly unknowns: string[] = []; // name
+  readonly formattedUnknowns: [string, string][] = []; // [formatted name, unit]
   readonly order: number[] = []; // order of equations
   readonly answerPrecision: number = 0.02; // such number x that: ans*(100-x)% <= user ans <= ans*(100-x)% returns correct answer
 
@@ -151,11 +152,8 @@ export default class EquationExercise extends Exercise {
           parsedLine += line.substring(0, index[0]) + "\\(" +
             formattedName + "\\)";
           line = line.substring(index[1]); // remove this match
-          this.unknowns.push([
-            name,
-            formattedName,
-            unit,
-          ]);
+          this.unknowns.push(name);
+          this.formattedUnknowns.push([formattedName, unit]);
         }
         parsedLine += line;
         // --------------------------------------------------
@@ -222,35 +220,37 @@ export default class EquationExercise extends Exercise {
         value +
         parsingContent.substr(textIndex);
     }
-    const formattedUnknowns: [string, string][] = [];
-    for (let i = 0; i < this.unknowns.length; ++i) {
-      formattedUnknowns.push([this.unknowns[i][1], this.unknowns[i][2]]);
-    }
     return {
       type: this.type,
       name: this.name,
       content: {
         main: parsingContent,
-        unknowns: formattedUnknowns,
+        unknowns: this.formattedUnknowns,
       },
     };
   }
-  check(seed: number, answer: JSONType): {
+  check(seed: number, answer: YAMLType): {
     success: boolean;
   } {
+    if (
+      !Array.isArray(answer) || answer.some((item) => typeof item !== "number")
+    ) {
+      throw new Error("ERROR, INVALID ANSWER FORMAT");
+    }
+    if (answer.length != this.unknowns.length) {
+      throw new Error("ERROR, INVALID ANSWER LENGTH");
+    }
+    const answerDict: {[key: string]: number} = this.unknowns.reduce((a, x, i) => ({...a, x: answer[i]}), {});
     const rng = new RNG(seed);
     const calculated: { [key: string]: number } = {};
     // add already calculated numbers to calculated variables
-    for (let i = 0; i < this.variables.length; ++i) {
-      const name = this.variables[i][0];
-      const val = this.variables[i][1];
+    for (const [name, val] of this.variables) {
       if (typeof val == "number") {
         calculated[name] = val as number;
       }
     }
     // randomize ranges (in the correct order) and add them to calculated variables
-    for (let i = this.ranges.length - 1; i >= 0; --i) {
-      const index = this.ranges[i][0];
+    for (const [index, _] of this.ranges) {
       const name = this.variables[index][0];
       const val = this.variables[index][1];
       if (val instanceof Range) {
@@ -266,18 +266,11 @@ export default class EquationExercise extends Exercise {
         calculated[name] = (val as RPN).calculate(calculated);
       }
     }
-    // check if answer is of a good type
-    const userAnswer = answer as {
-      [key: string]: number;
-    };
-    if (answer === null) {
-      throw new Error("ANSWER IS NOT A DICTIONARY");
-    }
     // go through each unknown and compare the answers to what's calculated
-    for (const [name, formattedName, _] of this.unknowns) {
+    for (const name of this.unknowns) {
       const correctAns = calculated[name];
-      if (formattedName in userAnswer) {
-        const ans = userAnswer[formattedName];
+      if (name in answerDict) {
+        const ans = answerDict[name];
         if (
           ans < (1 - this.answerPrecision) * correctAns ||
           ans > (1 + this.answerPrecision) * correctAns
