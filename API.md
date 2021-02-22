@@ -1,4 +1,4 @@
-# Endpoints (discuss at [#1](https://github.com/Pikne-Programy/pikne-zadania/issues/1))
+# Endpoints - v0.2 (discuss at [#25](https://github.com/Pikne-Programy/pikne-zadania/issues/25))
 
 If there is an error (`4xx` or `5xx` status code), the API will return either no content or the JSON object with an error message:
 
@@ -8,11 +8,18 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 }
 ```
 
+The common errors status codes are:
+
+- 400, when the request is invalid,
+- 500, if there is a problem on the server-side.
+
+***
+
 ## `GET /api/public`
 
-| Method | URL | Description |
-| - | - | - |
-| GET | `/api/public` | get all Exercises |
+| Method | URL | Description | Special status codes |
+| - | - | - | - |
+| GET | `/api/public` | get all Exercises | 401? (see [a comment](https://github.com/Pikne-Programy/pikne-zadania/issues/25#issuecomment-783203024)) |
 
 **Request**:
 
@@ -34,7 +41,8 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
             "children": [
               {
                 "name": "Pociągi dwa",
-                "children": "pociagi-dwa"
+                "children": "pociagi-dwa",
+                "done": 0.34
               }
             ]
           }
@@ -45,15 +53,17 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 ]
 ```
 
-**note**: Elements of the root list must be subject objects
+**note**: Elements of the root list must be subject objects \
+**note**: `done` property is stated only when the user is authorized,
+it can be `null` or a number from 0 to 1, see [#24](https://github.com/Pikne-Programy/pikne-zadania/issues/24#issuecomment-782939873)
 
 ***
 
 ## `GET /api/public/:subject/:id`
 
-| Method | URL | Description |
-| - | - | - |
-| GET | `/api/public/:subject/:id` | get one Exercise |
+| Method | URL | Description | Special status codes |
+| - | - | - | - |
+| GET | `/api/public/:subject/:id` | get one Exercise | 404 |
 
 **Request**:
 
@@ -80,23 +90,20 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ## `POST /api/public/:subject/:id`
 
-| Method | URL | Description |
-| - | - | - |
-| POST | `/api/public/:subject/:id` | check answers |
+| Method | URL | Description | Special status codes |
+| - | - | - | - |
+| POST | `/api/public/:subject/:id` | check answers | 404 |
 
 **Request**:
 
 ```json
-{
-  "x": 15.000000000000004,
-  "t": 13
-}
+[15.000000000000004, 13]
 ```
 
 **Response**:
 
 ```json
-{
-  "success": false
-}
+[false, true]
 ```
+
+**note**: it's ExT-dependent, what is shown above is appropriate for the EqEx one
