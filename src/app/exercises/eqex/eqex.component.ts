@@ -91,23 +91,29 @@ export class EqexComponent
         .subscribe(
           (response: any) => {
             this.isSubmitted = false;
-            //TODO Change for partial solutions
-            /*if (Array.isArray(response) && this.unknowns) {
+            if (Array.isArray(response) && this.unknowns) {
               for (
                 let i = 0;
                 i < response.length && i < this.unknowns.length;
                 i++
               )
                 this.unknowns[i].setAnswerCorrectness(response[i]);
-            }*/
-            this.unknowns?.forEach((unknown) => {
-              unknown.setAnswerCorrectness(response.success);
-            });
+            }
           },
           (error) => {
             this.isSubmitted = false;
             console.error('Answer error', error);
             //TODO Handle Response error
+            switch (error.status) {
+              case 404:
+                //Exercise not found
+                break;
+              case 400:
+                //Wrong JSON format
+                break;
+              default:
+              //Unknown error
+            }
           }
         );
     }

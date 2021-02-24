@@ -1,4 +1,4 @@
-import { createServer } from 'miragejs';
+import { createServer, Response } from 'miragejs';
 
 export function startServer() {
   createServer({
@@ -55,6 +55,14 @@ export function startServer() {
                       {
                         name: 'atom',
                         children: 'atom',
+                      },
+                      {
+                        name: 'error 404',
+                        children: 'error-404',
+                      },
+                      {
+                        name: 'error 400',
+                        children: 'error-400',
                       },
                     ],
                   },
@@ -165,19 +173,41 @@ export function startServer() {
           Object.keys(attrs).forEach((field, i) => {
             result.push(attrs[field] == Number((1.1 * (i + 1)).toFixed(1)));
           });
-          //TODO Change for partial solutions
-          //return result;
-          return { success: result.every((value) => value) };
+          return result;
         });
       });
       [
-        '/eqex/eqex.html',
         'https://bulma.io/images/placeholders/720x240.png',
         'https://bulma.io/images/placeholders/640x480.png',
         'https://bulma.io/images/placeholders/240x720.png',
         'https://bulma.io/images/placeholders/256x256.png',
       ].forEach((url) => {
         this.passthrough(url);
+      });
+
+      this.get('/api/public/fizyka/error-404', () => {
+        return new Response(404, undefined, {
+          errors: ['Exercise does not exist'],
+        });
+      });
+
+      this.get('api/public/fizyka/error-400', () => {
+        return {
+          type: 'EqEx',
+          name: 'Error',
+          content: {
+            main: 'Polecenie \\(abc\\)',
+            unknowns: [['\\omega', '\\mathrm{\\frac{2}{s^2}}']],
+          },
+        };
+      });
+      this.post('/api/public/fizyka/error-400', (schema: any, request: any) => {
+        const attrs = JSON.parse(request.requestBody);
+        if (attrs[0] == 1)
+          return new Response(404, undefined, {
+            errors: ['Exercise not found'],
+          });
+        else return new Response(400, undefined, { errors: ['Wrong JSON'] });
       });
     },
   });

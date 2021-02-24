@@ -27,10 +27,12 @@ import {
 })
 export class ExerciseComponent implements OnChanges, OnDestroy {
   isLoading = true;
+  isError = false;
   exercise?: Subscription;
   @ViewChild('exContainer', { read: ViewContainerRef })
   container!: ViewContainerRef;
   componentRef?: ComponentRef<ExerciseComponentType>;
+  loadingSubscription?: Subscription;
 
   @Input() subject?: string;
   @Input() exerciseUrl?: string;
@@ -43,6 +45,7 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
     this.exercise?.unsubscribe();
     this.componentRef?.destroy();
     this.isLoading = true;
+    this.isError = false;
 
     if (this.exerciseUrl && this.subject) {
       this.exercise = this.exerciseService
@@ -55,9 +58,9 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
                   this.inflateComponent(EqexComponent, response);
                   break;
                 default:
-                  this.throwError(response);
+                  this.throwError({ status: null });
               }
-            }
+            } else this.throwError({ status: null });
           },
           (error) => {
             this.throwError(error);
@@ -69,20 +72,22 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
   ngOnDestroy() {
     this.exercise?.unsubscribe();
     this.componentRef?.destroy();
+    this.loadingSubscription?.unsubscribe();
   }
 
   private inflateComponent<T extends ExerciseComponentType>(
     type: Type<T>,
     exercise: Exercise
   ) {
+    this.loadingSubscription?.unsubscribe();
     if (this.exerciseUrl) {
       const factory = this.factoryResolver.resolveComponentFactory(type);
       this.container.clear();
       const component = this.container.createComponent(factory);
       this.componentRef = component;
-      component.instance.loaded.subscribe(() => {
+      this.loadingSubscription = component.instance.loaded.subscribe(() => {
         this.isLoading = false;
-        component.instance.loaded.unsubscribe();
+        this.loadingSubscription?.unsubscribe();
       });
       component.instance.data = exercise;
       component.instance.subject = this.subject;
@@ -91,8 +96,18 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
   }
 
   private throwError(error: any) {
+    this.isLoading = false;
+    this.isError = true;
     console.error('Exercise error', error);
     //TODO Handle response error
+    switch (error.status) {
+      case 404:
+      case null:
+        //No exercise found
+        break;
+      default:
+      //Unknown error
+    }
   }
 
   private getExerciseId(exercisePath: string) {

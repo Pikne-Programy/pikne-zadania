@@ -1,4 +1,7 @@
 <div *ngIf="isLoading" class="height-full is-flex is-align-items-center is-justify-content-center p-6">
   <progress class="progress width-70 is-small is-primary" max="100">15%</progress>
 </div>
+<div *ngIf="isError" class="height-full is-flex is-align-items-center is-justify-content-center p-6">
+  <img class="max-width-75 max-height-75" src="https://via.placeholder.com/1024x1024.png?text=Błąd">
+</div>
 <div #exContainer></div>

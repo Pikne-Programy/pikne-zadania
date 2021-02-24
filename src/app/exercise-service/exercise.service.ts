@@ -14,26 +14,9 @@ export class ExerciseTreeNode {
   constructor(
     public value: string | null,
     public parent: ExerciseTreeNode | null,
-    public url: string | null = null
+    public url: string | null = null,
+    public done?: number | null
   ) {}
-
-  /**
-   * Sets this node as currentMenu or fetches exercise if it's the deepest node
-   * @returns True - node set as currentMenu; False - fetched Exercise
-   */
-  select(): boolean {
-    /*if (this.url == null) {
-      currentMenu.set(this);
-      return true;
-    } else {
-      fetchExercise(this.url).then((result) => {
-        //TODO Check for exercise type
-        currentExercise.set(new EquationExercise(this.url, result));
-      });
-      return false;
-    }*/
-    return false;
-  }
 
   getPath(): string {
     if (this.parent && this.parent.parent)
@@ -47,6 +30,7 @@ export class ExerciseTreeNode {
 interface ServerResponseNode {
   name: string;
   children: any;
+  done?: number | null;
 }
 /**
  * @returns Whether provided object is an instance of ServerResponseNode
@@ -110,7 +94,12 @@ export class ExerciseService implements OnDestroy {
         );
       } else {
         node.children.push(
-          new ExerciseTreeNode(capitalize(child.name), node, child.children)
+          new ExerciseTreeNode(
+            capitalize(child.name),
+            node,
+            child.children,
+            child.done === undefined ? null : child.done
+          )
         );
       }
     });
