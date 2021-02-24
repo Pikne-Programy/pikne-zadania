@@ -20,4 +20,5 @@ export interface ExerciseComponent {
   data?: any;
   subject?: string;
   exerciseId?: string;
+  onAnswers: EventEmitter<any>;
 }

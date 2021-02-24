@@ -1,96 +1,92 @@
 import { createServer, Response } from 'miragejs';
 
+interface ExerciseTree {
+  name: string;
+  children: ExerciseTree[] | string;
+}
+
 export function startServer() {
   createServer({
     routes() {
       const noCategoryAmount = 25;
-
-      this.get('/api/public', () => {
-        interface ExerciseTree {
-          name: string;
-          children: ExerciseTree[] | string;
-        }
-
-        const list: ExerciseTree[] = [
-          {
-            name: 'fizyka',
-            children: [
-              {
-                name: 'mechanika',
-                children: [
-                  {
-                    name: 'kinematyka',
-                    children: [
-                      {
-                        name: 'Pociągi dwa',
-                        children: 'pociagi-dwa',
-                      },
-                      {
-                        name: 'Pociągi dwa 2',
-                        children: 'pociagi-dwa-2',
-                      },
-                    ],
-                  },
-                  {
-                    name: 'grawitacja',
-                    children: [
-                      {
-                        name: 'Pociągi dwa',
-                        children: 'pociagi-dwa',
-                      },
-                      {
-                        name: 'Pociągi dwa 2',
-                        children: 'pociagi-dwa-2',
-                      },
-                    ],
-                  },
-                ],
-              },
-              {
-                name: 'fizyka atomowa',
-                children: [
-                  {
-                    name: 'rozpad',
-                    children: [
-                      {
-                        name: 'atom',
-                        children: 'atom',
-                      },
-                      {
-                        name: 'error 404',
-                        children: 'error-404',
-                      },
-                      {
-                        name: 'error 400',
-                        children: 'error-400',
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        ];
-
-        for (let i = 0; i < noCategoryAmount; i++)
-          if (typeof list[0].children !== 'string')
-            list[0].children.push({
-              name: 'no category',
-              children: `no-category-${i}`,
-            });
-        for (let i = 0; i < 25; i++)
-          list.push({
-            name: 'subject',
-            children: [
-              {
-                name: 'Kąt',
-                children: 'angle',
-              },
-            ],
+      const list: ExerciseTree[] = [
+        {
+          name: 'fizyka',
+          children: [
+            {
+              name: 'mechanika',
+              children: [
+                {
+                  name: 'kinematyka',
+                  children: [
+                    {
+                      name: 'Pociągi dwa',
+                      children: 'pociagi-dwa',
+                    },
+                    {
+                      name: 'Pociągi dwa 2',
+                      children: 'pociagi-dwa-2',
+                    },
+                  ],
+                },
+                {
+                  name: 'grawitacja',
+                  children: [
+                    {
+                      name: 'Pociągi dwa',
+                      children: 'pociagi-dwa',
+                    },
+                    {
+                      name: 'Pociągi dwa 2',
+                      children: 'pociagi-dwa-2',
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              name: 'fizyka atomowa',
+              children: [
+                {
+                  name: 'rozpad',
+                  children: [
+                    {
+                      name: 'atom',
+                      children: 'atom',
+                    },
+                    {
+                      name: 'error 404',
+                      children: 'error-404',
+                    },
+                    {
+                      name: 'error 400',
+                      children: 'error-400',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ];
+      for (let i = 0; i < noCategoryAmount; i++)
+        if (typeof list[0].children !== 'string')
+          list[0].children.push({
+            name: 'no category',
+            children: `no-category-${i}`,
           });
+      for (let i = 0; i < noCategoryAmount; i++)
+        list.push({
+          name: 'subject',
+          children: [
+            {
+              name: 'Kąt',
+              children: 'angle',
+            },
+          ],
+        });
 
-        return list;
-      });
+      this.get('/api/public', () => list);
       ['pociagi-dwa', 'pociagi-dwa-2'].forEach((url) => {
         this.get('api/public/fizyka/' + url, () => {
           let name;
@@ -160,19 +156,63 @@ export function startServer() {
           },
         };
       });
-      [
+      const postList = [
         'fizyka/pociagi-dwa',
         'fizyka/pociagi-dwa-2',
         'fizyka/atom',
-        'fizyka/no-category',
         'subject/angle',
-      ].forEach((url) => {
+      ];
+      for (let i = 0; i < noCategoryAmount; i++)
+        postList.push(`fizyka/no-category-${i}`);
+      postList.forEach((url) => {
         this.post('api/public/' + url, (schema: any, request: any) => {
           const attrs = JSON.parse(request.requestBody);
           const result: boolean[] = [];
           Object.keys(attrs).forEach((field, i) => {
             result.push(attrs[field] == Number((1.1 * (i + 1)).toFixed(1)));
           });
+
+          var count = 0;
+          result.forEach((val) => {
+            if (val) count++;
+          });
+          const percent = Number(((count / result.length) * 100).toFixed(0));
+          switch (url) {
+            case 'fizyka/pociagi-dwa':
+              ((((list[0].children as ExerciseTree[])[0]
+                .children as ExerciseTree[])[0]
+                .children as ExerciseTree[])[0] as any)['done'] = percent;
+              ((((list[0].children as ExerciseTree[])[0]
+                .children as ExerciseTree[])[1]
+                .children as ExerciseTree[])[0] as any)['done'] = percent;
+              break;
+            case 'fizyka/pociagi-dwa-2':
+              ((((list[0].children as ExerciseTree[])[0]
+                .children as ExerciseTree[])[0]
+                .children as ExerciseTree[])[1] as any)['done'] = percent;
+              ((((list[0].children as ExerciseTree[])[0]
+                .children as ExerciseTree[])[1]
+                .children as ExerciseTree[])[1] as any)['done'] = percent;
+              break;
+            case 'fizyka/atom':
+              ((((list[0].children as ExerciseTree[])[1]
+                .children as ExerciseTree[])[0]
+                .children as ExerciseTree[])[0] as any)['done'] = percent;
+              break;
+            case 'fizyka/no-category-0':
+              for (let i = 1; i <= noCategoryAmount; i++)
+                ((list[0].children as ExerciseTree[])[i] as any)[
+                  'done'
+                ] = percent;
+              break;
+            case 'subject/angle':
+              for (let i = 1; i <= noCategoryAmount; i++)
+                ((list[i].children as ExerciseTree[])[0] as any)[
+                  'done'
+                ] = percent;
+              break;
+          }
+
           return result;
         });
       });

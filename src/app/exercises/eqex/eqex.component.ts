@@ -45,6 +45,7 @@ export class EqexComponent
   implements ExerciseComponent, AfterViewInit, OnDestroy {
   @Output() loaded = new EventEmitter<string>();
   isLoading = true;
+  @Output() onAnswers = new EventEmitter();
 
   @Input() subject?: string;
   @Input() exerciseId?: string;
@@ -92,6 +93,7 @@ export class EqexComponent
           (response: any) => {
             this.isSubmitted = false;
             if (Array.isArray(response) && this.unknowns) {
+              this.onAnswers.emit();
               for (
                 let i = 0;
                 i < response.length && i < this.unknowns.length;

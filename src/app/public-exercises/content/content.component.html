@@ -23,8 +23,17 @@
         </nav>
         <div class="height-full scrollable px-4">
           <ul class="menu-list py-3">
-            <li *ngFor="let node of list; index as i" tabindex="0" (keydown.enter)="navigate(node, i)">
-              <a [ngClass]="{ 'is-active': isExerciseSelected(node)}" (click)="navigate(node, i)" class="menu-element">{{ capitalize(node.value) }}</a>
+            <li *ngFor="let node of list" tabindex="0" (keydown.enter)="navigate(node)">
+              <a [ngClass]="{ 'is-active': isExerciseSelected(node)}" (click)="navigate(node)" class="menu-element columns m-0">
+                <span class="column p-0">{{ capitalize(node.value) }}</span>
+                <span *ngIf="node.done !== undefined && node.done !== null" class="icon is-small column is-narrow p-0">
+                  <i class="fas" [ngClass]="{
+                    'fa-check': node.done === 100,
+                    'fa-minus': node.done < 100 && node.done > 0,
+                    'fa-times': node.done === 0
+                  }" aria-hidden="true"></i>
+                </span>
+              </a>
             </li>
           </ul>
         </div>
@@ -44,7 +53,7 @@
         </div>
       </nav>
       <div *ngIf="exercise !== null" class="height-full scrollable">
-        <app-exercise [subject]="subject?.name" [exerciseUrl]="getExerciseUrl()"></app-exercise>
+        <app-exercise [subject]="subject?.name" [exerciseUrl]="getExerciseUrl()" (onAnswerSubmit)="updateExerciseTree()"></app-exercise>
       </div>
       <div *ngIf="exercise === null" class="height-full is-flex is-flex-direction-column is-align-items-center is-justify-content-center py-3">
         <img class="max-width-75 max-height-75" src="https://via.placeholder.com/1024x1024.png?text=Tu+będzie+jakaś+grafika">

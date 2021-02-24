@@ -44,27 +44,15 @@ function instanceOfSRN(object: any): object is ServerResponseNode {
 })
 export class ExerciseService implements OnDestroy {
   private subjectList = new BehaviorSubject<Subject[] | null>([]);
-  private subjectSubscription: Subscription;
+  private subjectSubscription?: Subscription;
 
   constructor(private http: HttpClient) {
-    this.subjectSubscription = this.fetchExercises().subscribe(
-      (response) => {
-        if (
-          Array.isArray(response) &&
-          response.length > 0 &&
-          instanceOfSRN(response[0])
-        )
-          this.subjectList.next(this.createSubjectList(response));
-        else this.subjectList.next(null);
-      },
-      () => {
-        this.subjectList.next(null);
-      }
-    );
+    this.updateSubjectList();
   }
 
   ngOnDestroy() {
-    this.subjectSubscription.unsubscribe();
+    this.subjectSubscription?.unsubscribe();
+    this.subjectList.complete();
   }
 
   private createSubjectList(serverResponse: ServerResponseNode[]): Subject[] {
@@ -135,6 +123,24 @@ export class ExerciseService implements OnDestroy {
     return this.http.post(
       `${ServerRoutes.publicExerciseListPath}/${subject}/${id}`,
       answers
+    );
+  }
+
+  updateSubjectList() {
+    this.subjectSubscription?.unsubscribe();
+    this.subjectSubscription = this.fetchExercises().subscribe(
+      (response) => {
+        if (
+          Array.isArray(response) &&
+          response.length > 0 &&
+          instanceOfSRN(response[0])
+        )
+          this.subjectList.next(this.createSubjectList(response));
+        else this.subjectList.next(null);
+      },
+      () => {
+        this.subjectList.next(null);
+      }
     );
   }
 }

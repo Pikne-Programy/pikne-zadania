@@ -2,9 +2,11 @@ import {
   Component,
   ComponentFactoryResolver,
   ComponentRef,
+  EventEmitter,
   Input,
   OnChanges,
   OnDestroy,
+  Output,
   Type,
   ViewChild,
   ViewContainerRef,
@@ -33,9 +35,11 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
   container!: ViewContainerRef;
   componentRef?: ComponentRef<ExerciseComponentType>;
   loadingSubscription?: Subscription;
+  answerSubscription?: Subscription;
 
   @Input() subject?: string;
   @Input() exerciseUrl?: string;
+  @Output() onAnswerSubmit = new EventEmitter();
   constructor(
     private exerciseService: ExerciseService,
     private factoryResolver: ComponentFactoryResolver
@@ -73,6 +77,7 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
     this.exercise?.unsubscribe();
     this.componentRef?.destroy();
     this.loadingSubscription?.unsubscribe();
+    this.answerSubscription?.unsubscribe();
   }
 
   private inflateComponent<T extends ExerciseComponentType>(
@@ -80,6 +85,7 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
     exercise: Exercise
   ) {
     this.loadingSubscription?.unsubscribe();
+    this.answerSubscription?.unsubscribe();
     if (this.exerciseUrl) {
       const factory = this.factoryResolver.resolveComponentFactory(type);
       this.container.clear();
@@ -88,6 +94,9 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
       this.loadingSubscription = component.instance.loaded.subscribe(() => {
         this.isLoading = false;
         this.loadingSubscription?.unsubscribe();
+        this.answerSubscription = component.instance.onAnswers.subscribe(() => {
+          this.onAnswerSubmit.emit();
+        });
       });
       component.instance.data = exercise;
       component.instance.subject = this.subject;

@@ -26,6 +26,7 @@ export class ContentComponent implements OnInit, OnDestroy {
   exercise: string | null = null;
   subject?: Subject;
   categories = new BehaviorSubject<string>('');
+  currentCategory: string | null = null;
 
   readonly mobileSize = ScreenSizes.MOBILE;
   screenSize: number = ScreenSizes.FULL_HD;
@@ -54,7 +55,13 @@ export class ContentComponent implements OnInit, OnDestroy {
             if (subject) {
               this.subject = subject;
               this.exercise = this.route.snapshot.queryParamMap.get('exercise');
-              this.categories.next(this.exercise ? this.getExercisePath() : '');
+              const current = this.currentCategory
+                ? this.currentCategory
+                : this.exercise
+                ? this.getExercisePath()
+                : '';
+              this.categories.next(current);
+              this.currentCategory = null;
 
               if (response.length == 1) this.isSingleSubject = true;
               else this.isSingleSubject = false;
@@ -112,7 +119,7 @@ export class ContentComponent implements OnInit, OnDestroy {
     }
   }
 
-  navigate(node: ExerciseTreeNode, i: number) {
+  navigate(node: ExerciseTreeNode) {
     if (node.url !== null)
       this.router.navigate(['./'], {
         relativeTo: this.route,
@@ -169,5 +176,13 @@ export class ContentComponent implements OnInit, OnDestroy {
 
   capitalize(string: string | null): string | null {
     return capitalize(string);
+  }
+
+  updateExerciseTree() {
+    if (this.breadcrumbs.length > 0)
+      this.currentCategory = this.breadcrumbs[
+        this.breadcrumbs.length - 1
+      ].getPath();
+    this.exerciseService.updateSubjectList();
   }
 }
