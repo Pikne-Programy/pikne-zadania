@@ -19,7 +19,7 @@ The common errors status codes are:
 
 | Method | URL | Description | Special status codes |
 | - | - | - | - |
-| GET | `/api/public` | get all Exercises | 401? (see [a comment](https://github.com/Pikne-Programy/pikne-zadania/issues/25#issuecomment-783203024)) |
+| GET | `/api/public` | get all Exercises | 401 |
 
 **Request**:
 
@@ -107,3 +107,302 @@ it can be `null` or a number from 0 to 1, see [#24](https://github.com/Pikne-Pro
 ```
 
 **note**: it's ExT-dependent, what is shown above is appropriate for the EqEx one
+
+***
+
+# **The page below is under construction.**
+
+todo: prettify json
+
+***
+
+## `POST /api/register`
+
+| Method | URL | Description | Special status codes |
+| - | - | - | - |
+| POST | `/api/register` | register a new user | 403 (wrong invitation), 409 (account already exists) |
+
+**Request**:
+
+```json
+{
+  "login": "user@example.com",
+  "name": "User",
+  "hashed_password": "r02H/fnQ3M3Xfjqsr3dg8mY78lBDXWoiR0O0JcXW8VM=",
+  "number": 11,
+  "invitation": "QwErTy58"
+}
+```
+
+**Response**:
+
+```json
+```
+
+**note**: `hashed_password`
+**note**: "number" is a number or `null` \
+**note**: `login` is an email address (the hard-coded users like `admin` cannot be registered))
+
+***
+
+## `POST /api/login`
+
+| Method | URL | Description | Special status codes |
+| - | - | - | - |
+| POST | `/api/login` |  | 401 |
+
+**Request**:
+
+```json
+{
+  "login": "user@example.com",
+  "hashed_password": "r02H/fnQ3M3Xfjqsr3dg8mY78lBDXWoiR0O0JcXW8VM="
+}
+```
+
+**Response**:
+
+```json
+```
+
+**note**: `hashed_password`
+
+***
+
+## `GET /api/account`
+
+| Method | URL | Description | Special status codes |
+| - | - | - | - |
+| POST | `/api/account` |  | 401 |
+
+**Request**:
+
+```json
+```
+
+**Response**:
+
+```json
+{
+    "name":"User",
+    "number": 11,
+    "team": 1
+}
+```
+
+**note**: `team`
+
+***
+
+## `GET /api/teams`
+
+| Method | URL | Description | Special status codes |
+| - | - | - | - |
+| GET | `/api/teams` | get list of (your) teams | 403 |
+
+**Request**:
+
+```json
+```
+
+**Response**:
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Teachers",
+    "assignee": "Smith",
+    "open": true
+  },
+  {
+    "id": 2,
+    "name": "2d"
+  },
+  {
+    "id": 3,
+    "name": "3d"
+  }
+]
+```
+
+**note**: There is always hard-coded `admin` team with id `0`.
+
+***
+
+## `POST /api/teams`
+
+| Method | URL | Description | Special status codes |
+| - | - | - | - |
+| POST | `/api/teams` | create new team | 403 |
+
+**Request**:
+
+```json
+{
+  "name": "2d"
+}
+```
+
+**Response**:
+
+```json
+1
+```
+
+**note**:
+
+***
+
+## `POST /api/teams/:id/open`
+
+| Method | URL | Description | Special status codes |
+| - | - | - | - |
+| POST | `/api/teams/:id/open` | change invitation status | - |
+
+**Request**:
+
+```json
+"QwErTy58"
+```
+
+**Response**:
+
+```json
+```
+
+**note**:
+
+***
+
+## `POST /api/teams/:id/close`
+
+| Method | URL | Description | Special status codes |
+| - | - | - | - |
+| POST | `/api/teams/:id/close` | change invitation status | 401, 403, 404 |
+
+**Request**:
+
+```json
+```
+
+**Response**:
+
+```json
+```
+
+**note**:
+
+***
+
+## `GET /api/teams/:id`
+
+| Method | URL | Description | Special status codes |
+| - | - | - | - |
+| GET | `/api/teams/:id` |  | 401, 403 (not your team), 404 (only if authorized as admin) |
+
+**Request**:
+
+```json
+```
+
+**Response**:
+
+```json
+{
+  "name": "2d",
+  "assignee": "Smith",
+  "members": [
+    {
+      "id": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "User",
+      "number": 11
+    }
+  ]
+}
+```
+
+**note**: id is hashed email
+
+***
+
+## `DELETE /api/teams/:id/:userid`
+
+| Method | URL | Description | Special status codes |
+| - | - | - | - |
+| POST | `/api/teams/:id/:userid` |  | 404 |
+
+**Request**:
+
+```json
+```
+
+**Response**:
+
+```json
+```
+
+**note**:
+
+***
+
+## `POST /api/teams/:id/:userid`
+
+| Method | URL | Description | Special status codes |
+| - | - | - | - |
+| POST | `/api/teams/:id/:userid` | set a new number | - |
+
+**Request**:
+
+```json
+34
+```
+
+**Response**:
+
+```json
+```
+
+**note**:
+
+***
+
+## `POST /api/teams/:id`
+
+| Method | URL | Description | Special status codes |
+| - | - | - | - |
+| POST | `/api/teams/:id` | set a new name of team | - |
+
+**Request**:
+
+```json
+"3d"
+```
+
+**Response**:
+
+```json
+```
+
+**note**:
+
+***
+
+## `POST /api/root/teams/:id`
+
+| Method | URL | Description | Special status codes |
+| - | - | - | - |
+| POST | `/api/root/teams/:id` | change an assignee | - |
+
+**Request**:
+
+```json
+"1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755"
+```
+
+**Response**:
+
+```json
+```
+
+**note**: you can't change assignee of "Teachers" team
