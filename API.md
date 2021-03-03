@@ -11,6 +11,7 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 The common errors status codes are:
 
 - 400, when the request is invalid,
+- 401, when the authentication has failed or is required and is not provided,
 - 500, if there is a problem on the server-side.
 
 ***
@@ -19,7 +20,7 @@ The common errors status codes are:
 
 | Method | URL | Description | Special status codes |
 | - | - | - | - |
-| GET | `/api/public` | get all Exercises | 401 |
+| GET | `/api/public` | get all Exercises | - |
 
 **Request**:
 
@@ -53,9 +54,9 @@ The common errors status codes are:
 ]
 ```
 
-**note**: Elements of the root list must be subject objects \
+**note**: Elements of the root list must be subject objects. \
 **note**: `done` property is stated only when the user is authorized,
-it can be `null` or a number from 0 to 1, see [#24](https://github.com/Pikne-Programy/pikne-zadania/issues/24#issuecomment-782939873)
+it can be `null` or a number from 0 to 1, see [#24](https://github.com/Pikne-Programy/pikne-zadania/issues/24#issuecomment-782939873).
 
 ***
 
@@ -77,14 +78,20 @@ it can be `null` or a number from 0 to 1, see [#24](https://github.com/Pikne-Pro
   "type": "EqEx",
   "name": "Pociągi dwa 2",
   "content": {
-    "main": "Z miast A i B odległych o \\(d=300\\mathrm{km}\\) wyruszają jednocześnie dwa pociągi z prędkościami \\(v_a=50\\mathrm{\\frac{m}{s}}\\) oraz \\(v_b=67\\mathrm{\\frac{m}{s}}\\).\nW jakiej odległości \\(x\\) od miasta A spotkają się te pociągi? Po jakim czasie \\(t\\) się to stanie?",
-    "imgs": ["1.png", "2.png"],
-    "unknowns": [["x", "\\mathrm{km}"], ["t", "\\mathrm{s}"]]
+    "main": "Z miast \\(A\\) i \\(B\\) odległych o \\(d=300\\;\\mathrm{km}\\) wyruszają jednocześnie\ndwa pociągi z prędkościami \\(v_a= 50\\;\\mathrm{\\frac{km}{h}}\\) oraz \\(v_b=70\\;\\mathrm{\\frac{km}{h}}\\).\nW jakiej odległości \\(x\\) od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie \\(t\\) się to stanie?",
+    "imgs": [
+      "1.png",
+      "2.png"
+    ],
+    "unknowns": [
+      ["x", "\\mathrm{km}"],
+      ["t", "\\mathrm{s}"]
+    ]
   }
 }
 ```
 
-**note**: `content` is ExT-dependent, shown above is the EqEx one
+**note**: `content` is ExT-dependent, shown above is the EqEx one.
 
 ***
 
@@ -106,13 +113,7 @@ it can be `null` or a number from 0 to 1, see [#24](https://github.com/Pikne-Pro
 [false, true]
 ```
 
-**note**: it's ExT-dependent, what is shown above is appropriate for the EqEx one
-
-***
-
-# **The page below is under construction.**
-
-todo: prettify json
+**note**: It's ExT-dependent, what is shown above is appropriate for the EqEx one.
 
 ***
 
@@ -139,9 +140,10 @@ todo: prettify json
 ```json
 ```
 
-**note**: `hashed_password`
-**note**: "number" is a number or `null` \
-**note**: `login` is an email address (the hard-coded users like `admin` cannot be registered))
+**note**: The generation of `hashed_password` is described [here](https://github.com/Pikne-Programy/pikne-zadania/issues/22#issuecomment-789536400). \
+**note**: `number` is a number or `null` when it's not provided. \
+**note**: `login` is an email address (the hard-coded users like `admin` cannot be registered). \
+**note**: The registration doesn't authenticate, there should be a `POST /api/login` request afterwards.
 
 ***
 
@@ -149,7 +151,7 @@ todo: prettify json
 
 | Method | URL | Description | Special status codes |
 | - | - | - | - |
-| POST | `/api/login` |  | 401 |
+| POST | `/api/login` | authenticate | - |
 
 **Request**:
 
@@ -165,7 +167,25 @@ todo: prettify json
 ```json
 ```
 
-**note**: `hashed_password`
+**note**: The generation of `hashed_password` is described [here](https://github.com/Pikne-Programy/pikne-zadania/issues/22#issuecomment-789536400).
+
+***
+
+## `POST /api/logout`
+
+| Method | URL | Description | Special status codes |
+| - | - | - | - |
+| POST | `/api/logout` | unauthenticate | - |
+
+**Request**:
+
+```json
+```
+
+**Response**:
+
+```json
+```
 
 ***
 
@@ -173,7 +193,7 @@ todo: prettify json
 
 | Method | URL | Description | Special status codes |
 | - | - | - | - |
-| POST | `/api/account` |  | 401 |
+| GET | `/api/account` | get info about currently authenticated user | - |
 
 **Request**:
 
@@ -184,13 +204,10 @@ todo: prettify json
 
 ```json
 {
-    "name":"User",
-    "number": 11,
-    "team": 1
+  "name": "User",
+  "number": 11
 }
 ```
-
-**note**: `team`
 
 ***
 
@@ -198,7 +215,7 @@ todo: prettify json
 
 | Method | URL | Description | Special status codes |
 | - | - | - | - |
-| GET | `/api/teams` | get list of (your) teams | 403 |
+| GET | `/api/teams` | get list of your teams | 403 |
 
 **Request**:
 
@@ -217,16 +234,22 @@ todo: prettify json
   },
   {
     "id": 2,
-    "name": "2d"
+    "name": "2d",
+    "assignee": "Williams",
+    "open": true
   },
   {
     "id": 3,
-    "name": "3d"
+    "name": "3d",
+    "assignee": "Williams",
+    "open": false
   }
 ]
 ```
 
-**note**: There is always hard-coded `admin` team with id `0`.
+**note**: There is always hard-coded `admin` team with id `0`. \
+**note**: The authenticated user from `admin` team will get all teams. \
+**note**: The authenticated user not from `admin` team will not get the `assignee` properties.
 
 ***
 
@@ -250,7 +273,7 @@ todo: prettify json
 1
 ```
 
-**note**:
+**note**: The response is an id of team.
 
 ***
 
@@ -258,7 +281,7 @@ todo: prettify json
 
 | Method | URL | Description | Special status codes |
 | - | - | - | - |
-| POST | `/api/teams/:id/open` | change invitation status | - |
+| POST | `/api/teams/:id/open` | change invitation code of team and open registration | 403, 404 (only if authorized as admin) |
 
 **Request**:
 
@@ -271,15 +294,13 @@ todo: prettify json
 ```json
 ```
 
-**note**:
-
 ***
 
 ## `POST /api/teams/:id/close`
 
 | Method | URL | Description | Special status codes |
 | - | - | - | - |
-| POST | `/api/teams/:id/close` | change invitation status | 401, 403, 404 |
+| POST | `/api/teams/:id/close` | close registration | 403, 404 (only if authorized as admin) |
 
 **Request**:
 
@@ -291,15 +312,13 @@ todo: prettify json
 ```json
 ```
 
-**note**:
-
 ***
 
 ## `GET /api/teams/:id`
 
 | Method | URL | Description | Special status codes |
 | - | - | - | - |
-| GET | `/api/teams/:id` |  | 401, 403 (not your team), 404 (only if authorized as admin) |
+| GET | `/api/teams/:id` | get info about team | 403, 404 (only if authorized as admin) |
 
 **Request**:
 
@@ -322,7 +341,8 @@ todo: prettify json
 }
 ```
 
-**note**: id is hashed email
+**note**: `id` property is a hashed email. \
+**note**: You can use the `GET /api/teams/current`.
 
 ***
 
@@ -330,7 +350,7 @@ todo: prettify json
 
 | Method | URL | Description | Special status codes |
 | - | - | - | - |
-| POST | `/api/teams/:id/:userid` |  | 404 |
+| DELETE | `/api/teams/:id/:userid` | unregister the user | 403, 404 |
 
 **Request**:
 
@@ -342,15 +362,13 @@ todo: prettify json
 ```json
 ```
 
-**note**:
-
 ***
 
 ## `POST /api/teams/:id/:userid`
 
 | Method | URL | Description | Special status codes |
 | - | - | - | - |
-| POST | `/api/teams/:id/:userid` | set a new number | - |
+| POST | `/api/teams/:id/:userid` | set a new number | 403, 404 |
 
 **Request**:
 
@@ -363,15 +381,13 @@ todo: prettify json
 ```json
 ```
 
-**note**:
-
 ***
 
 ## `POST /api/teams/:id`
 
 | Method | URL | Description | Special status codes |
 | - | - | - | - |
-| POST | `/api/teams/:id` | set a new name of team | - |
+| POST | `/api/teams/:id` | set a new name of team | 403, 404 (only if authorized as admin) |
 
 **Request**:
 
@@ -384,15 +400,13 @@ todo: prettify json
 ```json
 ```
 
-**note**:
-
 ***
 
 ## `POST /api/root/teams/:id`
 
 | Method | URL | Description | Special status codes |
 | - | - | - | - |
-| POST | `/api/root/teams/:id` | change an assignee | - |
+| POST | `/api/root/teams/:id` | change an assignee | 403 |
 
 **Request**:
 
@@ -405,4 +419,4 @@ todo: prettify json
 ```json
 ```
 
-**note**: you can't change assignee of "Teachers" team
+**note**: You can't change an assignee of teams with id least than 2.
