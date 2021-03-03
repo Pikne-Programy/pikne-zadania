@@ -14,6 +14,25 @@ The common errors status codes are:
 - 401, when the authentication has failed or is required and is not provided,
 - 500, if there is a problem on the server-side.
 
+## Table of Content
+
+- [GET /api/public](#get-apipublic)
+- [GET /api/public/:subject/:id](#get-apipublicsubjectid)
+- [POST /api/public/:subject/:id](#post-apipublicsubjectid)
+- [POST /api/register](#post-apiregister)
+- [POST /api/login](#post-apilogin)
+- [POST /api/logout](#post-apilogout)
+- [GET /api/account](#get-apiaccount)
+- [GET /api/teams](#get-apiteams)
+- [POST /api/teams](#post-apiteams)
+- [POST /api/teams/:id/open](#post-apiteamsidopen)
+- [POST /api/teams/:id/close](#post-apiteamsidclose)
+- [GET /api/teams/:id](#get-apiteamsid)
+- [DELETE /api/teams/:id/:userid](#delete-apiteamsiduserid)
+- [POST /api/teams/:id/:userid](#post-apiteamsiduserid)
+- [POST /api/teams/:id](#post-apiteamsid)
+- [POST /api/root/teams/:id](#post-apirootteamsid)
+
 ***
 
 ## `GET /api/public`
