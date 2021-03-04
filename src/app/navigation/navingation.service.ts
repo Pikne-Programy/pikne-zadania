@@ -8,7 +8,7 @@ export const menuElements: Tuple<string, string, null>[] = [
 ];
 
 export const buttonElements: Tuple<string, string, string>[] = [
-  new Tuple('/sign-in', 'Zaloguj', 'button is-primary is-inverted'),
+  new Tuple('/login', 'Zaloguj', 'button is-primary is-inverted'),
   new Tuple('/register', 'Zarejestruj', 'button is-primary dark'),
 ];
 

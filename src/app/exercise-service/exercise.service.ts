@@ -3,7 +3,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { categorySeparator } from '../exercises/exercises';
 import { capitalize } from '../helper/utils';
-import * as ServerRoutes from './server-routes';
+import * as ServerRoutes from '../server-routes';
 
 export class Subject {
   constructor(public name: string, public exerciseTree: ExerciseTreeNode) {}
@@ -110,18 +110,16 @@ export class ExerciseService implements OnDestroy {
   }
 
   private fetchExercises() {
-    return this.http.get(ServerRoutes.publicExerciseListPath);
+    return this.http.get(ServerRoutes.publicExerciseList);
   }
 
   getExercise(subject: string, id: string) {
-    return this.http.get(
-      `${ServerRoutes.publicExerciseListPath}/${subject}/${id}`
-    );
+    return this.http.get(`${ServerRoutes.publicExerciseList}/${subject}/${id}`);
   }
 
   postAnswers(subject: string, id: string, answers: any) {
     return this.http.post(
-      `${ServerRoutes.publicExerciseListPath}/${subject}/${id}`,
+      `${ServerRoutes.publicExerciseList}/${subject}/${id}`,
       answers
     );
   }

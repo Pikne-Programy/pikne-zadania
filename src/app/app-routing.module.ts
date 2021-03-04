@@ -1,14 +1,16 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { ContentComponent } from './public-exercises/content/content.component';
+import { LoginComponent } from './account/login/login.component';
+import { RegisterComponent } from './account/register/register.component';
 import { PublicExercisesComponent } from './public-exercises/public-exercises.component';
+import { ContentComponent } from './content/content.component';
 import { SubjectSelectComponent } from './subject-select/subject-select.component';
 
 const routes: Routes = [
-  { path: '', redirectTo: '/public-exercises', pathMatch: 'full' },
+  { path: '', pathMatch: 'full', redirectTo: '/public-exercises' },
   {
     path: 'public-exercises',
-    component: PublicExercisesComponent,
+    component: ContentComponent,
     children: [
       {
         path: '',
@@ -17,9 +19,17 @@ const routes: Routes = [
       },
       {
         path: 'subjects/:subjectId',
-        component: ContentComponent,
+        component: PublicExercisesComponent,
       },
     ],
+  },
+  {
+    path: 'login',
+    component: LoginComponent,
+  },
+  {
+    path: 'register',
+    component: RegisterComponent,
   },
 ];
 

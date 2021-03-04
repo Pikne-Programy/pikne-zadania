@@ -1,22 +1,63 @@
-<div class="root unscrollable">
-  <app-navbar></app-navbar>
-  <mat-sidenav-container class="height-full" (backdropClick)="toggleSidenav()">
-    <mat-sidenav appSidenav>
-      <app-sidenav></app-sidenav>
-    </mat-sidenav>
-    <mat-sidenav-content class="is-flex is-flex-direction-column">
-      <section class="section-root">
-        <router-outlet></router-outlet>
-      </section>
-      <footer class="footer p-3 p-desktop-4">
-        <div class="content has-text-centered">
-          <span class="icon">
-            <a href="https://github.com/Pikne-Programy/pikne-zadania" target="_blank">
-              <i class="fab fa-lg fa-github"></i>
-            </a>
-          </span>
+<div class="columns height-full m-0">
+  <div *ngIf="screenSize != mobileSize || exercise === null" class="height-full column is-one-quarter-tablet is-one-fifth-desktop">
+    <div class="box height-full p-0">
+      <aside class="menu height-full is-flex is-flex-direction-column">
+        <nav class="breadcrumb is-bold divider-bottom p-4 pb-4 mb-0" aria-label="breadcrumbs">
+          <ul>
+            <li *ngIf="!isSingleSubject">
+              <a [routerLink]="['/']" tabindex="0">
+                <span class="icon is-very-small">
+                  <i class="fas fa-home" aria-hidden="true"></i>
+                </span>
+              </a>
+            </li>
+            <li *ngFor="let breadcrumb of breadcrumbs; index as i" tabindex="0" (keydown.enter)="navigateToBreadcrumb(breadcrumb)">
+              <a (click)="navigateToBreadcrumb(breadcrumb)" aria-current="page">
+                <span *ngIf="isSingleSubject && i == 0" class="icon">
+                  <i class="fas fa-home" aria-hidden="true"></i>
+                </span>
+                <span>{{ capitalize(breadcrumb.value) }}</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+        <div class="height-full scrollable px-4">
+          <ul class="menu-list py-3">
+            <li *ngFor="let node of list" tabindex="0" (keydown.enter)="navigate(node)">
+              <a [ngClass]="{ 'is-active': isExerciseSelected(node)}" (click)="navigate(node)" class="menu-element columns m-0">
+                <span class="column p-0">{{ capitalize(node.value) }}</span>
+                <span *ngIf="node.done !== undefined && node.done !== null" class="icon is-small column is-narrow p-0">
+                  <i class="fas" [ngClass]="{
+                    'fa-check': node.done === 100,
+                    'fa-minus': node.done < 100 && node.done > 0,
+                    'fa-times': node.done === 0
+                  }" aria-hidden="true"></i>
+                </span>
+              </a>
+            </li>
+          </ul>
         </div>
-      </footer>
-    </mat-sidenav-content>
-  </mat-sidenav-container>
+      </aside>
+    </div>
+  </div>
+  <div *ngIf="screenSize != mobileSize || exercise !== null" class="column height-full">
+    <div class="box height-full is-flex is-flex-direction-column p-0">
+      <nav *ngIf="screenSize == mobileSize" class="level divider-bottom p-2 m-0" (click)="resetExercise()">
+        <div class="level-left">
+          <button class="button is-rounded is-small">
+            <span class="icon">
+              <i class="fas fa-chevron-left"></i>
+            </span>
+            <span>Wróć</span>
+          </button>
+        </div>
+      </nav>
+      <div *ngIf="exercise !== null" class="height-full scrollable">
+        <app-exercise [subject]="subject?.name" [exerciseUrl]="getExerciseUrl()" (onAnswerSubmit)="updateExerciseTree()"></app-exercise>
+      </div>
+      <div *ngIf="exercise === null" class="height-full is-flex is-flex-direction-column is-align-items-center is-justify-content-center py-3">
+        <img class="max-width-75 max-height-75" src="https://via.placeholder.com/1024x1024.png?text=Tu+będzie+jakaś+grafika">
+      </div>
+    </div>
+  </div>
 </div>

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { Tuple } from 'src/app/helper/utils';
 import {
   NavService,
@@ -11,7 +11,7 @@ import {
   templateUrl: './sidenav.component.html',
   styleUrls: ['./sidenav.component.scss'],
 })
-export class SidenavComponent implements OnInit {
+export class SidenavComponent {
   menuElements: Tuple<string, string, null>[];
   buttonElements: Tuple<string, string, string>[];
 
@@ -19,8 +19,6 @@ export class SidenavComponent implements OnInit {
     this.menuElements = menuElements;
     this.buttonElements = buttonElements;
   }
-
-  ngOnInit() {}
 
   closeSidenav() {
     this.navService.toggleSidenav();

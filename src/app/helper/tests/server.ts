@@ -123,7 +123,7 @@ export function startServer() {
         };
       });
       for (let i = 0; i < noCategoryAmount; i++) {
-        this.get(`api/public/fizyka/no-category-${i}`, () => {
+        this.get(`/api/public/fizyka/no-category-${i}`, () => {
           return {
             type: 'EqEx',
             name: 'Bez kategorii',
@@ -144,7 +144,7 @@ export function startServer() {
           };
         });
       }
-      this.get('api/public/subject/angle', () => {
+      this.get('/api/public/subject/angle', () => {
         return {
           type: 'EqEx',
           name: 'Kąt',
@@ -165,7 +165,7 @@ export function startServer() {
       for (let i = 0; i < noCategoryAmount; i++)
         postList.push(`fizyka/no-category-${i}`);
       postList.forEach((url) => {
-        this.post('api/public/' + url, (schema: any, request: any) => {
+        this.post('/api/public/' + url, (schema: any, request: any) => {
           const attrs = JSON.parse(request.requestBody);
           const result: boolean[] = [];
           Object.keys(attrs).forEach((field, i) => {
@@ -231,7 +231,7 @@ export function startServer() {
         });
       });
 
-      this.get('api/public/fizyka/error-400', () => {
+      this.get('/api/public/fizyka/error-400', () => {
         return {
           type: 'EqEx',
           name: 'Error',
@@ -248,6 +248,17 @@ export function startServer() {
             errors: ['Exercise not found'],
           });
         else return new Response(400, undefined, { errors: ['Wrong JSON'] });
+      });
+
+      this.post('/api/register', (schema: any, request: any) => {
+        const attrs = JSON.parse(request.requestBody);
+        if (attrs.login === 'b@b.bb') return new Response(409);
+        else if (attrs.invitation === 'b') return new Response(403);
+        else if (attrs.number === 1) return new Response(404);
+        else return new Response(200);
+      });
+      this.post('/api/login', (schema: any, request: any) => {
+        return new Response(200);
       });
     },
   });

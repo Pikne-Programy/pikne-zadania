@@ -1,0 +1,25 @@
+@import "../../../styles.scss";
+
+$mobile: nth(
+  $list: $size_breakpoints,
+  $n: 1,
+);
+$tablet: nth(
+  $list: $size_breakpoints,
+  $n: 2,
+);
+
+.logo {
+  @media only screen and (min-width: nth($list: $mobile, $n: 2)) and (max-width: nth($list: $mobile, $n: 3)) {
+    max-width: 30vw;
+    max-height: 30vw;
+  }
+  @media only screen and (min-width: nth($list: $tablet, $n: 2)) {
+    max-width: 30vh;
+    max-height: 30vh;
+  }
+}
+
+.hidden {
+  visibility: hidden;
+}

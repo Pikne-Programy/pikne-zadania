@@ -1,7 +1,7 @@
 <section [ngClass]="{ 'view-loading': isLoading }" class="section py-4 p-only-mobile-3">
   <div class="height-full is-flex is-flex-direction-column">
     <p class="title use-line-break is-1 is-size-4-mobile mb-only-mobile-3">{{ title }}</p>
-    <p class="subtitle is-size-6-mobile justified mx-4 mx-only-mobile-1 my-0 mb-tablet-3 mb-desktop-5">{{ subtitle }}</p>
+    <p class="subtitle is-size-6-mobile has-text-justified mx-4 mx-only-mobile-1 my-0 mb-tablet-3 mb-desktop-5">{{ subtitle }}</p>
     <div *ngIf="images" class="columns is-justify-content-center mt-4 mb-only-mobile-0 mb-only-tablet-2">
       <div *ngFor="let img of images" class="column">
         <div class="box height-full p-0">
