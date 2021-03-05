@@ -2,13 +2,9 @@
 # and then `git submodule update --remote --recursive`
 
 [submodule "exercises"]
-	path = exercises
+	path = backend/exercises
 	url = https://github.com/Pikne-Programy/pikne-zadania-exercises
 
-[submodule "frontend"]
-	path = frontend
-	url = https://github.com/Pikne-Programy/pikne-zadania-frontend
-	branch = master
-[submodule "exts/eqex/RPN-parser"]
-	path = exts/eqex/RPN-parser
+[submodule "RPN-parser"]
+	path = backend/exts/eqex/RPN-parser
 	url = https://github.com/Marwyk2003/RPN-parser.git

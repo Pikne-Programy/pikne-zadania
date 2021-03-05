@@ -1,0 +1,54 @@
+<div class="root scrollable">
+  <div class="height-full is-flex is-justify-content-center">
+    <div class="container height-full m-0 px-6">
+      <div class="column is-narrow is-flex is-align-items-center is-justify-content-center pt-only-mobile-5">
+        <img class="logo" src="https://via.placeholder.com/512x512?text=Logo duże">
+      </div>
+      <div class="column is-narrow height-full is-flex is-align-items-center pb-only-mobile-5">
+        <form class="width-full" [formGroup]="form">
+          <div class="field">
+            <label class="label">E-mail</label>
+            <div class="control has-icons-left has-icons-right">
+              <input id="email" class="input is-primary" [ngClass]="{
+                  'is-primary': !email!.errors?.pattern && !email!.errors?.submitError,
+                  'is-warning': email!.errors?.pattern,
+                  'is-danger': email!.errors?.submitError
+                }" type="email" formControlName="email">
+              <span class="icon is-small is-left">
+                <i class="fas fa-envelope"></i>
+              </span>
+              <span *ngIf="email!.errors?.pattern" class="icon has-text-warning is-small is-right">
+                <i class="fas fa-exclamation-triangle"></i>
+              </span>
+              <span *ngIf="email!.errors?.submitError" class="icon has-text-danger is-small is-right">
+                <i class="fas fa-times"></i>
+              </span>
+            </div>
+            <p *ngIf="email!.errors?.pattern" class="help is-warning">Nieprawidłowy adres e-mail</p>
+            <p *ngIf="email!.errors?.submitError" class="help is-danger">Konto z tym adresem e-mail już istnieje</p>
+          </div>
+
+          <div class="field">
+            <label class="label">Hasło</label>
+            <div class="control has-icons-left">
+              <input class="input is-primary" type="password" formControlName="password">
+              <span class="icon is-small is-left">
+                <i class="fas fa-lock"></i>
+              </span>
+            </div>
+          </div>
+
+          <div class="field mt-3 ">
+            <div class="control">
+              <button class="button is-primary width-full" [ngClass]="{'is-loading': isSubmitted}" [disabled]="form.invalid" (click)="submit()">Zarejestruj</button>
+            </div>
+            <div class="is-flex is-flex-direction-column is-align-items-center mt-2">
+              <a href="/register" class="has-text-centered">{{ 'Nie masz jeszcze konta?\nZarejestruj się' }}</a>
+              <p [ngClass]="{'hidden': submitErrorCode === null || email!.errors?.submitError || password!.errors?.submitError}" class="help is-danger has-text-centered mt-3">{{ 'Coś poszło nie tak,\nspróbuj ponownie później' }}</p>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

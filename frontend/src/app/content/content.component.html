@@ -1,0 +1,22 @@
+<div class="root unscrollable">
+  <app-navbar></app-navbar>
+  <mat-sidenav-container class="height-full" (backdropClick)="toggleSidenav()">
+    <mat-sidenav appSidenav>
+      <app-sidenav></app-sidenav>
+    </mat-sidenav>
+    <mat-sidenav-content class="is-flex is-flex-direction-column">
+      <section class="section-root">
+        <router-outlet></router-outlet>
+      </section>
+      <footer class="footer p-3 p-desktop-4">
+        <div class="content has-text-centered">
+          <span class="icon">
+            <a href="https://github.com/Pikne-Programy/pikne-zadania" target="_blank">
+              <i class="fab fa-lg fa-github"></i>
+            </a>
+          </span>
+        </div>
+      </footer>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>
