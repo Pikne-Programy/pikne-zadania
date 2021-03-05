@@ -1,0 +1,22 @@
+$directions: "" "", "-top" "t", "-bottom" "b", "-left" "l", "-right" "r";
+$size_breakpoints: "mobile" 0px 768px, "tablet" 769px 1023px,
+  "desktop" 1024px 1215px, "widescreen" 1216px 1407px, "full-hd" 1408px;
+
+//#region Colors
+//Primary
+$c_primary_hue: 171;
+$c_primary_saturation: 100%;
+$c_primary_lightness: 41%;
+$color_primary: hsl(
+  $c_primary_hue,
+  $c_primary_saturation,
+  $c_primary_lightness
+);
+//Primary dark
+$c_primary_dark_lightness: 29%;
+$color_primary_dark: hsl(
+  $c_primary_hue,
+  $c_primary_saturation,
+  $c_primary_dark_lightness
+);
+//#endregion
