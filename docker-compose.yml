@@ -1,17 +1,33 @@
 version: "3.9"
 services:
-  web:
+  srv:
     build:
       context: frontend
+      dockerfile: nginx.dockerfile
+    volumes:
+      - html:/usr/share/nginx/html
     links:
       - api:backend
     ports:
       - 80:80
     depends_on:
+      - web
+  web:
+    build:
+      context: frontend
+      dockerfile: angular.dockerfile
+    volumes:
+      - ./frontend:/app
+      - node_modules:/app/node_modules
+      - html:/app/dist
+    depends_on:
       - api
   api:
     build:
       context: backend
+      dockerfile: denon.dockerfile
+    volumes:
+      - ./backend:/app
     expose:
       - 8000
     links:
@@ -22,3 +38,6 @@ services:
     image: redis
     expose:
       - 6379
+volumes:
+  html:
+  node_modules:

@@ -29,7 +29,7 @@ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 Install our app (use `sudo` if you are not in `docker` group):
 
 ```sh
-curl -L https://raw.githubusercontent.com/Pikne-Programy/pikne-zadania/master/docker-compose.prod.yml --create-dirs -o pikne-zadania/docker-compose.yml
+curl -L https://raw.githubusercontent.com/Pikne-Programy/pikne-zadania/master/docker-compose.latest.yml --create-dirs -o pikne-zadania/docker-compose.yml
 cd pikne-zadania/
 docker-compose up -d
 ```
@@ -46,6 +46,7 @@ docker run --name watchtower -dv /var/run/docker.sock:/var/run/docker.sock conta
 git clone --recursive https://github.com/Pikne-Programy/pikne-zadania.git # clone via HTTPS
 git clone --recursive git@github.com:Pikne-Programy/pikne-zadania.git # clone via SSH
 cd pikne-zadania
-# build and run, can be repeated on and on
-docker-compose up --build
+# build and run, can be repeated on and on:
+docker-compose up --build # with auto-update, denon and angular CLI running in background
+docker-compose -f docker-compose.prod.yml up --build # production-like environment
 ```
