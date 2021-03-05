@@ -20,3 +20,5 @@ services:
       - db
   db:
     image: redis
+    expose:
+      - 6379

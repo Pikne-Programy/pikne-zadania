@@ -1,20 +1,27 @@
 version: "3.9"
 services:
   web:
-    image: nircek/pikne-zadania
+    image: nircek/pikne-zadania-frontend
     links:
       - api:backend
     ports:
-      - 80:80
+      - 8080:80
     depends_on:
       - api
+    restart: unless-stopped
   api:
-    image: nircek/pikne-zadania-frontend
+    image: nircek/pikne-zadania
     expose:
       - 8000
     links:
       - db:redis
     depends_on:
       - db
+    restart: unless-stopped
   db:
     image: redis
+    expose:
+      - 6379
+    volumes:
+      - ./data:/data
+    restart: unless-stopped

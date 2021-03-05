@@ -1,6 +1,5 @@
 # Pikne Zadania
 
-
 ## Installation
 
 [Install Docker](https://docs.docker.com/engine/install/) if it's not installed. If you are on Unix-based distro, you can try:
@@ -19,13 +18,20 @@ sudo service docker start
 sudo service docker enable
 ```
 
-Run our container (use `sudo` if you are not in `docker` group):
+Install [Docker Compose](https://docs.docker.com/compose/install/):
 
 ```sh
-PORT=80
-docker run --name pikne-zadania -dp $PORT:8000 nircek/pikne-zadania:stable
-# or if you want to run it at the boot
-docker run --name pikne-zadania -dp $PORT:8000 --restart unless-stopped nircek/pikne-zadania:stable
+sudo curl -L "https://github.com/docker/compose/releases/download/1.28.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+```
+
+Install our app (use `sudo` if you are not in `docker` group):
+
+```sh
+curl -L https://raw.githubusercontent.com/Pikne-Programy/pikne-zadania/master/docker-compose.prod.yml --create-dirs -o pikne-zadania/docker-compose.yml
+cd pikne-zadania/
+docker-compose up -d
 ```
 
 Perform updates automatically with the [Watchtower](https://github.com/containrrr/watchtower):
@@ -34,7 +40,6 @@ Perform updates automatically with the [Watchtower](https://github.com/containrr
 docker run --name watchtower -dv /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower
 ```
 
-
 ## Build
 
 ```sh
@@ -42,5 +47,5 @@ git clone --recursive https://github.com/Pikne-Programy/pikne-zadania.git # clon
 git clone --recursive git@github.com:Pikne-Programy/pikne-zadania.git # clone via SSH
 cd pikne-zadania
 # build and run, can be repeated on and on
-docker build . -t pikne-zadania && docker run --name pikne-zadania -itp 8000:8000 --rm pikne-zadania
+docker-compose up --build
 ```
