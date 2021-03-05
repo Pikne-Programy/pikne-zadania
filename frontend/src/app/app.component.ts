@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { startServer } from './helper/tests/server';
+import { serverMockEnabled } from './helper/tests/tests.config';
 
 @Component({
   selector: 'app-root',
@@ -10,6 +11,6 @@ export class AppComponent {
   title = 'Niedostateczny.pl';
 
   constructor() {
-    startServer();
+    if (serverMockEnabled) startServer();
   }
 }
