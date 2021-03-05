@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  web:
+    build:
+      context: frontend
+    links:
+      - api:backend
+    ports:
+      - 80:80
+    depends_on:
+      - api
+  api:
+    build:
+      context: backend
+    expose:
+      - 8000
+    links:
+      - db:redis
+    depends_on:
+      - db
+  db:
+    image: redis
