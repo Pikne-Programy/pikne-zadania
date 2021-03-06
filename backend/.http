@@ -14,3 +14,94 @@ Cookie: seed=0
 [
     167, 2.9
 ]
+
+
+### Register a user
+POST http://localhost:8000/api/register HTTP/1.1
+Content-Type: application/json
+
+{
+  "login": "user@example.com",
+  "name": "User",
+  "hashed_password": "r02H/fnQ3M3Xfjqsr3dg8mY78lBDXWoiR0O0JcXW8VM=",
+  "number": 11,
+  "invitation": "QwErTy58"
+}
+
+
+### Authenticate
+POST http://localhost:8000/api/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "login": "user@example.com",
+  "hashed_password": "r02H/fnQ3M3Xfjqsr3dg8mY78lBDXWoiR0O0JcXW8VM="
+}
+
+
+### Unauthenticate
+POST http://localhost:8000/api/login HTTP/1.1
+Content-Type: application/json
+
+{
+ 
+}
+
+
+### Get info about user
+GET http://localhost:8000/api/account HTTP/1.1
+
+
+### Get list of teams
+GET http://localhost:8000/api/teams HTTP/1.1
+
+
+### Open registration and change invitation code
+POST http://localhost:8000/api/login HTTP/1.1
+Content-Type: application/json
+
+{
+    "QwErTy58"
+}
+
+
+### Close registration
+POST http://localhost:8000/api/login HTTP/1.1
+Content-Type: application/json
+
+{
+    "QwErTy58"
+}
+
+
+### Get info about team
+GET http://localhost:8000/api/teams/1 HTTP/1.1
+
+
+### Unregister the user
+DELETE http://localhost:8000/api/teams/1/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 HTTP/1.1
+
+
+### Set a new number
+POST http://localhost:8000/api/teams/1/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 HTTP/1.1
+Content-Type: application/json
+
+    34
+
+
+### Set a new number of team
+POST http://localhost:8000/api/teams/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "3d"
+}
+
+
+### Change an assignee
+POST http://localhost:8000/api/root/teams/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755"
+}
