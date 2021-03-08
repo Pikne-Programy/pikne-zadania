@@ -1,4 +1,5 @@
 import { createServer, Response } from 'miragejs';
+import { Account } from '../../account/account.service';
 
 interface ExerciseTree {
   name: string;
@@ -250,6 +251,7 @@ export function startServer() {
         else return new Response(400, undefined, { errors: ['Wrong JSON'] });
       });
 
+      var currentAccount: Account | null = null;
       this.post('/api/register', (schema: any, request: any) => {
         const attrs = JSON.parse(request.requestBody);
         if (attrs.login === 'b@b.bb') return new Response(409);
@@ -258,7 +260,32 @@ export function startServer() {
         else return new Response(200);
       });
       this.post('/api/login', (schema: any, request: any) => {
-        return new Response(200);
+        const attrs = JSON.parse(request.requestBody);
+        if (attrs.login === 'b@b.bb') {
+          if (
+            //Password 'b' hashed with email 'b@b.bb'
+            attrs.hashed_password ===
+            'ZywyW1h4EKLJe/jAjKiDN+eufwV0SOeTIjb2DBMgJqQ='
+          )
+            return new Response(401);
+          else if (
+            //Password '1' hashed with email 'b@b.bb'
+            attrs.hashed_password ===
+            'xfDzQivyYi4/DyiVO/d+1DBbR6WXxBe2v2xGVx0k5Lw='
+          )
+            return new Response(500);
+          else {
+            currentAccount = { name: 'UserB', number: null };
+            return new Response(200);
+          }
+        } else {
+          currentAccount = { name: 'UserA', number: 11 };
+          return new Response(200);
+        }
+      });
+      this.get('/api/account', () => {
+        if (currentAccount !== null) return currentAccount;
+        else return new Response(400);
       });
     },
   });

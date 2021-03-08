@@ -1,4 +1,4 @@
-<div class="root scrollable">
+<div class="root">
   <div class="height-full is-flex is-justify-content-center">
     <div *ngIf="!isCreated" class="container columns height-full m-0 px-6">
       <div class="column is-narrow is-flex is-align-items-center is-justify-content-center pt-only-mobile-5">
@@ -7,11 +7,11 @@
       <div class="width-5"></div>
       <div class="column">
         <div class="height-full is-flex is-align-items-center pb-only-mobile-5">
-          <form class="width-full" [formGroup]="form">
+          <form class="width-full" [formGroup]="form" (ngSubmit)="submit()">
             <div class="field">
               <label class="label">E-mail</label>
               <div class="control has-icons-left has-icons-right">
-                <input id="email" class="input is-primary" [ngClass]="{
+                <input class="input" [ngClass]="{
                   'is-primary': !email!.errors?.pattern && !email!.errors?.submitError,
                   'is-warning': email!.errors?.pattern,
                   'is-danger': email!.errors?.submitError
@@ -75,7 +75,7 @@
             <fieldset class="py-3">
               <div class="field">
                 <input id="switch" class="switch is-rounded" type="checkbox" [checked]="hasNumber" (change)="onToggleSwitch()">
-                <label for="switch">{{ hasNumber ? 'Mam numer w dzienniku' : 'Nie mam numeru w dzienniku' }}</label>
+                <label for="switch">{{ hasNumber ? 'Mam numer w dzienniku' : 'Nie mam numeru w&nbsp;dzienniku' }}</label>
               </div>
 
               <fieldset [disabled]="!hasNumber">
@@ -100,11 +100,12 @@
 
             <div class="field mt-3 ">
               <div class="control">
-                <button class="button is-primary width-full" [ngClass]="{'is-loading': isSubmitted}" [disabled]="form.invalid" (click)="submit()">Zarejestruj</button>
+                <button type="submit" class="button is-primary width-full" [ngClass]="{'is-loading': isSubmitted}" [disabled]="form.invalid">Zarejestruj</button>
               </div>
               <div class="is-flex is-flex-direction-column is-align-items-center mt-2">
-                <a href="/login">Masz już konto? Zaloguj się</a>
-                <p [ngClass]="{'hidden': submitErrorCode === null || email!.errors?.submitError || invitation!.errors?.submitError}" class="help is-danger mt-3">Coś poszło nie tak, spróbuj ponownie później</p>
+                <a routerLink="/login" class="has-text-centered">Masz już konto? Zaloguj&nbsp;się</a>
+                <a routerLink="/public-exercises" class="has-text-underlined mt-3">Powrót</a>
+                <p [ngClass]="{'hidden': submitErrorCode === null || email!.errors?.submitError || invitation!.errors?.submitError}" class="help is-danger has-text-centered mt-3">Coś poszło nie tak, spróbuj&nbsp;ponownie później</p>
               </div>
             </div>
           </form>
