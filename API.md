@@ -19,6 +19,7 @@ The common errors status codes are:
 - [GET /api/public](#get-apipublic)
 - [GET /api/public/:subject/:id](#get-apipublicsubjectid)
 - [POST /api/public/:subject/:id](#post-apipublicsubjectid)
+- [GET /api/public/:subject/static/:file](#get-apipublicsubjectstaticfile)
 - [POST /api/register](#post-apiregister)
 - [POST /api/login](#post-apilogin)
 - [POST /api/logout](#post-apilogout)
@@ -110,7 +111,8 @@ it can be `null` or a number from 0 to 1, see [#24](https://github.com/Pikne-Pro
 }
 ```
 
-**note**: `content` is ExT-dependent, shown above is the EqEx one.
+**note**: `content` is ExT-dependent, shown above is the EqEx one. \
+**note**: The `content` can contain links to static content. It can be accessed via `GET /api/public/:subject/static/:file` request.
 
 ***
 
@@ -133,6 +135,23 @@ it can be `null` or a number from 0 to 1, see [#24](https://github.com/Pikne-Pro
 ```
 
 **note**: It's ExT-dependent, what is shown above is appropriate for the EqEx one.
+
+***
+
+## `GET /api/public/:subject/static/:file`
+
+| Method | URL | Description | Special status codes |
+| - | - | - | - |
+| GET | `/api/public/:subject/static/:file` | get a static file | 404 |
+
+**Request**:
+
+```json
+```
+
+**Response**:
+
+*binary data*
 
 ***
 
