@@ -457,4 +457,4 @@ it can be `null` or a number from 0 to 1, see [#24](https://github.com/Pikne-Pro
 ```json
 ```
 
-**note**: You can't change an assignee of teams with id least than 2.
+**note**: You can't change assignees of teams whose id is less than 2.
