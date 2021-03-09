@@ -368,7 +368,7 @@ it can be `null` or a number from 0 to 1, see [#24](https://github.com/Pikne-Pro
 ```json
 {
   "name": "2d",
-  "assignee": "Smith",
+  "assignee": "Williams",
   "members": [
     {
       "id": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
