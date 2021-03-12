@@ -22,11 +22,12 @@ export class RegisterComponent implements OnDestroy {
   readonly form = new FormGroup({
     email: new FormControl('', [
       Validators.required,
-      Validators.pattern(this.accountService.emailPattern),
+      Validators.email,
       this.submitErrorValidator(this.emailError),
     ]),
     username: new FormControl('', [Validators.required]),
     password: new FormControl('', [Validators.required]),
+    password2: new FormControl('', [Validators.required]),
     invitation: new FormControl('', [
       Validators.required,
       this.submitErrorValidator(this.invitationError),
@@ -36,6 +37,16 @@ export class RegisterComponent implements OnDestroy {
       Validators.pattern('^\\d*$'),
     ]),
   });
+  constructor(private accountService: AccountService) {
+    this.password!.setValidators([
+      Validators.required,
+      this.passwordValidator(),
+    ]);
+    this.password2!.setValidators([
+      Validators.required,
+      this.passwordValidator(),
+    ]);
+  }
 
   get email() {
     return this.form.get('email');
@@ -45,6 +56,9 @@ export class RegisterComponent implements OnDestroy {
   }
   get password() {
     return this.form.get('password');
+  }
+  get password2() {
+    return this.form.get('password2');
   }
   get invitation() {
     return this.form.get('invitation');
@@ -59,7 +73,6 @@ export class RegisterComponent implements OnDestroy {
   submitSubscription?: Subscription;
   isCreated = false;
   submitErrorCode: number | null = null;
-  constructor(private accountService: AccountService) {}
 
   onToggleSwitch() {
     this.hasNumber = !this.hasNumber;
@@ -111,7 +124,15 @@ export class RegisterComponent implements OnDestroy {
     return (control: AbstractControl): { [key: string]: any } | null => {
       const isError = this.submitErrorCode == errorCode;
       if (isError) this.submitErrorCode = null;
-      return isError ? { submitError: { value: control.value } } : null;
+      return isError ? { submit: { value: control.value } } : null;
+    };
+  }
+
+  private passwordValidator(): ValidatorFn {
+    return (control: AbstractControl): { [key: string]: any } | null => {
+      return this.password!.value !== this.password2!.value
+        ? { password: { value: control.value } }
+        : null;
     };
   }
 }

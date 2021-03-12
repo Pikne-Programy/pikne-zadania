@@ -14,10 +14,7 @@ export class LoginComponent implements OnDestroy {
   readonly submitError = 401;
 
   readonly form = new FormGroup({
-    email: new FormControl('', [
-      Validators.required,
-      Validators.pattern(this.accountService.emailPattern),
-    ]),
+    email: new FormControl('', [Validators.required, Validators.email]),
     password: new FormControl('', [Validators.required]),
   });
 

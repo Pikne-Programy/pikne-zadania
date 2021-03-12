@@ -1,19 +1,26 @@
-<div class="root">
-  <div class="height-full is-flex is-justify-content-center">
-    <div class="container columns vertical height-full m-0">
-      <div class="column is-narrow is-flex is-align-items-center is-justify-content-center pt-only-mobile-5">
-        <img class="logo" src="https://via.placeholder.com/512x512?text=Logo duże">
+<main class="root">
+  <div class="container is-flex is-align-items-center">
+    <div class="py-5">
+      <div class="is-flex is-align-items-center is-justify-content-center mb-mobile-4 mb-tablet-5 mb-widescreen-6">
+        <img class="logo" src="https://via.placeholder.com/512x512?text=Logo" alt="">
       </div>
-      <div class="column is-narrow is-flex is-justify-content-center">
-        <form class="width-80 pb-only-mobile-5" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="box">
+        <a class="button back is-white is-small mb-3" routerLink="/public-exercises">
+          <span class="icon is-small">
+            <i class="fas fa-chevron-left"></i>
+          </span>
+          <span>Powrót</span>
+        </a>
+
+        <form [formGroup]="form" (ngSubmit)="submit()">
           <div class="field">
-            <label class="label">E-mail</label>
+            <label for="email" class="label">E-mail</label>
             <div class="control has-icons-left has-icons-right">
-              <input class="input is-primary" [ngClass]="{
-                'is-primary': !email!.errors?.pattern && submitErrorCode !== submitError,
-                'is-warning': email!.errors?.pattern,
-                'is-danger': submitErrorCode === submitError
-              }" type="email" formControlName="email" (input)="clearError()">
+              <input id="email" class="input is-primary" [ngClass]="{
+                  'is-primary': !email!.errors?.pattern && submitErrorCode !== submitError,
+                  'is-warning': email!.errors?.pattern,
+                  'is-danger': submitErrorCode === submitError
+                }" type="email" formControlName="email" (input)="clearError()">
               <span class="icon is-small is-left">
                 <i class="fas fa-envelope"></i>
               </span>
@@ -28,12 +35,12 @@
           </div>
 
           <div class="field">
-            <label class="label">Hasło</label>
+            <label for="password" class="label">Hasło</label>
             <div class="control has-icons-left has-icons-right">
-              <input class="input" [ngClass]="{
-                'is-primary': submitErrorCode !== submitError,
-                'is-danger': submitErrorCode === submitError
-              }" type="password" formControlName="password" (input)="clearError()">
+              <input id="password" class="input" [ngClass]="{
+                  'is-primary': submitErrorCode !== submitError,
+                  'is-danger': submitErrorCode === submitError
+                }" type="password" formControlName="password" (input)="clearError()">
               <span class="icon is-small is-left">
                 <i class="fas fa-lock"></i>
               </span>
@@ -48,13 +55,12 @@
               <button type="submit" class="button is-primary width-full" [ngClass]="{'is-loading': isSubmitted}" [disabled]="form.invalid">Zaloguj</button>
             </div>
             <div class="is-flex is-flex-direction-column is-align-items-center mt-2">
-              <a routerLink="/register" class="has-text-centered">Nie masz jeszcze konta? Zarejestruj&nbsp;się</a>
-              <a routerLink="/public-exercises" class="has-text-underlined mt-3">Powrót</a>
-              <p [ngClass]="{'hidden': submitErrorCode === null || submitErrorCode === submitError }" class="help is-danger has-text-centered mt-3">Coś poszło nie tak, spróbuj&nbsp;ponownie później</p>
+              <p *ngIf="submitErrorCode !== null && submitErrorCode !== submitError" class="help is-danger has-text-centered">Coś poszło nie tak, spróbuj&nbsp;ponownie później</p>
+              <a class="has-text-centered mt-3" routerLink="/register">Nie masz jeszcze konta?<br />Zarejestruj&nbsp;się</a>
             </div>
           </div>
         </form>
       </div>
     </div>
   </div>
-</div>
+</main>

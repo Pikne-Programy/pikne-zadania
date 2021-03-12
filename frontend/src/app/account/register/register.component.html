@@ -1,123 +1,136 @@
-<div class="root">
-  <div class="height-full is-flex is-justify-content-center">
-    <div *ngIf="!isCreated" class="container columns height-full m-0 px-6">
-      <div class="column is-narrow is-flex is-align-items-center is-justify-content-center pt-only-mobile-5">
-        <img class="logo" src="https://via.placeholder.com/512x512?text=Logo duże">
+<main class="root">
+  <div class="container is-flex is-align-items-center">
+    <div class="py-5">
+      <div class="is-flex is-align-items-center is-justify-content-center mb-mobile-4 mb-tablet-5 mb-widescreen-6">
+        <img class="logo" src="https://via.placeholder.com/512x512?text=Logo" alt="">
       </div>
-      <div class="width-5"></div>
-      <div class="column">
-        <div class="height-full is-flex is-align-items-center pb-only-mobile-5">
-          <form class="width-full" [formGroup]="form" (ngSubmit)="submit()">
-            <div class="field">
-              <label class="label">E-mail</label>
-              <div class="control has-icons-left has-icons-right">
-                <input class="input" [ngClass]="{
-                  'is-primary': !email!.errors?.pattern && !email!.errors?.submitError,
-                  'is-warning': email!.errors?.pattern,
-                  'is-danger': email!.errors?.submitError
-                }" type="email" formControlName="email">
-                <span class="icon is-small is-left">
-                  <i class="fas fa-envelope"></i>
-                </span>
-                <span *ngIf="email!.errors?.pattern" class="icon has-text-warning is-small is-right">
-                  <i class="fas fa-exclamation-triangle"></i>
-                </span>
-                <span *ngIf="email!.errors?.submitError" class="icon has-text-danger is-small is-right">
-                  <i class="fas fa-times"></i>
-                </span>
-              </div>
-              <p *ngIf="email!.errors?.pattern" class="help is-warning">Nieprawidłowy adres e-mail</p>
-              <p *ngIf="email!.errors?.submitError" class="help is-danger">Konto z tym adresem e-mail już istnieje</p>
-            </div>
+      <div class="box">
+        <a class="button back is-white is-small mb-3" routerLink="/public-exercises">
+          <span class="icon is-small">
+            <i class="fas fa-chevron-left"></i>
+          </span>
+          <span>Powrót</span>
+        </a>
 
-            <div class="field">
-              <label class="label">Nazwa użytkownika</label>
-              <div class="control has-icons-left">
-                <input class="input is-primary" type="text" formControlName="username">
-                <span class="icon is-small is-left">
-                  <i class="fas fa-user"></i>
-                </span>
-              </div>
+        <form class="width-full" [formGroup]="form" (ngSubmit)="submit()">
+          <div class="field">
+            <label for="email" class="label">E-mail</label>
+            <div class="control has-icons-left has-icons-right">
+              <input id="email" class="input" [ngClass]="{
+                'is-primary': !email!.errors?.email && !email!.errors?.submit,
+                'is-warning': email!.errors?.email,
+                'is-danger': email!.errors?.submit
+              }" type="email" formControlName="email">
+              <span class="icon is-small is-left">
+                <i class="fas fa-envelope"></i>
+              </span>
+              <span *ngIf="email!.errors?.email" class="icon has-text-warning is-small is-right">
+                <i class="fas fa-exclamation-triangle"></i>
+              </span>
+              <span *ngIf="email!.errors?.submit" class="icon has-text-danger is-small is-right">
+                <i class="fas fa-times"></i>
+              </span>
             </div>
+            <p *ngIf="email!.errors?.email" class="help is-warning">Nieprawidłowy adres e-mail</p>
+            <p *ngIf="email!.errors?.submit" class="help is-danger">Konto z tym adresem e-mail już istnieje</p>
+          </div>
 
-            <div class="field">
-              <label class="label">Hasło</label>
+          <div class="field">
+            <label for="username" class="label">Nazwa użytkownika</label>
+            <div class="control has-icons-left">
+              <input id="username" class="input is-primary" type="text" formControlName="username">
+              <span class="icon is-small is-left">
+                <i class="fas fa-user"></i>
+              </span>
+            </div>
+          </div>
+
+
+          <fieldset class="columns my-0">
+            <div class="column field py-0">
+              <label for="password" class="label">Hasło</label>
               <div class="control has-icons-left">
-                <input class="input is-primary" type="password" formControlName="password">
+                <input id="password" class="input" [ngClass]="{
+                  'is-primary': !password!.errors?.password || !password2!.dirty,
+                  'is-danger': password!.errors?.password && password2!.dirty
+                }" type="password" formControlName="password" (input)="password2!.updateValueAndValidity()">
                 <span class="icon is-small is-left">
                   <i class="fas fa-lock"></i>
                 </span>
               </div>
             </div>
 
-            <div class="field">
-              <label class="label">
-                <span (click)="onInfoClick()">Kod zaproszenia </span>
-                <span class="icon is-small has-tooltip-arrow" data-tooltip="Podawany przez nauczyciela" [ngClass]="{'has-tooltip-active': isTooltipShown}" (click)="onInfoClick()">
-                  <i class="fas fa-question-circle"></i>
-                </span>
-              </label>
-              <div class="control has-icons-left has-icons-right">
-                <input class="input" [ngClass]="{
-                  'is-primary': !invitation!.errors?.submitError, 
-                  'is-danger': invitation!.errors?.submitError
-                }" type="text" formControlName="invitation">
+            <div class="column field py-0">
+              <label for="password2" class="label">Powtórz hasło</label>
+              <div class="control has-icons-left">
+                <input id="password2" class="input" [ngClass]="{
+                  'is-primary': !password2!.errors?.password || !password2!.dirty,
+                  'is-danger': password2!.errors?.password && password2!.dirty
+                }" type="password" formControlName="password2" (input)="password!.updateValueAndValidity()">
                 <span class="icon is-small is-left">
-                  <i class="fas fa-key"></i>
-                </span>
-                <span *ngIf="invitation!.errors?.submitError" class="icon has-text-danger is-small is-right">
-                  <i class="fas fa-times"></i>
+                  <i class="fas fa-lock"></i>
                 </span>
               </div>
-              <p *ngIf="invitation!.errors?.submitError" class="help is-danger">Nieprawidłowy kod zaproszenia</p>
             </div>
+          </fieldset>
+          <p *ngIf="password2!.errors?.password && password2!.dirty" class="help outside is-danger">Hasła nie są takie same</p>
 
-            <fieldset class="py-3">
-              <div class="field">
-                <input id="switch" class="switch is-rounded" type="checkbox" [checked]="hasNumber" (change)="onToggleSwitch()">
-                <label for="switch">{{ hasNumber ? 'Mam numer w dzienniku' : 'Nie mam numeru w&nbsp;dzienniku' }}</label>
+          <div class="field">
+            <label for="invitation" class="label">
+              <span (click)="onInfoClick()">Kod zaproszenia </span>
+              <span class="icon is-small has-tooltip-arrow" data-tooltip="Podawany przez nauczyciela" [ngClass]="{'has-tooltip-active': isTooltipShown}" (click)="onInfoClick()">
+                <i class="fas fa-question-circle"></i>
+              </span>
+            </label>
+            <div class="control has-icons-left has-icons-right">
+              <input id="invitation" class="input" [ngClass]="{
+                'is-primary': !invitation!.errors?.submit, 
+                'is-danger': invitation!.errors?.submit
+              }" type="text" formControlName="invitation">
+              <span class="icon is-small is-left">
+                <i class="fas fa-key"></i>
+              </span>
+              <span *ngIf="invitation!.errors?.submit" class="icon has-text-danger is-small is-right">
+                <i class="fas fa-times"></i>
+              </span>
+            </div>
+            <p *ngIf="invitation!.errors?.submit" class="help is-danger">Nieprawidłowy kod zaproszenia</p>
+          </div>
+
+          <div class="field">
+            <div class="columns is-mobile m-0">
+              <label for="number" class="column label p-0">Numer w dzienniku</label>
+              <div class="column is-narrow field p-0" (change)="onToggleSwitch()">
+                <input id="switch" class="switch is-rounded" type="checkbox" [checked]="hasNumber">
+                <label for="switch"></label>
               </div>
-
-              <fieldset [disabled]="!hasNumber">
-                <div class="field">
-                  <label class="label">Numer w dzienniku</label>
-                  <div class="control has-icons-left has-icons-right">
-                    <input class="input" [ngClass]="{
-                      'is-primary': !number!.errors?.pattern,
-                      'is-warning': number!.errors?.pattern
-                    }" type="text" formControlName="number">
-                    <span class="icon is-small is-left">
-                      <i class="fas fa-book"></i>
-                    </span>
-                    <span *ngIf="number!.errors?.pattern" class="icon has-text-warning is-small is-right">
-                      <i class="fas fa-exclamation-triangle"></i>
-                    </span>
-                  </div>
-                  <p *ngIf="number!.errors?.pattern" class="help is-warning">Wymagana liczba</p>
-                </div>
-              </fieldset>
+            </div>
+            <fieldset class="control has-icons-left has-icons-right" [disabled]="!hasNumber">
+              <input id="number" class="input" [ngClass]="{
+                'is-primary': !number!.errors?.pattern,
+                'is-warning': number!.errors?.pattern
+              }" type="text" formControlName="number">
+              <span class="icon is-small is-left">
+                <i class="fas fa-book"></i>
+              </span>
+              <span *ngIf="number!.errors?.pattern" class="icon has-text-warning is-small is-right">
+                <i class="fas fa-exclamation-triangle"></i>
+              </span>
             </fieldset>
+            <p *ngIf="number!.errors?.pattern" class="help is-warning">Wymagana liczba</p>
+          </div>
 
-            <div class="field mt-3 ">
-              <div class="control">
-                <button type="submit" class="button is-primary width-full" [ngClass]="{'is-loading': isSubmitted}" [disabled]="form.invalid">Zarejestruj</button>
-              </div>
-              <div class="is-flex is-flex-direction-column is-align-items-center mt-2">
-                <a routerLink="/login" class="has-text-centered">Masz już konto? Zaloguj&nbsp;się</a>
-                <a routerLink="/public-exercises" class="has-text-underlined mt-3">Powrót</a>
-                <p [ngClass]="{'hidden': submitErrorCode === null || email!.errors?.submitError || invitation!.errors?.submitError}" class="help is-danger has-text-centered mt-3">Coś poszło nie tak, spróbuj&nbsp;ponownie później</p>
-              </div>
+          <div class="field mt-3 ">
+            <div class="control">
+              <button type="submit" class="button is-primary width-full" [ngClass]="{'is-loading': isSubmitted}" [disabled]="form.invalid">Zarejestruj</button>
             </div>
-          </form>
-        </div>
+            <div class="is-flex is-flex-direction-column is-align-items-center mt-2">
+              <p *ngIf="submitErrorCode !== null && !email!.errors?.submit && !invitation!.errors?.submit" class="help is-danger has-text-centered">Coś poszło nie tak, spróbuj&nbsp;ponownie później</p>
+              <a routerLink="/login" class="has-text-centered mt-3">Masz już konto? Zaloguj&nbsp;się</a>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
-    <div *ngIf="isCreated" class="container is-flex is-flex-direction-column is-align-items-center is-justify-content-center px-6">
-      <span class="icon is-extra-large has-text-success">
-        <i class="fas fa-10x fa-check-circle"></i>
-      </span>
-      <h2 class="title has-text-centered mt-3">Pomyślnie utworzono konto</h2>
-      <a href="/login">Zaloguj się</a>
-    </div>
   </div>
-</div>
+</main>

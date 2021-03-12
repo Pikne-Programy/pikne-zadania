@@ -16,7 +16,6 @@ export function isAccount(object: any): object is Account {
   providedIn: 'root',
 })
 export class AccountService implements OnDestroy {
-  readonly emailPattern = '^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$';
   readonly accountTypeError = 400;
 
   private currentAccount = new BehaviorSubject<Account | number | null>(null);
