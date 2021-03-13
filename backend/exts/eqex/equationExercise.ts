@@ -47,14 +47,12 @@ export default class EquationExercise extends Exercise {
   static readonly greekR =
     /alfa|beta|gamma|delta|epsilon|mi|pi|ro|sigma|tau|fi|psi|omega/;
   static readonly equationR = new RegExp(
-    `${RPN.variableR}=((?:(?:[\\+\\-]?(?:${RPN.trigonometryR}|${RPN.functionR})?[\\^a-zA-Z_0-9.\\(\\)]+${RPN.operationR}*)+))`,
+    `${RPN.variableR}=((?:[\\+\\-]?${RPN.trigonometryR}|${RPN.functionR}|${RPN.variableR}|${RPN.numberR}|[\\(\\)]|${RPN.operationR}\\s*)+)`,
   );
   static readonly numberEqR = new RegExp(
     `${RPN.variableR}=(${RPN.numberR})(${RPN.unitR})`,
   );
-  static readonly unknownEqR = new RegExp(
-    `${RPN.variableR}=\\?(${RPN.unitR})`,
-  );
+  static readonly unknownEqR = new RegExp(`${RPN.variableR}=\\?(${RPN.unitR})`);
   static readonly rangeEqR = new RegExp(
     `${RPN.variableR}=\\[(${RPN.numberR});(${RPN.numberR})(?:;(${RPN.numberR}))?\\](${RPN.unitR})`,
   );
@@ -81,11 +79,12 @@ export default class EquationExercise extends Exercise {
   type = "EqEx";
   readonly parsedContent: string; // "lorem ipsum \(d=300\mathrm{km\}\) foo \(v_a=\mathrm{\frac{m}{s}}\) bar \(v_b=\frac{m}{s}\)."
   readonly ranges: [number, number][] = []; // [index in variables, index in parsedContent]
-  readonly variables: [string, (RPN | Range | number)][] = []; // [name, object]
+  readonly variables: [string, RPN | Range | number][] = []; // [name, object]
   readonly unknowns: string[] = []; // name
   readonly formattedUnknowns: [string, string][] = []; // [formatted name, unit]
   readonly order: number[] = []; // order of equations
   readonly answerPrecision: number = 0.02; // such number x that: ans*(100-x)% <= user ans <= ans*(100-x)% returns correct answer
+  readonly pointDecimalSeparator: boolean = false; //true: '.', false: ','
 
   // content -> parse to latex, extract RPN, Range and number -> return parsed text
   constructor(
@@ -125,10 +124,14 @@ export default class EquationExercise extends Exercise {
           const value = parseFloat(m[3]);
           const unit = EquationExercise.convertToLaTeX(m[4]);
           // add space next to the '=' to prevent from matching multiple times
+          let sValue = value.toString();
+          if (!this.pointDecimalSeparator) {
+            sValue = sValue.replace(".", ",\\!");
+          }
           parsedLine += `${
             line.substring(0, index[0])
-          }\\(${formattedName}= ${value}${unit}\\)`,
-            line = line.substring(index[1]); // remove this match from line
+          }\\(${formattedName}= ${sValue}${unit}\\)`;
+          line = line.substring(index[1]); // remove this match from line
           this.variables.push([name, value]);
         }
         parsedLine += line;
@@ -149,8 +152,7 @@ export default class EquationExercise extends Exercise {
           ];
           // ................................................
           const unit = EquationExercise.convertToLaTeX(m[3]);
-          parsedLine += line.substring(0, index[0]) + "\\(" +
-            formattedName + "\\)";
+          parsedLine += `${line.substring(0, index[0])}\\(${formattedName}\\)`;
           line = line.substring(index[1]); // remove this match
           this.unknowns.push(name);
           this.formattedUnknowns.push([formattedName, unit]);
@@ -199,6 +201,7 @@ export default class EquationExercise extends Exercise {
         this.order.push(this.variables.length - 1); // index in this.variables
       }
     });
+    this.ranges.reverse(); //reverse order so it's easier to parse
     this.parsedContent = parsingContent;
   }
 
@@ -212,13 +215,15 @@ export default class EquationExercise extends Exercise {
   } {
     const rng = new RNG(seed);
     let parsingContent = this.parsedContent;
-    for (let i = this.ranges.length - 1; i >= 0; --i) {
-      const index = this.ranges[i][0];
-      const textIndex = this.ranges[i][1];
+    for (const [index, textIndex] of this.ranges) {
       const value = (this.variables[index][1] as Range).rand(rng);
-      parsingContent = parsingContent.substr(0, textIndex) +
-        value +
-        parsingContent.substr(textIndex);
+      let sValue = value.toString();
+      if (!this.pointDecimalSeparator) {
+        sValue = sValue.replace(".", ",\\!");
+      }
+      parsingContent = `${parsingContent.substr(0, textIndex)}${sValue}${
+        parsingContent.substr(textIndex)
+      }`;
     }
     return {
       type: this.type,
@@ -229,9 +234,7 @@ export default class EquationExercise extends Exercise {
       },
     };
   }
-  check(seed: number, answer: YAMLType): {
-    success: boolean;
-  } {
+  check(seed: number, answer: YAMLType): boolean[] {
     if (
       !Array.isArray(answer) || answer.some((item) => typeof item !== "number")
     ) {
@@ -240,7 +243,13 @@ export default class EquationExercise extends Exercise {
     if (answer.length != this.unknowns.length) {
       throw new Error("ERROR, INVALID ANSWER LENGTH");
     }
-    const answerDict: {[key: string]: number} = this.unknowns.reduce((a, x, i) => ({...a, x: answer[i]}), {});
+    const answerDict: { [key: string]: number } = this.unknowns.reduce(
+      (a: { [key: string]: number }, x: string, i: number) => {
+        a[x] = answer[i] as number;
+        return a;
+      },
+      {},
+    );
     const rng = new RNG(seed);
     const calculated: { [key: string]: number } = {};
     // add already calculated numbers to calculated variables
@@ -267,21 +276,24 @@ export default class EquationExercise extends Exercise {
       }
     }
     // go through each unknown and compare the answers to what's calculated
+    const success: boolean[] = [];
     for (const name of this.unknowns) {
       const correctAns = calculated[name];
       if (name in answerDict) {
         const ans = answerDict[name];
         if (
-          ans < (1 - this.answerPrecision) * correctAns ||
-          ans > (1 + this.answerPrecision) * correctAns
+          ans > (1 - this.answerPrecision) * correctAns &&
+          ans < (1 + this.answerPrecision) * correctAns
         ) {
-          return { success: false };
+          success.push(true);
+        } else {
+          success.push(false);
         }
       } else {
         throw new Error("UNKNOWN IS NOT IN ANSWER");
       }
     }
-    return { success: true };
+    return success;
   }
   static convertToLaTeX(unit: string): string {
     if (unit == "") {
@@ -302,19 +314,17 @@ export default class EquationExercise extends Exercise {
       } else if (m[2] !== undefined) {
         parsedUnit += m[0];
       } else if (m[1] !== undefined) {
-        parsedUnit += "^{" + m[1] + "}";
+        parsedUnit += `^{${m[1]}}`;
       } else if (m[0] === "*") {
         parsedUnit += "\\cdot";
       } else if (m[0] === "/") {
-        parsedUnit = parsedUnit + "}{";
+        parsedUnit = `${parsedUnit}}{`;
         isFraction = true;
       }
     }
-    parsedUnit = `${
-      parsedUnit[0] !== "°" ? "\\;" : ""
-    }\\mathrm{${(isFraction ? "\\frac{" : "")}${parsedUnit}${(isFraction
-      ? "}"
-      : "")}}`;
+    parsedUnit = `${parsedUnit[0] !== "°" ? "\\;" : ""}\\mathrm{${
+      isFraction ? "\\frac{" : ""
+    }${parsedUnit}${isFraction ? "}" : ""}}`;
     return parsedUnit;
   }
   static convertToGreek(name: string): string {
