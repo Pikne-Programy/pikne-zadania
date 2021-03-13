@@ -243,7 +243,8 @@ it can be `null` or a number from 0 to 1, see [#24](https://github.com/Pikne-Pro
 ```json
 {
   "name": "User",
-  "number": 11
+  "number": 11,
+  "team": 1
 }
 ```
 
