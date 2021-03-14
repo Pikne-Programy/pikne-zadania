@@ -18,6 +18,8 @@ import { ExerciseComponent } from './exercises/exercise.component';
 import { EqexComponent } from './exercises/eqex/eqex.component';
 import { RegisterComponent } from './account/register/register.component';
 import { LoginComponent } from './account/login/login.component';
+import { ServiceWorkerModule } from '@angular/service-worker';
+import { environment } from '../environments/environment';
 
 @NgModule({
   declarations: [
@@ -42,6 +44,7 @@ import { LoginComponent } from './account/login/login.component';
     MatSidenavModule,
     FormsModule,
     ReactiveFormsModule,
+    ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
   ],
   providers: [],
   bootstrap: [AppComponent],
