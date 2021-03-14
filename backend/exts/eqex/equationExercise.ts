@@ -236,16 +236,16 @@ export default class EquationExercise extends Exercise {
   }
   check(seed: number, answer: YAMLType): boolean[] {
     if (
-      !Array.isArray(answer) || answer.some((item) => typeof item !== "number")
+      !Array.isArray(answer) || answer.some((item) => typeof item !== "number" && item !== null)
     ) {
       throw new Error("ERROR, INVALID ANSWER FORMAT");
     }
     if (answer.length != this.unknowns.length) {
       throw new Error("ERROR, INVALID ANSWER LENGTH");
     }
-    const answerDict: { [key: string]: number } = this.unknowns.reduce(
-      (a: { [key: string]: number }, x: string, i: number) => {
-        a[x] = answer[i] as number;
+    const answerDict: { [key: string]: number|null } = this.unknowns.reduce(
+      (a: { [key: string]: number|null }, x: string, i: number) => {
+        a[x] = answer[i] as number|null;
         return a;
       },
       {},
@@ -281,13 +281,12 @@ export default class EquationExercise extends Exercise {
       const correctAns = calculated[name];
       if (name in answerDict) {
         const ans = answerDict[name];
-        if (
-          ans > (1 - this.answerPrecision) * correctAns &&
-          ans < (1 + this.answerPrecision) * correctAns
-        ) {
-          success.push(true);
-        } else {
+        if (ans == null ||
+          ans < (1 - this.answerPrecision) * correctAns ||
+          ans > (1 + this.answerPrecision) * correctAns) {
           success.push(false);
+        } else {
+          success.push(true);
         }
       } else {
         throw new Error("UNKNOWN IS NOT IN ANSWER");
