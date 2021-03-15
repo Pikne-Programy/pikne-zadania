@@ -103,7 +103,6 @@ export default class EquationExercise extends Exercise {
         segment++;
         return;
       } else if (segment == 0) {
-        let eqR: RegExp;
         let m: RegExpExecArray | null;
         // --------------------------------------------------
         // considered regex: numberR (variable)(_underscore)=(value)(unit)
@@ -236,16 +235,17 @@ export default class EquationExercise extends Exercise {
   }
   check(seed: number, answer: YAMLType): boolean[] {
     if (
-      !Array.isArray(answer) || answer.some((item) => typeof item !== "number" && item !== null)
+      !Array.isArray(answer) ||
+      answer.some((item) => typeof item !== "number" && item !== null)
     ) {
       throw new Error("ERROR, INVALID ANSWER FORMAT");
     }
     if (answer.length != this.unknowns.length) {
       throw new Error("ERROR, INVALID ANSWER LENGTH");
     }
-    const answerDict: { [key: string]: number|null } = this.unknowns.reduce(
-      (a: { [key: string]: number|null }, x: string, i: number) => {
-        a[x] = answer[i] as number|null;
+    const answerDict: { [key: string]: number | null } = this.unknowns.reduce(
+      (a: { [key: string]: number | null }, x: string, i: number) => {
+        a[x] = answer[i] as number | null;
         return a;
       },
       {},
@@ -281,9 +281,11 @@ export default class EquationExercise extends Exercise {
       const correctAns = calculated[name];
       if (name in answerDict) {
         const ans = answerDict[name];
-        if (ans == null ||
+        if (
+          ans == null ||
           ans < (1 - this.answerPrecision) * correctAns ||
-          ans > (1 + this.answerPrecision) * correctAns) {
+          ans > (1 + this.answerPrecision) * correctAns
+        ) {
           success.push(false);
         } else {
           success.push(true);
@@ -317,6 +319,7 @@ export default class EquationExercise extends Exercise {
       } else if (m[0] === "*") {
         parsedUnit += "\\cdot";
       } else if (m[0] === "/") {
+        parsedUnit = parsedUnit === "" ? "1" : parsedUnit;
         parsedUnit = `${parsedUnit}}{`;
         isFraction = true;
       }
