@@ -49,4 +49,6 @@ cd pikne-zadania
 # build and run, can be repeated on and on:
 docker-compose up --build # with auto-update, denon and angular CLI running in background
 docker-compose -f docker-compose.prod.yml up --build # production-like environment
+# RESET ALL DOCKER STUFF (use only if it's needed!):
+docker system prune -a && docker volume prune
 ```

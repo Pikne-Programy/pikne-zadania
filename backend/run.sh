@@ -8,7 +8,7 @@ interrupt () {
 }
 
 (
-  deno run --allow-net --unstable --allow-read=/app server.ts &
+  deno run --allow-net --unstable --allow-read=/app/exercises server.ts &
   trap "kill -SIGINT $!; wait $!" TERM
   wait $!
 ) &

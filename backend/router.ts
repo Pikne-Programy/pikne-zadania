@@ -21,6 +21,10 @@ router
     seed,
     exercisesController.check.bind(exercisesController),
   )
+  .get(
+    "/api/public/:subject/static/:file",
+    exercisesController.getStaticContent.bind(exercisesController),
+  )
   .post(
     "/api/register",
     authController.register.bind(authController),
@@ -73,7 +77,5 @@ router
     "/api/root/teams/:id",
     authController.changeAssignee.bind(authController),
   );
-
-// TODO: images in exercises
 
 export default router;

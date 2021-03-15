@@ -7,13 +7,6 @@ interface State {
 
 const app = new Application<State>();
 
-app.addEventListener("listen", ({ hostname, port, secure }) => {
-  console.log(
-    `Listening on: ${secure ? "https://" : "http://"}${hostname ??
-      "localhost"}:${port}`,
-  );
-});
-
 app.addEventListener("error", (e) => {
   console.log(e.error);
 });
@@ -33,20 +26,16 @@ app.use(async (context, next) => {
     } else if (e instanceof Error) {
       context.response.status = 500;
       context.response.body = basicHTMLTemplate("500 Internal Server Error");
-      console.error(e.message, e.stack);
+      console.trace(e.message, e.stack);
+    } else {
+      context.response.status = 500;
+      console.trace("UNDEFINED ERROR:", e);
     }
   }
 });
 
 app.use(router.routes());
 app.use(router.allowedMethods());
-
-app.use(async (context) => {
-  await send(context, context.request.url.pathname, {
-    root: `${Deno.cwd()}/frontend`,
-    index: "index.html",
-  });
-});
 
 app.addEventListener("listen", () => {
   console.log("Server started");
