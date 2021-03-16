@@ -99,7 +99,7 @@ it can be `null` or a number from 0 to 1, see [#24](https://github.com/Pikne-Pro
   "name": "Pociągi dwa 2",
   "content": {
     "main": "Z miast \\(A\\) i \\(B\\) odległych o \\(d=300\\;\\mathrm{km}\\) wyruszają jednocześnie\ndwa pociągi z prędkościami \\(v_a= 50\\;\\mathrm{\\frac{km}{h}}\\) oraz \\(v_b=70\\;\\mathrm{\\frac{km}{h}}\\).\nW jakiej odległości \\(x\\) od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie \\(t\\) się to stanie?",
-    "imgs": [
+    "img": [
       "1.png",
       "2.png"
     ],
