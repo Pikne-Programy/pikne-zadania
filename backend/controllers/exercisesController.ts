@@ -1,4 +1,5 @@
 import {
+  basename,
   common,
   existsSync,
   join,
@@ -53,7 +54,9 @@ export class ExercisesController {
     const uid = `${subject}/${id}`;
     if (!(uid in this.dict)) {
       try {
-        const file = Deno.readTextFileSync(`${uid}.txt`);
+        const file = Deno.readTextFileSync(
+          join(this.exercisesPath, `${uid}.txt`),
+        );
         this.dict[uid] = ExercisesController.analyze(file);
       } catch (e) {
         console.error(
@@ -145,12 +148,13 @@ export class ExercisesController {
 
   constructor() {
     for (
-      const { path: subject } of [
+      const { path } of [
         ...walkSync(this.exercisesPath, { includeFiles: false, maxDepth: 1 }),
       ].slice(1)
     ) {
+      const subject = basename(path);
       try {
-        const index = `${this.exercisesPath}/${subject}/index.yml`;
+        const index = join(path, "index.yml");
         if (existsSync(index)) {
           const content: YAMLSection[] = <YAMLSection[]> parse(
             Deno.readTextFileSync(index),

@@ -93,6 +93,18 @@ export default class EquationExercise extends Exercise {
     readonly properties: { [key: string]: YAMLType },
   ) {
     super(name, content, properties);
+    if (!this.properties.img) {
+      this.properties.img = [];
+    }
+    if (this.properties.img && typeof (this.properties.img) == "string") {
+      this.properties.img = [this.properties.img];
+    }
+    if (
+      !Array.isArray(this.properties.img) ||
+      this.properties.img.some((e) => (typeof e != "string"))
+    ) {
+      throw "img must be an array of strings";
+    }
     let segment = 0; // segment 0: problem's content; segment 1: system of equations
     let globalIndex = 0; // global index (different than the index of the current line)
     let parsingContent = ""; // content without ranges ([number;number]) and unknowns (=?unit)
@@ -210,6 +222,7 @@ export default class EquationExercise extends Exercise {
     content: {
       main: string;
       unknowns: [string, string][];
+      img: string[];
     };
   } {
     const rng = new RNG(seed);
@@ -230,6 +243,7 @@ export default class EquationExercise extends Exercise {
       content: {
         main: parsingContent,
         unknowns: this.formattedUnknowns,
+        img: this.properties.img as string[],
       },
     };
   }

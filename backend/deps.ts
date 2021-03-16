@@ -13,6 +13,6 @@ export {
   MersenneTwister19937,
   Random,
 } from "https://cdn.skypack.dev/random-js@v2.1.0?dts";
-export { common, join } from "https://deno.land/std/path/mod.ts";
+export { basename, common, join } from "https://deno.land/std/path/mod.ts";
 import { normalize as _normalize } from "https://deno.land/std/path/mod.ts";
 export const normalize = (x: string) => _normalize(x + "/");
