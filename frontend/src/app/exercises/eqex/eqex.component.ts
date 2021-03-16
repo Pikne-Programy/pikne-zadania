@@ -8,7 +8,9 @@ import {
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ExerciseService } from 'src/app/exercise-service/exercise.service';
+import { serverMockEnabled } from 'src/app/helper/tests/tests.config';
 import { removeMathTabIndex } from 'src/app/helper/utils';
+import { image } from 'src/app/server-routes';
 import { ExerciseComponent } from '../exercises';
 declare var MathJax: any;
 
@@ -54,7 +56,9 @@ export class EqexComponent
     this._data = value;
     this.title = this._data.name;
     this.subtitle = this._data.content.main;
-    this.images = this._data.content.imgs;
+    this.images = serverMockEnabled
+      ? this._data.content.img
+      : this.getImages(this._data.content.img);
     if (this._data.content.unknowns) {
       const tempList: Unknown[] = [];
       this._data.content.unknowns.forEach((unknown: string[]) => {
@@ -121,6 +125,11 @@ export class EqexComponent
     }
   }
 
+  ngAfterViewInit() {
+    MathJax.typeset();
+    removeMathTabIndex();
+  }
+
   ngOnDestroy() {
     this.answerSubscription?.unsubscribe();
   }
@@ -140,8 +149,23 @@ export class EqexComponent
     return this.unknowns?.some((unknown) => unknown.isWrongFormat) ?? false;
   }
 
-  ngAfterViewInit() {
-    MathJax.typeset();
-    removeMathTabIndex();
+  private getImages(paths: any): string[] | undefined {
+    if (this.subject && paths && Array.isArray(paths)) {
+      const res: string[] = [];
+      for (let i = 0; i < paths.length; i++) {
+        const path = paths[i];
+        if (typeof path !== 'string') return undefined;
+        res.push(image(this.subject, path));
+      }
+      return res;
+    } else return undefined;
+  }
+
+  getImageAlt(i: number): string {
+    let alt = 'Błąd wczytywania obrazka';
+    const images = this._data.content.img;
+    if (images && Array.isArray(images) && i < images.length)
+      alt += ` ${images[i]}`;
+    return alt;
   }
 }

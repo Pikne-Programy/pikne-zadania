@@ -1,6 +1,7 @@
 {
-  "name": "niedostateczny",
-  "short_name": "niedostateczny",
+  "name": "Niedostateczny",
+  "short_name": "Niedostateczny",
+  "lang": "pl",
   "theme_color": "#00d1b2",
   "background_color": "#fafafa",
   "display": "standalone",

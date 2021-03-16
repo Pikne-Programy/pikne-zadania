@@ -104,7 +104,7 @@ export function startServer() {
             content: {
               main:
                 'Z miast A i B odległych o \\(d=300\\mathrm{km}\\) wyruszają jednocześnie dwa pociągi z prędkościami \\(v_a=50\\mathrm{\\frac{m}{s}}\\) oraz \\(v_b=67\\mathrm{\\frac{m}{s}}\\).\nW jakiej odległości \\(x\\) od miasta A spotkają się te pociągi? Po jakim czasie \\(t\\) się to stanie?',
-              imgs: ['https://bulma.io/images/placeholders/480x640.png'],
+              img: ['https://bulma.io/images/placeholders/480x640.png'],
               unknowns: [
                 ['x', '\\mathrm{km}'],
                 ['t', '\\mathrm{s}'],
@@ -131,7 +131,7 @@ export function startServer() {
             content: {
               main:
                 'Z miast A i B odległych o \\(d=300\\mathrm{km}\\) wyruszają jednocześnie dwa pociągi z prędkościami \\(v_a=50\\mathrm{\\frac{m}{s}}\\) oraz \\(v_b=67\\mathrm{\\frac{m}{s}}\\).\nW jakiej odległości \\(x\\) od miasta A spotkają się te pociągi? Po jakim czasie \\(t\\) się to stanie?',
-              imgs: [
+              img: [
                 'https://bulma.io/images/placeholders/720x240.png',
                 'https://bulma.io/images/placeholders/640x480.png',
                 'https://bulma.io/images/placeholders/240x720.png',
@@ -152,7 +152,7 @@ export function startServer() {
           content: {
             main:
               'Człowiek pracujący w polu w punkcie \\(A\\) zobaczył idącego szosą sąsiada w punkcie \\(B\\).\nRuszył mu na spotkanie idąc do punktu \\(C\\) szosy z prędkością \\(v_1=5.4\\mathrm{\\frac{m}{s}}\\).\nZ jaką prędkością szedł sąsiad, jeżeli obydwaj doszli do punktu \\(C\\) jednocześnie?\nKąt \\(\\alpha=36°\\), a \\(\\beta=59°\\).',
-            imgs: ['https://bulma.io/images/placeholders/256x256.png'],
+            img: ['https://bulma.io/images/placeholders/256x256.png'],
             unknowns: [['v_2', '\\mathrm{\\frac{m}{s}}']],
           },
         };
@@ -239,6 +239,7 @@ export function startServer() {
           content: {
             main: 'Polecenie \\(abc\\)',
             unknowns: [['\\omega', '\\mathrm{\\frac{2}{s^2}}']],
+            img: ['test.png'],
           },
         };
       });

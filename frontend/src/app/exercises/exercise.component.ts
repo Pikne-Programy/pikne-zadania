@@ -98,9 +98,9 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
           this.onAnswerSubmit.emit();
         });
       });
-      component.instance.data = exercise;
       component.instance.subject = this.subject;
       component.instance.exerciseId = this.getExerciseId(this.exerciseUrl);
+      component.instance.data = exercise;
     }
   }
 
