@@ -1,4 +1,4 @@
-import { Application, HttpError, send, Status } from "./deps.ts";
+import { Application, HttpError, Status } from "./deps.ts";
 import router from "./router.ts";
 
 interface State {
@@ -41,4 +41,32 @@ app.addEventListener("listen", () => {
   console.log("Server started");
 });
 
-await app.listen({ port: 8000 });
+const abortController = new AbortController();
+const { signal } = abortController;
+
+function countdown(seconds: number): Promise<void> {
+  if (seconds) {
+    Deno.stdout.writeSync(new Uint8Array([126]));
+    return new Promise((r) =>
+      setTimeout(() => countdown(seconds - 1).then(r), 1e3)
+    );
+  }
+  Deno.stdout.writeSync(new Uint8Array([10]));
+  return new Promise((r) => r());
+}
+
+Promise.race([
+  // this will not be executed in the development environment
+  // see https://github.com/denosaurs/denon/issues/126
+  // Deno.signal(Deno.Signal.SIGKILL),
+  Deno.signal(Deno.Signal.SIGINT),
+  Deno.signal(Deno.Signal.SIGQUIT),
+  Deno.signal(Deno.Signal.SIGTERM),
+]).then(() => {
+  console.log("The server is closing...");
+  abortController.abort();
+  // TODO: redis.close();
+}).then(() => countdown(5)).finally(Deno.exit);
+
+await app.listen({ port: 8000, signal });
+console.log("Oak server closed.");
