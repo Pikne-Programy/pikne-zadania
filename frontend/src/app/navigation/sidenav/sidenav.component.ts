@@ -1,8 +1,14 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { AccountService } from 'src/app/account/account.service';
 import { Tuple } from 'src/app/helper/utils';
-import { menuElements, NavService } from '../navingation.service';
+import {
+  ButtonElement,
+  executeButtonClick,
+  menuElements,
+  NavService,
+} from '../navingation.service';
 
 @Component({
   selector: 'app-sidenav',
@@ -11,10 +17,14 @@ import { menuElements, NavService } from '../navingation.service';
 })
 export class SidenavComponent implements OnInit, OnDestroy {
   menuElements: Tuple<string, string, null>[];
-  buttonElements?: Tuple<string | Function, string, string>[];
+  buttonElements?: ButtonElement[];
 
   private buttonsSubscription?: Subscription;
-  constructor(private navService: NavService, private router: Router) {
+  constructor(
+    private navService: NavService,
+    private accountService: AccountService,
+    private router: Router
+  ) {
     this.menuElements = menuElements;
   }
 
@@ -34,10 +44,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
     this.navService.toggleSidenav();
   }
 
-  checkLink(link: string | Function): string | undefined {
-    return typeof link === 'string' ? link : undefined;
-  }
-  execute(link: string | Function) {
-    if (typeof link === 'function') link(this.navService, this.router);
+  execute(buttonElement: ButtonElement) {
+    executeButtonClick(buttonElement, this.router, this.accountService);
   }
 }

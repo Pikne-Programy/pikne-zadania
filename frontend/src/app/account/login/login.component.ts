@@ -1,6 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AccountService, isAccount } from '../account.service';
 
@@ -29,7 +29,15 @@ export class LoginComponent implements OnDestroy {
   submitSubscription?: Subscription;
   loginSubscription?: Subscription;
   submitErrorCode: number | null = null;
-  constructor(private accountService: AccountService, private router: Router) {}
+  returnUrl: string | null;
+  constructor(
+    private accountService: AccountService,
+    private router: Router,
+    route: ActivatedRoute
+  ) {
+    const url = route.snapshot.queryParams['returnUrl'];
+    this.returnUrl = typeof url === 'string' ? url : null;
+  }
 
   submit() {
     this.isSubmitted = true;
@@ -53,7 +61,7 @@ export class LoginComponent implements OnDestroy {
                         ? account
                         : this.accountService.accountTypeError;
                     this.accountService.clearCurrentAccount();
-                  } else this.router.navigate(['/public-exercises']); //TODO Change to Account dashboard path or preserved path
+                  } else this.navigateBack('/public-exercises'); //TODO Change to Account dashboard path
                 }
               });
           },
@@ -72,5 +80,11 @@ export class LoginComponent implements OnDestroy {
 
   clearError() {
     this.submitErrorCode = null;
+  }
+
+  navigateBack(fallback: string = '/public-exercises') {
+    this.router.navigateByUrl(
+      this.returnUrl !== null ? this.returnUrl : fallback
+    );
   }
 }

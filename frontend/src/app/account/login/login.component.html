@@ -5,7 +5,7 @@
         <img class="logo" src="https://via.placeholder.com/512x512?text=Logo" alt="">
       </div>
       <div class="box">
-        <a class="button back is-white is-small mb-3" routerLink="/public-exercises">
+        <a class="button back is-white is-small mb-3" (click)="navigateBack()">
           <span class="icon is-small">
             <i class="fas fa-chevron-left"></i>
           </span>
@@ -56,7 +56,7 @@
             </div>
             <div class="is-flex is-flex-direction-column is-align-items-center mt-2">
               <p *ngIf="submitErrorCode !== null && submitErrorCode !== submitError" class="help is-danger has-text-centered">Coś poszło nie tak, spróbuj&nbsp;ponownie później</p>
-              <a class="has-text-centered mt-3" routerLink="/register">Nie masz jeszcze konta?<br />Zarejestruj&nbsp;się</a>
+              <a class="has-text-centered mt-3" routerLink="/register" queryParamsHandling="preserve">Nie masz jeszcze konta?<br />Zarejestruj&nbsp;się</a>
             </div>
           </div>
         </form>

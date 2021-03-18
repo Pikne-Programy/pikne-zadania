@@ -6,6 +6,7 @@ import {
   ValidatorFn,
   AbstractControl,
 } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AccountService } from '../account.service';
 
@@ -37,7 +38,11 @@ export class RegisterComponent implements OnDestroy {
       Validators.pattern('^\\d*$'),
     ]),
   });
-  constructor(private accountService: AccountService) {
+  constructor(
+    private accountService: AccountService,
+    private router: Router,
+    route: ActivatedRoute
+  ) {
     this.password!.setValidators([
       Validators.required,
       this.passwordValidator(),
@@ -46,6 +51,9 @@ export class RegisterComponent implements OnDestroy {
       Validators.required,
       this.passwordValidator(),
     ]);
+
+    const url = route.snapshot.queryParams['returnUrl'];
+    this.returnUrl = typeof url === 'string' ? url : null;
   }
 
   get email() {
@@ -73,6 +81,7 @@ export class RegisterComponent implements OnDestroy {
   submitSubscription?: Subscription;
   isCreated = false;
   submitErrorCode: number | null = null;
+  returnUrl: string | null;
 
   onToggleSwitch() {
     this.hasNumber = !this.hasNumber;
@@ -134,5 +143,11 @@ export class RegisterComponent implements OnDestroy {
         ? { password: { value: control.value } }
         : null;
     };
+  }
+
+  navigateBack() {
+    this.router.navigateByUrl(
+      this.returnUrl !== null ? this.returnUrl : '/public-exercises'
+    );
   }
 }

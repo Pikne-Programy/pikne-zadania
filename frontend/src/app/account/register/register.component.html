@@ -1,11 +1,11 @@
 <main class="root">
   <div class="container is-flex is-align-items-center">
-    <div class="py-5">
+    <div *ngIf="!isCreated" class="py-5">
       <div class="is-flex is-align-items-center is-justify-content-center mb-mobile-4 mb-tablet-5 mb-widescreen-6">
         <img class="logo" src="https://via.placeholder.com/512x512?text=Logo" alt="">
       </div>
       <div class="box">
-        <a class="button back is-white is-small mb-3" routerLink="/public-exercises">
+        <a class="button back is-white is-small mb-3" (click)="navigateBack()">
           <span class="icon is-small">
             <i class="fas fa-chevron-left"></i>
           </span>
@@ -126,11 +126,18 @@
             </div>
             <div class="is-flex is-flex-direction-column is-align-items-center mt-2">
               <p *ngIf="submitErrorCode !== null && !email!.errors?.submit && !invitation!.errors?.submit" class="help is-danger has-text-centered">Coś poszło nie tak, spróbuj&nbsp;ponownie później</p>
-              <a routerLink="/login" class="has-text-centered mt-3">Masz już konto? Zaloguj&nbsp;się</a>
+              <a routerLink="/login" class="has-text-centered mt-3" queryParamsHandling="preserve">Masz już konto? Zaloguj&nbsp;się</a>
             </div>
           </div>
         </form>
       </div>
+    </div>
+    <div *ngIf="isCreated" class="container is-flex is-flex-direction-column is-align-items-center is-justify-content-center px-6">
+      <span class="icon is-extra-large has-text-success">
+        <i class="fas fa-10x fa-check-circle"></i>
+      </span>
+      <h2 class="title has-text-centered mt-3">Pomyślnie utworzono konto</h2>
+      <a routerLink="/login" queryParamsHandling="preserve">Zaloguj się</a>
     </div>
   </div>
 </main>

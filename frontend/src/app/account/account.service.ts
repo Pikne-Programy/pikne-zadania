@@ -3,6 +3,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import * as ServerRoutes from '../server-routes';
 import { pbkdf2 } from '../helper/utils';
 import { BehaviorSubject, Subscription } from 'rxjs';
+import { Router } from '@angular/router';
 
 export interface Account {
   name: string;
@@ -78,5 +79,14 @@ export class AccountService implements OnDestroy {
   ngOnDestroy() {
     this.accountSubscription?.unsubscribe();
     this.currentAccount.complete();
+  }
+
+  logout(router: Router) {
+    //TODO Logout
+    console.log('logout');
+    this.clearCurrentAccount();
+    router.navigate([], {
+      queryParamsHandling: 'preserve',
+    });
   }
 }

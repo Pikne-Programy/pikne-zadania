@@ -21,7 +21,7 @@
         <div class="navbar-end">
           <div class="navbar-item">
             <div class="buttons">
-              <a *ngFor="let button of buttonElements" [class]="button.third" [routerLink]="checkLink(button.first)" (click)="execute(button.first)"><strong>{{ button.second }}</strong></a>
+              <a *ngFor="let button of buttonElements" [class]="button.classes" (click)="execute(button)"><strong>{{ button.text }}</strong></a>
             </div>
           </div>
         </div>
