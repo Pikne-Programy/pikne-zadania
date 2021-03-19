@@ -27,7 +27,7 @@ const exercisesPath = "./exercises";
 function analyzeExFile(file: string): Exercise {
   const re = /^---$/gm;
   let occur;
-  // find 2nd occurence of `---`
+  // find 2nd occurrence of `---`
   if (re.exec(file) && (occur = re.exec(file))) {
     const properties = <{ [key: string]: JSONType }> parse( // TODO: type check
       file.substring(0, occur.index),
@@ -162,18 +162,16 @@ export async function get(ctx: RouterContext) {
 export async function check(ctx: RouterContext) {
   await predictDeath(ctx, async () => {
     if (ctx.request.hasBody && ctx.params.id) {
-      const uanswer: JSONType = await ctx.request.body({ type: "json" })
-        .value;
       await exists(
         ctx,
         dict[`${ctx.params.subject}/${ctx.params.id}`],
-        // deno-lint-ignore require-await
         async (ex) => {
-          ctx.response.body = ex.check(ctx.state.seed, uanswer);
+          ctx.response.body = ex.check(
+            ctx.state.seed,
+            await ctx.request.body({ type: "json" }).value,
+          );
         },
       );
     } else throw new Error("body and params.id are necessary");
   });
 }
-
-export default { getStaticContent, get, list, check };

@@ -1,52 +1,28 @@
 import { Router } from "./deps.ts";
-import { seed } from "./middleware/seedMiddleware.ts";
-import ExercisesController from "./controllers/exercisesController.ts";
+import { seed } from "./middleware/seed.ts";
+import { authNotReq, authReq } from "./middleware/auth.ts";
+import { Auth, Exercises, Teams, Users } from "./controllers/mod.ts";
 import { placeholder } from "./utils/mod.ts";
 
 const router = new Router();
 router
   .get("/api", placeholder(200, {}))
-  .get("/api/public", ExercisesController.list)
-  .get("/api/public/:subject/:id", seed, ExercisesController.get)
-  .post("/api/public/:subject/:id", seed, ExercisesController.check)
-  .get(
-    "/api/public/:subject/static/:file",
-    ExercisesController.getStaticContent,
-  )
-  .post("/api/register", placeholder(201))
-  .post("/api/login", placeholder(200))
-  .post("/api/logout", placeholder(200))
-  .get(
-    "/api/account",
-    placeholder(200, { "name": "User", "number": 11, "team": 1 }),
-  )
-  .get(
-    "/api/teams",
-    placeholder(200, [
-      { "id": 1, "name": "Teachers", "assignee": "Smith", "open": true },
-      { "id": 2, "name": "2d", "assignee": "Williams", "open": true },
-      { "id": 3, "name": "3d", "assignee": "Williams", "open": false },
-    ]),
-  )
-  .post("/api/teams", placeholder(200, 4))
-  .post("/api/teams/:id/open", placeholder(200))
-  .post("/api/teams/:id/close", placeholder(200))
-  .get(
-    "/api/teams/:id",
-    placeholder(200, {
-      "name": "2d",
-      "assignee": "Williams",
-      "members": [{
-        "id":
-          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "name": "User",
-        "number": 11,
-      }],
-    }),
-  )
-  .delete("/api/teams/:id/:userid", placeholder(200))
-  .post("/api/teams/:id/:userid", placeholder(200))
-  .post("/api/teams/:id", placeholder(200))
-  .post("/api/root/teams/:id", placeholder(200));
+  .get("/api/public", authNotReq, Exercises.list)
+  .get("/api/public/:subject/:id", authNotReq, seed, Exercises.get)
+  .post("/api/public/:subject/:id", authNotReq, seed, Exercises.check)
+  .get("/api/public/:subject/static/:file", Exercises.getStaticContent)
+  .post("/api/register", Auth.register)
+  .post("/api/login", Auth.login)
+  .post("/api/logout", authReq, Auth.logout)
+  .get("/api/account", authReq, Users.getUser)
+  .get("/api/teams", authReq, Teams.getAllTeams)
+  .post("/api/teams", authReq, Teams.addTeam)
+  .post("/api/teams/:id/open", authReq, Teams.openRegistration)
+  .post("/api/teams/:id/close", authReq, Teams.closeRegistration)
+  .get("/api/teams/:id", authReq, Teams.getTeam)
+  .delete("/api/teams/:id/:userid", authReq, Users.deleteUser)
+  .post("/api/teams/:id/:userid", authReq, Users.setUserNumber)
+  .post("/api/teams/:id", authReq, Teams.setTeamName)
+  .post("/api/root/teams/:id", authReq, Teams.changeAssignee);
 
 export default router;
