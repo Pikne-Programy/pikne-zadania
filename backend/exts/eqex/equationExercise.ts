@@ -1,5 +1,5 @@
-import Exercise from "../../exercise.ts";
-import { JSONType, YAMLType } from "../../types.ts";
+import { Exercise } from "../../types/mod.ts";
+import { JSONType } from "../../types/mod.ts";
 import { MersenneTwister19937, Random } from "../../deps.ts";
 import RPN from "./RPN-parser/parser.ts";
 
@@ -90,7 +90,7 @@ export default class EquationExercise extends Exercise {
   constructor(
     readonly name: string,
     content: string,
-    readonly properties: { [key: string]: YAMLType },
+    readonly properties: { [key: string]: JSONType },
   ) {
     super(name, content, properties);
     if (!this.properties.img) {
@@ -247,7 +247,7 @@ export default class EquationExercise extends Exercise {
       },
     };
   }
-  check(seed: number, answer: YAMLType): boolean[] {
+  check(seed: number, answer: JSONType): boolean[] {
     if (
       !Array.isArray(answer) ||
       answer.some((item) => typeof item !== "number" && item !== null)

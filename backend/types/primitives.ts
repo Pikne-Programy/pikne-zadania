@@ -7,4 +7,4 @@ export type JSONType =
   | JSONType[]
   | boolean
   | null;
-export type YAMLType = JSONType;
+// export type YAMLType = JSONType;

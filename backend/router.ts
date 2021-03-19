@@ -1,81 +1,52 @@
 import { Router } from "./deps.ts";
 import { seed } from "./middleware/seedMiddleware.ts";
-import exercisesController from "./controllers/exercisesController.ts";
-import authController from "./controllers/authController.ts";
+import ExercisesController from "./controllers/exercisesController.ts";
+import { placeholder } from "./utils/mod.ts";
 
 const router = new Router();
-
 router
-  .get("/api", (ctx) => {
-    ctx.response.status = 200;
-    ctx.response.body = {};
-  })
-  .get("/api/public", exercisesController.list.bind(exercisesController))
-  .get(
-    "/api/public/:subject/:id",
-    seed,
-    exercisesController.get.bind(exercisesController),
-  )
-  .post(
-    "/api/public/:subject/:id",
-    seed,
-    exercisesController.check.bind(exercisesController),
-  )
+  .get("/api", placeholder(200, {}))
+  .get("/api/public", ExercisesController.list)
+  .get("/api/public/:subject/:id", seed, ExercisesController.get)
+  .post("/api/public/:subject/:id", seed, ExercisesController.check)
   .get(
     "/api/public/:subject/static/:file",
-    exercisesController.getStaticContent.bind(exercisesController),
+    ExercisesController.getStaticContent,
   )
-  .post(
-    "/api/register",
-    authController.register.bind(authController),
-  )
-  .post(
-    "/api/login",
-    authController.login.bind(authController),
-  )
-  .post(
-    "/api/login",
-    authController.logout.bind(authController),
-  )
+  .post("/api/register", placeholder(201))
+  .post("/api/login", placeholder(200))
+  .post("/api/logout", placeholder(200))
   .get(
     "/api/account",
-    authController.getAccount.bind(authController),
+    placeholder(200, { "name": "User", "number": 11, "team": 1 }),
   )
   .get(
     "/api/teams",
-    authController.getTeams.bind(authController),
+    placeholder(200, [
+      { "id": 1, "name": "Teachers", "assignee": "Smith", "open": true },
+      { "id": 2, "name": "2d", "assignee": "Williams", "open": true },
+      { "id": 3, "name": "3d", "assignee": "Williams", "open": false },
+    ]),
   )
-  .post(
-    "/api/teams",
-    authController.createTeam.bind(authController),
-  )
-  .post(
-    "/api/teams/:id/open",
-    authController.openReg.bind(authController),
-  )
-  .post(
-    "/api/teams/:id/close",
-    authController.closeReg.bind(authController),
-  )
+  .post("/api/teams", placeholder(200, 4))
+  .post("/api/teams/:id/open", placeholder(200))
+  .post("/api/teams/:id/close", placeholder(200))
   .get(
     "/api/teams/:id",
-    authController.teamInfo.bind(authController),
+    placeholder(200, {
+      "name": "2d",
+      "assignee": "Williams",
+      "members": [{
+        "id":
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "name": "User",
+        "number": 11,
+      }],
+    }),
   )
-  .delete(
-    "/api/teams/:id/:userid",
-    authController.deleteUser.bind(authController),
-  )
-  .post(
-    "/api/teams/:id/:userid",
-    authController.addUser.bind(authController),
-  )
-  .post(
-    "/api/teams/:id",
-    authController.setTeamName.bind(authController),
-  )
-  .post(
-    "/api/root/teams/:id",
-    authController.changeAssignee.bind(authController),
-  );
+  .delete("/api/teams/:id/:userid", placeholder(200))
+  .post("/api/teams/:id/:userid", placeholder(200))
+  .post("/api/teams/:id", placeholder(200))
+  .post("/api/root/teams/:id", placeholder(200));
 
 export default router;

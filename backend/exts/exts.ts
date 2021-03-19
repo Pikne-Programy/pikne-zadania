@@ -1,5 +1,5 @@
 import EquationExercise from "./eqex/equationExercise.ts";
-import Exercise from "../exercise.ts";
+import { Exercise } from "../types/mod.ts";
 export default <{
   [key: string]: new (
     name: typeof Exercise.prototype.name,
