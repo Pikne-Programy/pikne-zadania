@@ -1,5 +1,5 @@
 import { browserCrypto, Random, RouterContext } from "../deps.ts";
-import { generateSeed } from "../utils/rng.ts";
+import { generateSeed } from "../utils/mod.ts";
 
 function setSeed(ctx: RouterContext, seed: number) {
   ctx.state.seed = seed;

@@ -1,4 +1,4 @@
-import { RouterContext } from "../deps.ts";
+import { httpErrors, RouterContext } from "../deps.ts";
 import { JSONType } from "../types/mod.ts";
 
 function _placeholder(status: number, body?: JSONType) {
@@ -8,11 +8,8 @@ function _placeholder(status: number, body?: JSONType) {
   };
 }
 export function placeholder(first: number | JSONType, body?: JSONType) {
-  if (typeof first === "number") {
-    return _placeholder(first, body);
-  } else {
-    return _placeholder(200, first);
-  }
+  if (typeof first === "number") return _placeholder(first, body);
+  else return _placeholder(200, first);
 }
 
 export async function predictDeath(
@@ -36,7 +33,14 @@ export async function exists<T>(
   if (x) {
     ctx.response.status = 200;
     await next(x);
-  } else {
-    ctx.response.status = 404;
+  } else ctx.response.status = 404;
+}
+
+export async function safeJSONbody(ctx: RouterContext): Promise<JSONType> {
+  try {
+    return await ctx.request.body({ type: "json" }).value;
+  } catch (e) {
+    console.log(e);
+    throw new httpErrors["BadRequest"]();
   }
 }

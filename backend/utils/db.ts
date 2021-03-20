@@ -1,4 +1,5 @@
 import { IdPartial, Role, Team, User } from "../types/mod.ts";
+import { userhash } from "../utils/mod.ts";
 
 // JWT
 export function addJWT(uid: string, jwt: string) {
@@ -10,7 +11,9 @@ export function deleteJWT(uid: string, jwt: string) {
 }
 
 // USER
-export function addUser(user: User) {
+export function addUser(_user: Omit<User, "id">) {
+  const user: User = { ..._user, id: userhash(_user.name) };
+  // TODO
   // overwrite existing user or add new user to db
   // edit team new user is assigned to
 }
@@ -19,10 +22,11 @@ export function deleteUser(uid: string) {
   // remove it from the team's members
 }
 export function getUser(uid: string): User | null {
-  // get User from db and remove sensitive data
-  return null;
+  // TODO
+  return uid==userhash("a@a.a")?{role:"admin",id:userhash("a@a.a"),name:"a@a.a",dhpassword:"$2y$10$HF8dYd/pAmKR8b9rcfu61uyd1fa7wJGYN.QCJhjJLPOxbJVuMkQK2",tokens:[],seed:0}:null;
 }
-export function setUser(user: IdPartial<User>) {
+export function setUser(user: Omit<IdPartial<User>, "name">) {
+  // ommiting "name" property because we can't change name of User without changing its id
   // overwrite User with properties
   // e.g. change username
 }

@@ -1,6 +1,6 @@
 import { Exercise, JSONType } from "../../types/mod.ts";
 import RPN from "./RPN-parser/parser.ts";
-import { Range, RNG } from "../../utils/rng.ts";
+import { Range, RNG } from "../../utils/mod.ts";
 
 export default class EquationExercise extends Exercise {
   // regular expressions used to extract and parse content

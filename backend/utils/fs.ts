@@ -1,4 +1,7 @@
-import { common, join, normalize } from "../deps.ts";
+import { _normalize, common, join } from "../deps.ts";
+
+export const normalize = (x: string) => _normalize(x + "/");
+
 export function joinThrowable(
   base: string,
   ...path: string[]
@@ -16,6 +19,7 @@ export function joinThrowable(
     return base;
   }
 }
+
 export function fileExists(path: string): boolean {
   try {
     const stat = Deno.statSync(path);
