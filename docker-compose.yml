@@ -31,13 +31,13 @@ services:
     expose:
       - 8000
     links:
-      - db:redis
+      - db:mongo
     depends_on:
       - db
   db:
-    image: redis
-    expose:
-      - 6379
+    image: mongo
+    ports:
+      - 27017:27017
 volumes:
   html:
   node_modules:

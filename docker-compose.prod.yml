@@ -13,10 +13,10 @@ services:
     expose:
       - 8000
     links:
-      - db:redis
+      - db:mongo
     depends_on:
       - db
   db:
-    image: redis
+    image: mongo
     expose:
-      - 6379
+      - 27017

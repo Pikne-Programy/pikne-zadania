@@ -14,14 +14,14 @@ services:
     expose:
       - 8000
     links:
-      - db:redis
+      - db:mongo
     depends_on:
       - db
     restart: unless-stopped
   db:
-    image: redis
+    image: mongo
     expose:
-      - 6379
+      - 27017
     volumes:
       - ./data:/data
     restart: unless-stopped
