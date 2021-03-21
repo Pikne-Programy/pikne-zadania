@@ -22,11 +22,9 @@ export class RNG {
   }
   rand(min: number, max: number, step?: number): number {
     const guess = this.rng.real(min, max, true);
-    if (step) {
-      // it's not usable if it's 0
-      return +(min + Math.round((guess - min) / step) * step).toFixed(
-        precision(step),
-      );
+    if (step) { // it's not usable if it's 0
+      const guessStepped = +(min + Math.round((guess - min) / step) * step);
+      return +guessStepped.toFixed(precision(step));
     } else {
       return +guess.toPrecision(3);
     }

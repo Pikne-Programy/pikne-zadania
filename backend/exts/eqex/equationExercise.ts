@@ -1,6 +1,18 @@
 import { Exercise, JSONType } from "../../types/mod.ts";
-import RPN from "./RPN-parser/parser.ts";
 import { Range, RNG } from "../../utils/mod.ts";
+import { httpErrors, vs } from "../../deps.ts";
+import RPN from "./RPN-parser/parser.ts";
+const imgSchema = {
+  t: vs.array({
+    ifUndefined: [],
+    toArray: true,
+    each: vs.string({ strictType: true }),
+  }),
+};
+function isAnswer(what: unknown): what is (number | null)[] {
+  return Array.isArray(what) &&
+    what.every((e) => typeof e === "number" || e === null);
+}
 
 export default class EquationExercise extends Exercise {
   // regular expressions used to extract and parse content
@@ -45,6 +57,7 @@ export default class EquationExercise extends Exercise {
   readonly order: number[] = []; // order of equations
   readonly answerPrecision: number = 0.02; // such number x that: ans*(100-x)% <= user ans <= ans*(100-x)% returns correct answer
   readonly pointDecimalSeparator: boolean = false; //true: '.', false: ','
+  readonly img: string[];
 
   // content -> parse to latex, extract RPN, Range and number -> return parsed text
   constructor(
@@ -53,18 +66,12 @@ export default class EquationExercise extends Exercise {
     readonly properties: { [key: string]: JSONType },
   ) {
     super(name, content, properties);
-    if (!this.properties.img) {
-      this.properties.img = [];
+    try {
+      this.img = vs.applySchemaObject(imgSchema, { t: this.properties.img }).t;
+    } catch (e) {
+      throw new Error("img must be an array of strings");
     }
-    if (this.properties.img && typeof (this.properties.img) == "string") {
-      this.properties.img = [this.properties.img];
-    }
-    if (
-      !Array.isArray(this.properties.img) ||
-      this.properties.img.some((e) => (typeof e != "string"))
-    ) {
-      throw "img must be an array of strings";
-    }
+    delete this.properties.img;
     let segment = 0; // segment 0: problem's content; segment 1: system of equations
     let globalIndex = 0; // global index (different than the index of the current line)
     let parsingContent = ""; // content without ranges ([number;number]) and unknowns (=?unit)
@@ -188,7 +195,11 @@ export default class EquationExercise extends Exercise {
     const rng = new RNG(seed);
     let parsingContent = this.parsedContent;
     for (const [index, textIndex] of this.ranges) {
-      const value = (this.variables[index][1] as Range).rand(rng);
+      const range = this.variables[index][1];
+      if (!(range instanceof Range)) {
+        throw new Error("never");
+      }
+      const value = range.rand(rng);
       let sValue = value.toString();
       if (!this.pointDecimalSeparator) {
         sValue = sValue.replace(".", ",\\!");
@@ -203,23 +214,20 @@ export default class EquationExercise extends Exercise {
       content: {
         main: parsingContent,
         unknowns: this.formattedUnknowns,
-        img: this.properties.img as string[],
+        img: this.img,
       },
     };
   }
   check(seed: number, answer: JSONType): boolean[] {
-    if (
-      !Array.isArray(answer) ||
-      answer.some((item) => typeof item !== "number" && item !== null)
-    ) {
-      throw new Error("ERROR, INVALID ANSWER FORMAT");
+    if (!isAnswer(answer)) {
+      throw new httpErrors["BadRequest"]("ERROR, INVALID ANSWER FORMAT");
     }
     if (answer.length != this.unknowns.length) {
-      throw new Error("ERROR, INVALID ANSWER LENGTH");
+      throw new httpErrors["BadRequest"]("ERROR, INVALID ANSWER LENGTH");
     }
-    const answerDict: { [key: string]: number | null } = this.unknowns.reduce(
-      (a: { [key: string]: number | null }, x: string, i: number) => {
-        a[x] = answer[i] as number | null;
+    const answerDict = this.unknowns.reduce(
+      (a: { [key: string]: number | null }, x, i) => {
+        a[x] = answer[i];
         return a;
       },
       {},
@@ -229,7 +237,7 @@ export default class EquationExercise extends Exercise {
     // add already calculated numbers to calculated variables
     for (const [name, val] of this.variables) {
       if (typeof val == "number") {
-        calculated[name] = val as number;
+        calculated[name] = val;
       }
     }
     // randomize ranges (in the correct order) and add them to calculated variables
@@ -237,7 +245,7 @@ export default class EquationExercise extends Exercise {
       const name = this.variables[index][0];
       const val = this.variables[index][1];
       if (val instanceof Range) {
-        calculated[name] = (val as Range).rand(rng);
+        calculated[name] = val.rand(rng);
       }
     }
     // calculate RPN variables (in the correct order) and add them to calculated variables
@@ -246,7 +254,7 @@ export default class EquationExercise extends Exercise {
       const name = this.variables[index][0];
       const val = this.variables[index][1];
       if (val instanceof RPN) {
-        calculated[name] = (val as RPN).calculate(calculated);
+        calculated[name] = val.calculate(calculated);
       }
     }
     // go through each unknown and compare the answers to what's calculated

@@ -1,6 +1,7 @@
 import { RouterContext } from "../deps.ts";
 
 export function getAllTeams(ctx: RouterContext) {
+  // TODO
   ctx.response.status = 200;
   ctx.response.body = [
     { "id": 1, "name": "Teachers", "assignee": "Smith", "open": true },
@@ -9,9 +10,11 @@ export function getAllTeams(ctx: RouterContext) {
   ];
 }
 export function addTeam(ctx: RouterContext) {
+  // TODO
   ctx.response.status = 201;
 }
 export function getTeam(ctx: RouterContext) {
+  // TODO
   ctx.response.status = 200;
   ctx.response.body = {
     "name": "2d",
@@ -24,15 +27,19 @@ export function getTeam(ctx: RouterContext) {
   };
 }
 export function setTeamName(ctx: RouterContext) {
+  // TODO
   ctx.response.status = 200;
 }
 export function changeAssignee(ctx: RouterContext) {
+  // TODO
   ctx.response.status = 200;
 }
 
 export function openRegistration(ctx: RouterContext) {
+  // TODO
   ctx.response.status = 200;
 }
 export function closeRegistration(ctx: RouterContext) {
+  // TODO
   ctx.response.status = 200;
 }

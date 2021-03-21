@@ -1,5 +1,5 @@
 import { compare, RouterContext } from "../deps.ts";
-import { User } from "../types/mod.ts";
+import { endpointSchema as endpoint, User } from "../types/mod.ts";
 import { delay, getUser, safeJSONbody, userhash } from "../utils/mod.ts";
 
 const loginTime = 2e3;
@@ -7,10 +7,7 @@ const loginTime = 2e3;
 export async function login(ctx: RouterContext) {
   const startTime = Date.now();
   // deno-lint-ignore camelcase
-  const { login, hashed_password } = await safeJSONbody(ctx) as {
-    login: string;
-    hashed_password: string;
-  }; // TODO
+  const { login, hashed_password } = await safeJSONbody(ctx, endpoint.login);
   const { dhpassword } = getUser(userhash(login)) ?? { dhpassword: "" };
   if (await compare(hashed_password, dhpassword)) {
     ctx.response.status = 200;
@@ -28,11 +25,15 @@ export async function login(ctx: RouterContext) {
   console.log(`login: ${login} ${ctx.response.status} ${time} ms`);
 }
 export function logout(ctx: RouterContext) {
+  // TODO
   ctx.response.status = 200;
   ctx.cookies.delete("jwt");
+  console.log(`logout: ${null}`);
 }
 export function register(ctx: RouterContext) {
+  // TODO
   ctx.response.status = 201;
+  console.log(`register: ${null} ${ctx.response.status}`);
 }
 
 function makeJWT(ctx: RouterContext, login: string) {

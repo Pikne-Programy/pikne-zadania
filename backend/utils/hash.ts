@@ -9,13 +9,12 @@ function bufferToHex(buffer: ArrayBuffer) {
 export const sha256 = (data: string, salt = "") =>
   bufferToHex(createHash("sha256").update(salt + data).digest());
 
-export function firsthash(user: string, password: string) {
-  return btoa(
+export const firsthash = (user: string, password: string) =>
+  btoa(
     String.fromCharCode(
       ...new Uint8Array(pbkdf2Sync(password, user, 1e6, 256 / 8, "sha512")),
     ),
-  );
-}
+  ); // SRC: https://gist.github.com/Nircek/bf06c93f8df36bf645534c10eb6305ca
 export { secondhash };
 export const userhash = (mail: string) =>
   sha256(mail, "some-temporary-secret:");

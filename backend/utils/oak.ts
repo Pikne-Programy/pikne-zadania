@@ -1,4 +1,10 @@
-import { httpErrors, RouterContext } from "../deps.ts";
+import {
+  httpErrors,
+  ObjectTypeOf,
+  RouterContext,
+  SchemaObject,
+  vs,
+} from "../deps.ts";
 import { JSONType } from "../types/mod.ts";
 
 function _placeholder(status: number, body?: JSONType) {
@@ -15,7 +21,7 @@ export function placeholder(first: number | JSONType, body?: JSONType) {
 export async function predictDeath(
   ctx: RouterContext,
   inner: () => Promise<void>,
-) {
+) { // TODO: get rid off
   try {
     await inner();
   } catch (e) {
@@ -36,11 +42,16 @@ export async function exists<T>(
   } else ctx.response.status = 404;
 }
 
-export async function safeJSONbody(ctx: RouterContext): Promise<JSONType> {
+export async function safeJSONbody(
+  ctx: RouterContext,
+  schema: SchemaObject,
+): Promise<ObjectTypeOf<typeof schema>> {
   try {
-    return await ctx.request.body({ type: "json" }).value;
+    return vs.applySchemaObject(
+      schema,
+      await ctx.request.body({ type: "json" }).value,
+    );
   } catch (e) {
-    console.log(e);
     throw new httpErrors["BadRequest"]();
   }
 }
