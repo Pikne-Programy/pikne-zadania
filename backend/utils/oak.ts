@@ -18,28 +18,15 @@ export function placeholder(first: number | JSONType, body?: JSONType) {
   else return _placeholder(200, first);
 }
 
-export async function predictDeath(
-  ctx: RouterContext,
-  inner: () => Promise<void>,
-) { // TODO: get rid off
-  try {
-    await inner();
-  } catch (e) {
-    ctx.response.status = 500;
-    ctx.response.body = { msg: e.message };
-    console.error(e.message, e.stack);
-  }
-}
-
 export async function exists<T>(
   ctx: RouterContext,
   x: T,
-  next: (x: T) => Promise<void>,
+  next: (x: T) => Promise<void> | void,
 ) {
   if (x) {
     ctx.response.status = 200;
     await next(x);
-  } else ctx.response.status = 404;
+  } else throw new httpErrors["NotFound"]();
 }
 
 export async function safeJSONbody(

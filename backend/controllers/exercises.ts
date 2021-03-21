@@ -8,7 +8,7 @@ import {
   send,
   walkSync,
 } from "../deps.ts";
-import { exists, joinThrowable, predictDeath } from "../utils/mod.ts";
+import { exists, joinThrowable } from "../utils/mod.ts";
 import exts from "../exts/exts.ts";
 import { Exercise, isArrayOf, isJSONType, isObjectOf } from "../types/mod.ts";
 
@@ -134,44 +134,36 @@ export async function getStaticContent(ctx: RouterContext) {
   } else throw new Error("never");
 }
 
-export async function list(ctx: RouterContext) {
-  // deno-lint-ignore require-await
-  await predictDeath(ctx, async () => {
-    ctx.response.status = 200;
-    ctx.response.body = _list;
-  });
+export function list(ctx: RouterContext) {
+  ctx.response.status = 200;
+  ctx.response.body = _list;
 }
 export async function get(ctx: RouterContext) {
-  await predictDeath(ctx, async () => {
-    if (ctx.params.id) {
-      await exists(
-        ctx,
-        dict[`${ctx.params.subject}/${ctx.params.id}`],
-        // deno-lint-ignore require-await
-        async (ex) => {
-          if (typeof ctx.state.seed === "number") {
-            ctx.response.body = ex.render(ctx.state.seed);
-          } else throw new Error("seed not a number");
-        },
-      );
-    } else throw new httpErrors["BadRequest"]("params.id is necessary");
-  });
+  if (ctx.params.id) {
+    await exists(
+      ctx,
+      dict[`${ctx.params.subject}/${ctx.params.id}`],
+      (ex) => {
+        if (typeof ctx.state.seed === "number") {
+          ctx.response.body = ex.render(ctx.state.seed);
+        } else throw new Error("seed not a number");
+      },
+    );
+  } else throw new httpErrors["BadRequest"]("params.id is necessary");
 }
 export async function check(ctx: RouterContext) {
-  await predictDeath(ctx, async () => {
-    if (ctx.request.hasBody && ctx.params.id) {
-      await exists(
-        ctx,
-        dict[`${ctx.params.subject}/${ctx.params.id}`],
-        async (ex) => {
-          ctx.response.body = ex.check(
-            ctx.state.seed,
-            await ctx.request.body({ type: "json" }).value,
-          );
-        },
-      );
-    } else {
-      throw new httpErrors["BadRequest"]("body and params.id are necessary");
-    }
-  });
+  if (ctx.request.hasBody && ctx.params.id) {
+    await exists(
+      ctx,
+      dict[`${ctx.params.subject}/${ctx.params.id}`],
+      async (ex) => {
+        ctx.response.body = ex.check(
+          ctx.state.seed,
+          await ctx.request.body({ type: "json" }).value,
+        );
+      },
+    );
+  } else {
+    throw new httpErrors["BadRequest"]("body and params.id are necessary");
+  }
 }

@@ -15,9 +15,11 @@ export {
   httpErrors,
   Router,
   send,
-  Status,
 } from "https://deno.land/x/oak@v6.5.0/mod.ts";
-export type { RouterContext } from "https://deno.land/x/oak@v6.5.0/mod.ts";
+export type {
+  Context,
+  RouterContext,
+} from "https://deno.land/x/oak@v6.5.0/mod.ts";
 export { compare, hashSync } from "https://deno.land/x/bcrypt@v0.2.4/mod.ts";
 export { default as vs } from "https://deno.land/x/value_schema@v3.0.0/mod.ts";
 export type {

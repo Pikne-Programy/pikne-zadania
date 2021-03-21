@@ -1,4 +1,4 @@
-import { Application, HttpError, Status } from "./deps.ts";
+import { Application, Context, HttpError } from "./deps.ts";
 import { User } from "./types/mod.ts";
 import router from "./router.ts";
 
@@ -10,28 +10,26 @@ interface State {
 const app = new Application<State>();
 
 app.addEventListener("error", (e) => {
-  console.log(e.error);
+  console.error(e.error);
 });
 
-const basicHTMLTemplate = (msg: string) =>
-  `<!DOCTYPE html><html><body><h1>${msg}</h1></body></html>`;
+function die(ctx: Context, status = 500, msg = "") {
+  console.log(ctx.request.method, ctx.request.url.pathname, ctx.state, status);
+  ctx.response.status = status;
+  ctx.response.body = { status, msg };
+}
 
-app.use(async (context, next) => {
+app.use(async (ctx, next) => {
   try {
     await next();
   } catch (e) {
-    if (e instanceof HttpError) {
-      context.response.status = e.status;
-      context.response.body = basicHTMLTemplate(
-        `${e.status} ${e.expose ? e.message : Status[e.status]}`,
-      );
-    } else if (e instanceof Error) {
-      context.response.status = 500;
-      context.response.body = basicHTMLTemplate("500 Internal Server Error");
+    if (e instanceof HttpError) die(ctx, e.status, e.message);
+    else if (e instanceof Error) {
+      die(ctx, 500, e.message);
       console.trace(e.message, e.stack);
     } else {
-      context.response.status = 500;
-      console.trace("UNDEFINED ERROR:", e);
+      die(ctx);
+      console.trace("UNDEFINED ERROR:", e.message, e.stack);
     }
   }
 });
