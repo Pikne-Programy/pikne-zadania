@@ -26,6 +26,10 @@ export type {
   ObjectTypeOf,
   SchemaObject,
 } from "https://deno.land/x/value_schema@v3.0.0/dist-deno/libs/types.ts";
+export { Bson, MongoClient } from "https://deno.land/x/mongo@v0.22.0/mod.ts";
+export type {
+  Collection,
+} from "https://deno.land/x/mongo@v0.22.0/src/collection/mod.ts";
 
 export {
   browserCrypto,

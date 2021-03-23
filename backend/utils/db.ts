@@ -1,70 +1,177 @@
-import { IdPartial, Role, Team, User } from "../types/mod.ts";
+import { Bson as Bison, Collection, MongoClient } from "../deps.ts";
+import { IdPartial, Team, Users } from "../types/mod.ts";
 import { userhash } from "../utils/mod.ts";
+import { Database } from "./db_template.ts";
 
-// JWT
-export function addJWT(uid: string, jwt: string) {
-  // TODO
+// console.log(Bison); // Tue, 23 Mar 2021 01:17:24 +0100
+
+// TODO
+// locking database inside functions
+
+type success = boolean;
+interface Global {
+  lastTid: number;
 }
-export function existsJWT(uid: string, jwt: string): boolean {
-  // TODO
-  return false;
-}
-export function deleteJWT(uid: string, jwt: string) {
-  // TODO
+class WorkingDatabase extends Database {
+  readonly users: Collection<Users>;
+  readonly teams: Collection<Team>;
+  readonly global: Collection<Global>;
+
+  constructor(readonly client: MongoClient) {
+    super();
+    const db = this.client.database("pikne-zadania");
+    this.users = db.collection<Users>("users");
+    this.teams = db.collection<Team>("teams");
+    this.global = db.collection<Global>("global");
+  }
+  async close() {
+    await this.client.close();
+  }
+
+  // JWT
+  async addJWT(uid: string, jwt: string): Promise<success> {
+    // TODO
+    return await new Promise((r) => r(true));
+  }
+
+  async existsJWT(uid: string, jwt: string): Promise<boolean> {
+    // TODO
+    return await new Promise((r) => r(true));
+  }
+
+  async deleteJWT(uid: string, jwt: string): Promise<success> {
+    // TODO
+    return await new Promise((r) => r(true));
+  }
+
+  // USER
+  async addUser(part: Omit<Users, "id">): Promise<success> {    
+    const user = { ...part, id: userhash(part.email) };
+    if (await this.getUser(user.id)) {
+      console.error(`addUser: user already exists; id ${user.id}`);
+      return false;
+    }
+    await this.teams.updateOne({ id: user.team }, {
+      $push: { members: user.id },
+    });
+    await this.users.updateOne({ id: user.id }, user, { upsert: true });
+    return true;
+  }
+
+  async deleteUser(uid: string): Promise<success> {
+    const user = await this.getUser(uid);
+    if (!user) {
+      console.error(`deleteUser: no user with id ${uid}`);
+      return false;
+    }
+    if (!await this.getTeam(user.team)) {
+      console.error(`deleteUser: no team with id ${user.team}}`);
+    } else {
+      //remove user from its team
+      await this.teams.updateOne({ id: user.team }, {
+        $pull: { members: uid },
+      });
+    }
+    await this.users.deleteOne({ id: user.id });
+    return true;
+  }
+
+  async getUser(uid: string): Promise<Users | null> {
+    const user = await this.users.findOne({ id: uid });
+    return user ?? null;
+  }
+
+  async setUser(part: Omit<IdPartial<Users>, "email">): Promise<success> {
+    // ommiting "email" property because we can't change email of User without changing its id
+    const user = await this.getUser(part.id);
+    if (!user) {
+      console.error(`setUser: no user with id ${part.id}`);
+      return false;
+    }
+    if (part.team && part.team !== user.team) {
+      if (!await this.getTeam(part.team)) {
+        console.error(`setUser: no previous team with id${part.team}}`);
+      } else {
+        //remove user from previous team
+        await this.teams.updateOne({ id: user.team }, {
+          $pull: { members: user.id },
+        });
+      }
+    }
+    if (part.team && part.team !== user.team) {
+      await this.teams.updateOne({ id: part.team }, {
+        $push: { members: part.id },
+      });
+    }
+    await this.users.updateOne({ id: user.id }, { $set: part });
+    return true;
+  }
+
+  // INVITATION
+  async getInvitation(invCode: string): Promise<number | null> {
+    // TODO
+    return await new Promise((r) => r(null));
+  }
+
+  async setInvitationCode(
+    tid: number,
+    invCode: string | null,
+  ): Promise<success> {
+    // TODO
+    return await new Promise((r) => r(true));
+  }
+
+  // TEAMS
+  async getAllTeams(): Promise<Team[]> {
+    return await this.teams.find().toArray();
+  }
+  async addTeam(_team: Omit<Team, "id">): Promise<Team["id"]|null> {
+    const _global = await this.global.findOne();
+    if (!_global) {
+      console.error("addTeam: no global collection");
+      return null;
+    }
+    const team: Team = { ..._team, id: _global.lastTid + 1 };
+    await this.global.updateOne({}, { $inc: { lastTid: 1 } });
+    await this.teams.updateOne({ id: team.id }, team, { upsert: true });
+    return team.id;
+  }
+
+  async deleteTeam(tid: number): Promise<success> {
+    const team = await this.getTeam(tid);
+    if (!team) {
+      console.error(`deleteTeam: no team with id ${tid}`);
+      return false;
+    }
+    for (const uid of team.members) {
+      await this.deleteUser(uid);
+    }
+    await this.teams.deleteOne({ id: team.id });
+    return true;
+  }
+
+  async getTeam(tid: number): Promise<Team | null> {
+    const team = await this.teams.findOne({ id: tid });
+    return team ?? null;
+  }
+
+  async setTeam(part: IdPartial<Team>): Promise<success> {
+    if (!await this.getTeam(part.id)) {
+      console.log(`setTeam: no team with id ${part.id}`);
+      return false;
+    }
+    await this.teams.updateOne({ id: part.id }, { $set: part });
+    return true;
+  }
 }
 
-// USER
-export function addUser(_user: Omit<User, "id">) {
-  const user: User = { ..._user, id: userhash(_user.name) };
-  // TODO
-  // overwrite existing user or add new user to db
-  // edit team new user is assigned to
+const client = new MongoClient();
+let db: Database;
+try {
+  await client.connect("mongodb://mongo:27017");
+  db = new WorkingDatabase(client);
+} catch (e) {
+  console.error("MONGO:", e.message, e.stack);
+  db = new Database();
 }
-export function deleteUser(uid: string) {
-  // TODO
-  // remove User if exists
-  // remove it from the team's members
-}
-export function getUser(uid: string): User | null {
-  // TODO
-  return uid==userhash("a@a.a")?{role:"admin",id:userhash("a@a.a"),name:"a@a.a",dhpassword:"$2y$10$HF8dYd/pAmKR8b9rcfu61uyd1fa7wJGYN.QCJhjJLPOxbJVuMkQK2",tokens:[],seed:0}:null;
-}
-export function setUser(user: Omit<IdPartial<User>, "name">) {
-  // TODO
-  // ommiting "name" property because we can't change name of User without changing its id
-  // overwrite User with properties
-  // e.g. change username
-}
-export function getRole(uid: string): Role {
-  // TODO
-  return "admin";
-}
-
-// INVITATION
-export function getInvitation(invCode: string): number | null {
-  // TODO
-  return null;
-}
-export function setInvitationCode(tid: number, invCode: string | null) {
-  // TODO
-}
-
-// TEAMS
-export function getAllTeams(): Team[] {
-  // TODO
-  return [];
-}
-export function addTeam(team: Omit<Team, "id">): Team["id"] {
-  // TODO
-  return 0;
-}
-export function deleteTeam(tid: string) {
-  // TODO
-}
-export function getTeam(tid: number): Team | null {
-  // TODO
-  return null;
-}
-export function setTeam(team: IdPartial<Team>) {
-  // TODO
-}
+export { db };

@@ -1,29 +1,28 @@
-export type Role = "user" | "student" | "teacher" | "admin";
-export interface User {
-  role: Role;
+export type Users = Student | Teacher | Admin;
+type User = {
   id: string;
+  email: string;
   name: string;
-  dhpassword: string; // double hashed password
+  dhpassword: string;
+  team: number;
   tokens: string[];
   seed: number;
-}
-export interface Student extends User {
+};
+export type Student = User & {
   role: "student";
-  team: number;
   number: number;
-  seed: number;
   exercises: { [key: string]: number };
-}
-export interface Teacher extends User {
+};
+export type Teacher = User & {
   role: "teacher";
-}
-export interface Admin extends User {
+};
+export type Admin = User & {
   role: "admin";
-}
-export interface Team {
-  id: number; // unique
-  name: string; // 2d
-  assignee: string; // teacher
-  members: string[]; // users' ids
-  invCode: string | null; // invitation code
-}
+};
+export type Team = {
+  id: number;
+  name: string;
+  assignee: string;
+  members: string[];
+  invCode: string | null;
+};
