@@ -26,3 +26,5 @@ export type Team = {
   members: string[];
   invCode: string | null;
 };
+
+export type success = boolean;
