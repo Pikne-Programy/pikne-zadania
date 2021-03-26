@@ -1,5 +1,5 @@
 import { Collection, MongoClient } from "../../deps.ts";
-import { IdPartial, Team, Users, success } from "../../types/mod.ts";
+import { IdPartial, success, Team, Users } from "../../types/mod.ts";
 import { userhash } from "../../utils/mod.ts";
 import { Database } from "./placeholder.ts";
 
@@ -24,18 +24,33 @@ export class FunctionalDatabase extends Database {
 
   // JWT
   async addJWT(uid: string, jwt: string): Promise<success> {
-    // TODO
-    return await new Promise((r) => r(true));
+    if (!await this.getUser(uid)) {
+      console.error(`addJWT: no user with id ${uid}`);
+      return false;
+    }
+    await this.users.updateOne({ id: uid }, { $addToSet: { tokens: jwt } });
+    return true;
   }
 
   async existsJWT(uid: string, jwt: string): Promise<boolean> {
-    // TODO
-    return await new Promise((r) => r(true));
+    if (!await this.getUser(uid)) {
+      console.error(`existsJWT: no user with id ${uid}`);
+      return false;
+    }
+    return await this.users.findOne({ id: uid, tokens: { $eq: jwt } }) ? true : false;
   }
 
   async deleteJWT(uid: string, jwt: string): Promise<success> {
-    // TODO
-    return await new Promise((r) => r(true));
+    if (!await this.getUser(uid)) {
+      console.error(`deleteJWT: no user with id ${uid}`);
+      return false;
+    }
+    if (!await this.existsJWT(uid, jwt)) {
+      console.error(`deleteJWT: jwt not in user; id ${uid}; jwt ${jwt}`);
+      return false;
+    }
+    await this.users.updateOne({ id: uid }, { $pull: { tokens: jwt } });
+    return true;
   }
 
   // USER
@@ -101,13 +116,24 @@ export class FunctionalDatabase extends Database {
 
   // INVITATION
   async getInvitation(invCode: string): Promise<number | null> {
-    // TODO
-    return await new Promise((r) => r(null));
+    const team = await this.teams.findOne({ invCode: invCode });
+    return team ? team.id : null;
   }
 
-  async setInvitationCode(tid: number, invCode: string | null): Promise<success> {
-    // TODO
-    return await new Promise((r) => r(true));
+  async setInvitationCode(
+    tid: number,
+    invCode: string | null,
+  ): Promise<success> {
+    if (!await this.getTeam(tid)) {
+      console.error(`setInvitationCode: no team with id ${tid}`);
+      return false;
+    }
+    if (invCode && await this.getInvitation(invCode)) {
+      console.error(`setInvitationCode: invitation code alredy existsts; invCode ${invCode}`);
+      return false;
+    }
+    await this.teams.updateOne({ id: tid }, { $set: { invCode: invCode } });
+    return true;
   }
 
   // TEAMS
