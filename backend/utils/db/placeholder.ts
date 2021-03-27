@@ -1,4 +1,4 @@
-import { IdPartial, Team, Users, success } from "../../types/mod.ts";
+import { IdPartial, success, Team, UserPart, Users } from "../../types/mod.ts";
 
 export class Database {
   constructor() {}
@@ -26,7 +26,7 @@ export class Database {
   async getUser(uid: string): Promise<Users | null> {
     return await new Promise((r) => r(null));
   }
-  async setUser(part: Omit<IdPartial<Users>, "email">): Promise<success> {
+  async setUser(part: UserPart): Promise<success> {
     return await new Promise((r) => r(false));
   }
   async getInvitation(invCode: string): Promise<number | null> {

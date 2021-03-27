@@ -1,3 +1,5 @@
+import { IdPartial } from "./primitives.ts";
+
 export type Users = Student | Teacher | Admin;
 type User = {
   id: string;
@@ -26,5 +28,7 @@ export type Team = {
   members: string[];
   invCode: string | null;
 };
+
+export type UserPart = Omit<IdPartial<Student>, "email"> | Omit<IdPartial<Teacher>, "email"> | Omit<IdPartial<Admin>, "email">;
 
 export type success = boolean;

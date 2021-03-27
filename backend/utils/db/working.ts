@@ -1,5 +1,5 @@
 import { MongoClient, Mutex } from "../../deps.ts";
-import { IdPartial, Team, Users, success } from "../../types/mod.ts";
+import { IdPartial, success, Team, UserPart, Users } from "../../types/mod.ts";
 import { FunctionalDatabase } from "./functional.ts";
 
 const mutex = new Mutex();
@@ -60,7 +60,7 @@ export class WorkingDatabase {
     return await this.db.getUser(uid);
   }
   @lock()
-  async setUser(part: Omit<IdPartial<Users>, "email">): Promise<success> {
+  async setUser(part: UserPart): Promise<success> {
     return await this.db.setUser(part);
   }
   @lock()

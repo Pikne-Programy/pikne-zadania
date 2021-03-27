@@ -1,5 +1,5 @@
 import { Collection, MongoClient } from "../../deps.ts";
-import { IdPartial, success, Team, Users } from "../../types/mod.ts";
+import { IdPartial, success, Team, UserPart, Users } from "../../types/mod.ts";
 import { userhash } from "../../utils/mod.ts";
 import { Database } from "./placeholder.ts";
 
@@ -37,7 +37,8 @@ export class FunctionalDatabase extends Database {
       console.error(`existsJWT: no user with id ${uid}`);
       return false;
     }
-    return await this.users.findOne({ id: uid, tokens: { $eq: jwt } }) ? true : false;
+    const user = await this.users.findOne({ id: uid, tokens: { $eq: jwt } });
+    return user ? true : false;
   }
 
   async deleteJWT(uid: string, jwt: string): Promise<success> {
@@ -58,6 +59,10 @@ export class FunctionalDatabase extends Database {
     const user = { ...part, id: userhash(part.email) };
     if (await this.getUser(user.id)) {
       console.error(`addUser: user already exists; id ${user.id}`);
+      return null;
+    }
+    if (!await this.getTeam(user.team)) {
+      console.error(`addUser: no team with id ${user.team}`);
       return null;
     }
     await this.teams.updateOne({ id: user.team }, {
@@ -90,7 +95,7 @@ export class FunctionalDatabase extends Database {
     return user ?? null;
   }
 
-  async setUser(part: Omit<IdPartial<Users>, "email">): Promise<success> {
+  async setUser(part: UserPart): Promise<success> {
     // ommiting "email" property because we can't change email of User without changing its id
     const user = await this.getUser(part.id);
     if (!user) {
