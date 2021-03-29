@@ -1,5 +1,5 @@
 import { MongoClient, Mutex } from "../../deps.ts";
-import { IdPartial, success, Team, UserPart, Users } from "../../types/mod.ts";
+import { Global, IdPartial, success, Team, User } from "../../types/mod.ts";
 import { FunctionalDatabase } from "./functional.ts";
 
 const mutex = new Mutex();
@@ -32,8 +32,8 @@ export class WorkingDatabase {
     return await this.db.close();
   }
   @lock()
-  async resetGlobal(): Promise<void> {
-    await this.db.resetGlobal();
+  async getGlobal(): Promise<Global> {
+    return await this.db.getGlobal();
   }
   @lock()
   async addJWT(uid: string, jwt: string): Promise<success> {
@@ -48,7 +48,7 @@ export class WorkingDatabase {
     return await this.db.deleteJWT(uid, jwt);
   }
   @lock()
-  async addUser(part: Omit<Users, "id">): Promise<Users["id"] | null> {
+  async addUser(part: Omit<User, "id">): Promise<User["id"] | null> {
     return await this.db.addUser(part);
   }
   @lock()
@@ -56,11 +56,11 @@ export class WorkingDatabase {
     return await this.db.deleteUser(uid);
   }
   @lock()
-  async getUser(uid: string): Promise<Users | null> {
+  async getUser(uid: string): Promise<User | null> {
     return await this.db.getUser(uid);
   }
   @lock()
-  async setUser(part: UserPart): Promise<success> {
+  async setUser(part: Omit<IdPartial<User>, "email">): Promise<success> {
     return await this.db.setUser(part);
   }
   @lock()

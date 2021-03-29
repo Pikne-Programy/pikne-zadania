@@ -1,10 +1,10 @@
 import { Application, Context, HttpError } from "./deps.ts";
-import { Users } from "./types/mod.ts";
+import { User } from "./types/mod.ts";
 import router from "./router.ts";
 
 interface State {
   seed: number;
-  user: Users | null;
+  user: User | null;
 }
 
 const app = new Application<State>();

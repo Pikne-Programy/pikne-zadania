@@ -1,25 +1,36 @@
 import { Collection, MongoClient } from "../../deps.ts";
-import { IdPartial, success, Team, UserPart, Users } from "../../types/mod.ts";
+import { Global, IdPartial, success, Team, User } from "../../types/mod.ts";
 import { userhash } from "../../utils/mod.ts";
 import { Database } from "./placeholder.ts";
 
-interface Global {
-  lastTid: number;
-}
 export class FunctionalDatabase extends Database {
-  readonly users: Collection<Users>;
+  readonly users: Collection<User>;
   readonly teams: Collection<Team>;
   readonly global: Collection<Global>;
+
+  static readonly defaultGlobal: Readonly<Global> = { lastTid: 0 };
 
   constructor(readonly client: MongoClient) {
     super();
     const db = this.client.database("pikne-zadania");
-    this.users = db.collection<Users>("users");
+    this.users = db.collection<User>("users");
     this.teams = db.collection<Team>("teams");
     this.global = db.collection<Global>("global");
   }
   async close() {
     await this.client.close();
+  }
+
+  // GLOBAL
+  async getGlobal(): Promise<Global> {
+    const global = await this.global.findOne({});
+    if (!global) {
+      console.error("No global collection in database");
+      const _global = FunctionalDatabase.defaultGlobal;
+      await this.global.insertOne(_global);
+      return _global;
+    }
+    return global;
   }
 
   // JWT
@@ -55,20 +66,22 @@ export class FunctionalDatabase extends Database {
   }
 
   // USER
-  async addUser(part: Omit<Users, "id">): Promise<Users["id"] | null> {
+  async addUser(part: Omit<User, "id">): Promise<User["id"] | null> {
     const user = { ...part, id: userhash(part.email) };
-    if (await this.getUser(user.id)) {
-      console.error(`addUser: user already exists; id ${user.id}`);
-      return null;
+    if (part.role.name === "admin") {
+      await this.users.updateOne({ id: user.id }, user, { upsert: true });
+    } else {
+      if (await this.getUser(user.id)) {
+        console.error(`addUser: user already exists; id ${user.id}`);
+        return null;
+      }
+      if (!await this.getTeam(user.team)) {
+        console.error(`addUser: no team with id ${user.team}`);
+        return null;
+      }
+      await this.teams.updateOne({ id: user.team }, { $push: { members: user.id } });
+      await this.users.insertOne(user);
     }
-    if (!await this.getTeam(user.team)) {
-      console.error(`addUser: no team with id ${user.team}`);
-      return null;
-    }
-    await this.teams.updateOne({ id: user.team }, {
-      $push: { members: user.id },
-    });
-    await this.users.updateOne({ id: user.id }, user, { upsert: true });
     return user.id;
   }
 
@@ -90,12 +103,12 @@ export class FunctionalDatabase extends Database {
     return true;
   }
 
-  async getUser(uid: string): Promise<Users | null> {
+  async getUser(uid: string): Promise<User | null> {
     const user = await this.users.findOne({ id: uid });
     return user ?? null;
   }
 
-  async setUser(part: UserPart): Promise<success> {
+  async setUser(part: Omit<IdPartial<User>, "email">): Promise<success> {
     // ommiting "email" property because we can't change email of User without changing its id
     const user = await this.getUser(part.id);
     if (!user) {
@@ -146,14 +159,14 @@ export class FunctionalDatabase extends Database {
     return await this.teams.find().toArray();
   }
   async addTeam(_team: Omit<Team, "id">): Promise<Team["id"] | null> {
-    const _global = await this.global.findOne();
-    if (!_global) {
+    const global = await this.getGlobal();
+    if (!global) {
       console.error("addTeam: no global collection");
       return null;
     }
-    const team: Team = { ..._team, id: _global.lastTid + 1 };
+    const team: Team = { ..._team, id: global.lastTid + 1 };
     await this.global.updateOne({}, { $inc: { lastTid: 1 } });
-    await this.teams.updateOne({ id: team.id }, team, { upsert: true });
+    await this.teams.insertOne(team);
     return team.id;
   }
 

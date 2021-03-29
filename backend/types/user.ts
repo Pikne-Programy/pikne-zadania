@@ -1,7 +1,6 @@
 import { IdPartial } from "./primitives.ts";
 
-export type Users = Student | Teacher | Admin;
-type User = {
+export type User = {
   id: string;
   email: string;
   name: string;
@@ -9,18 +8,17 @@ type User = {
   team: number;
   tokens: string[];
   seed: number;
+  role: {
+    name: "student";
+    number: number|null;
+    exercises: { [key: string]: number };
+  } | {
+    name: "teacher";
+  } | {
+    name: "admin";
+  };
 };
-export type Student = User & {
-  role: "student";
-  number: number;
-  exercises: { [key: string]: number };
-};
-export type Teacher = User & {
-  role: "teacher";
-};
-export type Admin = User & {
-  role: "admin";
-};
+
 export type Team = {
   id: number;
   name: string;
@@ -29,6 +27,8 @@ export type Team = {
   invCode: string | null;
 };
 
-export type UserPart = Omit<IdPartial<Student>, "email"> | Omit<IdPartial<Teacher>, "email"> | Omit<IdPartial<Admin>, "email">;
+export type Global = {
+  lastTid: number;
+};
 
 export type success = boolean;

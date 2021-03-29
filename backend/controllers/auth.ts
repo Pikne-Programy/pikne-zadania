@@ -1,5 +1,5 @@
 import { compare, RouterContext } from "../deps.ts";
-import { endpointSchema as endpoint, Users } from "../types/mod.ts";
+import { endpointSchema as endpoint, User } from "../types/mod.ts";
 import { db, delay, safeJSONbody, userhash } from "../utils/mod.ts";
 
 const loginTime = 2e3;
@@ -40,7 +40,7 @@ function makeJWT(ctx: RouterContext, login: string) {
   // TODO
   ctx.cookies.set("jwt", "xd");
 }
-export function validateJWT(jwt: string): Users | null {
+export function validateJWT(jwt: string): User | null {
   // TODO
-  return jwt == "xd"? {role: "admin", id: "", email: "", name: "", dhpassword: "", team: 0, tokens: [], seed: 0}: null;
+  return jwt == "xd"? { role: { name: "admin" }, id: "", email: "", name: "", dhpassword: "", team: 0, tokens: [], seed: 0 }: null;
 }

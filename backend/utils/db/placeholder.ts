@@ -1,12 +1,12 @@
-import { IdPartial, success, Team, UserPart, Users } from "../../types/mod.ts";
+import { Global, IdPartial, success, Team, User } from "../../types/mod.ts";
 
 export class Database {
   constructor() {}
   async close(): Promise<void> {
     return await new Promise((r) => r());
   }
-  async resetGlobal(): Promise<void> {
-    return await new Promise((r) => r());
+  async getGlobal(): Promise<Global | null> {
+    return await new Promise((r) => r(null));
   }
   async addJWT(uid: string, jwt: string): Promise<success> {
     return await new Promise((r) => r(false));
@@ -17,16 +17,16 @@ export class Database {
   async deleteJWT(uid: string, jwt: string): Promise<success> {
     return await new Promise((r) => r(false));
   }
-  async addUser(part: Omit<Users, "id">): Promise<Users["id"] | null> {
+  async addUser(part: Omit<User, "id">): Promise<User["id"] | null> {
     return await new Promise((r) => r(null));
   }
   async deleteUser(uid: string): Promise<success> {
     return await new Promise((r) => r(false));
   }
-  async getUser(uid: string): Promise<Users | null> {
+  async getUser(uid: string): Promise<User | null> {
     return await new Promise((r) => r(null));
   }
-  async setUser(part: UserPart): Promise<success> {
+  async setUser(part: Omit<IdPartial<User>, "email">): Promise<success> {
     return await new Promise((r) => r(false));
   }
   async getInvitation(invCode: string): Promise<number | null> {
