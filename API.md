@@ -333,6 +333,8 @@ it can be `null` or a number from 0 to 1, see [#24](https://github.com/Pikne-Pro
 ```json
 ```
 
+**note**: Request can be null (will be generated)
+
 ***
 
 ## `POST /api/teams/:id/close`
@@ -370,6 +372,7 @@ it can be `null` or a number from 0 to 1, see [#24](https://github.com/Pikne-Pro
 {
   "name": "2d",
   "assignee": "Williams",
+  "invitation": "QwErTy58",
   "members": [
     {
       "id": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
