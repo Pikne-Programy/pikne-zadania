@@ -1,14 +1,15 @@
 import { httpErrors, RouterContext } from "../deps.ts";
 import { validateJWT } from "../controllers/auth.ts";
+import { db } from "../utils/mod.ts";
 
 function authorize(required: boolean) {
   return async (ctx: RouterContext, next: () => Promise<void>) => {
     const jwt = ctx.cookies.get("jwt");
-    const user = jwt ? validateJWT(jwt) : null;
-    if (required && !user) {
+    const uid = jwt ? await validateJWT(jwt) : null;
+    ctx.state.user = uid ? await db.getUser(uid) : null;
+    if (required && !ctx.state.user) {
       throw new httpErrors["Forbidden"]();
     }
-    ctx.state.user = user;
     await next();
   };
 }

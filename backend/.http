@@ -1,6 +1,7 @@
 ### List exercises
 GET http://localhost/api/public/ HTTP/1.1
 
+
 ### Get the exercise
 GET http://localhost/api/public/fizyka/pociagi-dwa HTTP/1.1
 Cookie: seed=0
@@ -43,12 +44,7 @@ Content-Type: application/json
 
 
 ### Unauthenticate
-POST http://localhost/api/login HTTP/1.1
-Content-Type: application/json
-
-{
- 
-}
+POST http://localhost/api/logout HTTP/1.1
 
 
 ### Get info about user
@@ -59,22 +55,24 @@ GET http://localhost/api/account HTTP/1.1
 GET http://localhost/api/teams HTTP/1.1
 
 
-### Open registration and change invitation code
-POST http://localhost/api/login HTTP/1.1
+### Create a new team
+POST http://localhost//api/teams HTTP/1.1
 Content-Type: application/json
 
 {
-    "QwErTy58"
+  "name": "2d"
 }
+
+
+### Open registration and change invitation code
+POST http://localhost/api/teams/1/open HTTP/1.1
+Content-Type: application/json
+
+  "QwErTy58"
 
 
 ### Close registration
-POST http://localhost/api/login HTTP/1.1
-Content-Type: application/json
-
-{
-    "QwErTy58"
-}
+POST http://localhost/api/teams/1/close HTTP/1.1
 
 
 ### Get info about team
@@ -82,29 +80,24 @@ GET http://localhost/api/teams/1 HTTP/1.1
 
 
 ### Unregister the user
-DELETE http://localhost/api/teams/1/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 HTTP/1.1
+DELETE http://localhost/api/teams/1/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855c HTTP/1.1
 
 
 ### Set a new number
 POST http://localhost/api/teams/1/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 HTTP/1.1
 Content-Type: application/json
 
-    34
-
+  34
 
 ### Set a new number of team
 POST http://localhost/api/teams/1 HTTP/1.1
 Content-Type: application/json
 
-{
-    "3d"
-}
+  "3d"
 
 
 ### Change an assignee
 POST http://localhost/api/root/teams/1 HTTP/1.1
 Content-Type: application/json
 
-{
-    "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755"
-}
+  "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755"

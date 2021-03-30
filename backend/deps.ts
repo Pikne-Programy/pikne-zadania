@@ -38,3 +38,10 @@ export {
 } from "https://cdn.skypack.dev/random-js@v2.1.0?dts";
 
 export { Mutex } from "https://cdn.skypack.dev/async-mutex";
+
+export {
+  create,
+  getNumericDate,
+  verify,
+} from "https://deno.land/x/djwt@v2.2/mod.ts";
+export type { Header, Payload } from "https://deno.land/x/djwt@v2.2/mod.ts";

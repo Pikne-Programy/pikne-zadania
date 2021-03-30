@@ -42,3 +42,18 @@ export async function safeJSONbody(
     throw new httpErrors["BadRequest"]();
   }
 }
+
+export async function safeJSONType(ctx: RouterContext, type: string) {
+  const body = await ctx.request.body({ type: "json" }).value;
+  if (!body || (typeof body !== "string" && typeof body !== "number")) throw new httpErrors["BadRequest"]();
+  switch (type) {
+    case "string": {
+      if (typeof body !== "string") throw new httpErrors["BadRequest"]();
+      break;
+    }
+    case "number": {
+      if (!body || isNaN(+body)) throw new httpErrors["BadRequest"]();
+      break;
+    }
+  }
+}

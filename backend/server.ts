@@ -14,7 +14,8 @@ app.addEventListener("error", (e) => {
 });
 
 function die(ctx: Context, status = 500, msg = "") {
-  console.log(ctx.request.method, ctx.request.url.pathname, ctx.state, status);
+  const id = ctx.state.user ? ctx.state.user.id : "null";
+  console.log(ctx.request.method, ctx.request.url.pathname, id, status);
   ctx.response.status = status;
   ctx.response.body = { status, msg };
 }
