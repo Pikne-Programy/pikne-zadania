@@ -6,7 +6,6 @@ import { Tuple } from 'src/app/helper/utils';
 import {
   ButtonElement,
   executeButtonClick,
-  menuElements,
   NavService,
 } from '../navingation.service';
 
@@ -16,7 +15,7 @@ import {
   styleUrls: ['./sidenav.component.scss'],
 })
 export class SidenavComponent implements OnInit, OnDestroy {
-  menuElements: Tuple<string, string, null>[];
+  menuElements = this.navService.getMenuElements();
   buttonElements?: ButtonElement[];
 
   private buttonsSubscription?: Subscription;
@@ -24,9 +23,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
     private navService: NavService,
     private accountService: AccountService,
     private router: Router
-  ) {
-    this.menuElements = menuElements;
-  }
+  ) {}
 
   ngOnInit() {
     this.buttonsSubscription = this.navService.buttonElements.subscribe(

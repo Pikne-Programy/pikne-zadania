@@ -1,9 +1,10 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable } from '@angular/core';
 import * as ServerRoutes from '../server-routes';
 import { pbkdf2 } from '../helper/utils';
-import { BehaviorSubject, Subscription } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { Router } from '@angular/router';
+import { map } from 'rxjs/operators';
 
 export interface Account {
   name: string;
@@ -16,12 +17,10 @@ export function isAccount(object: any): object is Account {
 @Injectable({
   providedIn: 'root',
 })
-export class AccountService implements OnDestroy {
+export class AccountService {
   readonly accountTypeError = 400;
 
-  private currentAccount = new BehaviorSubject<Account | number | null>(null);
-
-  private accountSubscription?: Subscription;
+  currentAccount = new BehaviorSubject<Account | null>(null);
   constructor(private http: HttpClient) {}
 
   async createAccount(
@@ -51,42 +50,47 @@ export class AccountService implements OnDestroy {
     });
   }
 
-  getAccount() {
-    this.accountSubscription?.unsubscribe();
-    this.accountSubscription = this.http.get(ServerRoutes.account).subscribe(
-      (response) => {
-        this.currentAccount.next(
-          isAccount(response) || typeof response === 'number'
-            ? response
-            : this.accountTypeError
-        );
-      },
-      (error) => {
-        this.currentAccount.next(error.status);
-      }
-    );
-    return this.currentAccount;
+  async getAccount(): Promise<{
+    observable: BehaviorSubject<Account | null>;
+    error: number | null;
+  }> {
+    const account = await this.http
+      .get(ServerRoutes.account)
+      .pipe(
+        map((response) => {
+          if (response && isAccount(response)) return response;
+          else return this.accountTypeError;
+        })
+      )
+      .toPromise()
+      .catch((error) => {
+        return error.status && typeof error.status === 'number'
+          ? (error.status as number)
+          : this.accountTypeError;
+      });
+    this.currentAccount.next(typeof account !== 'number' ? account : null);
+
+    if (typeof account !== 'number')
+      return { observable: this.currentAccount, error: null };
+    else return { observable: this.currentAccount, error: account };
   }
 
-  getCurrentAccount() {
-    return this.currentAccount.getValue();
-  }
-
-  clearCurrentAccount() {
+  clearAccount() {
     this.currentAccount.next(null);
   }
 
-  ngOnDestroy() {
-    this.accountSubscription?.unsubscribe();
-    this.currentAccount.complete();
-  }
-
   logout(router: Router) {
-    //TODO Logout
-    console.log('logout');
-    this.clearCurrentAccount();
-    router.navigate([], {
-      queryParamsHandling: 'preserve',
-    });
+    this.clearAccount();
+    this.http
+      .post(ServerRoutes.logout, {})
+      .toPromise()
+      .catch((error) => {
+        console.warn('Logout error', error);
+      })
+      .finally(() => {
+        router.navigate([], {
+          queryParamsHandling: 'preserve',
+        });
+      });
   }
 }

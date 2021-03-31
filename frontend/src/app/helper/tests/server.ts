@@ -279,10 +279,18 @@ export function startServer() {
             currentAccount = { name: 'UserB', number: null };
             return new Response(200);
           }
+        } else if (attrs.login === 'c@c.cc') {
+          return new Response(200);
         } else {
           currentAccount = { name: 'UserA', number: 11 };
           return new Response(200);
         }
+      });
+      this.post('/api/logout', () => {
+        if (currentAccount) {
+          if (currentAccount.name === 'UserB') return new Response(400);
+          else return new Response(200);
+        } else return new Response(500);
       });
       this.get('/api/account', () => {
         if (currentAccount !== null) return currentAccount;

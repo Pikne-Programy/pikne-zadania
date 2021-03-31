@@ -6,8 +6,7 @@ import {
   RouterStateSnapshot,
 } from '@angular/router';
 import { Observable } from 'rxjs';
-import * as ServerRoutes from '../server-routes';
-import { AccountService, isAccount } from './account.service';
+import { AccountService } from './account.service';
 
 @Injectable({
   providedIn: 'root',
@@ -16,15 +15,28 @@ export class AuthGuardService implements CanActivate {
   constructor(private accountService: AccountService, private router: Router) {}
 
   canActivate(
-    route: ActivatedRouteSnapshot,
+    _: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean> | Promise<boolean> | boolean {
-    const account = this.accountService.getCurrentAccount();
-    if (account !== null && typeof account !== 'number' && isAccount(account))
-      return true;
-    this.router.navigate([ServerRoutes.login], {
+    return this.accountService
+      .getAccount()
+      .then((response) => {
+        if (response.error === null && response.observable.getValue() !== null)
+          return true;
+        else {
+          this.redirectToLogin(state);
+          return false;
+        }
+      })
+      .catch(() => {
+        this.redirectToLogin(state);
+        return false;
+      });
+  }
+
+  private redirectToLogin(state: RouterStateSnapshot) {
+    this.router.navigate(['/login'], {
       queryParams: { returnUrl: state.url },
     });
-    return false;
   }
 }

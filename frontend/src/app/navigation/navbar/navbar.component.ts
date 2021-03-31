@@ -6,7 +6,6 @@ import { Tuple } from 'src/app/helper/utils';
 import {
   ButtonElement,
   executeButtonClick,
-  menuElements,
   NavService,
 } from '../navingation.service';
 
@@ -18,7 +17,7 @@ import {
 export class NavbarComponent implements OnInit, OnDestroy {
   sideNavOpened: boolean = false;
   showTabs: boolean = false;
-  menuElements: Tuple<string, string, null>[];
+  menuElements = this.navService.getMenuElements();
   buttonElements?: ButtonElement[];
 
   private openedSub?: Subscription;
@@ -27,9 +26,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     private navService: NavService,
     private accountService: AccountService,
     private router: Router
-  ) {
-    this.menuElements = menuElements;
-  }
+  ) {}
 
   ngOnInit() {
     this.openedSub = this.navService.sideNavOpened.subscribe((val) => {

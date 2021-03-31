@@ -11,6 +11,7 @@ import { AccountService, isAccount } from '../account.service';
 })
 export class LoginComponent implements OnDestroy {
   //Error codes
+  readonly generalError = 400;
   readonly submitError = 401;
 
   readonly form = new FormGroup({
@@ -49,20 +50,21 @@ export class LoginComponent implements OnDestroy {
         this.submitSubscription = obs.subscribe(
           () => {
             this.loginSubscription?.unsubscribe();
-            this.loginSubscription = this.accountService
+            this.accountService
               .getAccount()
-              .subscribe((account) => {
-                if (account !== undefined && account !== null) {
-                  this.loginSubscription?.unsubscribe();
-                  if (typeof account === 'number' || !isAccount(account)) {
-                    this.isSubmitted = false;
-                    this.submitErrorCode =
-                      typeof account === 'number'
-                        ? account
-                        : this.accountService.accountTypeError;
-                    this.accountService.clearCurrentAccount();
-                  } else this.navigateBack('/public-exercises'); //TODO Change to Account dashboard path
-                }
+              .then((account) => {
+                this.isSubmitted = false;
+                if (
+                  account.error === null &&
+                  account.observable.getValue() !== null
+                )
+                  //TODO Change to Account dashboard path
+                  this.navigateBack('/public-exercises');
+                else this.submitErrorCode = account.error ?? this.generalError;
+              })
+              .catch((error) => {
+                this.isSubmitted = false;
+                this.submitErrorCode = error.status ?? this.generalError;
               });
           },
           (error) => {

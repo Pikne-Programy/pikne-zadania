@@ -1,7 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, fromEvent, Subscription } from 'rxjs';
-import { AccountService, isAccount } from '../account/account.service';
+import { AccountService } from '../account/account.service';
 import { ScreenSizes, Sizes } from '../helper/screen-size.service';
 import { Tuple } from '../helper/utils';
 
@@ -14,8 +14,8 @@ export class ButtonElement {
   /**
    * @param text Text displayed on the button
    * @param classes CSS classes applied to the button
-   * @param path Path to navigate to (required when click is undefined)
-   * @param click Function that is executed on click (when undefined it navigates to provided path)
+   * @param click Type of the function executed on click
+   * @param path Path to navigate to (required when click is DEFAULT)
    */
   constructor(
     public text: string,
@@ -46,16 +46,13 @@ export class NavService implements OnDestroy {
   buttonElements = new BehaviorSubject<ButtonElement[]>(loginButtons);
 
   private eventSubscription: Subscription;
-  private accountSubscription: Subscription;
+  private accountSubscription?: Subscription;
   constructor(private accountService: AccountService) {
-    this.accountSubscription = this.accountService
-      .getAccount()
-      .subscribe((val) => {
-        if (val !== null) {
-          if (isAccount(val)) this.buttonElements.next(accountButtons);
-          else this.accountService.clearCurrentAccount();
-        } else this.buttonElements.next(loginButtons);
+    this.accountService.getAccount().then((account) => {
+      this.accountSubscription = account.observable.subscribe((val) => {
+        this.buttonElements.next(val ? accountButtons : loginButtons);
       });
+    });
     this.eventSubscription = fromEvent(window, 'resize').subscribe(() => {
       if (
         window.innerWidth > Sizes[ScreenSizes.TABLET][1] + 1 &&
@@ -66,11 +63,15 @@ export class NavService implements OnDestroy {
   }
 
   ngOnDestroy() {
-    this.accountSubscription.unsubscribe();
+    this.accountSubscription?.unsubscribe();
     this.eventSubscription.unsubscribe();
     this.sideNavOpened.complete();
     this.showTabs.complete();
     this.buttonElements.complete();
+  }
+
+  getMenuElements() {
+    return menuElements;
   }
 
   toggleSidenav() {
@@ -78,7 +79,7 @@ export class NavService implements OnDestroy {
   }
 }
 
-export const menuElements: Tuple<string, string, null>[] = [
+const menuElements: Tuple<string, string, null>[] = [
   new Tuple('/public-exercises', 'Baza zadań'),
 ];
 const loginButtons: ButtonElement[] = [
@@ -116,9 +117,10 @@ export function executeButtonClick(
 ) {
   switch (buttonElement.click) {
     case ButtonFunctionType.DEFAULT:
+      const url = router.routerState.snapshot.url;
       buttonElement.onDefaultClick(
         router,
-        { returnUrl: router.routerState.snapshot.url },
+        url !== '/public-exercises' ? { returnUrl: url } : undefined,
         undefined
       );
       break;
