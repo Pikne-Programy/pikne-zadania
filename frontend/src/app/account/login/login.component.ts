@@ -1,8 +1,14 @@
 import { Component, OnDestroy } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { AccountService, isAccount } from '../account.service';
+import { AccountService } from '../account.service';
 
 @Component({
   selector: 'app-login',
@@ -15,7 +21,7 @@ export class LoginComponent implements OnDestroy {
   readonly submitError = 401;
 
   readonly form = new FormGroup({
-    email: new FormControl('', [Validators.required, Validators.email]),
+    email: new FormControl('', [Validators.required, this.emailValidator()]),
     password: new FormControl('', [Validators.required]),
   });
 
@@ -88,5 +94,11 @@ export class LoginComponent implements OnDestroy {
     this.router.navigateByUrl(
       this.returnUrl !== null ? this.returnUrl : fallback
     );
+  }
+
+  private emailValidator(): ValidatorFn {
+    const specialLogins = ['admin', 'root'];
+    return (control: AbstractControl): { [key: string]: any } | null =>
+      specialLogins.includes(control.value) ? null : Validators.email(control);
   }
 }
