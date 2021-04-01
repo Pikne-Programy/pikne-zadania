@@ -7,6 +7,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { AboutComponent } from './about/about.component';
 import { NavbarComponent } from './navigation/navbar/navbar.component';
 import { TabComponent } from './navigation/tabs/tab.component';
 import { SidenavComponent } from './navigation/sidenav/sidenav.component';
@@ -35,6 +36,7 @@ import { environment } from '../environments/environment';
     EqexComponent,
     RegisterComponent,
     LoginComponent,
+    AboutComponent,
   ],
   imports: [
     BrowserModule,

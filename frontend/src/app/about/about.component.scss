@@ -1,0 +1,61 @@
+app-about {
+    min-height: 100vh;
+    display: block;
+    padding: .5% 0px;
+}
+
+pre {
+    all: initial;
+    all: unset;
+}
+
+body {
+    background-color: #333;
+    line-height: 1;
+}
+
+#photos {
+    display: block;
+    margin: auto;
+    width: 100vw;
+}
+
+.main {
+    margin: auto;
+    width: max-content;
+    font-family: monospace, monospace;
+    border: .1em solid #fff;
+    padding: .1em;
+}
+
+p, .main {
+    font-size: 1.9vw;
+    text-align: center;
+    color: #fff;
+    margin-top: 1.5%;
+}
+
+.wrapper {
+    display: block;
+    border: .1em solid #fff;
+}
+
+.segment {
+    padding: .5em;
+    &:not(:last-child) {
+        border-bottom: 0.1em solid #fff;
+    }
+}
+
+a {
+    color: aqua;
+    &:visited {
+        color: lime;
+    }
+    &:hover {
+        color: violet;
+    }
+}
+
+@media screen and (min-width:1600px) { #photos { width: 1600px; } }
+@media screen and (min-width:768px) { p, .main { font-size: .9rem; } }

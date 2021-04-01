@@ -81,6 +81,7 @@ export class NavService implements OnDestroy {
 
 const menuElements: Tuple<string, string, null>[] = [
   new Tuple('/public-exercises', 'Baza zadań'),
+  new Tuple('/about', 'O projekcie'),
 ];
 const loginButtons: ButtonElement[] = [
   new ButtonElement(
