@@ -6,7 +6,7 @@
   <div *ngIf="buttonElements && buttonElements.length > 0" class="navbar-end divider-top">
     <div class="navbar-item">
       <div class="buttons">
-        <a *ngFor="let button of buttonElements" [class]="button.classes" (click)="closeSidenav(); execute(button)"><strong>{{ button.text }}</strong></a>
+        <a *ngFor="let button of buttonElements" class="button" [class]="button.classes" (click)="closeSidenav(); execute(button)">{{ button.text }}</a>
       </div>
     </div>
   </div>

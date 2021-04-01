@@ -34,12 +34,17 @@ $button-colors: mergeColorMaps(
     color: $primary !important;
   }
 }
-.button.is-primary.is-inverted {
-  &:active {
-    background-color: bulmaDarken($primary-invert, 5%);
-  }
-  &:focus:not(:active) {
-    box-shadow: $button-focus-box-shadow-size bulmaRgba($primary-invert, 0.25);
+
+.button {
+  font-weight: iv.$weight-semibold;
+
+  &.is-primary.is-inverted {
+    &:active {
+      background-color: bulmaDarken($primary-invert, 5%);
+    }
+    &:focus:not(:active) {
+      box-shadow: $button-focus-box-shadow-size bulmaRgba($primary-invert, 0.25);
+    }
   }
 }
 

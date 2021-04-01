@@ -85,13 +85,13 @@ const menuElements: Tuple<string, string, null>[] = [
 const loginButtons: ButtonElement[] = [
   new ButtonElement(
     'Zaloguj',
-    'button is-primary is-inverted',
+    'is-primary is-inverted',
     ButtonFunctionType.DEFAULT,
     '/login'
   ),
   new ButtonElement(
     'Zarejestruj',
-    'button is-primary-dark',
+    'is-primary-dark',
     ButtonFunctionType.DEFAULT,
     '/register'
   ),
@@ -99,15 +99,11 @@ const loginButtons: ButtonElement[] = [
 const accountButtons: ButtonElement[] = [
   new ButtonElement(
     'Moje konto',
-    'button is-primary is-inverted',
+    'is-primary is-inverted',
     ButtonFunctionType.DEFAULT,
     '/account'
   ),
-  new ButtonElement(
-    'Wyloguj',
-    'button is-primary-dark',
-    ButtonFunctionType.LOGOUT
-  ),
+  new ButtonElement('Wyloguj', 'is-primary-dark', ButtonFunctionType.LOGOUT),
 ];
 
 export function executeButtonClick(
