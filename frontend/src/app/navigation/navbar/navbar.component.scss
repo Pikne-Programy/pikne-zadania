@@ -1,3 +1,21 @@
-.has-burger-left {
-  margin-left: 0;
+.navbar-burger {
+  &.has-burger-left {
+    margin-left: 0;
+  }
+  &.has-logo {
+    height: auto;
+    margin-right: -0.75rem;
+  }
+}
+
+.navbar-item {
+  & img {
+    max-height: 2.25rem;
+  }
+  &.logo {
+    padding-bottom: 0.75rem;
+  }
+  &.menu-item {
+    padding-bottom: 0.05rem;
+  }
 }

@@ -3,19 +3,19 @@
   <div class="hero-head">
     <header class="navbar" role="navigation" aria-label="main navigation">
       <div class="navbar-brand">
-        <a role="button" class="navbar-burger has-burger-left" aria-label="menu" aria-expanded="false" data-target="navbarTop" [ngClass]="{'is-active': sideNavOpened}" (click)="toggleNavbar()">
+        <a role="button" class="navbar-burger has-burger-left has-logo" aria-label="menu" aria-expanded="false" data-target="navbarTop" [ngClass]="{'is-active': sideNavOpened}" (click)="toggleNavbar()">
           <span aria-hidden="true"></span>
           <span aria-hidden="true"></span>
           <span aria-hidden="true"></span>
         </a>
-        <a class="navbar-item" [routerLink]="['/']">
-          <img src="https://via.placeholder.com/460x120?text=Logo" alt="Logo">
+        <a class="navbar-item logo" [routerLink]="['/']">
+          <img src="assets/logo/png/logo-text-inverted-72x256.png" srcset="assets/logo/logo-text-inverted.svg" alt="Niedostateczny">
         </a>
       </div>
 
       <div id="navbarTop" class="navbar-menu">
         <div class="navbar-start">
-          <a *ngFor="let item of menuElements" class="navbar-item" [routerLink]="item.first">{{ item.second }}</a>
+          <a *ngFor="let item of menuElements" class="navbar-item menu-item has-text-weight-semibold" [routerLink]="item.first">{{ item.second }}</a>
         </div>
 
         <div class="navbar-end">
