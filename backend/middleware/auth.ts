@@ -1,3 +1,7 @@
+// Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { httpErrors, RouterContext } from "../deps.ts";
 import { validateJWT } from "../controllers/auth.ts";
 import { db } from "../utils/mod.ts";

@@ -1,3 +1,8 @@
+// Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
+// Copyright 2021 Michał Szymocha <szymocha.michal@gmail.com>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { Router } from "./deps.ts";
 import { seed } from "./middleware/seed.ts";
 import { authNotReq, authReq } from "./middleware/auth.ts";

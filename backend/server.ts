@@ -1,3 +1,7 @@
+// Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { Application, Context, HttpError } from "./deps.ts";
 import { User } from "./types/mod.ts";
 import router from "./router.ts";

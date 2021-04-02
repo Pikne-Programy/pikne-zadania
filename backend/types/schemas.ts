@@ -1,3 +1,7 @@
+// Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // deno-lint-ignore-file camelcase
 import { vs } from "../deps.ts";
 

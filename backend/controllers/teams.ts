@@ -1,9 +1,13 @@
+// Copyright 2021 Michał Szymocha <szymocha.michal@gmail.com>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { httpErrors, RouterContext } from "../deps.ts";
 import { db, safeJSONbody, safeJSONType } from "../utils/mod.ts";
-import { endpointSchema as endpoint } from "../types/mod.ts";
+import { endpointSchema as endpoint, Team } from "../types/mod.ts";
 
 export async function getAllTeams(ctx: RouterContext) {
-  const teams = await db.getAllTeams();
+  const teams: Team[] = await db.getAllTeams();
   if (!teams) throw new httpErrors["NotFound"]();
   ctx.response.status = 200;
   ctx.response.body = teams.map((team) => ({id: team.id, name: team.name, assignee: team.assignee, open: team.invCode !== null}));

@@ -1,3 +1,8 @@
+// Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
+// Copyright 2021 Michał Szymocha <szymocha.michal@gmail.com>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import {
   basename,
   existsSync,
@@ -9,7 +14,7 @@ import {
   walkSync,
 } from "../deps.ts";
 import { exists, joinThrowable } from "../utils/mod.ts";
-import exts from "../exts/exts.ts";
+import exts from "../exts/mod.ts";
 import { Exercise, isArrayOf, isJSONType, isObjectOf } from "../types/mod.ts";
 
 interface section {

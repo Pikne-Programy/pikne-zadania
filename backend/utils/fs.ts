@@ -1,3 +1,7 @@
+// Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { _normalize, common, join } from "../deps.ts";
 
 export const normalize = (x: string) => _normalize(x + "/");

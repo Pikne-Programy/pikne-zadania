@@ -1,3 +1,7 @@
+// Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { browserCrypto, MersenneTwister19937, Random } from "../deps.ts";
 
 function precision(a: number) {

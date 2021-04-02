@@ -1,8 +1,11 @@
-import { Bson as Bison, MongoClient } from "../deps.ts";
+// Copyright 2021 Marcin Wykpis <marwyk2003@gmail.com>
+// Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+import { MongoClient } from "../deps.ts";
 import { WorkingDatabase } from "./db/working.ts";
 import { Database } from "./db/placeholder.ts";
-
-// console.log(Bison); // Tue, 23 Mar 2021 01:17:24 +0100
 
 const client = new MongoClient();
 let db: Database;

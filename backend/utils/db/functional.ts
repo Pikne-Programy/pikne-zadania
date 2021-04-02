@@ -1,3 +1,8 @@
+// Copyright 2021 Marcin Wykpis <marwyk2003@gmail.com>
+// Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { Collection, MongoClient } from "../../deps.ts";
 import { Global, IdPartial, success, Team, User } from "../../types/mod.ts";
 import { userhash } from "../../utils/mod.ts";

@@ -1,0 +1,17 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Pikne Zadania
+Upstream-Contact: Marcin Zepp <nircek-2103@protonmail.com>
+Source: https://github.com/Pikne-Programy/pikne-zadania/
+License: AGPL-3.0-or-later
+
+Files: frontend/package*.json frontend/src/manifest.webmanifest frontend/src/app/*
+Copyright: Copyright 2021 Miłosz Wąsacz <wasacz.dev@gmail.com>
+License: AGPL-3.0-or-later
+
+Files: frontend/src/assets/icons/* frontend/src/assets/logo/* frontend/src/favicon.ico
+Copyright: Copyright 2021 Piotr Kubicki
+License: CC0-1.0
+
+Files: frontend/.browserslistrc frontend/*conf* frontend/.gitignore frontend/angular.json frontend/e2e/* frontend/src/environments/* frontend/src/polyfills.ts frontend/src/test.ts frontend/tslint.json
+Copyright: angular-cli
+License: CC0-1.0

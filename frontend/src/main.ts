@@ -1,3 +1,7 @@
+// Copyright 2021 Miłosz Wąsacz <wasacz.dev@gmail.com>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { enableProdMode } from '@angular/core';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 

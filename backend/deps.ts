@@ -1,3 +1,9 @@
+// Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
+// Copyright 2021 Michał Szymocha <szymocha.michal@gmail.com>
+// Copyright 2021 Marcin Wykpis <marwyk2003@gmail.com>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 export { parse, parseAll } from "https://deno.land/std@0.90.0/encoding/yaml.ts";
 export { existsSync, walkSync } from "https://deno.land/std@0.90.0/fs/mod.ts";
 export {

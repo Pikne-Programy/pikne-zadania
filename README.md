@@ -1,3 +1,9 @@
+<!--
+Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # Pikne Zadania
 
 ## Installation
