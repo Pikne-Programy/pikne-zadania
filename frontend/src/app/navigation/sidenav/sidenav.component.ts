@@ -2,12 +2,11 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AccountService } from 'src/app/account/account.service';
-import { Tuple } from 'src/app/helper/utils';
 import {
   ButtonElement,
   executeButtonClick,
   NavService,
-} from '../navingation.service';
+} from '../navigation.service';
 
 @Component({
   selector: 'app-sidenav',

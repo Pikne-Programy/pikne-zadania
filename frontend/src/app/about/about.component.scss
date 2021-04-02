@@ -1,61 +1,70 @@
-app-about {
-    min-height: 100vh;
-    display: block;
-    padding: .5% 0px;
-}
+$border: 0.1em solid white;
 
-pre {
+app-about {
+  min-height: 100vh;
+  background-color: #333;
+  line-height: 1;
+  display: block;
+  padding: 0.5% 0px;
+
+  pre {
     all: initial;
     all: unset;
-}
+  }
 
-body {
-    background-color: #333;
-    line-height: 1;
-}
-
-#photos {
+  #photos {
+    width: 100vw;
     display: block;
     margin: auto;
-    width: 100vw;
-}
+    @media screen and (min-width: 1600px) {
+      width: 1600px;
+    }
+  }
 
-.main {
-    margin: auto;
+  .main {
     width: max-content;
+    margin: auto;
     font-family: monospace, monospace;
-    border: .1em solid #fff;
-    padding: .1em;
-}
+    border: $border;
+    padding: 0.1em;
+  }
 
-p, .main {
+  p,
+  .main {
     font-size: 1.9vw;
     text-align: center;
-    color: #fff;
+    color: white;
     margin-top: 1.5%;
-}
-
-.wrapper {
-    display: block;
-    border: .1em solid #fff;
-}
-
-.segment {
-    padding: .5em;
-    &:not(:last-child) {
-        border-bottom: 0.1em solid #fff;
+    @media screen and (min-width: 768px) {
+      font-size: 0.9rem;
     }
-}
+  }
 
-a {
+  .wrapper {
+    display: block;
+    border: $border;
+  }
+
+  .segment {
+    padding: 0.5em;
+    &:not(:last-child) {
+      border-bottom: $border;
+    }
+  }
+
+  a {
     color: aqua;
     &:visited {
-        color: lime;
+      color: lime;
     }
     &:hover {
-        color: violet;
+      color: violet;
     }
+    &.is-back-button {
+      width: 100%;
+      display: inline-block;
+      text-align: center;
+      text-decoration: underline;
+    }
+  }
 }
-
-@media screen and (min-width:1600px) { #photos { width: 1600px; } }
-@media screen and (min-width:768px) { p, .main { font-size: .9rem; } }

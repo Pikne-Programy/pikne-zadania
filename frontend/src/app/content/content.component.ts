@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { NavService } from '../navigation/navingation.service';
+import { NavService } from '../navigation/navigation.service';
 
 @Component({
   selector: 'app-content',

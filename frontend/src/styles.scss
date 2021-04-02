@@ -26,12 +26,17 @@ $button-colors: mergeColorMaps(
   color: inherit;
 }
 
-.hero.is-primary a.navbar-item {
-  &:focus:not(:hover) {
-    color: $primary !important;
+.hero {
+  &.is-primary a.navbar-item {
+    &:focus:not(:hover) {
+      color: $primary !important;
+    }
+    &:focus-within:not(:hover) {
+      color: $primary !important;
+    }
   }
-  &:focus-within:not(:hover) {
-    color: $primary !important;
+  a.navbar-item.logo:hover {
+    background-color: transparent !important;
   }
 }
 
