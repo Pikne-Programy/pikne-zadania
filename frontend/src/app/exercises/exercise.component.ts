@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ExerciseService } from '../exercise-service/exercise.service';
+import { getErrorCode } from '../helper/utils';
 import { EqexComponent } from './eqex/eqex.component';
 import {
   Exercise,
@@ -29,7 +30,7 @@ import {
 })
 export class ExerciseComponent implements OnChanges, OnDestroy {
   isLoading = true;
-  isError = false;
+  errorCode: number | null = null;
   exercise?: Subscription;
   @ViewChild('exContainer', { read: ViewContainerRef })
   container!: ViewContainerRef;
@@ -49,7 +50,7 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
     this.exercise?.unsubscribe();
     this.componentRef?.destroy();
     this.isLoading = true;
-    this.isError = false;
+    this.errorCode = null;
 
     if (this.exerciseUrl && this.subject) {
       this.exercise = this.exerciseService
@@ -94,9 +95,12 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
       this.loadingSubscription = component.instance.loaded.subscribe(() => {
         this.isLoading = false;
         this.loadingSubscription?.unsubscribe();
-        this.answerSubscription = component.instance.onAnswers.subscribe(() => {
-          this.onAnswerSubmit.emit();
-        });
+        this.answerSubscription = component.instance.onAnswers.subscribe(
+          (error: number | null) => {
+            this.errorCode = error;
+            this.onAnswerSubmit.emit();
+          }
+        );
       });
       component.instance.subject = this.subject;
       component.instance.exerciseId = this.getExerciseId(this.exerciseUrl);
@@ -106,17 +110,7 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
 
   private throwError(error: any) {
     this.isLoading = false;
-    this.isError = true;
-    console.error('Exercise error', error);
-    //TODO Handle response error
-    switch (error.status) {
-      case 404:
-      case null:
-        //No exercise found
-        break;
-      default:
-      //Unknown error
-    }
+    this.errorCode = getErrorCode(error);
   }
 
   private getExerciseId(exercisePath: string) {

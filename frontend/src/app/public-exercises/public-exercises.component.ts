@@ -20,6 +20,7 @@ import { capitalize } from 'src/app/helper/utils';
 })
 export class PublicExercisesComponent implements OnInit, OnDestroy {
   isSingleSubject = false;
+  isError = false;
 
   list?: ExerciseTreeNode[];
   breadcrumbs: ExerciseTreeNode[] = [];
@@ -94,8 +95,7 @@ export class PublicExercisesComponent implements OnInit, OnDestroy {
   }
 
   private throwError() {
-    console.error('Wrong subject, category or exercise');
-    //TODO Handle errors
+    this.isError = true;
   }
 
   navigateToCategory(newCategory: string) {

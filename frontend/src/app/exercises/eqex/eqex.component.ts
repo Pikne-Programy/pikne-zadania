@@ -9,7 +9,7 @@ import {
 import { Subscription } from 'rxjs';
 import { ExerciseService } from 'src/app/exercise-service/exercise.service';
 import { serverMockEnabled } from 'src/app/helper/tests/tests.config';
-import { removeMathTabIndex } from 'src/app/helper/utils';
+import { getErrorCode, removeMathTabIndex } from 'src/app/helper/utils';
 import { image } from 'src/app/server-routes';
 import { ExerciseComponent } from '../exercises';
 declare var MathJax: any;
@@ -47,7 +47,7 @@ export class EqexComponent
   implements ExerciseComponent, AfterViewInit, OnDestroy {
   @Output() loaded = new EventEmitter<string>();
   isLoading = true;
-  @Output() onAnswers = new EventEmitter();
+  @Output() onAnswers = new EventEmitter<number | null>();
 
   @Input() subject?: string;
   @Input() exerciseId?: string;
@@ -97,7 +97,7 @@ export class EqexComponent
           (response: any) => {
             this.isSubmitted = false;
             if (Array.isArray(response) && this.unknowns) {
-              this.onAnswers.emit();
+              this.onAnswers.emit(null);
               for (
                 let i = 0;
                 i < response.length && i < this.unknowns.length;
@@ -108,18 +108,7 @@ export class EqexComponent
           },
           (error) => {
             this.isSubmitted = false;
-            console.error('Answer error', error);
-            //TODO Handle Response error
-            switch (error.status) {
-              case 404:
-                //Exercise not found
-                break;
-              case 400:
-                //Wrong JSON format
-                break;
-              default:
-              //Unknown error
-            }
+            this.onAnswers.emit(getErrorCode(error));
           }
         );
     }

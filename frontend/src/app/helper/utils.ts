@@ -49,3 +49,9 @@ export async function pbkdf2(
   const hash = await crypto.subtle.deriveBits(params, key, keylen);
   return btoa(String.fromCharCode(...new Uint8Array(hash)));
 }
+
+export function getErrorCode(error: any, fallback: number = 400): number {
+  return error.status && typeof error.status === 'number'
+    ? error.status
+    : fallback;
+}

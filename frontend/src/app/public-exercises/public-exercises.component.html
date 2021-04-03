@@ -52,11 +52,17 @@
           </button>
         </div>
       </nav>
-      <div *ngIf="exercise !== null" class="height-full scrollable">
+      <div *ngIf="exercise !== null && !isError" class="height-full scrollable">
         <app-exercise [subject]="subject?.name" [exerciseUrl]="getExerciseUrl()" (onAnswerSubmit)="updateExerciseTree()"></app-exercise>
       </div>
       <div *ngIf="exercise === null" class="height-full is-flex is-flex-direction-column is-align-items-center is-justify-content-center py-3">
         <img class="max-width-75 max-height-75" src="https://via.placeholder.com/1024x1024.png?text=Tu+będzie+jakaś+grafika" alt="">
+        <!--TODO Grafika -->
+      </div>
+      <div *ngIf="isError" class="height-full is-flex is-flex-direction-column is-align-items-center is-justify-content-center py-3">
+        <img class="max-width-75 max-height-75" srcset="assets/logo/logo.svg" alt="">
+        <h2 class="title has-text-centered">Ups, przedmiot, którego szukasz, nie istnieje!</h2>
+        <a routerLink="/public-exercises">Powrót do wyboru przedmiotu</a>
       </div>
     </div>
   </div>
