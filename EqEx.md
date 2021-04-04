@@ -8,7 +8,7 @@ The header defines respectively fields:
 * **name**: the name of the exercise
 * **img**: the name of exercise's image (optional)
 
-```
+```yaml
 type: "EqEx"
 name: "Sample name"
 img: "image.jpg"
@@ -61,7 +61,7 @@ Operations and functions supported:
 e.g. `x=-5*sinr(3.14)`, `y=sqrt(abs(x+1))^2`, `z=log2(2^10)/5`
 
 ## Example
-```
+```yaml
 ---
 type: "EqEx"
 name: "Velocity 1"
