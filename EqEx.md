@@ -47,16 +47,17 @@ Special-use character `=` splits the equation into the following parts:
 
 ### Mathematic Expression
 Operations and functions supported:
-* arytmetic operations: `+`, `-`, `*`, `/`, `^`
-* brackets: `(`, `)`
-* square root: `sqrt`
-* absolute value (|x|): `abs`
-* logarithmic functions: `log` (base 10), `ln`, `log2`
-* exponent function (e<sup>x</sup>): `exp`
-* trigonometry (argument in degrees): `sin`, `cos`, `tan`/`tg`, `cot`/`ctg`
-* trigonometry (argument in radians): `sinr`, `cosr`, `tanr`/`tgr`, `cotr`/`ctgr`
-* hyperbolic trigonometry (value in degrees): `sinh`, `cosh`, `tanh`/`tgh`, `coth`/`ctgh`
-* hyperbolic  trigonometry (value in radians): `sinhr`, `coshr`, `tanhr`/`tghr`, `cothr`/`ctghr`
+* **arytmetic operations:** `+`, `-`, `*`, `/`, `^`
+* **brackets:** `(`, `)`
+* **square root:** `sqrt`
+* **absolute value (|x|):** `abs`
+* **logarithmic functions:** `log`/`log10` (base 10), `ln`, `log2`
+* **exponent function (e<sup>x</sup>):** `exp`
+* **trigonometry:** `sin`, `cos`, `tan`/`tg`, `cot`/`ctg`
+* **hyperbolic trigonometry:** use `-h` suffix, e.g. `sinh`, `tanh`/`tgh`
+* **trigonometry (argument in radians):** use `-r` suffix, e.g. `sinr`, `tanhr/tghr`
+* **inverse trigonometry:** use `a-` prefix, e.g. `asin`, `atanh`/`atgh`
+* **inverse trigonometry (value in radians):** use `-r` suffix, e.g. `asinr`, `atanhr`/`atghr`
 
 e.g. `x=-5*sinr(3.14)`, `y=sqrt(abs(x+1))^2`, `z=log2(2^10)/5`
 
