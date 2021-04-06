@@ -13,10 +13,7 @@
    version="1.1"
    id="svg8"
    inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
-   sodipodi:docname="logo.svg"
-   inkscape:export-filename="C:\Users\USER\Documents\LOGO_PIK\kubek_2_3.png"
-   inkscape:export-xdpi="96"
-   inkscape:export-ydpi="96">
+   sodipodi:docname="logo.svg">
   <defs
      id="defs2">
     <inkscape:perspective
@@ -61,7 +58,7 @@
     </rdf:RDF>
   </metadata>
   <g
-     inkscape:label="Warstwa 1"
+     inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(-38.15368,-69.175961)">
