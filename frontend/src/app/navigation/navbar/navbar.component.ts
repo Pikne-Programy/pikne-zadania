@@ -6,7 +6,7 @@ import {
   ButtonElement,
   executeButtonClick,
   NavService,
-} from '../navigation.service';
+} from '../services/navigation.service';
 
 @Component({
   selector: 'app-navbar',

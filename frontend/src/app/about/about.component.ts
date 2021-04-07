@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { Component, ViewEncapsulation } from '@angular/core';
-import { UpNavService } from '../navigation/up-navigation.service';
+import { UpNavService } from '../navigation/services/up-navigation.service';
 
 @Component({
   selector: 'app-about',

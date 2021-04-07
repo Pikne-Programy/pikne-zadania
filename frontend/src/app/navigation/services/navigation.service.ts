@@ -1,9 +1,9 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
+import { Params, QueryParamsHandling, Router } from '@angular/router';
 import { BehaviorSubject, fromEvent, Subscription } from 'rxjs';
-import { AccountService } from '../account/account.service';
-import { ScreenSizes, Sizes } from '../helper/screen-size.service';
-import { Tuple } from '../helper/utils';
+import { AccountService } from '../../account/account.service';
+import { ScreenSizes, Sizes } from '../../helper/screen-size.service';
+import { Tuple } from '../../helper/utils';
 
 export enum ButtonFunctionType {
   DEFAULT,
@@ -24,15 +24,15 @@ export class ButtonElement {
     public path?: string
   ) {}
 
-  /**
-   * Executes provided function or navigates to provided path
-   * @param args Arguments for function or navigation parameters (first is Router, second is queryParams, third is queryParamsHandling)
-   */
-  onDefaultClick(...args: any[]) {
+  onDefaultClick(
+    router: Router,
+    queryParams: Params | null | undefined,
+    queryParamsHandling: QueryParamsHandling | null | undefined
+  ) {
     if (this.path)
-      args[0].navigate([this.path], {
-        queryParams: args[1],
-        queryParamsHandling: args[2],
+      router.navigate([this.path], {
+        queryParams: queryParams,
+        queryParamsHandling: queryParamsHandling,
       });
   }
 }
@@ -102,7 +102,7 @@ const accountButtons: ButtonElement[] = [
     'Moje konto',
     'is-primary is-inverted',
     ButtonFunctionType.DEFAULT,
-    '/account'
+    '/user'
   ),
   new ButtonElement('Wyloguj', 'is-primary-dark', ButtonFunctionType.LOGOUT),
 ];
@@ -122,7 +122,7 @@ export function executeButtonClick(
       );
       break;
     case ButtonFunctionType.LOGOUT:
-      accountService.logout(router);
+      accountService.logout();
       break;
   }
 }

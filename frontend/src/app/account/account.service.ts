@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import * as ServerRoutes from '../server-routes';
 import { pbkdf2 } from '../helper/utils';
 import { BehaviorSubject } from 'rxjs';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs/operators';
 
 export interface Account {
@@ -21,7 +21,11 @@ export class AccountService {
   readonly accountTypeError = 400;
 
   currentAccount = new BehaviorSubject<Account | null>(null);
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
 
   async createAccount(
     email: string,
@@ -79,7 +83,7 @@ export class AccountService {
     this.currentAccount.next(null);
   }
 
-  logout(router: Router) {
+  logout() {
     this.clearAccount();
     this.http
       .post(ServerRoutes.logout, {})
@@ -88,7 +92,8 @@ export class AccountService {
         console.warn('Logout error', error);
       })
       .finally(() => {
-        router.navigate([], {
+        this.router.navigate(['./'], {
+          relativeTo: this.route,
           queryParamsHandling: 'preserve',
         });
       });

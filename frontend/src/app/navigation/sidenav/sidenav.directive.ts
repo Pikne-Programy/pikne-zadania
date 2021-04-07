@@ -1,7 +1,7 @@
 import { AfterViewInit, Directive, OnDestroy } from '@angular/core';
 import { MatSidenav } from '@angular/material/sidenav';
 import { Subscription } from 'rxjs';
-import { NavService } from '../navigation.service';
+import { NavService } from '../services/navigation.service';
 
 @Directive({
   selector: '[appSidenav]',
