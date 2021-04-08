@@ -97,6 +97,7 @@ it can be `null` or a number from 0 to 1, see [#24](https://github.com/Pikne-Pro
 {
   "type": "EqEx",
   "name": "Pociągi dwa 2",
+  "done": 0.34,
   "content": {
     "main": "Z miast \\(A\\) i \\(B\\) odległych o \\(d=300\\;\\mathrm{km}\\) wyruszają jednocześnie\ndwa pociągi z prędkościami \\(v_a= 50\\;\\mathrm{\\frac{km}{h}}\\) oraz \\(v_b=70\\;\\mathrm{\\frac{km}{h}}\\).\nW jakiej odległości \\(x\\) od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie \\(t\\) się to stanie?",
     "img": [
@@ -383,8 +384,7 @@ it can be `null` or a number from 0 to 1, see [#24](https://github.com/Pikne-Pro
 }
 ```
 
-**note**: Member `id` property is a hashed email. \
-**note**: You can use the `GET /api/teams/current`.
+**note**: Member `id` property is a hashed email.
 
 ***
 
