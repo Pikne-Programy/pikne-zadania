@@ -2,7 +2,6 @@ import { AfterContentInit, Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ExerciseService, Subject } from '../exercise-service/exercise.service';
-import { capitalize } from '../helper/utils';
 
 @Component({
   selector: 'app-subject-select',
@@ -43,9 +42,5 @@ export class SubjectSelectComponent implements AfterContentInit, OnDestroy {
 
   ngOnDestroy() {
     this.subjectListSub?.unsubscribe();
-  }
-
-  capitalize(string: string): string | null {
-    return capitalize(string);
   }
 }

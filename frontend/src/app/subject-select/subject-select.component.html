@@ -3,15 +3,13 @@
     <div class="column height-full is-half-tablet is-two-fifths-desktop is-one-third-widescreen is-one-forth-fullhd py-only-mobile-0">
       <nav class="panel max-height-full is-flex is-flex-direction-column">
         <p class="panel-heading">Przedmioty</p>
-        <div *ngIf="isLoading" class="height-full is-flex is-align-items-center is-justify-content-center p-6">
-          <progress class="progress width-70 is-small is-primary" max="100">15%</progress>
-        </div>
+        <app-loading *ngIf="isLoading"></app-loading>
         <nav class="panel height-full scrollable">
           <a class="panel-block" *ngFor="let subject of list" [routerLink]="['subjects', subject.name]">
             <span class="panel-icon">
               <i class="fas fa-book" aria-hidden="true"></i>
             </span>
-            <span>{{ capitalize(subject.name) }}</span>
+            <span>{{ subject.name | titlecase}}</span>
           </a>
         </nav>
       </nav>

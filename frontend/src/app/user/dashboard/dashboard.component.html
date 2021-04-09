@@ -1,3 +1,28 @@
-<p>
-  dashboard works!
-</p>
+<app-loading *ngIf="!account && errorCode === null"></app-loading>
+<div *ngIf="account" class="tile is-ancestor height-full m-0 px-3 py-tablet-1">
+  <div class="tile is-2 is-vertical is-parent">
+    <div class="tile is-narrow is-child panel is-primary">
+      <p class="panel-heading">Użytkownik</p>
+      <div *ngIf="account" class="panel-block user">
+        <h1 class="title is-4">{{ account.name }}</h1>
+        <h2 *ngIf="account.number !== null" class="subtitle user-number is-6">Numer: {{ account.number }}</h2>
+      </div>
+    </div>
+    <div class="tile is-child panel shortcuts is-primary">
+      <p class="panel-heading">Skróty</p>
+      <a *ngFor="let tuple of shortcuts" class="panel-block" [routerLink]="[tuple.second]">
+        <span class="panel-icon">
+          <i class="fas" [ngClass]="[tuple.third]"></i>
+        </span>
+        {{ tuple.first | titlecase}}
+      </a>
+    </div>
+  </div>
+  <div [ngSwitch]="getRole(account)" class="tile is-vertical is-parent">
+    <div class="tile is-child box">
+      <app-user-dashboard *ngSwitchCase="UserRole" [account]="account"></app-user-dashboard>
+      <app-teacher-dashboard *ngSwitchDefault [account]="account"></app-teacher-dashboard>
+    </div>
+  </div>
+</div>
+<app-error *ngIf="errorCode !== null" [code]="errorCode" [link]="null"></app-error>

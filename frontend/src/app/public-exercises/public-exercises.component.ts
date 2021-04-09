@@ -11,7 +11,6 @@ import {
   ScreenSizeService,
   ScreenSizes,
 } from 'src/app/helper/screen-size.service';
-import { capitalize } from 'src/app/helper/utils';
 
 @Component({
   selector: 'app-public-exercises',
@@ -172,10 +171,6 @@ export class PublicExercisesComponent implements OnInit, OnDestroy {
       queryParams: { exercise: null },
       queryParamsHandling: 'merge',
     });
-  }
-
-  capitalize(string: string | null): string | null {
-    return capitalize(string);
   }
 
   updateExerciseTree() {

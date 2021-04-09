@@ -1,9 +1,10 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Params, QueryParamsHandling, Router } from '@angular/router';
 import { BehaviorSubject, fromEvent, Subscription } from 'rxjs';
+import { AuthGuardService, Role } from 'src/app/account/auth-guard.service';
 import { AccountService } from '../../account/account.service';
 import { ScreenSizes, Sizes } from '../../helper/screen-size.service';
-import { Tuple } from '../../helper/utils';
+import { Pair } from '../../helper/utils';
 
 export enum ButtonFunctionType {
   DEFAULT,
@@ -43,6 +44,7 @@ export class ButtonElement {
 export class NavService implements OnDestroy {
   sideNavOpened = new BehaviorSubject(false);
   showTabs = new BehaviorSubject(false);
+  menuElements = new BehaviorSubject<Pair<string, string>[]>(menuElements);
   buttonElements = new BehaviorSubject<ButtonElement[]>(loginButtons);
 
   private eventSubscription: Subscription;
@@ -50,6 +52,11 @@ export class NavService implements OnDestroy {
   constructor(private accountService: AccountService) {
     this.accountService.getAccount().then((account) => {
       this.accountSubscription = account.observable.subscribe((val) => {
+        this.menuElements.next(
+          val && AuthGuardService.getRole(val) !== Role.USER
+            ? teacherMenuElements
+            : menuElements
+        );
         this.buttonElements.next(val ? accountButtons : loginButtons);
       });
     });
@@ -70,18 +77,19 @@ export class NavService implements OnDestroy {
     this.buttonElements.complete();
   }
 
-  getMenuElements() {
-    return menuElements;
-  }
-
   toggleSidenav() {
     this.sideNavOpened.next(!this.sideNavOpened.getValue());
   }
 }
 
-const menuElements: Tuple<string, string, null>[] = [
-  new Tuple('/public-exercises', 'Baza zadań'),
-  new Tuple('/about', 'O projekcie'),
+const menuElements: Pair<string, string>[] = [
+  new Pair('/public-exercises', 'Baza zadań'),
+  new Pair('/about', 'O projekcie'),
+];
+//TODO Teacher specific menu elements
+const teacherMenuElements: Pair<string, string>[] = [
+  new Pair('/public-exercises', 'Baza zadań'),
+  new Pair('/about', 'O projekcie'),
 ];
 const loginButtons: ButtonElement[] = [
   new ButtonElement(

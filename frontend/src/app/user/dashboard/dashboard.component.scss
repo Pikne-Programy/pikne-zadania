@@ -1,0 +1,48 @@
+@use "../../../styles.variables.scss" as *;
+
+$mobile: nth(
+  $list: $size_breakpoints,
+  $n: 1,
+);
+
+.subtitle {
+  &.is-label {
+    font-size: 0.9rem;
+  }
+  &.user-number {
+    margin-top: -0.75rem;
+  }
+  &:not(.is-spaced) + .title {
+    margin-top: -1.5rem;
+  }
+}
+
+.tile {
+  @media screen and (max-width: nth($list: $mobile, $n: 3)) {
+    &.is-vertical > &.is-child:not(:last-child) {
+      margin-bottom: 0.75rem !important;
+    }
+    &.is-parent:not(:last-child) {
+      padding-bottom: 0;
+    }
+  }
+  &.is-ancestor {
+    margin-top: -0.5rem;
+    margin-right: -0.5rem;
+    margin-left: -0.5rem;
+    &:last-child {
+      margin-bottom: -0.5rem;
+    }
+  }
+}
+
+.panel.shortcuts {
+  @media screen and (max-width: nth($list: $mobile, $n: 3)) {
+    display: none;
+  }
+}
+
+.panel-block.user {
+  flex-direction: column;
+  align-items: flex-start;
+}

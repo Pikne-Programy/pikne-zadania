@@ -1,0 +1,5 @@
+<img class="max-width-50 max-height-50 mb-4" src="https://via.placeholder.com/1024x1024.png?text=Błąd" alt="">
+<!--TODO Grafika -->
+<h2 class="title has-text-centered">{{ message ? message : defaultMessage }}</h2>
+<h3 *ngIf="code !== undefined" class="subtitle has-text-centered">Kod błędu: {{ code }}</h3>
+<a *ngIf="link !== undefined" [routerLink]="link ? link[1] : defaultLink[1]">{{ link ? link[0] : defaultLink[0] }}</a>

@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import * as ServerRoutes from '../server-routes';
-import { pbkdf2 } from '../helper/utils';
+import { getErrorCode, pbkdf2 } from '../helper/utils';
 import { BehaviorSubject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs/operators';
@@ -9,9 +9,15 @@ import { map } from 'rxjs/operators';
 export interface Account {
   name: string;
   number: number | null;
+  team: number;
 }
 export function isAccount(object: any): object is Account {
-  return typeof object === 'object' && 'name' in object && 'number' in object;
+  return (
+    typeof object === 'object' &&
+    'name' in object &&
+    'number' in object &&
+    'team' in object
+  );
 }
 
 @Injectable({
@@ -67,11 +73,7 @@ export class AccountService {
         })
       )
       .toPromise()
-      .catch((error) => {
-        return error.status && typeof error.status === 'number'
-          ? (error.status as number)
-          : this.accountTypeError;
-      });
+      .catch((error) => getErrorCode(error, this.accountTypeError));
     this.currentAccount.next(typeof account !== 'number' ? account : null);
 
     if (typeof account !== 'number')
@@ -84,7 +86,6 @@ export class AccountService {
   }
 
   logout() {
-    this.clearAccount();
     this.http
       .post(ServerRoutes.logout, {})
       .toPromise()
@@ -96,6 +97,7 @@ export class AccountService {
           relativeTo: this.route,
           queryParamsHandling: 'preserve',
         });
+        this.clearAccount();
       });
   }
 }

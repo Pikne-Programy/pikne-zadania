@@ -6,6 +6,8 @@ import { SidenavComponent } from './sidenav/sidenav.component';
 import { SidenavDirective } from './sidenav/sidenav.directive';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { RouterModule } from '@angular/router';
+import { LoadingComponent } from './loading/loading.component';
+import { ErrorComponent } from './error/error.component';
 
 @NgModule({
   imports: [CommonModule, MatSidenavModule, RouterModule],
@@ -14,8 +16,10 @@ import { RouterModule } from '@angular/router';
     NavbarComponent,
     SidenavComponent,
     SidenavDirective,
+    LoadingComponent,
+    ErrorComponent,
   ],
-  exports: [NavComponent],
+  exports: [NavComponent, LoadingComponent, ErrorComponent],
   bootstrap: [NavComponent],
 })
 export class NavModule {}
