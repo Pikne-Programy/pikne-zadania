@@ -2,10 +2,73 @@
 // img support Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { Exercise, JSONType } from "../../types/mod.ts";
 import { Range, RNG } from "../../utils/mod.ts";
 import { httpErrors, vs } from "../../deps.ts";
 import RPN from "./RPN-parser/parser.ts";
+
+const greekAlphabet: { [key: string]: string } = {
+  alpha: "\\alpha",
+  Alpha: "A",
+  beta: "\\beta",
+  Beta: "B",
+  gamma: "\\gamma",
+  Gamma: "\\Gamma",
+  delta: "\\delta",
+  Delta: "\\Delta",
+  zeta: "\\zeta",
+  Zeta: "Z",
+  epsilon: "\\varepsilon",
+  Epsilon: "E",
+  eta: "\\eta",
+  Eta: "H",
+  theta: "\\theta",
+  Theta: "\\Theta",
+  iota: "\\iota",
+  Iota: "I",
+  kappa: "\\kappa",
+  Kappa: "K",
+  lambda: "\\lambda",
+  Lambda: "\\Lambda",
+  mu: "\\mu",
+  Mu: "N",
+  nu: "\\nu",
+  Nu: "N",
+  xi: "\\xi",
+  Xi: "\\Xi",
+  omicron: "o",
+  Omicron: "O",
+  pi: "\\pi",
+  Pi: "\\pi",
+  rho: "\\rho",
+  Rho: "P",
+  sigma: "\\sigma",
+  Sigma: "\\Sigma",
+  tau: "\\tau",
+  Tau: "T",
+  upsilon: "\\upsilon",
+  Upsilon: "\\Upsilon",
+  phi: "\\varphi",
+  Phi: "\\Phi",
+  chi: "\\chi",
+  Chi: "X",
+  psi: "\\psi",
+  Psi: "\\Psi",
+  omega: "\\omega",
+  Omega: "\\Omega",
+
+  // polish versions
+  alfa: "\\alpha",
+  Alfa: "A",
+  mi: "\\mu",
+  Mi: "M",
+  ro: "\\rho",
+  Ro: "P",
+  fi: "\\varphi",
+  Fi: "\\Phi",
+};
+
 const imgSchema = {
   t: vs.array({
     ifUndefined: [],
@@ -20,9 +83,8 @@ function isAnswer(what: unknown): what is (number | null)[] {
 
 export default class EquationExercise extends Exercise {
   // regular expressions used to extract and parse content
-  static readonly greekR =
-    /alfa|beta|gamma|delta|epsilon|mi|pi|ro|sigma|tau|fi|psi|omega/;
-  static readonly equationR = new RegExp(
+  static readonly greekR = new RegExp(Object.keys(greekAlphabet).join('|'));
+  static readonly equationR = new RegExp( 
     `${RPN.variableR}=((?:[\\+\\-]?${RPN.trigonometryR}|${RPN.functionR}|${RPN.variableR}|${RPN.numberR}|[\\(\\)]|${RPN.operationR}\\s*)+)`,
   );
   static readonly numberEqR = new RegExp(
@@ -32,26 +94,7 @@ export default class EquationExercise extends Exercise {
   static readonly rangeEqR = new RegExp(
     `${RPN.variableR}=\\[(${RPN.numberR});(${RPN.numberR})(?:;(${RPN.numberR}))?\\](${RPN.unitR})`,
   );
-  static readonly greekAlphabet: { [key: string]: string } = {
-    alfa: "\\alpha",
-    beta: "\\beta",
-    gamma: "\\gamma",
-    delta: "\\delta",
-    Delta: "\\Delta",
-    epsilon: "\\epsilon",
-    eta: "\\eta",
-    mi: "\\mu",
-    pi: "\\pi",
-    Pi: "\\Pi",
-    ro: "\\rho",
-    sigma: "\\sigma",
-    Sigma: "\\Sigma",
-    tau: "\\tau",
-    fi: "\\phi",
-    psi: "\\psi",
-    omega: "\\omega",
-    Omega: "\\Omega",
-  };
+  
   type = "EqEx";
   readonly parsedContent: string; // "lorem ipsum \(d=300\mathrm{km\}\) foo \(v_a=\mathrm{\frac{m}{s}}\) bar \(v_b=\frac{m}{s}\)."
   readonly ranges: [number, number][] = []; // [index in variables, index in parsedContent]
@@ -89,8 +132,6 @@ export default class EquationExercise extends Exercise {
         let m: RegExpExecArray | null;
         // --------------------------------------------------
         // considered regex: numberR (variable)(_underscore)=(value)(unit)
-        // TODO avoid repeating code between .....
-        // ................................................
         parsedLine = "";
         while ((m = EquationExercise.numberEqR.exec(line)) !== null) {
           const name = m[2] === undefined ? m[1] : `${m[1]}${m[2]}`;
@@ -102,7 +143,6 @@ export default class EquationExercise extends Exercise {
             m.index,
             m.index + m[0].length,
           ];
-          // ................................................
           const value = parseFloat(m[3]);
           const unit = EquationExercise.convertToLaTeX(m[4]);
           // add space next to the '=' to prevent from matching multiple times
@@ -120,7 +160,6 @@ export default class EquationExercise extends Exercise {
         // --------------------------------------------------
         // considered regex: unknownEqR (variable)(_underscore)=?(unit)
         line = parsedLine;
-        // ................................................
         parsedLine = "";
         while ((m = EquationExercise.unknownEqR.exec(line)) !== null) {
           const name = m[2] === undefined ? m[1] : `${m[1]}${m[2]}`;
@@ -132,7 +171,6 @@ export default class EquationExercise extends Exercise {
             m.index,
             m.index + m[0].length,
           ];
-          // ................................................
           const unit = EquationExercise.convertToLaTeX(m[3]);
           parsedLine += `${line.substring(0, index[0])}\\(${formattedName}\\)`;
           line = line.substring(index[1]); // remove this match
@@ -143,7 +181,6 @@ export default class EquationExercise extends Exercise {
         // --------------------------------------------------
         // considered regex: rangeEqR (variable)(_underscore)=[(min);(max);(step)](unit)
         line = parsedLine;
-        // ................................................
         parsedLine = "";
         while ((m = EquationExercise.rangeEqR.exec(line)) !== null) {
           const name = m[2] === undefined ? m[1] : `${m[1]}${m[2]}`;
@@ -155,7 +192,6 @@ export default class EquationExercise extends Exercise {
             m.index,
             m.index + m[0].length,
           ];
-          // ................................................
           const rangeMin = parseFloat(m[3]);
           const rangeMax = parseFloat(m[4]);
           const step = m[5] !== undefined ? parseFloat(m[5]) : undefined; // TODO: rework
@@ -319,9 +355,7 @@ export default class EquationExercise extends Exercise {
     let m: RegExpExecArray | null;
     let parsedName = "";
     while ((m = EquationExercise.greekR.exec(name)) !== null) {
-      parsedName += `${name.substring(0, m.index)}${
-        EquationExercise.greekAlphabet[m[0]]
-      }${name.substring(m.index + m[0].length)}`;
+      parsedName += `${name.substring(0, m.index)}${ greekAlphabet[m[0]] }${ name.substring(m.index + m[0].length) }`;
       name = name.substring(m.index + m[0].length); // remove this match from the string
     }
     parsedName += name;
