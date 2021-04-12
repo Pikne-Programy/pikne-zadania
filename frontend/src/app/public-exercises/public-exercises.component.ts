@@ -1,16 +1,13 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, Subscription } from 'rxjs';
-import {
-  ExerciseService,
-  ExerciseTreeNode,
-  Subject,
-} from 'src/app/exercise-service/exercise.service';
+import { ExerciseService } from 'src/app/exercise-service/exercise.service';
 import { categoryRegex, categorySeparator } from 'src/app/exercises/exercises';
 import {
   ScreenSizeService,
   ScreenSizes,
 } from 'src/app/helper/screen-size.service';
+import { ExerciseTreeNode, Subject } from '../exercise-service/exercise.utils';
 
 @Component({
   selector: 'app-public-exercises',
@@ -18,8 +15,11 @@ import {
   styleUrls: ['./public-exercises.component.scss'],
 })
 export class PublicExercisesComponent implements OnInit, OnDestroy {
+  private readonly SubjectError = 404;
+
   isSingleSubject = false;
-  isError = false;
+  isLoading = true;
+  errorCode: number | null = null;
 
   list?: ExerciseTreeNode[];
   breadcrumbs: ExerciseTreeNode[] = [];
@@ -31,7 +31,6 @@ export class PublicExercisesComponent implements OnInit, OnDestroy {
   readonly mobileSize = ScreenSizes.MOBILE;
   screenSize: number = ScreenSizes.FULL_HD;
   private screenSizeSub?: Subscription;
-  private subjectList?: Subscription;
   private categoriesSub?: Subscription;
   private queryParams?: Subscription;
   constructor(
@@ -42,33 +41,7 @@ export class PublicExercisesComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    const subjectId = this.route.snapshot.paramMap.get('subjectId');
-    if (subjectId) {
-      this.subjectList = this.exerciseService
-        .getSubjectList()
-        .subscribe((response) => {
-          if (response && response.length > 0) {
-            const subject = this.exerciseService.findSubjectById(
-              subjectId,
-              response
-            );
-            if (subject) {
-              this.subject = subject;
-              this.exercise = this.route.snapshot.queryParamMap.get('exercise');
-              const current = this.currentCategory
-                ? this.currentCategory
-                : this.exercise
-                ? this.getExercisePath()
-                : '';
-              this.categories.next(current);
-              this.currentCategory = null;
-
-              if (response.length == 1) this.isSingleSubject = true;
-              else this.isSingleSubject = false;
-            } else this.throwError();
-          }
-        });
-    } else this.throwError();
+    this.fetchSubjectList();
 
     this.categoriesSub = this.categories.subscribe((categories) => {
       this.navigateToCategory(categories);
@@ -86,15 +59,14 @@ export class PublicExercisesComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.subjectList?.unsubscribe();
     this.categories.complete();
     this.categoriesSub?.unsubscribe();
     this.queryParams?.unsubscribe();
     this.screenSizeSub?.unsubscribe();
   }
 
-  private throwError() {
-    this.isError = true;
+  private throwError(error: number = this.SubjectError) {
+    this.errorCode = error;
   }
 
   navigateToCategory(newCategory: string) {
@@ -178,6 +150,36 @@ export class PublicExercisesComponent implements OnInit, OnDestroy {
       this.currentCategory = this.breadcrumbs[
         this.breadcrumbs.length - 1
       ].getPath();
-    this.exerciseService.updateSubjectList();
+    //this.exerciseService.updateSubjectList();
+    this.fetchSubjectList();
+  }
+
+  private fetchSubjectList() {
+    const subjectId = this.route.snapshot.paramMap.get('subjectId');
+    if (subjectId) {
+      this.exerciseService.getSubjectList().then((response) => {
+        if (Array.isArray(response)) {
+          const subject = this.exerciseService.findSubjectById(
+            subjectId,
+            response
+          );
+          if (subject) {
+            this.subject = subject;
+            this.exercise = this.route.snapshot.queryParamMap.get('exercise');
+            const current = this.currentCategory
+              ? this.currentCategory
+              : this.exercise
+              ? this.getExercisePath()
+              : '';
+            this.categories.next(current);
+            this.currentCategory = null;
+
+            if (response.length == 1) this.isSingleSubject = true;
+            else this.isSingleSubject = false;
+            this.isLoading = false;
+          } else this.throwError();
+        } else this.throwError(response);
+      });
+    } else this.throwError();
   }
 }

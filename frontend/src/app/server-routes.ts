@@ -1,4 +1,7 @@
 export const publicExerciseList = '/api/public';
+export function exercise(subject: string, id: string) {
+  return `/api/public/${subject}/${id}`;
+}
 
 //#region Account
 export const register = '/api/register';

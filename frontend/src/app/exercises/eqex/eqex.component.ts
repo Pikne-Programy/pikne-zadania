@@ -3,15 +3,13 @@ import {
   Component,
   EventEmitter,
   Input,
-  OnDestroy,
   Output,
 } from '@angular/core';
-import { Subscription } from 'rxjs';
 import { ExerciseService } from 'src/app/exercise-service/exercise.service';
 import { serverMockEnabled } from 'src/app/helper/tests/tests.config';
 import { getErrorCode, removeMathTabIndex } from 'src/app/helper/utils';
 import { image } from 'src/app/server-routes';
-import { ExerciseComponent } from '../exercises';
+import { Exercise, ExerciseComponent } from '../exercises';
 declare var MathJax: any;
 
 class Unknown {
@@ -43,25 +41,25 @@ class Unknown {
   templateUrl: './eqex.component.html',
   styleUrls: ['./eqex.component.scss'],
 })
-export class EqexComponent
-  implements ExerciseComponent, AfterViewInit, OnDestroy {
+export class EqexComponent implements ExerciseComponent, AfterViewInit {
+  private loadedImages: boolean[] = [];
   @Output() loaded = new EventEmitter<string>();
+  isSubmitted = false;
   isLoading = true;
   @Output() onAnswers = new EventEmitter<number | null>();
 
   @Input() subject?: string;
   @Input() exerciseId?: string;
-  private _data: any;
-  @Input() set data(value: any) {
-    this._data = value;
-    this.title = this._data.name;
-    this.subtitle = this._data.content.main;
+  @Input() set data(value: Exercise) {
+    this.title = value.name;
+    this.subtitle = value.content.main;
+    this.imgAlts = value.content.img;
     this.images = serverMockEnabled
-      ? this._data.content.img
-      : this.getImages(this._data.content.img);
-    if (this._data.content.unknowns) {
+      ? value.content.img
+      : this.getImages(value.content.img);
+    if (value.content.unknowns) {
       const tempList: Unknown[] = [];
-      this._data.content.unknowns.forEach((unknown: string[]) => {
+      value.content.unknowns.forEach((unknown: string[]) => {
         tempList.push(new Unknown(unknown[0], unknown[1]));
       });
       this.unknowns = tempList;
@@ -71,11 +69,9 @@ export class EqexComponent
   title?: string;
   subtitle?: string;
   images?: string[];
-  unknowns?: Unknown[];
+  private imgAlts?: string;
+  unknowns: Unknown[] = [];
 
-  private answerSubscription?: Subscription;
-  private loadedImages: boolean[] = [];
-  isSubmitted = false;
   constructor(private exerciseService: ExerciseService) {}
 
   getTextAsMath(text: string): string {
@@ -83,44 +79,34 @@ export class EqexComponent
   }
 
   submitAnswers() {
-    if (this.unknowns && this.subject && this.exerciseId) {
+    if (this.subject && this.exerciseId) {
       this.isSubmitted = true;
       const list: (number | null)[] = [];
       this.unknowns.forEach((unknown) => {
         const text = unknown.input;
         list.push(text !== '' ? Number(text.replace(',', '.')) : null);
       });
-      this.answerSubscription?.unsubscribe();
-      this.answerSubscription = this.exerciseService
-        .postAnswers(this.subject, this.exerciseId, list)
-        .subscribe(
-          (response: any) => {
-            this.isSubmitted = false;
-            if (Array.isArray(response) && this.unknowns) {
-              this.onAnswers.emit(null);
-              for (
-                let i = 0;
-                i < response.length && i < this.unknowns.length;
-                i++
-              )
-                this.unknowns[i].setAnswerCorrectness(response[i]);
-            }
-          },
-          (error) => {
-            this.isSubmitted = false;
-            this.onAnswers.emit(getErrorCode(error));
-          }
-        );
+      this.exerciseService
+        .submitAnswers(this.subject, this.exerciseId, list)
+        .then((response) => {
+          if (Exercise.isEqExAnswer(response, this.unknowns.length)) {
+            this.onAnswers.emit(null);
+            for (let i = 0; i < response.length; i++)
+              this.unknowns[i].setAnswerCorrectness(response[i]);
+          } else this.throwError();
+        })
+        .catch((error) => this.throwError(error))
+        .finally(() => (this.isSubmitted = false));
     }
+  }
+
+  private throwError(error: any = {}) {
+    this.onAnswers.emit(getErrorCode(error));
   }
 
   ngAfterViewInit() {
     MathJax.typeset();
     removeMathTabIndex();
-  }
-
-  ngOnDestroy() {
-    this.answerSubscription?.unsubscribe();
   }
 
   onImageLoaded() {
@@ -152,7 +138,7 @@ export class EqexComponent
 
   getImageAlt(i: number): string {
     let alt = 'Błąd wczytywania obrazka';
-    const images = this._data.content.img;
+    const images = this.imgAlts;
     if (images && Array.isArray(images) && i < images.length)
       alt += ` ${images[i]}`;
     return alt;

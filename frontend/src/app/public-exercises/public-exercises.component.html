@@ -1,4 +1,4 @@
-<div *ngIf="!isError" class="columns height-full m-0">
+<div *ngIf="!isLoading && errorCode === null" class="columns height-full m-0">
   <div *ngIf="screenSize !== mobileSize || exercise === null" class="height-full column is-one-quarter-tablet is-one-fifth-desktop">
     <div class="box height-full p-0">
       <aside class="menu height-full is-flex is-flex-direction-column">
@@ -13,10 +13,10 @@
             </li>
             <li *ngFor="let breadcrumb of breadcrumbs; index as i" tabindex="0" (keydown.enter)="navigateToBreadcrumb(breadcrumb)">
               <a (click)="navigateToBreadcrumb(breadcrumb)" aria-current="page">
-                <span *ngIf="isSingleSubject && i == 0" class="icon">
+                <span *ngIf="isSingleSubject && i === 0" class="icon">
                   <i class="fas fa-home" aria-hidden="true"></i>
                 </span>
-                <span>{{ breadcrumb.value | titlecase}}</span>
+                <span>{{ breadcrumb.value | titlecase }}</span>
               </a>
             </li>
           </ul>
@@ -25,7 +25,7 @@
           <ul class="menu-list py-3">
             <li *ngFor="let node of list" tabindex="0" (keydown.enter)="navigate(node)">
               <a [ngClass]="{ 'is-active': isExerciseSelected(node)}" (click)="navigate(node)" class="menu-element columns m-0">
-                <span class="column p-0">{{ node.value | titlecase}}</span>
+                <span class="column p-0">{{ node.value | titlecase }}</span>
                 <span *ngIf="node.done !== undefined && node.done !== null" class="icon is-small column is-narrow p-0">
                   <i class="fas" [ngClass]="{
                     'fa-check': node.done === 100,
@@ -42,7 +42,7 @@
   </div>
   <div *ngIf="screenSize !== mobileSize || exercise !== null" class="column height-full">
     <div class="box height-full is-flex is-flex-direction-column p-0">
-      <nav *ngIf="screenSize == mobileSize" class="level divider-bottom p-2 m-0" (click)="resetExercise()">
+      <nav *ngIf="screenSize === mobileSize" class="level divider-bottom p-2 m-0" (click)="resetExercise()">
         <div class="level-left">
           <button class="button is-rounded is-small">
             <span class="icon">
@@ -62,4 +62,6 @@
     </div>
   </div>
 </div>
-<app-error *ngIf="isError" [message]="'Ups, przedmiot, którego szukasz, nie istnieje!'" [link]="null"></app-error>
+<!--TODO Make loading component w/ pulsating logo -->
+<app-loading *ngIf="isLoading && errorCode === null"></app-loading>
+<app-error *ngIf="errorCode !== null" [code]="errorCode" [message]="'Ups, przedmiot, którego szukasz, nie istnieje!'" [link]="null"></app-error>

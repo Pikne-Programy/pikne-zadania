@@ -50,6 +50,9 @@ export async function pbkdf2(
   return btoa(String.fromCharCode(...new Uint8Array(hash)));
 }
 
+/**
+ * @param fallback Default fallback error is 400
+ */
 export function getErrorCode(error: any, fallback: number = 400): number {
   return error.status && typeof error.status === 'number'
     ? error.status

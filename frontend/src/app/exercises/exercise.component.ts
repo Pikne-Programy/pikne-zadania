@@ -18,7 +18,6 @@ import { EqexComponent } from './eqex/eqex.component';
 import {
   Exercise,
   ExerciseType,
-  isExercise,
   ExerciseComponent as ExerciseComponentType,
   categoryRegex,
 } from './exercises';
@@ -31,7 +30,6 @@ import {
 export class ExerciseComponent implements OnChanges, OnDestroy {
   isLoading = true;
   errorCode: number | null = null;
-  exercise?: Subscription;
   @ViewChild('exContainer', { read: ViewContainerRef })
   container!: ViewContainerRef;
   componentRef?: ComponentRef<ExerciseComponentType>;
@@ -47,35 +45,27 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
   ) {}
 
   ngOnChanges() {
-    this.exercise?.unsubscribe();
     this.componentRef?.destroy();
     this.isLoading = true;
     this.errorCode = null;
 
     if (this.exerciseUrl && this.subject) {
-      this.exercise = this.exerciseService
+      this.exerciseService
         .getExercise(this.subject, this.getExerciseId(this.exerciseUrl))
-        .subscribe(
-          (response) => {
-            if (isExercise(response)) {
-              switch (response.type) {
-                case ExerciseType[ExerciseType.EqEx]:
-                  this.inflateComponent(EqexComponent, response);
-                  break;
-                default:
-                  this.throwError({ status: null });
-              }
-            } else this.throwError({ status: null });
-          },
-          (error) => {
-            this.throwError(error);
+        .then((exercise) => {
+          switch (exercise.type) {
+            case ExerciseType[ExerciseType.EqEx]:
+              this.inflateComponent(EqexComponent, exercise);
+              break;
+            default:
+              this.throwError();
           }
-        );
+        })
+        .catch((error) => this.throwError(error));
     }
   }
 
   ngOnDestroy() {
-    this.exercise?.unsubscribe();
     this.componentRef?.destroy();
     this.loadingSubscription?.unsubscribe();
     this.answerSubscription?.unsubscribe();
@@ -108,7 +98,7 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
     }
   }
 
-  private throwError(error: any) {
+  private throwError(error: any = {}) {
     this.isLoading = false;
     this.errorCode = getErrorCode(error);
   }

@@ -1,4 +1,4 @@
-<section class="section height-full pb-0 px-5 pt-5">
+<section *ngIf="errorCode === null" class="section height-full pb-0 px-5 pt-5">
   <div class="columns height-full is-align-items-center is-justify-content-center">
     <div class="column height-full is-half-tablet is-two-fifths-desktop is-one-third-widescreen is-one-forth-fullhd py-only-mobile-0">
       <nav class="panel max-height-full is-flex is-flex-direction-column">
@@ -9,10 +9,11 @@
             <span class="panel-icon">
               <i class="fas fa-book" aria-hidden="true"></i>
             </span>
-            <span>{{ subject.name | titlecase}}</span>
+            <span>{{ subject.name | titlecase }}</span>
           </a>
         </nav>
       </nav>
     </div>
   </div>
 </section>
+<app-error *ngIf="errorCode !== null" [code]="errorCode"></app-error>
