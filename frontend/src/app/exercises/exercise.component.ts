@@ -113,6 +113,27 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
     this.errorCode = getErrorCode(error);
   }
 
+  getErrorMessage(errorCode: number): string | undefined {
+    switch (errorCode) {
+      case 404:
+        return 'Ups! Zadanie, którego szukasz, nie istnieje!';
+      case 500:
+        return 'Błąd serwera';
+      default:
+        return undefined;
+    }
+  }
+
+  getErrorCode(errorCode: number): number | undefined {
+    switch (errorCode) {
+      case 404:
+      case 500:
+        return undefined;
+      default:
+        return errorCode;
+    }
+  }
+
   private getExerciseId(exercisePath: string) {
     const matches = exercisePath.match(categoryRegex);
     if (matches && matches.length > 0) return matches[matches.length - 1];
