@@ -3,7 +3,7 @@ import { capitalize } from '../helper/utils';
 
 export interface ServerResponseNode {
   name: string;
-  children: any;
+  children: ServerResponseNode[] | string;
   done?: number | null;
 }
 
@@ -35,7 +35,7 @@ export class Subject {
           node.name,
           ExerciseTreeNode.createExerciseTree(
             node.name,
-            node.children,
+            node.children as ServerResponseNode[],
             node.name
           )
         )
@@ -80,11 +80,18 @@ export class ExerciseTreeNode {
             capitalize(child.name),
             node,
             child.children,
-            child.done === undefined ? null : child.done
+            child.done === undefined
+              ? ExerciseTreeNode.getDone(child.children)
+              : child.done
           )
         );
       }
     });
     return node;
+  }
+
+  static getDone(url: string): number | null {
+    const localDone = localStorage.getItem(url);
+    return localDone !== null ? Number(localDone) : null;
   }
 }

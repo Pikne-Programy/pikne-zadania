@@ -8,10 +8,20 @@ export const categorySeparator = '~';
 export const categoryRegex = new RegExp(`([^\\${categorySeparator}]+)`, 'g');
 
 export class Exercise {
-  constructor(public type: string, public name: string, public content: any) {}
+  constructor(
+    public readonly type: string,
+    public readonly name: string,
+    public readonly content: any,
+    public done?: number | null
+  ) {}
 
   static isExercise(object: any): object is Exercise {
-    return 'type' in object && 'name' in object && 'content' in object;
+    return (
+      typeof object === 'object' &&
+      'type' in object &&
+      'name' in object &&
+      'content' in object
+    );
   }
 
   static isEqExAnswer = Exercise.isBoolArrayAnswer;
@@ -26,6 +36,25 @@ export class Exercise {
       object.every((val) => typeof val === 'boolean')
     );
   }
+
+  static getDone(exercise: Exercise) {
+    if (exercise.done === undefined) {
+      const localDone = localStorage.getItem(exercise.name);
+      exercise.done = localDone !== null ? Number(localDone) : undefined;
+    }
+  }
+
+  static setDone(type: ExerciseType, name: string, answers: any) {
+    switch (type) {
+      case ExerciseType.EqEx:
+        const correct = (answers as boolean[]).filter((val) => val);
+        localStorage.setItem(
+          name,
+          (correct.length / (answers as boolean[]).length).toFixed(2).toString()
+        );
+        break;
+    }
+  }
 }
 
 export interface ExerciseComponent {
@@ -35,4 +64,5 @@ export interface ExerciseComponent {
   exerciseId?: string;
   onAnswers: EventEmitter<number | null>;
   submitAnswers(): void;
+  setLocalDone(name: string, answers: any): void;
 }

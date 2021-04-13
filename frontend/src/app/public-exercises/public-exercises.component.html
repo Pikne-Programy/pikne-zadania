@@ -24,12 +24,16 @@
         <div class="height-full scrollable px-4">
           <ul class="menu-list py-3">
             <li *ngFor="let node of list" tabindex="0" (keydown.enter)="navigate(node)">
-              <a [ngClass]="{ 'is-active': isExerciseSelected(node)}" (click)="navigate(node)" class="menu-element columns m-0">
+              <a [ngClass]="{ 'is-active': isExerciseSelected(node)}" (click)="navigate(node)" class="menu-element is-flex is-align-items-baseline">
                 <span class="column p-0">{{ node.value | titlecase }}</span>
-                <span *ngIf="node.done !== undefined && node.done !== null" class="icon is-small column is-narrow p-0">
+                <span *ngIf="node.done !== undefined && node.done !== null" class="icon is-small p-0" [ngClass]="{
+                  'is-success': node.done === 1,
+                  'is-warning': node.done < 1 && node.done > 0,
+                  'is-danger': node.done === 0
+                }">
                   <i class="fas" [ngClass]="{
-                    'fa-check': node.done === 100,
-                    'fa-minus': node.done < 100 && node.done > 0,
+                    'fa-check': node.done === 1,
+                    'fa-minus': node.done < 1 && node.done > 0,
                     'fa-times': node.done === 0
                   }" aria-hidden="true"></i>
                 </span>

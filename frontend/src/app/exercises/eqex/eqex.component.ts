@@ -9,7 +9,7 @@ import { ExerciseService } from 'src/app/exercise-service/exercise.service';
 import { serverMockEnabled } from 'src/app/helper/tests/tests.config';
 import { getErrorCode, removeMathTabIndex } from 'src/app/helper/utils';
 import { image } from 'src/app/server-routes';
-import { Exercise, ExerciseComponent } from '../exercises';
+import { Exercise, ExerciseComponent, ExerciseType } from '../exercises';
 declare var MathJax: any;
 
 class Unknown {
@@ -69,7 +69,7 @@ export class EqexComponent implements ExerciseComponent, AfterViewInit {
   title?: string;
   subtitle?: string;
   images?: string[];
-  private imgAlts?: string;
+  private imgAlts?: string[];
   unknowns: Unknown[] = [];
 
   constructor(private exerciseService: ExerciseService) {}
@@ -90,6 +90,7 @@ export class EqexComponent implements ExerciseComponent, AfterViewInit {
         .submitAnswers(this.subject, this.exerciseId, list)
         .then((response) => {
           if (Exercise.isEqExAnswer(response, this.unknowns.length)) {
+            if (this.exerciseId) this.setLocalDone(this.exerciseId, response);
             this.onAnswers.emit(null);
             for (let i = 0; i < response.length; i++)
               this.unknowns[i].setAnswerCorrectness(response[i]);
@@ -98,6 +99,10 @@ export class EqexComponent implements ExerciseComponent, AfterViewInit {
         .catch((error) => this.throwError(error))
         .finally(() => (this.isSubmitted = false));
     }
+  }
+
+  setLocalDone(name: string, answers: any) {
+    Exercise.setDone(ExerciseType.EqEx, name, answers);
   }
 
   private throwError(error: any = {}) {

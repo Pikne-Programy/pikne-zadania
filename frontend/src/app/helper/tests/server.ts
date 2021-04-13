@@ -201,10 +201,9 @@ export function startServer() {
                 .children as ExerciseTree[])[0] as any)['done'] = percent;
               break;
             case 'fizyka/no-category-0':
-              for (let i = 1; i <= noCategoryAmount; i++)
-                ((list[0].children as ExerciseTree[])[i] as any)[
-                  'done'
-                ] = percent;
+              ((list[0].children as ExerciseTree[])[2] as any)[
+                'done'
+              ] = percent;
               break;
             case 'subject/angle':
               for (let i = 1; i <= noCategoryAmount; i++)

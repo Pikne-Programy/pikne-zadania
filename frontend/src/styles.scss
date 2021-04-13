@@ -46,6 +46,10 @@ $button-colors: mergeColorMaps(
   }
 }
 
+.breadcrumb.is-bold {
+  font-weight: 600;
+}
+
 .button {
   font-weight: iv.$weight-semibold;
 
@@ -68,9 +72,26 @@ $button-colors: mergeColorMaps(
   border-top-right-radius: inherit;
 }
 
-.icon.is-extra-large {
-  height: 10rem;
-  width: 10rem;
+.menu-list a:not(.is-active) .icon {
+  &.is-success {
+    color: $success;
+  }
+  &.is-warning {
+    color: $warning;
+  }
+  &.is-danger {
+    color: $danger;
+  }
+}
+
+.icon {
+  &.is-extra-large {
+    height: 10rem;
+    width: 10rem;
+  }
+  &.is-very-small {
+    width: 0.25rem;
+  }
 }
 
 .fas.fa-10x {

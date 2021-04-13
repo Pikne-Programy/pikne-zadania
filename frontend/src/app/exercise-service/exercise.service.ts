@@ -47,8 +47,10 @@ export class ExerciseService {
       .get(ServerRoutes.exercise(subject, id))
       .pipe(
         switchMap((response) => {
-          if (Exercise.isExercise(response)) return of(response);
-          else return throwError({ status: this.TypeError });
+          if (Exercise.isExercise(response)) {
+            Exercise.getDone(response);
+            return of(response);
+          } else return throwError({ status: this.TypeError });
         })
       )
       .toPromise();
