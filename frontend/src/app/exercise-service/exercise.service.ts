@@ -5,7 +5,7 @@ import { switchMap } from 'rxjs/operators';
 import { Exercise } from '../exercises/exercises';
 import { getErrorCode } from '../helper/utils';
 import * as ServerRoutes from '../server-routes';
-import { checkSubjectListValidity, Subject } from './exercise.utils';
+import { Subject } from './exercise.utils';
 
 @Injectable({
   providedIn: 'root',
@@ -20,7 +20,7 @@ export class ExerciseService {
       .get(ServerRoutes.publicExerciseList)
       .pipe(
         switchMap((response) =>
-          checkSubjectListValidity(response)
+          Subject.checkSubjectListValidity(response)
             ? of(response)
             : throwError({ status: 400 })
         )
@@ -32,7 +32,7 @@ export class ExerciseService {
     return this.fetchExercises()
       .then((response) =>
         response.length > 0
-          ? Subject.createSubjectList(response)
+          ? Subject.createSubjectList(response) ?? this.TypeError
           : this.TypeError
       )
       .catch((error) => getErrorCode(error, this.TypeError));

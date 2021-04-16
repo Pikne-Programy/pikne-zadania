@@ -292,6 +292,59 @@ export function startServer() {
         if (currentAccount !== null) return currentAccount;
         else return new Response(400);
       });
+
+      interface Team {
+        id: number;
+        name: string;
+        assignee?: string;
+        open: boolean;
+      }
+      const teacherTeams: Team[] = [
+        /*{
+          id: 2,
+          name: '1d',
+          open: true,
+        },
+        {
+          id: 3,
+          name: '2d',
+          open: true,
+        },
+        {
+          id: 4,
+          name: '3d',
+          open: false,
+        },*/
+      ];
+      for (let i = 0; i < 20; i++)
+        teacherTeams.push({
+          id: i + 2,
+          name: `${i + 1}d`,
+          open: i % 2 === 0,
+        });
+      const tempRootTeams: Team[] = [
+        {
+          id: 1,
+          name: 'Teachers',
+          open: false,
+          assignee: 'admin',
+        },
+      ];
+      const rootTeams = tempRootTeams.concat(teacherTeams);
+      for (let i = 0; i < rootTeams.length; i++) {
+        const team = rootTeams[i];
+        if (!team.assignee) team.assignee = `User${i}`;
+      }
+      this.get('/api/teams', () => {
+        switch (currentAccount?.team) {
+          case 0:
+            return rootTeams;
+          case 1:
+            return teacherTeams;
+          default:
+            return new Response(403);
+        }
+      });
     },
   });
   console.log('server started');

@@ -19,10 +19,8 @@ export class TeamService {
       .get(ServerRoutes.teams)
       .pipe(
         switchMap((response) =>
-          response &&
-          Array.isArray(response) &&
-          response.every((val) => Utils.isTeamItem(val))
-            ? (response as Utils.TeamItem[])
+          response && Utils.isTeamItemList(response)
+            ? of(response)
             : throwError({ status: this.typeError })
         )
       )

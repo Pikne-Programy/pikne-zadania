@@ -64,8 +64,7 @@ export class LoginComponent implements OnDestroy {
                   account.error === null &&
                   account.observable.getValue() !== null
                 )
-                  //TODO Change to Account dashboard path
-                  this.navigateBack('/public-exercises');
+                  this.navigateBack('/user/dashboard');
                 else this.submitErrorCode = account.error ?? this.generalError;
               })
               .catch((error) => {

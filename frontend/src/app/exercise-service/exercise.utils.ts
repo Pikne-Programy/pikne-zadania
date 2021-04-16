@@ -7,41 +7,42 @@ export interface ServerResponseNode {
   done?: number | null;
 }
 
-export function checkSubjectListValidity(
-  list: any
-): list is ServerResponseNode[] {
-  if (Array.isArray(list)) {
-    if (list.length > 0) {
-      return list.every((node) => {
-        if ('name' in node && 'children' in node) {
-          if (Array.isArray(node.children))
-            return checkSubjectListValidity(node.children);
-          else if (typeof node.children === 'string') return true;
-          else return false;
-        } else return false;
-      });
-    } else return true;
-  } else return false;
-}
-
 export class Subject {
   constructor(public name: string, public exerciseTree: ExerciseTreeNode) {}
 
-  static createSubjectList(serverResponse: ServerResponseNode[]): Subject[] {
+  static createSubjectList(
+    serverResponse: ServerResponseNode[]
+  ): Subject[] | null {
     const list: Subject[] = [];
-    serverResponse.forEach((node) => {
-      list.push(
-        new Subject(
-          node.name,
-          ExerciseTreeNode.createExerciseTree(
+    for (let node of serverResponse) {
+      if (Array.isArray(node.children)) {
+        list.push(
+          new Subject(
             node.name,
-            node.children as ServerResponseNode[],
-            node.name
+            ExerciseTreeNode.createExerciseTree(
+              node.name,
+              node.children,
+              node.name
+            )
           )
-        )
-      );
-    });
+        );
+      } else return null;
+    }
     return list;
+  }
+
+  static checkSubjectListValidity(list: any): list is ServerResponseNode[] {
+    if (Array.isArray(list)) {
+      if (list.length > 0) {
+        return list.every((node) => {
+          if ('name' in node && 'children' in node) {
+            if (Array.isArray(node.children))
+              return Subject.checkSubjectListValidity(node.children);
+            else return typeof node.children === 'string';
+          } else return false;
+        });
+      } else return true;
+    } else return false;
   }
 }
 

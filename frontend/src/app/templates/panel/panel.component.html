@@ -1,0 +1,12 @@
+<p *ngIf="header" class="panel-heading">
+  {{ header }}
+</p>
+<app-loading *ngIf="isLoading"></app-loading>
+<div *ngIf="!isLoading" class="panel height-full scrollable">
+  <a *ngFor="let item of list" class="panel-block" [routerLink]="getRouterLink(item.second)">
+    <span *ngIf="item.third" class="panel-icon">
+      <i class="fas" [ngClass]="item.third" aria-hidden="true"></i>
+    </span>
+    {{ item.first| titlecase }}
+  </a>
+</div>

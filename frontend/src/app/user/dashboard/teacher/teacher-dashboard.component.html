@@ -1,3 +1,13 @@
-<p>
-  teacher-dashboard works!
-</p>
+<div *ngIf="errorCode === null" class="tile">
+  <div class="tile is-4 is-parent">
+    <app-panel class="tile is-child" [main-link]="'/user/teams'" [items]="getTeamNames()" [header]="'Klasy'" [color]="'primary'"></app-panel>
+  </div>
+  <div class="tile is-parent">
+    <div class="tile is-child is-vertical box">
+      <p>
+        TODO
+      </p>
+    </div>
+  </div>
+</div>
+<app-error *ngIf="errorCode !== null" class="tile" [message]="ErrorMessage" [code]="errorCode"></app-error>

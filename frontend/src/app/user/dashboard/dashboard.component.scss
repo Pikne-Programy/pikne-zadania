@@ -9,9 +9,6 @@ $mobile: nth(
   &.is-label {
     font-size: 0.9rem;
   }
-  &.user-number {
-    margin-top: -0.75rem;
-  }
   &:not(.is-spaced) + .title {
     margin-top: -1.5rem;
   }
@@ -38,7 +35,7 @@ $mobile: nth(
 
 .panel.shortcuts {
   @media screen and (max-width: nth($list: $mobile, $n: 3)) {
-    display: none;
+    display: none !important;
   }
 }
 

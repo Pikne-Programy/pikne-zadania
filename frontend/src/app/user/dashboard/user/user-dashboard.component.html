@@ -1,3 +1,17 @@
-<p>
-  user-dashboard works!
-</p>
+<div *ngIf="errorCode === null" class="tile">
+  <div class="tile is-parent">
+    <div class="tile is-child is-vertical box">
+      <p>
+        TODO
+      </p>
+    </div>
+  </div>
+  <div class="tile is-parent">
+    <div class="tile is-child is-vertical box">
+      <p>
+        TODO
+      </p>
+    </div>
+  </div>
+</div>
+<app-error *ngIf="errorCode !== null" class="tile" [message]="ErrorMessage" [code]="errorCode"></app-error>

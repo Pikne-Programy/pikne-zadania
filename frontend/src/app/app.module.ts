@@ -18,6 +18,7 @@ import { RegisterComponent } from './account/register/register.component';
 import { LoginComponent } from './account/login/login.component';
 import { environment } from '../environments/environment';
 import { AuthGuardService } from './account/auth-guard.service';
+import { TemplatesModule } from './templates/templates.module';
 
 @NgModule({
   declarations: [
@@ -39,6 +40,7 @@ import { AuthGuardService } from './account/auth-guard.service';
     MatSidenavModule,
     FormsModule,
     ReactiveFormsModule,
+    TemplatesModule,
     ServiceWorkerModule.register('ngsw-worker.js', {
       enabled: environment.production,
     }),

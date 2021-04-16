@@ -3,13 +3,8 @@ import { Subscription } from 'rxjs';
 import { Account, AccountService } from 'src/app/account/account.service';
 import { AuthGuardService, Role } from 'src/app/account/auth-guard.service';
 import { getErrorCode, Tuple } from 'src/app/helper/utils';
-
-export interface DashboardComponentType {
-  /**
-   * @Input Angular input
-   */
-  account?: Account;
-}
+import { TeamService } from '../team.service/team.service';
+import * as Utils from './dashboard.utils';
 
 @Component({
   selector: 'app-dashboard',
@@ -18,17 +13,23 @@ export interface DashboardComponentType {
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   readonly UserRole = Role.USER;
-  readonly accountError = 401;
+  private readonly AccountError = 401;
 
   account?: Account;
+  teacherData?: Utils.TeacherData | number;
+  userData?: Utils.UserData | number;
   /**
    * First - text; Second - link; Third - icon
    */
   shortcuts: Tuple<string, string, string>[] = [];
 
+  isLoading = true;
   errorCode: number | null = null;
   accountSubscription?: Subscription;
-  constructor(private accountService: AccountService) {}
+  constructor(
+    private accountService: AccountService,
+    private teamService: TeamService
+  ) {}
 
   ngOnInit() {
     this.accountService
@@ -39,21 +40,32 @@ export class DashboardComponent implements OnInit, OnDestroy {
             this.account = account;
             switch (AuthGuardService.getRole(account)) {
               case Role.USER:
-                this.shortcuts = userShortcuts;
+                this.shortcuts = Utils.userShortcuts;
+                //TODO User dashboard
+                this.userData = new Utils.UserData();
+                this.isLoading = false;
                 break;
               default:
-                this.shortcuts = teacherShortcuts;
+                this.shortcuts = Utils.teacherShortcuts;
+                this.teamService
+                  .getTeams()
+                  .then(
+                    (teams) => (this.teacherData = new Utils.TeacherData(teams))
+                  )
+                  .catch((error) => (this.teacherData = getErrorCode(error)))
+                  .finally(() => (this.isLoading = false));
             }
             this.errorCode = null;
           } else {
+            this.isLoading = false;
             this.account = undefined;
             this.shortcuts = [];
-            this.errorCode = this.accountError;
+            this.errorCode = this.AccountError;
           }
         });
       })
       .catch((error) => {
-        this.errorCode = getErrorCode(error, this.accountError);
+        this.errorCode = getErrorCode(error, this.AccountError);
       });
   }
 
@@ -64,11 +76,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
   getRole(account: Account) {
     return AuthGuardService.getRole(account);
   }
-}
 
-const userShortcuts: Tuple<string, string, string>[] = [
-  new Tuple('user', '/public-exercises', 'fa-book'),
-];
-const teacherShortcuts: Tuple<string, string, string>[] = [
-  new Tuple('teacher', '/public-exercises', 'fa-book'),
-];
+  getErrorCode(): number | null {
+    if (this.errorCode !== null) return this.errorCode;
+    if (!this.account) return this.AccountError;
+    const role = this.getRole(this.account);
+    if (
+      (role === Role.USER && this.userData === undefined) ||
+      (role !== Role.USER && this.teacherData === undefined)
+    )
+      return Utils.InternalError;
+    return null;
+  }
+}

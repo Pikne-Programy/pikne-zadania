@@ -1,7 +1,7 @@
 export interface TeamItem {
   id: number;
   name: string;
-  assignee: string;
+  assignee?: string;
   open: boolean;
 }
 export function isTeamItem(object: any): object is TeamItem {
@@ -9,9 +9,11 @@ export function isTeamItem(object: any): object is TeamItem {
     typeof object === 'object' &&
     'id' in object &&
     'name' in object &&
-    'assignee' in object &&
     'open' in object
   );
+}
+export function isTeamItemList(object: any): object is TeamItem[] {
+  return Array.isArray(object) && object.every((val) => isTeamItem(val));
 }
 
 export interface Team {

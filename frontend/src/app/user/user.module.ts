@@ -8,6 +8,7 @@ import { NavModule } from '../navigation/nav.module';
 import { UserComponent } from './user.component';
 import { TeacherDashboardComponent } from './dashboard/teacher/teacher-dashboard.component';
 import { UserDashboardComponent } from './dashboard/user/user-dashboard.component';
+import { TemplatesModule } from '../templates/templates.module';
 
 @NgModule({
   declarations: [
@@ -16,7 +17,13 @@ import { UserDashboardComponent } from './dashboard/user/user-dashboard.componen
     TeacherDashboardComponent,
     UserDashboardComponent,
   ],
-  imports: [CommonModule, UserRoutingModule, NavModule, MatSidenavModule],
+  imports: [
+    CommonModule,
+    UserRoutingModule,
+    NavModule,
+    MatSidenavModule,
+    TemplatesModule,
+  ],
   providers: [],
   bootstrap: [UserComponent],
 })
