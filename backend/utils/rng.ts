@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { browserCrypto, MersenneTwister19937, Random } from "../deps.ts";
+import { RNG_PREC } from "./mod.ts";
 
 function precision(a: number) {
   // SRC: https://stackoverflow.com/a/27865285/6732111
@@ -30,7 +31,7 @@ export class RNG {
       const guessStepped = +(min + Math.round((guess - min) / step) * step);
       return +guessStepped.toFixed(precision(step));
     } else {
-      return +guess.toPrecision(3);
+      return +guess.toPrecision(RNG_PREC);
     }
   }
 }

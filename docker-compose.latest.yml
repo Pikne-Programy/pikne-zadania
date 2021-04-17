@@ -15,6 +15,7 @@ services:
     restart: unless-stopped
   api:
     image: nircek/pikne-zadania
+    env_file: api.env
     expose:
       - 8000
     links:

@@ -1,0 +1,24 @@
+# Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+scripts:
+  start:
+    cmd: "server.ts"
+    allow: # change Dockerfile also
+      net: true
+      env: true
+      read: /app/exercises
+    unstable: true
+    env:
+      JWT_ALG: HS256
+      JWT_KEY: secret
+      JWT_EXP: "604800" # 7 days
+      DECIMAL_POINT: "no"
+watcher:
+  exts:
+    - js
+    - jsx
+    - ts
+    - tsx
+    - json
+    - yml

@@ -50,4 +50,5 @@ export {
   getNumericDate,
   verify,
 } from "https://deno.land/x/djwt@v2.2/mod.ts";
+export type { Algorithm } from "https://deno.land/x/djwt@v2.2/algorithm.ts";
 export type { Header, Payload } from "https://deno.land/x/djwt@v2.2/mod.ts";

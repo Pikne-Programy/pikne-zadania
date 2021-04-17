@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { Exercise, JSONType } from "../../types/mod.ts";
-import { Range, RNG } from "../../utils/mod.ts";
+import { ANSWER_PREC, DECIMAL_POINT, Range, RNG } from "../../utils/mod.ts";
 import { httpErrors, vs } from "../../deps.ts";
 import RPN from "./RPN-parser/parser.ts";
 
@@ -102,8 +102,8 @@ export default class EquationExercise extends Exercise {
   readonly unknowns: string[] = []; // name
   readonly formattedUnknowns: [string, string][] = []; // [formatted name, unit]
   readonly order: number[] = []; // order of equations
-  readonly answerPrecision: number = 0.02; // such number x that: ans*(100-x)% <= user ans <= ans*(100-x)% returns correct answer
-  readonly pointDecimalSeparator: boolean = false; //true: '.', false: ','
+  readonly answerPrecision: number = ANSWER_PREC; // such number x that: ans*(100-x)% <= user ans <= ans*(100-x)% returns correct answer
+  readonly pointDecimalSeparator: boolean = DECIMAL_POINT; //true: '.', false: ','
   readonly img: string[];
 
   // content -> parse to latex, extract RPN, Range and number -> return parsed text

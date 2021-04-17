@@ -5,7 +5,7 @@
 
 import { Collection, MongoClient } from "../../deps.ts";
 import { Global, IdPartial, success, Team, User } from "../../types/mod.ts";
-import { userhash } from "../../utils/mod.ts";
+import { MONGO_CONF, userhash } from "../../utils/mod.ts";
 import { Database } from "./placeholder.ts";
 
 export class FunctionalDatabase extends Database {
@@ -17,7 +17,7 @@ export class FunctionalDatabase extends Database {
 
   constructor(readonly client: MongoClient) {
     super();
-    const db = this.client.database("pikne-zadania");
+    const db = this.client.database(MONGO_CONF.db);
     this.users = db.collection<User>("users");
     this.teams = db.collection<Team>("teams");
     this.global = db.collection<Global>("global");

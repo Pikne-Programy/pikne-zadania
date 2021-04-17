@@ -37,6 +37,7 @@ Install our app (use `sudo` if you are not in `docker` group):
 ```sh
 curl -L https://raw.githubusercontent.com/Pikne-Programy/pikne-zadania/master/docker-compose.latest.yml --create-dirs -o pikne-zadania/docker-compose.yml
 cd pikne-zadania/
+printf "JWT_ALG=HS512\nJWT_KEY=changeme\nJWT_EXP=$((7*24*60*60))\nLOGIN_TIME=2e3\nUSER_SALT=changeme\nDECIMAL_POINT=false\n" > api.env
 docker-compose up -d
 ```
 
@@ -53,8 +54,8 @@ git clone --recursive https://github.com/Pikne-Programy/pikne-zadania.git # clon
 git clone --recursive git@github.com:Pikne-Programy/pikne-zadania.git # clone via SSH
 cd pikne-zadania
 # build and run, can be repeated on and on:
-docker-compose up --build # with auto-update, denon and angular CLI running in background
-docker-compose -f docker-compose.prod.yml up --build # production-like environment
+docker-compose up --build # with auto-update, denon and angular CLI running in background, port 80
+docker-compose -f docker-compose.prod.yml up --build # production-like environment, port 8080
 # RESET ALL DOCKER STUFF (use only if it's needed!):
 docker system prune -af && docker volume prune -f
 ```

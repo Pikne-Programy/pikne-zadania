@@ -6,11 +6,12 @@
 import { MongoClient } from "../deps.ts";
 import { WorkingDatabase } from "./db/working.ts";
 import { Database } from "./db/placeholder.ts";
+import { MONGO_CONF } from "../utils/mod.ts";
 
 const client = new MongoClient();
 let db: Database;
 try {
-  await client.connect("mongodb://mongo:27017");
+  await client.connect(MONGO_CONF.url);
   db = new WorkingDatabase(client);
 } catch (e) {
   console.error("MONGO:", e.message, e.stack);

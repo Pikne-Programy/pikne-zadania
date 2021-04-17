@@ -8,7 +8,6 @@ import {
   compare,
   create,
   getNumericDate,
-  Header,
   httpErrors,
   Payload,
   RouterContext,
@@ -16,11 +15,7 @@ import {
 } from "../deps.ts";
 import { endpointSchema as endpoint } from "../types/mod.ts";
 import { db, delay, safeJSONbody, secondhash, userhash } from "../utils/mod.ts";
-import { generateSeed } from "../utils/mod.ts";
-
-const key = "super-secert-key";
-const header: Header = { alg: "HS512", typ: "JWT" }; // TODO make it invisible 
-const loginTime = 2e3;
+import { generateSeed, JWT_CONF, LOGIN_TIME } from "../utils/mod.ts";
 
 export async function login(ctx: RouterContext) {
   const startTime = Date.now();
@@ -37,11 +32,11 @@ export async function login(ctx: RouterContext) {
     ctx.response.status = 200;
   } else {
     ctx.response.status = 401;
-    const remainedTime = startTime + loginTime - Date.now();
+    const remainedTime = startTime + LOGIN_TIME - Date.now();
     if (remainedTime > 0) {
       await delay(remainedTime); // preventing timing attack
     } else {
-      console.error(`Missed loginTime by ${remainedTime} ms.`);
+      console.error(`Missed LOGIN_TIME by ${remainedTime} ms.`);
     }
   }
   const time = Date.now() - startTime;
@@ -87,16 +82,13 @@ export async function register(ctx: RouterContext) {
   console.log(`register: ${user.name}`);
 }
 const payload = (login: string) => {
-  const payload: Payload = {
-    id: login,
-    exp: getNumericDate(7 * 24 * 60 * 60), // 7 * 24h
-  };
+  const payload: Payload = { id: login, exp: getNumericDate(JWT_CONF.exp) };
   return payload;
 };
 
 async function makeJWT(uid: string): Promise<string | null> {
   try {
-    const jwt: string = await create(header, payload(uid), key);
+    const jwt = await create(JWT_CONF.header, payload(uid), JWT_CONF.key);
     await db.addJWT(uid, jwt);
     return jwt;
   } catch (e) {
@@ -106,7 +98,11 @@ async function makeJWT(uid: string): Promise<string | null> {
 
 export async function validateJWT(jwt: string): Promise<string | null> {
   try {
-    const payload: Payload = await verify(jwt, key, header.alg);
+    const payload: Payload = await verify(
+      jwt,
+      JWT_CONF.key,
+      JWT_CONF.header.alg,
+    );
     const user = payload.id;
     if (typeof user === "string") {
       if (await db.existsJWT(user, jwt)) {

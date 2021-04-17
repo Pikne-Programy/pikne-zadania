@@ -4,6 +4,10 @@ Upstream-Contact: Marcin Zepp <nircek-2103@protonmail.com>
 Source: https://github.com/Pikne-Programy/pikne-zadania/
 License: AGPL-3.0-or-later
 
+Files: .gitmodules api.env
+Copyright: Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
+License: AGPL-3.0-or-later
+
 Files: frontend/package*.json frontend/src/manifest.webmanifest frontend/src/app/*
 Copyright: Copyright 2021 Miłosz Wąsacz <wasacz.dev@gmail.com>
 License: AGPL-3.0-or-later

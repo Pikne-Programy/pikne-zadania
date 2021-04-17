@@ -14,6 +14,7 @@ services:
       - api
   api:
     build: backend
+    env_file: api.env
     expose:
       - 8000
     links:

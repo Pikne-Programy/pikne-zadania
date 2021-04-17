@@ -12,4 +12,4 @@ COPY deps.ts .
 RUN deno cache --unstable deps.ts
 ADD . .
 RUN deno cache --unstable server.ts
-CMD denon run --allow-net --unstable --allow-read=/app/exercises server.ts
+CMD denon start # see scripts.yml

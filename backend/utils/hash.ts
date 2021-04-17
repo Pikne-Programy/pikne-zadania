@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: WTFPL
 
 import { createHash, hashSync as secondhash, pbkdf2Sync } from "../deps.ts";
+import { USER_SALT } from "./mod.ts";
 
 function bufferToHex(buffer: ArrayBuffer) {
   // SRC: https://stackoverflow.com/a/50767210/6732111
@@ -21,8 +22,7 @@ export const firsthash = (user: string, password: string) =>
     ),
   ); // SRC: https://gist.github.com/Nircek/bf06c93f8df36bf645534c10eb6305ca
 export { secondhash };
-export const userhash = (mail: string) =>
-  sha256(mail, "some-temporary-secret:");
+export const userhash = (mail: string) => sha256(mail, USER_SALT);
 
 export function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));

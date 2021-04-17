@@ -4,13 +4,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { RouterContext } from "../deps.ts";
-import { generateSeed } from "../utils/mod.ts";
+import { generateSeed, SEED_AGE } from "../utils/mod.ts";
 
 function setSeed(ctx: RouterContext, seed: number) {
   ctx.state.seed = seed;
-  ctx.cookies.set("seed", seed.toString(), {
-    maxAge: 60 * 60 * 24 * 31 * 12 * 4,
-  });
+  ctx.cookies.set("seed", seed.toString(), { maxAge: SEED_AGE });
 }
 export async function seed(ctx: RouterContext, next: () => Promise<void>) {
   const cookie = +(ctx.cookies.get("seed") ?? NaN);
