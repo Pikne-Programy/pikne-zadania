@@ -384,7 +384,8 @@ it can be `null` or a number from 0 to 1, see [#24](https://github.com/Pikne-Pro
 }
 ```
 
-**note**: Member `id` property is a hashed email.
+**note**: Member `id` property is a hashed email. \
+**note**: When team has closed registration `invitation` is `null`.
 
 ***
 
