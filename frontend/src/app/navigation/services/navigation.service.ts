@@ -1,7 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Params, QueryParamsHandling, Router } from '@angular/router';
 import { BehaviorSubject, fromEvent, Subscription } from 'rxjs';
-import { AuthGuardService, Role } from 'src/app/account/auth-guard.service';
+import { Role, RoleGuardService } from 'src/app/guards/role-guard.service';
 import { AccountService } from '../../account/account.service';
 import { ScreenSizes, Sizes } from '../../helper/screen-size.service';
 import { Pair } from '../../helper/utils';
@@ -53,7 +53,7 @@ export class NavService implements OnDestroy {
     this.accountService.getAccount().then((account) => {
       this.accountSubscription = account.observable.subscribe((val) => {
         this.menuElements.next(
-          val && AuthGuardService.getRole(val) !== Role.USER
+          val && RoleGuardService.getRole(val) !== Role.USER
             ? teacherMenuElements
             : menuElements
         );
@@ -86,11 +86,14 @@ const menuElements: Pair<string, string>[] = [
   new Pair('/public-exercises', 'Baza zadań'),
   new Pair('/about', 'O projekcie'),
 ];
-//TODO Teacher specific menu elements
-const teacherMenuElements: Pair<string, string>[] = [
-  new Pair('/public-exercises', 'Baza zadań'),
-  new Pair('/about', 'O projekcie'),
-];
+const teacherMenuElements: Pair<string, string>[] = createTeacherMenuElements();
+function createTeacherMenuElements() {
+  const list = menuElements.concat([]);
+  const last = list.pop()!!;
+  //TODO Teacher specific menu elements
+  return list.concat([new Pair('/user/teams', 'Klasy')], last);
+}
+
 const loginButtons: ButtonElement[] = [
   new ButtonElement(
     'Zaloguj',

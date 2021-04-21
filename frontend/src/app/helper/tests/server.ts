@@ -345,6 +345,26 @@ export function startServer() {
             return new Response(403);
         }
       });
+      const users: { id: string; name: string; number?: number }[] = [];
+      for (let i = 0; i < 25; i++)
+        users.push({
+          id: `test${i}`,
+          name: `User${i}`,
+          number: i + 1,
+        });
+      rootTeams.forEach((team) => {
+        this.get(`/api/teams/${team.id}`, () => {
+          if (!currentAccount) return new Response(500);
+          else if (currentAccount.team < 2)
+            return {
+              name: team.name,
+              assignee: team.assignee,
+              invitation: 'QwErTy58',
+              members: users,
+            };
+          else return new Response(403);
+        });
+      });
     },
   });
   console.log('server started');

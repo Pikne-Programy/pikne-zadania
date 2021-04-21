@@ -32,7 +32,7 @@ export class TeacherDashboardComponent
 
   getTeamNames(): Tuple<string, string, string>[] {
     return this.teams.map(
-      (team) => new Tuple(team.name, team.name, 'fa-users')
+      (team) => new Tuple(team.name, team.id.toString(), 'fa-users')
     );
   }
 }

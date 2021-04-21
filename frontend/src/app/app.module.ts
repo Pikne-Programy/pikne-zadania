@@ -17,8 +17,8 @@ import { EqexComponent } from './exercises/eqex/eqex.component';
 import { RegisterComponent } from './account/register/register.component';
 import { LoginComponent } from './account/login/login.component';
 import { environment } from '../environments/environment';
-import { AuthGuardService } from './account/auth-guard.service';
 import { TemplatesModule } from './templates/templates.module';
+import { AuthGuardService } from './guards/auth-guard.service';
 
 @NgModule({
   declarations: [

@@ -1,0 +1,5 @@
+<app-loading *ngIf="isLoading"></app-loading>
+<div *ngIf="!isLoading && errorCode === null && team">
+  <p>{{ team.name }}</p>
+</div>
+<app-error *ngIf="!isLoading && (errorCode !== null || !team)" [code]="errorCode !== null ? errorCode : InternalError"></app-error>

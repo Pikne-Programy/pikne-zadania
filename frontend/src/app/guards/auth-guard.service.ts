@@ -6,13 +6,7 @@ import {
   RouterStateSnapshot,
 } from '@angular/router';
 import { Observable } from 'rxjs';
-import { Account, AccountService } from './account.service';
-
-export enum Role {
-  USER,
-  TEACHER,
-  ADMIN,
-}
+import { AccountService } from '../account/account.service';
 
 @Injectable({
   providedIn: 'root',
@@ -27,8 +21,8 @@ export class AuthGuardService implements CanActivate {
     return this.accountService
       .getAccount()
       .then((response) => {
-        if (response.error === null && response.observable.getValue() !== null)
-          return true;
+        const account = response.observable.getValue();
+        if (response.error === null && account !== null) return true;
         else {
           this.redirectToLogin(state);
           return false;
@@ -44,16 +38,5 @@ export class AuthGuardService implements CanActivate {
     this.router.navigate(['/login'], {
       queryParams: { returnUrl: state.url },
     });
-  }
-
-  static getRole(account: Account): Role {
-    switch (account.team) {
-      case 0:
-        return Role.ADMIN;
-      case 1:
-        return Role.TEACHER;
-      default:
-        return Role.USER;
-    }
   }
 }

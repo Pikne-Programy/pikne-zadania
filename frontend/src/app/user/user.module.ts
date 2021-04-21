@@ -9,6 +9,9 @@ import { UserComponent } from './user.component';
 import { TeacherDashboardComponent } from './dashboard/teacher/teacher-dashboard.component';
 import { UserDashboardComponent } from './dashboard/user/user-dashboard.component';
 import { TemplatesModule } from '../templates/templates.module';
+import { TeamsComponent } from './teams/teams.component';
+import { TeamItemComponent } from './teams/item/item.component';
+import { RoleGuardService } from '../guards/role-guard.service';
 
 @NgModule({
   declarations: [
@@ -16,6 +19,8 @@ import { TemplatesModule } from '../templates/templates.module';
     DashboardComponent,
     TeacherDashboardComponent,
     UserDashboardComponent,
+    TeamsComponent,
+    TeamItemComponent,
   ],
   imports: [
     CommonModule,
@@ -24,7 +29,7 @@ import { TemplatesModule } from '../templates/templates.module';
     MatSidenavModule,
     TemplatesModule,
   ],
-  providers: [],
+  providers: [RoleGuardService],
   bootstrap: [UserComponent],
 })
 export class UserModule {}

@@ -5,8 +5,8 @@ import { LoginComponent } from './account/login/login.component';
 import { RegisterComponent } from './account/register/register.component';
 import { PublicExercisesComponent } from './public-exercises/public-exercises.component';
 import { SubjectSelectComponent } from './subject-select/subject-select.component';
-import { AuthGuardService } from './account/auth-guard.service';
 import { NavComponent } from './navigation/nav.component';
+import { AuthGuardService } from './guards/auth-guard.service';
 
 const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: '/public-exercises' },

@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Account, AccountService } from 'src/app/account/account.service';
-import { AuthGuardService, Role } from 'src/app/account/auth-guard.service';
+import { Role, RoleGuardService } from 'src/app/guards/role-guard.service';
 import { getErrorCode, Tuple } from 'src/app/helper/utils';
 import { TeamService } from '../team.service/team.service';
 import * as Utils from './dashboard.utils';
@@ -38,7 +38,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.accountSubscription = val.observable.subscribe((account) => {
           if (account) {
             this.account = account;
-            switch (AuthGuardService.getRole(account)) {
+            switch (RoleGuardService.getRole(account)) {
               case Role.USER:
                 this.shortcuts = Utils.userShortcuts;
                 //TODO User dashboard
@@ -74,7 +74,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   getRole(account: Account) {
-    return AuthGuardService.getRole(account);
+    return RoleGuardService.getRole(account);
   }
 
   getErrorCode(): number | null {
