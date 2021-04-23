@@ -65,7 +65,7 @@ export async function register(ctx: RouterContext) {
   const user = {
     email: login,
     name,
-    dhpassword: secondhash(hashed_password),
+    dhpassword: await secondhash(hashed_password),
     team,
     tokens: [],
     seed: generateSeed(),

@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // SPDX-License-Identifier: WTFPL
 
-import { createHash, hashSync as secondhash, pbkdf2Sync } from "../deps.ts";
+import { createHash, hash, hashSync, pbkdf2Sync } from "../deps.ts";
 import { USER_SALT } from "./mod.ts";
 
 function bufferToHex(buffer: ArrayBuffer) {
@@ -21,7 +21,7 @@ export const firsthash = (user: string, password: string) =>
       ...new Uint8Array(pbkdf2Sync(password, user, 1e6, 256 / 8, "sha512")),
     ),
   ); // SRC: https://gist.github.com/Nircek/bf06c93f8df36bf645534c10eb6305ca
-export { secondhash };
+export { hash as secondhash, hashSync as secondhashSync };
 export const userhash = (mail: string) => sha256(mail, USER_SALT);
 
 export function delay(ms: number) {

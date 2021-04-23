@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { db, firsthash, secondhashSync, userhash } from "./mod.ts";
 import { Algorithm } from "../deps.ts";
 const algos = [
   "none",
@@ -43,7 +44,7 @@ const key = getString("JWT_KEY");
 const exp = getNumber("JWT_EXP");
 
 const url = getString("MONGODB_URL", "mongodb://mongo:27017");
-const db = getString("MONGODB_NAME", "pikne-zadania");
+const database = getString("MONGODB_NAME", "pikne-zadania");
 
 export const SEED_AGE = getNumber("SEED_AGE", 60 * 60 * 24 * 31 * 12 * 4);
 export const LOGIN_TIME = getNumber("LOGIN_TIME", 2e3);
@@ -52,4 +53,44 @@ export const RNG_PREC = getNumber("RNG_PREC", 3);
 export const ANSWER_PREC = getNumber("ANSWER_PREC", .02);
 export const DECIMAL_POINT = getBoolean("DECIMAL_POINT", true);
 export const JWT_CONF = { exp, header: { alg, typ: "JWT" }, key };
-export const MONGO_CONF = { db, url };
+export const MONGO_CONF = { db: database, url };
+
+const ROOT_ENABLE = getBoolean("ROOT_ENABLE", false);
+const ROOT_PASS = Deno.env.get("ROOT_PASS");
+const ROOT_DHPASS = Deno.env.get("ROOT_DHPASS");
+
+export async function setuproot(
+  register: (dhpassword: string) => Promise<unknown>,
+  unregister: () => Promise<unknown>,
+) {
+  const warn = (what: string, why = "Please unset it or change ROOT_ENABLE.") =>
+    console.warn(`WARN: ${what} is present. ${why}`);
+  const root = await db.getUser(userhash("root"));
+  if (ROOT_ENABLE) {
+    warn("ROOT_ENABLE", "It can be a security issue.");
+    if (ROOT_DHPASS) {
+      if (ROOT_PASS) warn("ROOT_PASS");
+      if (root && root.dhpassword == ROOT_DHPASS) {
+        console.log("ROOT was not changed.");
+      } else {
+        await register(ROOT_DHPASS);
+        console.warn("ROOT was registered with ROOT_DHPASS.");
+      }
+    } else {
+      if (!(ROOT_PASS || root)) throw "no credentials for root";
+      if (ROOT_PASS) {
+        console.log(new Date(), "Generating root password hash...");
+        const dhpass = secondhashSync(firsthash("root", ROOT_PASS));
+        console.log(new Date(), "Generated!");
+        console.warn(`Please unset ROOT_PASS!`);
+        console.warn(`Set ROOT_DHPASS=${dhpass} if needed.`);
+        await register(dhpass);
+        console.warn("ROOT was registered with ROOT_PASS.");
+      }
+    }
+  } else {
+    if (ROOT_PASS) warn("ROOT_PASS");
+    if (ROOT_DHPASS) warn("ROOT_DHPASS");
+    if (root) await unregister();
+  }
+}

@@ -6,7 +6,7 @@
 import { MongoClient } from "../deps.ts";
 import { WorkingDatabase } from "./db/working.ts";
 import { Database } from "./db/placeholder.ts";
-import { MONGO_CONF } from "../utils/mod.ts";
+import { MONGO_CONF, setuproot, userhash } from "./mod.ts";
 
 const client = new MongoClient();
 let db: Database;
@@ -26,5 +26,19 @@ if (!db.getTeam(1)) { // teachers' team
     invCode: null,
   });
 }
+
+await setuproot(
+  (dhpassword: string) =>
+    db.addUser({
+      email: "root",
+      name: "root",
+      dhpassword,
+      team: 0,
+      tokens: [],
+      seed: 0,
+      role: { name: "admin" },
+    }),
+  () => db.deleteUser(userhash("root")),
+);
 
 export { db };

@@ -97,7 +97,9 @@ export class FunctionalDatabase extends Database {
       return false;
     }
     if (!await this.getTeam(user.team)) {
-      console.error(`deleteUser: no team with id ${user.team}}`);
+      if (user.team) {
+        console.error(`deleteUser: no team with id ${user.team}`);
+      }
     } else {
       //remove user from its team
       await this.teams.updateOne({ id: user.team }, {

@@ -1,6 +1,7 @@
 # Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
+
 scripts:
   start:
     cmd: "server.ts"
@@ -9,11 +10,14 @@ scripts:
       env: true
       read: /app/exercises
     unstable: true
-    env:
+    env: # mind that once set it can't be unset without restarting denon (or compose)
       JWT_ALG: HS256
       JWT_KEY: secret
       JWT_EXP: "604800" # 7 days
       DECIMAL_POINT: "no"
+      ROOT_ENABLE: "yes"
+      # ROOT_PASS: secret
+      ROOT_DHPASS: $2a$10$zR.KkcwBxhQxbNPL9HMuReq8GyIJoQNilzdFoA1JevLQ0.BgZoo72
 watcher:
   exts:
     - js

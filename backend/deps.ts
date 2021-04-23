@@ -4,6 +4,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+// don't forget to update deno and denon in Dockerfile and denon.dockerfile
 export { parse, parseAll } from "https://deno.land/std@0.90.0/encoding/yaml.ts";
 export { existsSync, walkSync } from "https://deno.land/std@0.90.0/fs/mod.ts";
 export {
@@ -26,7 +27,12 @@ export type {
   Context,
   RouterContext,
 } from "https://deno.land/x/oak@v6.5.0/mod.ts";
-export { compare, hashSync } from "https://deno.land/x/bcrypt@v0.2.4/mod.ts";
+export {
+  compare,
+  hash,
+  hashSync,
+} from "https://deno.land/x/bcrypt@v0.2.4/mod.ts";
+import "https://deno.land/x/bcrypt@v0.2.4/src/worker.ts"; // force caching
 export { default as vs } from "https://deno.land/x/value_schema@v3.0.0/mod.ts";
 export type {
   ObjectTypeOf,
