@@ -359,11 +359,49 @@ export function startServer() {
             return {
               name: team.name,
               assignee: team.assignee,
-              invitation: 'QwErTy58',
+              invitation: team.open ? 'QwErTy58' : null,
               members: users,
             };
           else return new Response(403);
         });
+      });
+      this.post('/api/teams', (schema: any, request: any) => {
+        if (!currentAccount) return new Response(500);
+        if (currentAccount.team < 2) {
+          const newTeam = JSON.parse(request.requestBody).name;
+          if (newTeam && typeof newTeam === 'string') {
+            if (!isNaN(Number(newTeam)))
+              return new Response(Number(newTeam), undefined, {
+                errors: ['Custom error'],
+              });
+
+            const newId = rootTeams[rootTeams.length - 1].id + 1;
+            rootTeams.push({
+              id: newId,
+              name: newTeam,
+              open: newId % 2 === 0,
+              assignee: `User${rootTeams.length}`,
+            });
+            teacherTeams.push({
+              id: newId,
+              name: newTeam,
+              open: newId % 2 === 0,
+            });
+            this.get(`/api/teams/${newId}`, () => {
+              if (!currentAccount) return new Response(500);
+              else if (currentAccount.team < 2) {
+                return {
+                  name: newTeam,
+                  assignee: rootTeams[rootTeams.length - 1].assignee,
+                  invitation: newId % 2 === 0 ? 'QwErTy58' : null,
+                  members: users,
+                };
+              } else return new Response(403);
+            });
+            return new Response(200, undefined, newId);
+          } else
+            return new Response(400, undefined, { errors: ['Wrong name'] });
+        } else return new Response(403);
       });
     },
   });

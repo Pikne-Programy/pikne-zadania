@@ -12,6 +12,7 @@ import { TemplatesModule } from '../templates/templates.module';
 import { TeamsComponent } from './teams/teams.component';
 import { TeamItemComponent } from './teams/item/item.component';
 import { RoleGuardService } from '../guards/role-guard.service';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -25,6 +26,8 @@ import { RoleGuardService } from '../guards/role-guard.service';
   imports: [
     CommonModule,
     UserRoutingModule,
+    FormsModule,
+    ReactiveFormsModule,
     NavModule,
     MatSidenavModule,
     TemplatesModule,

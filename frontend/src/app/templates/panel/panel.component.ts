@@ -1,5 +1,5 @@
 import { Component, HostBinding, Input } from '@angular/core';
-import { Pair, Tuple } from 'src/app/helper/utils';
+import { Tuple } from 'src/app/helper/utils';
 
 @Component({
   selector: 'app-panel',
@@ -18,11 +18,15 @@ export class PanelComponent {
   @Input('loading') isLoading?: boolean;
 
   @HostBinding('class') get class() {
-    return this.color ? `is-${this.color.toLowerCase()}` : '';
+    return this.getColor();
   }
   constructor() {}
 
   getRouterLink(itemLink: string) {
     return this.mainLink ? [this.mainLink, itemLink] : [itemLink];
+  }
+
+  getColor(): string {
+    return this.color ? `is-${this.color.toLowerCase()}` : '';
   }
 }

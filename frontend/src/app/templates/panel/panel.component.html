@@ -2,7 +2,7 @@
   {{ header }}
 </p>
 <app-loading *ngIf="isLoading"></app-loading>
-<div *ngIf="!isLoading" class="panel height-full scrollable">
+<div *ngIf="!isLoading" class="panel height-full scrollable" [ngClass]="[getColor()]">
   <a *ngFor="let item of list" class="panel-block" [routerLink]="getRouterLink(item.second)">
     <span *ngIf="item.third" class="panel-icon">
       <i class="fas" [ngClass]="item.third" aria-hidden="true"></i>

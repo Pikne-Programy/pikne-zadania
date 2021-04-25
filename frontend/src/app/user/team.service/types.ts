@@ -19,7 +19,7 @@ export function isTeamItemList(object: any): object is TeamItem[] {
 export interface Team {
   name: string;
   assignee?: string;
-  invitation: string;
+  invitation: string | null;
   members: User[];
 }
 export function isTeam(object: any): object is Team {

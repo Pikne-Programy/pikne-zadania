@@ -1,5 +1,103 @@
 <app-loading *ngIf="isLoading"></app-loading>
-<div *ngIf="!isLoading && errorCode === null && team">
-  <p>{{ team.name }}</p>
-</div>
-<app-error *ngIf="!isLoading && (errorCode !== null || !team)" [code]="errorCode !== null ? errorCode : InternalError"></app-error>
+<main *ngIf="!isLoading && errorCode === null && team" class="tile is-ancestor m-0 height-full scrollable">
+  <div class="tile container is-justify-content-center">
+    <div class="tile is-parent is-3 is-vertical">
+      <div class="tile is-child is-vertical is-flex-grow-0 panel is-primary has-no-dividers">
+        <p class="panel-heading">Klasa&nbsp;{{ team.name | titlecase }}</p>
+        <div *ngIf="team.assignee" class="panel-block">
+          <h2 class="subtitle is-6 no-word-break m-0"><b>Właściciel:&nbsp;</b></h2>
+          <h2 class="subtitle is-6 is-flex-grow-1 m-0">{{ team.assignee }}</h2>
+        </div>
+        <div class="panel-block">
+          <h2 class="subtitle is-6 no-word-break m-0"><b>Rejestracja:&nbsp;</b></h2>
+          <h2 class="subtitle is-6 is-flex-grow-1 m-0">{{ team.invitation ? 'otwarta' : 'zamknięta' }}</h2>
+        </div>
+        <div *ngIf="team.invitation" class="panel-block">
+          <h2 class="subtitle is-6 no-word-break m-0"><b>Kod zaproszenia:&nbsp;</b></h2>
+          <h2 class="subtitle is-6 is-flex-grow-1 m-0">{{ team.invitation }}</h2>
+        </div>
+        <div class="panel-block buttons is-right is-only-mobile">
+          <ng-content *ngTemplateOutlet="buttonsTemplate"></ng-content>
+        </div>
+      </div>
+      <!--NOTE Potential invitations to accept -->
+      <!--<div class="tile is-child is-vertical panel is-flex unscrollable">
+        <p class="panel-heading">Oczekujący</p>
+        <div class="panel height-full is-primary scrollable">
+          <div *ngFor="let member of team.waiting" class="panel-block has-hiding-buttons is-flex">
+            <span class="is-flex-grow-1">{{ member.name }}</span>
+            <span class="buttons actions">
+              <button class="button is-text" title="Zaakceptuj">
+                <span class="icon">
+                  <i class="fas fa-check is-hiding"></i>
+                </span>
+              </button>
+              <button class="button is-text" title="Odrzuć">
+                <span class="icon">
+                  <i class="fas fa-times is-hiding"></i>
+                </span>
+              </button>
+            </span>
+          </div>
+        </div>
+      </div>-->
+    </div>
+    <div class="tile is-parent is-4">
+      <div class="tile is-child is-vertical panel is-primary is-flex unscrollable">
+        <p class="panel-heading">Członkowie</p>
+        <div class="panel height-full is-primary scrollable">
+          <div *ngFor="let member of team.members" class="panel-block has-hiding-buttons is-flex">
+            <span class="panel-icon">
+              <i class="fas fa-user" aria-hidden="true"></i>
+            </span>
+            <span class="is-flex-grow-1">{{ member.name }}</span>
+            <span class="buttons actions">
+              <button class="button is-text" title="Zmień numer członka">
+                <span class="icon">
+                  <i class="fas fa-pen is-hiding"></i>
+                </span>
+              </button>
+              <button class="button is-text" title="Usuń członka">
+                <span class="icon">
+                  <i class="fas fa-trash is-hiding"></i>
+                </span>
+              </button>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tile is-parent is-vertical is-narrow is-tablet">
+      <div class="tile is-child is-flex-grow-0 box">
+        <p class="buttons is-vertical">
+          <ng-container *ngTemplateOutlet="buttonsTemplate"></ng-container>
+        </p>
+      </div>
+    </div>
+  </div>
+</main>
+<app-error *ngIf="!isLoading && (errorCode !== null || !team)" [message]="defaultErrorMessage ? undefined : 'Błąd konta'" [code]="errorCode !== null ? errorCode : InternalError"></app-error>
+
+<ng-template #buttonsTemplate>
+  <button class="button is-primary is-light">
+    <span class="icon">
+      <i class="fas fa-pen"></i>
+    </span>
+    <span>Zmień nazwę klasy</span>
+  </button>
+  <button *ngIf="isAdmin" class="button is-primary is-light">
+    <span class="icon">
+      <i class="fas fa-people-arrows"></i>
+    </span>
+    <span>Zmień właściciela</span>
+  </button>
+  <button class="button is-primary is-light">
+    <span class="icon">
+      <i class="fa-clipboard" [ngClass]="{
+          'fas': !team?.invitation,
+          'far': team?.invitation
+        }"></i>
+    </span>
+    <span>{{ (team?.invitation ? 'Zamknij' : 'Otwórz') + ' rejestrację' }}</span>
+  </button>
+</ng-template>

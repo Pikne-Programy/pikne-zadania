@@ -62,4 +62,21 @@ export class RoleGuardService implements CanActivate {
         return Role.USER;
     }
   }
+
+  static async getPermissions(accountService: AccountService): Promise<Role> {
+    return accountService
+      .getAccount()
+      .then((val) => {
+        if (val.error !== null) throw { status: val.error };
+        return val.observable.getValue();
+      })
+      .then((account) => {
+        if (!account) throw {};
+        return RoleGuardService.getRole(account);
+      });
+  }
+
+  static canEditAssignee(teamId: number): boolean {
+    return teamId >= 2;
+  }
 }

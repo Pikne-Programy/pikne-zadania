@@ -1,1 +1,2 @@
-<app-select [main-link]="'subjects'" [items]="getSubjectList()" [header]="'Przedmioty'" [loading]="isLoading" [error-code]="errorCode"></app-select>
+<app-select *ngIf="errorCode === null" [main-link]="'subjects'" [items]="getSubjectList()" [header]="'Przedmioty'" [loading]="isLoading"></app-select>
+<app-error *ngIf="errorCode !== null" [code]="errorCode"></app-error>

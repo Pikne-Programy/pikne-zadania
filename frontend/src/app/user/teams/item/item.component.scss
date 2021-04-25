@@ -1,0 +1,82 @@
+@use "../../../../styles.variables.scss" as *;
+
+$mobile: nth(
+  $list: $size_breakpoints,
+  $n: 1,
+);
+$tablet: nth(
+  $list: $size_breakpoints,
+  $n: 2,
+);
+$widescreen: nth(
+  $list: $size_breakpoints,
+  $n: 4,
+);
+
+.is-only-mobile {
+  @media only screen and (min-width: nth($list: $tablet, $n: 2)) {
+    display: none;
+  }
+}
+.is-tablet {
+  @media only screen and (max-width: nth($list: $mobile, $n: 3)) {
+    display: none;
+  }
+}
+
+.panel.has-no-dividers .panel-block:not(:last-child) {
+  border-bottom: none;
+}
+
+.has-hiding-buttons:not(:hover) i.is-hiding {
+  @media only screen and (min-width: nth($list: $widescreen, $n: 2)) {
+    display: none;
+  }
+}
+
+.button {
+  &.is-light:not(:focus) {
+    background-color: transparent;
+  }
+  &.is-text {
+    text-decoration: none;
+  }
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  & .button {
+    flex-grow: 1;
+    margin-bottom: 0.5rem;
+  }
+}
+
+.buttons {
+  &.is-vertical {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: center;
+    & .button {
+      width: 100%;
+      display: flex;
+      justify-content: flex-start;
+      &:not(:last-child):not(.is-fullwidth) {
+        margin-right: 0;
+      }
+    }
+  }
+  &.actions {
+    &.small-margin {
+      margin-bottom: -0.75rem;
+    }
+    & .button {
+      width: 1.5em;
+      height: 1.5em;
+      padding: 0;
+      &:not(:last-child) {
+        margin-right: 1rem;
+      }
+    }
+  }
+}

@@ -1,10 +1,11 @@
-import { Component, Input } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
 import { Tuple } from 'src/app/helper/utils';
 
 @Component({
   selector: 'app-select',
   templateUrl: './select.component.html',
   styleUrls: ['./select.component.scss'],
+  host: { class: 'section' },
 })
 export class SelectComponent {
   @Input('main-link') mainLink?: string;
@@ -15,16 +16,15 @@ export class SelectComponent {
   @Input() header?: string;
   @Input() color?: string;
   @Input('loading') isLoading?: boolean;
-  @Input('is-outer-loading') isOuter?: boolean;
-
-  @Input('error-message') errorMessage?: string;
-  @Input('error-code') errorCode!: number | null;
   /**
-   * Array with 2 elements: first - text, second - link.
+   * Adds appropriate padding
    *
-   * Uses default if null
+   * True by default
    */
-  @Input('error-link') errorLink?: string[] | null;
+  @Input('is-root') isRoot?: boolean;
 
+  @HostBinding('class') get class() {
+    return this.isRoot !== false ? 'is-root' : '';
+  }
   constructor() {}
 }

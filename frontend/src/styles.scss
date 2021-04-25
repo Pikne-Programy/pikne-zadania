@@ -67,6 +67,11 @@ $button-colors: mergeColorMaps(
   flex: none;
 }
 
+.panel-heading + .panel {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
 .box .level {
   border-top-left-radius: inherit;
   border-top-right-radius: inherit;
@@ -97,6 +102,10 @@ $button-colors: mergeColorMaps(
 
 .fas.fa-10x {
   font-size: 10em;
+}
+
+.no-word-break {
+  word-break: keep-all !important;
 }
 
 .has-text-underlined {
