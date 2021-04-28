@@ -1,12 +1,13 @@
 <app-loading *ngIf="isLoading"></app-loading>
 <main *ngIf="!isLoading && errorCode === null && team" class="tile is-ancestor m-0 height-full scrollable">
   <div class="tile container is-justify-content-center">
+    <!--#region Team info -->
     <div class="tile is-parent is-3 is-vertical">
       <div class="tile is-child is-vertical is-flex-grow-0 panel is-primary has-no-dividers">
         <p class="panel-heading">Klasa&nbsp;{{ team.name | titlecase }}</p>
         <div *ngIf="team.assignee" class="panel-block">
           <h2 class="subtitle is-6 no-word-break m-0"><b>Właściciel:&nbsp;</b></h2>
-          <h2 class="subtitle is-6 is-flex-grow-1 m-0">{{ team.assignee }}</h2>
+          <h2 class="subtitle is-6 is-flex-grow-1 m-0">{{ team.assignee | titlecase }}</h2>
         </div>
         <div class="panel-block">
           <h2 class="subtitle is-6 no-word-break m-0"><b>Rejestracja:&nbsp;</b></h2>
@@ -16,7 +17,8 @@
           <h2 class="subtitle is-6 no-word-break m-0"><b>Kod zaproszenia:&nbsp;</b></h2>
           <h2 class="subtitle is-6 is-flex-grow-1 m-0">{{ team.invitation }}</h2>
         </div>
-        <div class="panel-block buttons is-right is-only-mobile">
+        <!-- Actions (mobile) -->
+        <div class="panel-block buttons is-centered is-full is-only-mobile">
           <ng-content *ngTemplateOutlet="buttonsTemplate"></ng-content>
         </div>
       </div>
@@ -42,22 +44,28 @@
         </div>
       </div>-->
     </div>
+    <!--#endregion-->
+    <!--#region Members -->
     <div class="tile is-parent is-4">
       <div class="tile is-child is-vertical panel is-primary is-flex unscrollable">
         <p class="panel-heading">Członkowie</p>
         <div class="panel height-full is-primary scrollable">
           <div *ngFor="let member of team.members" class="panel-block has-hiding-buttons is-flex">
             <span class="panel-icon">
-              <i class="fas fa-user" aria-hidden="true"></i>
+              <i *ngIf="member.number === null" class="fas fa-user" aria-hidden="true"></i>
+              <span *ngIf="member.number !== null" class="fa-stack">
+                <i class="fas fa-circle" [ngClass]="{ 'wide': member.number > 99 }"></i>
+                <i class="fas fa-stack-1x foreground fa-inverse" [ngClass]="{ 'wide': member.number > 99 }">{{ member.number }}</i>
+              </span>
             </span>
-            <span class="is-flex-grow-1">{{ member.name }}</span>
+            <span class="is-flex-grow-1">{{ member.name | titlecase }}</span>
             <span class="buttons actions">
-              <button class="button is-text" title="Zmień numer członka">
+              <button class="button is-text" title="Zmień numer członka" (click)="selectedUser = member; openModal(ModalType.EDIT_USER)">
                 <span class="icon">
                   <i class="fas fa-pen is-hiding"></i>
                 </span>
               </button>
-              <button class="button is-text" title="Usuń członka">
+              <button class="button is-text" title="Usuń członka" (click)="selectedUser = member; openModal(ModalType.DELETE_USER)">
                 <span class="icon">
                   <i class="fas fa-trash is-hiding"></i>
                 </span>
@@ -67,37 +75,188 @@
         </div>
       </div>
     </div>
+    <!--#endregion-->
+    <!--#region Actions (not mobile) -->
     <div class="tile is-parent is-vertical is-narrow is-tablet">
       <div class="tile is-child is-flex-grow-0 box">
-        <p class="buttons is-vertical">
+        <p class="buttons left-aligned is-vertical">
           <ng-container *ngTemplateOutlet="buttonsTemplate"></ng-container>
         </p>
       </div>
     </div>
+    <!--#endregion-->
   </div>
 </main>
 <app-error *ngIf="!isLoading && (errorCode !== null || !team)" [message]="defaultErrorMessage ? undefined : 'Błąd konta'" [code]="errorCode !== null ? errorCode : InternalError"></app-error>
+<!--#region Change name Modal -->
+<app-card-modal [title]="'Zmień nazwę klasy'" [open]="openedModal === ModalType.NAME" (onClose)="closeModal()">
+  <section>
+    <form id="nameForm" [formGroup]="nameForm" (ngSubmit)="changeName()">
+      <div class="field">
+        <label for="name" class="label">Nowa nazwa</label>
+        <div class="control has-icons-left">
+          <input id="name" class="input is-primary" type="text" formControlName="name">
+          <span class="icon is-small is-left">
+            <i class="fas fa-heading"></i>
+          </span>
+        </div>
+      </div>
+    </form>
+  </section>
+  <footer class="width-full">
+    <div class="buttons width-full is-align-items-baseline">
+      <button type="submit" form="nameForm" class="button is-success" [ngClass]="{ 'is-loading': isModalLoading }" [disabled]="nameForm.invalid">
+        Zmień
+      </button>
+      <ng-container *ngTemplateOutlet="modalFooterEndTemplate"></ng-container>
+    </div>
+  </footer>
+</app-card-modal>
+<!--#endregion-->
+<!--#region Open registration Modal -->
+<app-card-modal [title]="'Ustaw kod zaproszenia'" [open]="openedModal === ModalType.OPEN_INV" (onClose)="closeModal()">
+  <section>
+    <form id="invForm" [formGroup]="invitationForm" (ngSubmit)="openRegistration(false)">
+      <div class="field">
+        <label for="invCode" class="label">Kod zaproszenia</label>
+        <div class="control has-icons-left">
+          <input id="invCode" class="input is-primary" type="text" formControlName="invCode">
+          <span class="icon is-small is-left">
+            <i class="fas fa-key"></i>
+          </span>
+        </div>
+      </div>
+    </form>
+  </section>
+  <footer class="width-full">
+    <div class="buttons width-full is-align-items-baseline">
+      <button type="submit" form="invForm" class="button is-success" [ngClass]="{ 'is-loading': isModalLoading }" [disabled]="invitationForm.invalid || isModalSecondaryLoading">
+        Ustaw
+      </button>
+      <button class="button is-info" [ngClass]="{ 'is-loading': isModalSecondaryLoading }" (click)="openRegistration(true)" [disabled]="isModalLoading">Wygeneruj</button>
+      <ng-container *ngTemplateOutlet="modalFooterEndTemplate"></ng-container>
+    </div>
+  </footer>
+</app-card-modal>
+<!--#endregion-->
+<!--#region Close registration Modal -->
+<app-card-modal [title]="'Zamknij rejestrację'" [open]="openedModal === ModalType.CLOSE_INV" (onClose)="closeModal()">
+  <section>
+    <p>Czy na pewno chcesz zamknąć rejestrację?</p>
+  </section>
+  <footer class="width-full">
+    <div class="buttons width-full is-align-items-baseline">
+      <button class="button is-danger" [ngClass]="{ 'is-loading': isModalLoading }" (click)="closeRegistration()">Zamknij</button>
+      <ng-container *ngTemplateOutlet="modalFooterEndTemplate"></ng-container>
+    </div>
+  </footer>
+</app-card-modal>
+<!--#endregion-->
+<!--#region Change assignee Modal -->
+<app-card-modal [title]="'Wybierz nowego właściciela'" [open]="openedModal === ModalType.ASSIGNEE" (onClose)="closeModal()" [has-list]="true">
+  <section>
+    <ng-container *ngIf="!isModalSecondaryLoading">
+      <a *ngFor="let user of assigneeList; index as i" class="panel-block" [ngClass]="{ 'is-active': selectedAssignee === i }" (click)="selectedAssignee = i">
+        <span class="panel-icon">
+          <i class="fas fa-user" aria-hidden="true"></i>
+        </span>
+        <span class="is-flex-grow-1">{{ user.name | titlecase }}</span>
+        <span class="panel-icon">
+          <i *ngIf="selectedAssignee === i" class="fas fa-check" aria-hidden="true"></i>
+        </span>
+      </a>
+    </ng-container>
+    <app-loading *ngIf="isModalSecondaryLoading"></app-loading>
+  </section>
+  <footer class="width-full">
+    <div class="buttons width-full">
+      <button class="button is-success" [ngClass]="{ 'is-loading': isModalLoading }" [disabled]="selectedAssignee === null" (click)="chooseAssignee()">Wybierz</button>
+      <ng-container *ngTemplateOutlet="modalFooterEndTemplate"></ng-container>
+    </div>
+  </footer>
+</app-card-modal>
+<!--#endregion-->
+<!--#region Edit user Modal -->
+<app-card-modal [title]="'Edytuj numer członka'" [open]="openedModal === ModalType.EDIT_USER" (onClose)="closeModal()">
+  <section>
+    <form id="userForm" [formGroup]="userForm" (ngSubmit)="editUser()">
+      <div class="field">
+        <label for="userNum" class="label">Nowy numer</label>
+        <div class="control has-icons-left has-icons-right">
+          <input id="userNum" class="input" [ngClass]="{
+            'is-primary': !userNumber!.errors?.pattern,
+            'is-warning': userNumber!.errors?.pattern
+          }" type="text" formControlName="userNumber">
+          <span class="icon is-small is-left">
+            <i class="fas fa-book"></i>
+          </span>
+          <span *ngIf="userNumber!.errors?.pattern" class="icon has-text-warning is-small is-right">
+            <i class="fas fa-exclamation-triangle"></i>
+          </span>
+        </div>
+        <p *ngIf="userNumber!.errors?.pattern" class="help is-warning">Wymagana liczba</p>
+      </div>
+    </form>
+  </section>
+  <footer class="width-full">
+    <div class="buttons width-full is-align-items-baseline">
+      <button type="submit" form="userForm" class="button is-success" [ngClass]="{ 'is-loading': isModalLoading }" [disabled]="userForm.invalid || isModalSecondaryLoading">
+        Ustaw
+      </button>
+      <button class="button is-warning" [ngClass]="{ 'is-loading': isModalSecondaryLoading }" (click)="editUser(true)" [disabled]="isModalLoading">Zresetuj</button>
+      <ng-container *ngTemplateOutlet="modalFooterEndTemplate"></ng-container>
+    </div>
+  </footer>
+</app-card-modal>
+<!--#endregion-->
+<!--#region Delete user Modal -->
+<app-card-modal [title]="'Usuń członka'" [open]="openedModal === ModalType.DELETE_USER" (onClose)="closeModal()">
+  <section>
+    <p>Czy na pewno chcesz usunąć członka <i>{{ selectedUser ? selectedUser.name : 'ERROR' }}</i>?</p>
+  </section>
+  <footer class="width-full">
+    <div class="buttons width-full is-align-items-baseline">
+      <button class="button is-danger" [ngClass]="{ 'is-loading': isModalLoading }" (click)="deleteUser()">Usuń</button>
+      <ng-container *ngTemplateOutlet="modalFooterEndTemplate"></ng-container>
+    </div>
+  </footer>
+</app-card-modal>
+<!--#endregion-->
 
+<!--#region Modal error message -->
+<ng-template #modalFooterEndTemplate>
+  <button class="button" (click)="closeModal()" [disabled]="isModalLoading || isModalSecondaryLoading">Anuluj</button>
+  <p *ngIf="modalErrorCode !== null" class="has-text-danger">
+    Wystąpił błąd ({{ modalErrorCode }})
+  </p>
+</ng-template>
+<!--#endregion-->
+
+<!--#region Action buttons -->
 <ng-template #buttonsTemplate>
-  <button class="button is-primary is-light">
+  <button class="button is-primary is-light" (click)="openModal(ModalType.NAME)">
     <span class="icon">
       <i class="fas fa-pen"></i>
     </span>
     <span>Zmień nazwę klasy</span>
   </button>
-  <button *ngIf="isAdmin" class="button is-primary is-light">
+  <button *ngIf="isAdmin" class="button is-primary is-light" (click)="getAssignees(); openModal(ModalType.ASSIGNEE)">
     <span class="icon">
       <i class="fas fa-people-arrows"></i>
     </span>
     <span>Zmień właściciela</span>
   </button>
-  <button class="button is-primary is-light">
+  <button *ngIf="!team?.invitation" class="button is-primary is-light" (click)="openModal(ModalType.OPEN_INV)">
     <span class="icon">
-      <i class="fa-clipboard" [ngClass]="{
-          'fas': !team?.invitation,
-          'far': team?.invitation
-        }"></i>
+      <i class="fas fa-clipboard"></i>
     </span>
-    <span>{{ (team?.invitation ? 'Zamknij' : 'Otwórz') + ' rejestrację' }}</span>
+    <span>Otwórz rejestrację</span>
+  </button>
+  <button *ngIf="team?.invitation" class="button is-primary is-light" (click)="openModal(ModalType.CLOSE_INV)">
+    <span class="icon">
+      <i class="far fa-clipboard"></i>
+    </span>
+    <span>Zamknij rejestrację</span>
   </button>
 </ng-template>
+<!--#endregion-->

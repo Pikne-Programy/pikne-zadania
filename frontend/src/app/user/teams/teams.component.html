@@ -8,37 +8,30 @@
     </a>
   </div>
 </app-select>
-<div *ngIf="errorCode === null" class="modal px-3" [ngClass]="{ 'is-active': isModalOpen }">
-  <div class="modal-background"></div>
-  <div class="modal-card">
-    <header class="modal-card-head">
-      <p class="modal-card-title">Nowa klasa</p>
-      <button class="delete" aria-label="close" (click)="closeModal()"></button>
-    </header>
-    <section class="modal-card-body">
-      <form id="form" [formGroup]="form" (ngSubmit)="addTeam()">
-        <div class="field">
-          <label for="name" class="label">Nazwa</label>
-          <div class="control has-icons-left">
-            <input id="name" class="input is-primary" type="text" formControlName="name">
-            <span class="icon is-small is-left">
-              <i class="fas fa-users"></i>
-            </span>
-          </div>
+<app-card-modal [title]="'Nowa klasa'" [open]="isModalOpen" (onClose)="closeModal()">
+  <section>
+    <form id="form" [formGroup]="form" (ngSubmit)="addTeam()">
+      <div class="field">
+        <label for="name" class="label">Nazwa</label>
+        <div class="control has-icons-left">
+          <input id="name" class="input is-primary" type="text" formControlName="name">
+          <span class="icon is-small is-left">
+            <i class="fas fa-users"></i>
+          </span>
         </div>
-      </form>
-    </section>
-    <footer class="modal-card-foot is-flex is-flex-direction-column">
-      <div class="buttons width-full is-align-items-baseline">
-        <button type="submit" form="form" class="button is-success" [ngClass]="{ 'is-loading': isModalLoading }" [disabled]="form.invalid">
-          Dodaj
-        </button>
-        <button class="button" (click)="closeModal()">Anuluj</button>
-        <p *ngIf="modalErrorCode !== null" class="has-text-danger">
-          Wystąpił błąd ({{ modalErrorCode }})
-        </p>
       </div>
-    </footer>
-  </div>
-</div>
+    </form>
+  </section>
+  <footer class="width-full">
+    <div class="buttons width-full is-align-items-baseline">
+      <button type="submit" form="form" class="button is-success" [ngClass]="{ 'is-loading': isModalLoading }" [disabled]="form.invalid">
+        Dodaj
+      </button>
+      <button class="button" (click)="closeModal()">Anuluj</button>
+      <p *ngIf="modalErrorCode !== null" class="has-text-danger">
+        Wystąpił błąd ({{ modalErrorCode }})
+      </p>
+    </div>
+  </footer>
+</app-card-modal>
 <app-error *ngIf="errorCode !== null" [code]="errorCode"></app-error>

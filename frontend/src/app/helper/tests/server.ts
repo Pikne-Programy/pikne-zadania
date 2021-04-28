@@ -6,6 +6,19 @@ interface ExerciseTree {
   children: ExerciseTree[] | string;
 }
 
+interface Team {
+  id: number;
+  name: string;
+  assignee: string;
+  open: boolean;
+}
+
+interface User {
+  id: string;
+  name: string;
+  number?: number | null;
+}
+
 export function startServer() {
   createServer({
     routes() {
@@ -275,6 +288,9 @@ export function startServer() {
           case 'c@c.cc':
             currentAccount = { name: 'UserC', number: null, team: 0 };
             return new Response(200);
+          case 'root':
+            currentAccount = { name: 'root', number: null, team: 0 };
+            return new Response(200);
           case 'd@d.dd':
             return new Response(200);
           default:
@@ -293,76 +309,100 @@ export function startServer() {
         else return new Response(400);
       });
 
-      interface Team {
-        id: number;
-        name: string;
-        assignee?: string;
-        open: boolean;
-      }
-      const teacherTeams: Team[] = [
-        /*{
-          id: 2,
-          name: '1d',
-          open: true,
-        },
-        {
-          id: 3,
-          name: '2d',
-          open: true,
-        },
-        {
-          id: 4,
-          name: '3d',
-          open: false,
-        },*/
-      ];
-      for (let i = 0; i < 20; i++)
-        teacherTeams.push({
-          id: i + 2,
-          name: `${i + 1}d`,
-          open: i % 2 === 0,
-        });
-      const tempRootTeams: Team[] = [
+      const teams: Team[] = [
         {
           id: 1,
           name: 'Teachers',
           open: false,
-          assignee: 'admin',
+          assignee: 'root',
         },
       ];
-      const rootTeams = tempRootTeams.concat(teacherTeams);
-      for (let i = 0; i < rootTeams.length; i++) {
-        const team = rootTeams[i];
-        if (!team.assignee) team.assignee = `User${i}`;
-      }
+      for (let i = 0; i < 20; i++)
+        teams.push({
+          id: i + 2,
+          name: `${i + 1}d`,
+          open: i % 2 === 0,
+          assignee: `User${i}`,
+        });
       this.get('/api/teams', () => {
         switch (currentAccount?.team) {
           case 0:
-            return rootTeams;
+            return teams;
           case 1:
-            return teacherTeams;
+            const list = teams.map((val) => {
+              return { id: val.id, name: val.name, open: val.open };
+            });
+            list.shift();
+            return list;
           default:
             return new Response(403);
         }
       });
-      const users: { id: string; name: string; number?: number }[] = [];
+      const users: User[] = [];
       for (let i = 0; i < 25; i++)
         users.push({
-          id: `test${i}`,
+          id: `u${i}`,
           name: `User${i}`,
-          number: i + 1,
+          number: i % 2 === 0 ? i + 1 : null,
         });
-      rootTeams.forEach((team) => {
+      teams.forEach((team) => {
         this.get(`/api/teams/${team.id}`, () => {
-          if (!currentAccount) return new Response(500);
-          else if (currentAccount.team < 2)
-            return {
-              name: team.name,
-              assignee: team.assignee,
-              invitation: team.open ? 'QwErTy58' : null,
-              members: users,
-            };
-          else return new Response(403);
+          return getTeam(
+            currentAccount,
+            team.name,
+            team.assignee,
+            team.open,
+            users
+          );
+        });
+        this.post(`/api/teams/${team.id}`, (schema: any, request: any) => {
+          return changeTeamName(
+            currentAccount,
+            team.id,
+            request.requestBody,
+            teams
+          );
+        });
+        this.post(`/api/teams/${team.id}/open`, (schema: any, request: any) => {
+          return openTeamRegistration(
+            currentAccount,
+            team.id,
+            request.requestBody,
+            teams
+          );
+        });
+        this.post(`/api/teams/${team.id}/close`, () => {
+          return closeTeamRegistration(currentAccount, team.id, teams);
+        });
+        this.post(`/api/root/teams/${team.id}`, (schema: any, request: any) => {
+          return changeTeamAssignee(
+            currentAccount,
+            team.id,
+            request.requestBody,
+            teams,
+            users
+          );
+        });
+        users.forEach((user) => {
+          this.post(
+            `/api/teams/${team.id}/${user.id}`,
+            (schema: any, request: any) => {
+              return editUserNumber(
+                currentAccount,
+                team.id,
+                user.id,
+                request.requestBody,
+                teams,
+                users
+              );
+            }
+          );
+          this.delete(
+            `/api/teams/${team.id}/${user.id}`,
+            (schema: any, request: any) => {
+              return removeUser(currentAccount, team.id, user.id, teams, users);
+            }
+          );
         });
       });
       this.post('/api/teams', (schema: any, request: any) => {
@@ -375,28 +415,82 @@ export function startServer() {
                 errors: ['Custom error'],
               });
 
-            const newId = rootTeams[rootTeams.length - 1].id + 1;
-            rootTeams.push({
+            const newId = teams[teams.length - 1].id + 1;
+            teams.push({
               id: newId,
               name: newTeam,
               open: newId % 2 === 0,
-              assignee: `User${rootTeams.length}`,
-            });
-            teacherTeams.push({
-              id: newId,
-              name: newTeam,
-              open: newId % 2 === 0,
+              assignee: `User${teams.length}`,
             });
             this.get(`/api/teams/${newId}`, () => {
-              if (!currentAccount) return new Response(500);
-              else if (currentAccount.team < 2) {
-                return {
-                  name: newTeam,
-                  assignee: rootTeams[rootTeams.length - 1].assignee,
-                  invitation: newId % 2 === 0 ? 'QwErTy58' : null,
-                  members: users,
-                };
-              } else return new Response(403);
+              return getTeam(
+                currentAccount,
+                newTeam,
+                teams[teams.length - 1].assignee,
+                newId % 2 === 0,
+                users
+              );
+            });
+            this.post(`/api/teams/${newId}`, (schema: any, request: any) => {
+              return changeTeamName(
+                currentAccount,
+                newId,
+                request.requestBody,
+                teams
+              );
+            });
+            this.post(
+              `/api/teams/${newId}/open`,
+              (schema: any, request: any) => {
+                return openTeamRegistration(
+                  currentAccount,
+                  newId,
+                  request.requestBody,
+                  teams
+                );
+              }
+            );
+            this.post(`/api/teams/${newId}/close`, () => {
+              return closeTeamRegistration(currentAccount, newId, teams);
+            });
+            this.post(
+              `/api/root/teams/${newId}`,
+              (schema: any, request: any) => {
+                return changeTeamAssignee(
+                  currentAccount,
+                  newId,
+                  request.requestBody,
+                  teams,
+                  users
+                );
+              }
+            );
+            users.forEach((user) => {
+              this.post(
+                `/api/teams/${newId}/${user.id}`,
+                (schema: any, request: any) => {
+                  return editUserNumber(
+                    currentAccount,
+                    newId,
+                    user.id,
+                    request.requestBody,
+                    teams,
+                    users
+                  );
+                }
+              );
+              this.delete(
+                `/api/teams/${newId}/${user.id}`,
+                (schema: any, request: any) => {
+                  return removeUser(
+                    currentAccount,
+                    newId,
+                    user.id,
+                    teams,
+                    users
+                  );
+                }
+              );
             });
             return new Response(200, undefined, newId);
           } else
@@ -406,4 +500,129 @@ export function startServer() {
     },
   });
   console.log('server started');
+}
+
+let invitation = 'QwErTy58';
+
+function getTeam(
+  account: Account | null,
+  name: string,
+  assignee: string | undefined,
+  isOpen: boolean,
+  users: User[]
+) {
+  if (!account) return new Response(500);
+  else if (account.team < 2) {
+    return {
+      name: name,
+      assignee: assignee,
+      invitation: isOpen ? invitation : null,
+      members: users,
+    };
+  } else return new Response(403);
+}
+function changeTeamName(
+  account: Account | null,
+  teamId: number,
+  newName: string,
+  teams: Team[]
+) {
+  if (!account) return new Response(500);
+  if (account.team >= 2) return new Response(403);
+  if (account.team === 0 && teamId > teams[teams.length - 1].id)
+    return new Response(404);
+
+  teams[teamId - 1].name = newName;
+  return new Response(200);
+}
+
+function openTeamRegistration(
+  account: Account | null,
+  teamId: number,
+  invCode: string | null,
+  teams: Team[]
+) {
+  if (!account) return new Response(500);
+  if (account.team >= 2) return new Response(403);
+  if (account.team === 0 && teamId > teams[teams.length - 1].id)
+    return new Response(404);
+
+  invitation = invCode ?? 'QwErTy58';
+  teams[teamId - 1].open = true;
+  return new Response(200);
+}
+
+function closeTeamRegistration(
+  account: Account | null,
+  teamId: number,
+  teams: Team[]
+) {
+  if (!account) return new Response(500);
+  if (account.team >= 2) return new Response(403);
+  if (account.team === 0 && teamId > teams[teams.length - 1].id)
+    return new Response(404);
+
+  teams[teamId - 1].open = false;
+  return new Response(200);
+}
+
+function changeTeamAssignee(
+  account: Account | null,
+  teamId: number,
+  newAssignee: string,
+  teams: Team[],
+  users: User[]
+) {
+  if (!account) return new Response(500);
+  if (teamId < 2 || account.team >= 2) return new Response(403);
+  if (account.team === 0 && teamId > teams[teams.length - 1].id)
+    return new Response(404, undefined, { errors: ['Team not found'] });
+
+  const user = users.find((val) => val.id === newAssignee);
+  if (!user)
+    return new Response(404, undefined, { errors: ['User not found'] });
+  teams[teamId - 1].assignee = user.name;
+  return new Response(200);
+}
+
+function editUserNumber(
+  account: Account | null,
+  teamId: number,
+  userId: string,
+  requestBody: any,
+  teams: Team[],
+  users: User[]
+) {
+  if (!account) return new Response(500);
+  if (account.team >= 2) return new Response(403);
+  if (teamId > teams[teams.length - 1].id)
+    return new Response(404, undefined, { errors: ['Team not found'] });
+
+  const i = Number(userId);
+  if (isNaN(i) || i < 0 || i >= users.length)
+    return new Response(404, undefined, { errors: ['User not found'] });
+  const newNumber = requestBody;
+  if (newNumber === null || !isNaN(Number(newNumber))) {
+    users[i].number = newNumber === null ? null : Number(newNumber);
+    return new Response(200);
+  } else return new Response(400);
+}
+
+function removeUser(
+  account: Account | null,
+  teamId: number,
+  userId: string,
+  teams: Team[],
+  users: User[]
+) {
+  if (!account) return new Response(500);
+  if (account.team >= 2) return new Response(403);
+  if (teamId > teams[teams.length - 1].id)
+    return new Response(404, undefined, { errors: ['Team not found'] });
+
+  const i = users.findIndex((val) => val.id === userId);
+  if (i === -1)
+    return new Response(404, undefined, { errors: ['User not found'] });
+  users.splice(i, 1);
+  return new Response(200);
 }

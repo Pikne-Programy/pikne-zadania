@@ -1,0 +1,10 @@
+:host {
+  padding: 0.75rem;
+  &.has-navbar {
+    padding-top: 4.25rem;
+  }
+}
+
+.modal-card-body.has-list {
+  padding: 0;
+}

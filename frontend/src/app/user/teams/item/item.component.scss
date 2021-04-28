@@ -28,9 +28,15 @@ $widescreen: nth(
   border-bottom: none;
 }
 
-.has-hiding-buttons:not(:hover) i.is-hiding {
-  @media only screen and (min-width: nth($list: $widescreen, $n: 2)) {
-    display: none;
+.has-hiding-buttons:not(:hover) {
+  & .button {
+    background-color: transparent;
+    box-shadow: none;
+  }
+  & i.is-hiding {
+    @media only screen and (min-width: nth($list: $widescreen, $n: 2)) {
+      display: none;
+    }
   }
 }
 
@@ -66,6 +72,9 @@ $widescreen: nth(
       }
     }
   }
+  &.is-full .button {
+    flex-grow: 1;
+  }
   &.actions {
     &.small-margin {
       margin-bottom: -0.75rem;
@@ -78,5 +87,29 @@ $widescreen: nth(
         margin-right: 1rem;
       }
     }
+  }
+}
+
+.fa-stack {
+  width: 1em;
+  height: 1em;
+  line-height: 1em;
+  & .foreground {
+    overflow-x: hidden;
+    &.wide {
+      width: 1.5em;
+      margin-left: -3.5px;
+    }
+  }
+}
+
+.fa-circle {
+  font-size: 21px;
+  margin-top: -3.5px;
+  margin-left: -3.5px;
+  &.wide {
+    font-size: 28px;
+    margin-top: -7px;
+    margin-left: -7px;
   }
 }

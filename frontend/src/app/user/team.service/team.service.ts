@@ -9,7 +9,7 @@ import { of, throwError } from 'rxjs';
   providedIn: 'root',
 })
 export class TeamService {
-  private readonly typeError = 400;
+  private readonly TypeError = 400;
 
   constructor(private http: HttpClient) {}
 
@@ -21,7 +21,7 @@ export class TeamService {
         switchMap((response) =>
           response && Utils.isTeamItemList(response)
             ? of(response)
-            : throwError({ status: this.typeError })
+            : throwError({ status: this.TypeError })
         )
       )
       .toPromise();
@@ -31,10 +31,31 @@ export class TeamService {
     return this.http
       .get(ServerRoutes.team(id))
       .pipe(
+        switchMap((response) => {
+          if (response && Utils.isTeam(response)) {
+            response.members.sort((a, b) => {
+              if (a.number !== null && b.number !== null)
+                return a.number - b.number;
+              if (a.number === null && b.number !== null) return 1;
+              if (a.number !== null && b.number === null) return -1;
+              return a.name.localeCompare(b.name);
+            });
+            return of(response);
+          } else return throwError({ status: this.TypeError });
+        })
+      )
+      .toPromise();
+  }
+
+  getAssigneeList() {
+    const TeacherTeamId = 1;
+    return this.http
+      .get(ServerRoutes.team(TeacherTeamId))
+      .pipe(
         switchMap((response) =>
           response && Utils.isTeam(response)
-            ? of(response)
-            : throwError({ status: this.typeError })
+            ? of(response.members)
+            : throwError({ status: this.TypeError })
         )
       )
       .toPromise();
@@ -49,17 +70,19 @@ export class TeamService {
         switchMap((response) =>
           typeof response === 'number'
             ? of(response)
-            : throwError({ status: this.typeError })
+            : throwError({ status: this.TypeError })
         )
       )
       .toPromise();
   }
   setTeamName(id: number, name: string) {
-    return this.http.post(ServerRoutes.setTeamName(id), name).toPromise();
+    return this.http
+      .post(ServerRoutes.setTeamName(id), JSON.stringify(name))
+      .toPromise();
   }
   setAssignee(id: number, assignee: string) {
     return this.http
-      .post(ServerRoutes.changeTeamAssignee(id), assignee)
+      .post(ServerRoutes.changeTeamAssignee(id), JSON.stringify(assignee))
       .toPromise();
   }
   //#endregion
@@ -70,7 +93,7 @@ export class TeamService {
     return this.http
       .post(
         ServerRoutes.openTeam(id),
-        code !== null && code.length > 0 ? code : null
+        JSON.stringify(code !== null && code.length > 0 ? code : null)
       )
       .toPromise();
   }
@@ -80,14 +103,17 @@ export class TeamService {
   //#endregion
 
   //#region User modification
-  setUserNumber(teamId: number, userId: number, number: number) {
+  setUserNumber(teamId: number, userId: string, newNumber: number | null) {
     return this.http
-      .post(ServerRoutes.setUserNumber(userId, teamId), number)
+      .post(
+        ServerRoutes.setUserNumber(userId, teamId),
+        JSON.stringify(newNumber)
+      )
       .toPromise();
   }
-  removeUser(teamId: number, userId: number) {
+  removeUser(teamId: number, userId: string) {
     return this.http
-      .delete(ServerRoutes.setUserNumber(userId, teamId))
+      .delete(ServerRoutes.deleteFromTeam(userId, teamId))
       .toPromise();
   }
   //#endregion

@@ -89,6 +89,15 @@ $button-colors: mergeColorMaps(
   }
 }
 
+.modal-card-head {
+  & .modal-card-title {
+    max-width: calc(100% - 40px);
+  }
+  & .delete {
+    margin-left: 20px;
+  }
+}
+
 .icon {
   &.is-extra-large {
     height: 10rem;

@@ -12,7 +12,7 @@ Files: frontend/package*.json frontend/src/manifest.webmanifest frontend/src/app
 Copyright: Copyright 2021 Miłosz Wąsacz <wasacz.dev@gmail.com>
 License: AGPL-3.0-or-later
 
-Files: frontend/src/assets/icons/* frontend/src/assets/logo/* frontend/src/favicon.ico
+Files: frontend/src/assets/icons/* frontend/src/assets/logo/* frontend/src/favicon.ico frontend/src/assets/misc/*
 Copyright: Copyright 2021 Piotr Kubicki
 License: CC0-1.0
 
