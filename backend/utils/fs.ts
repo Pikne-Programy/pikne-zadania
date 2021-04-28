@@ -6,33 +6,26 @@ import { _normalize, common, join } from "../deps.ts";
 
 export const normalize = (x: string) => _normalize(x + "/");
 
-export function joinThrowable(
-  base: string,
-  ...path: string[]
-): string {
-  if (path.length) {
-    const requested = join(base, path[0]);
-    const commonPath = common([join(base), requested]);
-    if (normalize(commonPath) == normalize(base)) {
-      return joinThrowable(requested, ...path.slice(1));
-    }
-    throw new Deno.errors.PermissionDenied(
-      `${base}, ${requested}, ${commonPath}`,
-    );
-  } else {
+export function joinThrowable(base: string, ...path: string[]): string {
+  if (!path.length) {
     return base;
   }
+  const requested = join(base, path[0]);
+  const commonPath = common([join(base), requested]);
+  if (normalize(commonPath) == normalize(base)) {
+    return joinThrowable(requested, ...path.slice(1));
+  }
+  throw new Deno.errors.PermissionDenied(
+    `${base}, ${requested}, ${commonPath}`,
+  );
 }
 
 export function fileExists(path: string): boolean {
   try {
     const stat = Deno.statSync(path);
     return stat && stat.isFile;
-  } catch (error) {
-    if (error && error instanceof Deno.errors.NotFound) {
-      return false;
-    } else {
-      throw error; // throwable
-    }
+  } catch (e) {
+    if (e && e instanceof Deno.errors.NotFound) return false;
+    else throw e; // throwable
   }
 }

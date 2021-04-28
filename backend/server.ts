@@ -5,21 +5,18 @@
 import { Application, Context, HttpError } from "./deps.ts";
 import { User } from "./types/mod.ts";
 import router from "./router.ts";
+import { db, handleThrown } from "./utils/mod.ts";
 
-interface State {
+export interface State {
   seed: number;
   user: User | null;
 }
 
 const app = new Application<State>();
 
-app.addEventListener("error", (e) => {
-  console.error(e.error);
-});
+app.addEventListener("error", handleThrown);
 
 function die(ctx: Context, status = 500, msg = "") {
-  const id = ctx.state.user ? ctx.state.user.id : "null";
-  console.log(ctx.request.method, ctx.request.url.pathname, id, status);
   ctx.response.status = status;
   ctx.response.body = { status, msg };
 }
@@ -29,22 +26,25 @@ app.use(async (ctx, next) => {
     await next();
   } catch (e) {
     if (e instanceof HttpError) die(ctx, e.status, e.message);
-    else if (e instanceof Error) {
-      die(ctx, 500, e.message);
-      console.trace(e.message, e.stack);
-    } else {
-      die(ctx);
-      console.trace("UNDEFINED ERROR:", e.message, e.stack);
+    else {
+      die(ctx, 500, e instanceof Error ? e.message : "");
+      handleThrown(e);
     }
+  } finally {
+    const id = ctx.state.user ? ctx.state.user.id : "null";
+    console.log(
+      ctx.request.method,
+      ctx.request.url.pathname,
+      id,
+      ctx.response.status,
+    );
   }
 });
 
 app.use(router.routes());
 app.use(router.allowedMethods());
 
-app.addEventListener("listen", () => {
-  console.log("Server started");
-});
+app.addEventListener("listen", () => console.log("Server started"));
 
 const abortController = new AbortController();
 const { signal } = abortController;
@@ -70,7 +70,7 @@ Promise.race([
 ]).then(() => {
   console.log("The server is closing...");
   abortController.abort();
-  // TODO: redis.close();
+  db.close();
 }).then(() => countdown(5)).finally(Deno.exit);
 
 await app.listen({ port: 8000, signal });

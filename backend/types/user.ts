@@ -14,7 +14,7 @@ export type User = {
   seed: number;
   role: {
     name: "student";
-    number: number|null;
+    number: number | null;
     exercises: { [key: string]: number };
   } | {
     name: "teacher";

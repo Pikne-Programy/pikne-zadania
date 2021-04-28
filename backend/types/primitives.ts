@@ -23,7 +23,7 @@ export function isObjectOf<T>(
 ): what is { [key: string]: T } {
   return typeof what === "object" && what != null &&
     Reflect.ownKeys(what).length == Object.keys(what).length &&
-    Object.entries(what).every(([_, v]) => how(v));
+    Object.values(what).every((v) => how(v));
 }
 export function isJSONType(what: unknown): what is JSONType {
   return (["string", "number", "boolean"].includes(typeof what)) ||

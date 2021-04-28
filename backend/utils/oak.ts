@@ -11,6 +11,7 @@ import {
   vs,
 } from "../deps.ts";
 import { JSONType } from "../types/mod.ts";
+import { assertUnreachable } from "./mod.ts";
 
 function _placeholder(status: number, body?: JSONType) {
   return (ctx: RouterContext) => {
@@ -28,10 +29,9 @@ export async function exists<T>(
   x: T,
   next: (x: T) => Promise<void> | void,
 ) {
-  if (x) {
-    ctx.response.status = 200;
-    await next(x);
-  } else throw new httpErrors["NotFound"]();
+  if (!x) throw new httpErrors["NotFound"]();
+  ctx.response.status = 200;
+  await next(x);
 }
 
 export async function safeJSONbody(
@@ -39,26 +39,52 @@ export async function safeJSONbody(
   schema: SchemaObject,
 ): Promise<ObjectTypeOf<typeof schema>> {
   try {
-    return vs.applySchemaObject(
-      schema,
-      await ctx.request.body({ type: "json" }).value,
-    );
-  } catch (e) {
+    const body = await ctx.request.body({ type: "json" }).value;
+    return vs.applySchemaObject(schema, body);
+  } catch (_) {
     throw new httpErrors["BadRequest"]();
   }
 }
 
-export async function safeJSONType(ctx: RouterContext, type: string) {
-  const body = await ctx.request.body({ type: "json" }).value;
-  if (!body || (typeof body !== "string" && typeof body !== "number")) throw new httpErrors["BadRequest"]();
-  switch (type) {
-    case "string": {
-      if (typeof body !== "string") throw new httpErrors["BadRequest"]();
-      break;
+export async function safeJSONType(
+  ctx: RouterContext,
+  type: "string",
+): Promise<string>;
+export async function safeJSONType(
+  ctx: RouterContext,
+  type: "number",
+): Promise<number>;
+export async function safeJSONType(
+  ctx: RouterContext,
+  type: "boolean",
+): Promise<boolean>;
+export async function safeJSONType(
+  ctx: RouterContext,
+  type: "JSON",
+): Promise<JSONType>;
+export async function safeJSONType(
+  ctx: RouterContext,
+  type: "string" | "number" | "boolean" | "JSON",
+): Promise<string | number | boolean | JSONType> {
+  try {
+    const body: JSONType = await ctx.request.body({ type: "json" }).value;
+    switch (type) {
+      case "string":
+        if (typeof body !== "string") throw "";
+        break;
+      case "number":
+        if (typeof body !== "number") throw "";
+        break;
+      case "boolean":
+        if (typeof body !== "boolean") throw "";
+        break;
+      case "JSON":
+        break;
+      default:
+        return assertUnreachable(type);
     }
-    case "number": {
-      if (!body || isNaN(+body)) throw new httpErrors["BadRequest"]();
-      break;
-    }
+    return body;
+  } catch (_) {
+    throw new httpErrors["BadRequest"]();
   }
 }

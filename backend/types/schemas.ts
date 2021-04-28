@@ -10,7 +10,12 @@ const USER = {
   login: vs.string(), // "admin"|"root"|email?
   name: vs.string({ maxLength: 20 }),
   hpassword: vs.string({ minLength: 44, maxLength: 44 }),
-  number: vs.number({ strictType: true, ifNull: null, integer: true, minValue: 1 }),
+  number: vs.number({
+    strictType: true,
+    ifNull: null,
+    integer: true,
+    minValue: 1,
+  }),
 };
 const TEAM = {
   id: vs.number({ strictType: true, integer: true, minValue: 1 }),

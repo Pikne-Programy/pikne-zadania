@@ -22,8 +22,8 @@ export class FunctionalDatabase extends Database {
     this.teams = db.collection<Team>("teams");
     this.global = db.collection<Global>("global");
   }
-  async close() {
-    await this.client.close();
+  close() {
+    this.client.close();
   }
 
   // GLOBAL
@@ -84,7 +84,9 @@ export class FunctionalDatabase extends Database {
         console.error(`addUser: no team with id ${user.team}`);
         return null;
       }
-      await this.teams.updateOne({ id: user.team }, { $push: { members: user.id } });
+      await this.teams.updateOne({ id: user.team }, {
+        $push: { members: user.id },
+      });
       await this.users.insertOne(user);
     }
     return user.id;
@@ -154,7 +156,9 @@ export class FunctionalDatabase extends Database {
       return false;
     }
     if (invCode && await this.getInvitation(invCode)) {
-      console.error(`setInvitationCode: invitation code alredy existsts; invCode ${invCode}`);
+      console.error(
+        `setInvitationCode: invitation code alredy existsts; invCode ${invCode}`,
+      );
       return false;
     }
     await this.teams.updateOne({ id: tid }, { $set: { invCode: invCode } });

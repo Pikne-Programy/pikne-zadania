@@ -4,13 +4,13 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+// deno-lint-ignore-file no-unused-vars
+
 import { Global, IdPartial, success, Team, User } from "../../types/mod.ts";
 
 export class Database {
   constructor() {}
-  async close(): Promise<void> {
-    return await new Promise((r) => r());
-  }
+  close(): void {}
   async getGlobal(): Promise<Global | null> {
     return await new Promise((r) => r(null));
   }
@@ -38,7 +38,10 @@ export class Database {
   async getInvitation(invCode: string): Promise<number | null> {
     return await new Promise((r) => r(null));
   }
-  async setInvitationCode(tid: number, invCode: string | null): Promise<success> {
+  async setInvitationCode(
+    tid: number,
+    invCode: string | null,
+  ): Promise<success> {
     return await new Promise((r) => r(false));
   }
   async getAllTeams(): Promise<Team[]> {

@@ -83,8 +83,8 @@ function isAnswer(what: unknown): what is (number | null)[] {
 
 export default class EquationExercise extends Exercise {
   // regular expressions used to extract and parse content
-  static readonly greekR = new RegExp(Object.keys(greekAlphabet).join('|'));
-  static readonly equationR = new RegExp( 
+  static readonly greekR = new RegExp(Object.keys(greekAlphabet).join("|"));
+  static readonly equationR = new RegExp(
     `${RPN.variableR}=((?:[\\+\\-]?${RPN.trigonometryR}|${RPN.functionR}|${RPN.variableR}|${RPN.numberR}|[\\(\\)]|${RPN.operationR}\\s*)+)`,
   );
   static readonly numberEqR = new RegExp(
@@ -94,7 +94,7 @@ export default class EquationExercise extends Exercise {
   static readonly rangeEqR = new RegExp(
     `${RPN.variableR}=\\[(${RPN.numberR});(${RPN.numberR})(?:;(${RPN.numberR}))?\\](${RPN.unitR})`,
   );
-  
+
   type = "EqEx";
   readonly parsedContent: string; // "lorem ipsum \(d=300\mathrm{km\}\) foo \(v_a=\mathrm{\frac{m}{s}}\) bar \(v_b=\frac{m}{s}\)."
   readonly ranges: [number, number][] = []; // [index in variables, index in parsedContent]
@@ -115,7 +115,7 @@ export default class EquationExercise extends Exercise {
     super(name, content, properties);
     try {
       this.img = vs.applySchemaObject(imgSchema, { t: this.properties.img }).t;
-    } catch (e) {
+    } catch (_) {
       throw new Error("img must be an array of strings");
     }
     delete this.properties.img;
@@ -143,7 +143,7 @@ export default class EquationExercise extends Exercise {
             m.index,
             m.index + m[0].length,
           ];
-          const value = parseFloat(m[3]);
+          const value = +m[3];
           const unit = EquationExercise.convertToLaTeX(m[4]);
           // add space next to the '=' to prevent from matching multiple times
           let sValue = value.toString();
@@ -192,9 +192,9 @@ export default class EquationExercise extends Exercise {
             m.index,
             m.index + m[0].length,
           ];
-          const rangeMin = parseFloat(m[3]);
-          const rangeMax = parseFloat(m[4]);
-          const step = m[5] !== undefined ? parseFloat(m[5]) : undefined; // TODO: rework
+          const rangeMin = +m[3];
+          const rangeMax = +m[4];
+          const step = m[5] == null ? undefined : +m[5]; // TODO: rework
           const unit = EquationExercise.convertToLaTeX(m[6]);
           this.variables.push([name, new Range(rangeMin, rangeMax, step)]);
           parsedLine += `${
@@ -236,14 +236,10 @@ export default class EquationExercise extends Exercise {
     let parsingContent = this.parsedContent;
     for (const [index, textIndex] of this.ranges) {
       const range = this.variables[index][1];
-      if (!(range instanceof Range)) {
-        throw new Error("never");
-      }
+      if (!(range instanceof Range)) throw new Error("never");
       const value = range.rand(rng);
       let sValue = value.toString();
-      if (!this.pointDecimalSeparator) {
-        sValue = sValue.replace(".", ",\\!");
-      }
+      if (!this.pointDecimalSeparator) sValue = sValue.replace(".", ",\\!");
       parsingContent = `${parsingContent.substr(0, textIndex)}${sValue}${
         parsingContent.substr(textIndex)
       }`;
@@ -276,26 +272,20 @@ export default class EquationExercise extends Exercise {
     const calculated: { [key: string]: number } = {};
     // add already calculated numbers to calculated variables
     for (const [name, val] of this.variables) {
-      if (typeof val == "number") {
-        calculated[name] = val;
-      }
+      if (typeof val == "number") calculated[name] = val;
     }
     // randomize ranges (in the correct order) and add them to calculated variables
     for (const [index, _] of this.ranges) {
       const name = this.variables[index][0];
       const val = this.variables[index][1];
-      if (val instanceof Range) {
-        calculated[name] = val.rand(rng);
-      }
+      if (val instanceof Range) calculated[name] = val.rand(rng);
     }
     // calculate RPN variables (in the correct order) and add them to calculated variables
     for (let i = 0; i < this.order.length; ++i) {
       const index = this.order[i];
       const name = this.variables[index][0];
       const val = this.variables[index][1];
-      if (val instanceof RPN) {
-        calculated[name] = val.calculate(calculated);
-      }
+      if (val instanceof RPN) calculated[name] = val.calculate(calculated);
     }
     // go through each unknown and compare the answers to what's calculated
     const answers: boolean[] = [];
@@ -312,17 +302,13 @@ export default class EquationExercise extends Exercise {
     return { answers, done };
   }
   static convertToLaTeX(unit: string): string {
-    if (unit == "") {
-      return "";
-    }
+    if (unit == "") return "";
     let parsedUnit = "";
     let isFraction = false;
     const r = "\\^([\\-\\+]?[0-9]+)|deg|([a-zA-Z]+|[\\-\\+])|[\\*\\/\\^]";
     const execR = new RegExp(r, "g");
     const testR = new RegExp(`^(${r})+$`);
-    if (!testR.test(unit)) {
-      throw new Error("INVALID UNIT FORMAT");
-    }
+    if (!testR.test(unit)) throw new Error("INVALID UNIT FORMAT");
     let m: RegExpExecArray | null;
     while ((m = execR.exec(unit)) !== null) {
       if (m[0] == "deg") {
@@ -348,7 +334,9 @@ export default class EquationExercise extends Exercise {
     let m: RegExpExecArray | null;
     let parsedName = "";
     while ((m = EquationExercise.greekR.exec(name)) !== null) {
-      parsedName += `${name.substring(0, m.index)}${ greekAlphabet[m[0]] }${ name.substring(m.index + m[0].length) }`;
+      parsedName += `${name.substring(0, m.index)}${greekAlphabet[m[0]]}${
+        name.substring(m.index + m[0].length)
+      }`;
       name = name.substring(m.index + m[0].length); // remove this match from the string
     }
     parsedName += name;

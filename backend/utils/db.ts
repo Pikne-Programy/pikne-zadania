@@ -6,15 +6,17 @@
 import { MongoClient } from "../deps.ts";
 import { WorkingDatabase } from "./db/working.ts";
 import { Database } from "./db/placeholder.ts";
-import { MONGO_CONF, setuproot, userhash } from "./mod.ts";
+import { delay, handleThrown, MONGO_CONF, setuproot, userhash } from "./mod.ts";
 
 const client = new MongoClient();
 let db: Database;
 try {
+  // wait for database
+  await delay(MONGO_CONF.time);
   await client.connect(MONGO_CONF.url);
   db = new WorkingDatabase(client);
 } catch (e) {
-  console.error("MONGO:", e.message, e.stack);
+  handleThrown(e, "MONGO");
   db = new Database();
 }
 // create static teams if not already created

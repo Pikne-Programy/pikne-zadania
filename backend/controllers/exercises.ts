@@ -13,7 +13,14 @@ import {
   send,
   walkSync,
 } from "../deps.ts";
-import { db, deepCopy, exists, joinThrowable } from "../utils/mod.ts";
+import {
+  db,
+  deepCopy,
+  exists,
+  handleThrown,
+  joinThrowable,
+  safeJSONType,
+} from "../utils/mod.ts";
 import exts from "../exts/mod.ts";
 import {
   Exercise,
@@ -23,13 +30,13 @@ import {
   User,
 } from "../types/mod.ts";
 
-interface Section {
+type Section = {
   name: string;
   children: Section[] | string;
-}
-interface DoneSection extends Section {
+};
+type DoneSection = Section & {
   done?: number | null;
-}
+};
 interface YAMLSection {
   // we assume that there is only one key, feel free to tell TypeScript that
   [key: string]: (YAMLSection | string)[];
@@ -52,22 +59,19 @@ function analyzeExFile(file: string): Exercise {
   const re = /^---$/gm;
   let occur;
   // find 2nd occurrence of `---`
-  if (re.exec(file) && (occur = re.exec(file))) {
-    const properties = parse(file.substring(0, occur.index));
-    if (!isObjectOf(isJSONType, properties)) throw new Error("never");
-    const { type, name } = properties;
-    delete properties.name, properties.type;
-    const content = file.substring(re.lastIndex);
-    if (typeof type == "string" && typeof name == "string") {
-      if (type in exts) {
-        return new exts[type](
-          name,
-          content,
-          properties,
-        ); // it can throw an error
-      } else throw new Error("unknown type");
-    } else throw new Error("type and name are necessary");
-  } else throw new Error("the header is necessary");
+  if (!re.exec(file) || !(occur = re.exec(file))) {
+    throw new Error("the header is necessary");
+  }
+  const properties = parse(file.substring(0, occur.index));
+  if (!isObjectOf(isJSONType, properties)) throw new Error("never");
+  const { type, name } = properties;
+  delete properties.name, properties.type;
+  const content = file.substring(re.lastIndex);
+  if (typeof type !== "string" || typeof name !== "string") {
+    throw new Error("type and name are necessary");
+  }
+  if (!(type in exts)) throw new Error("unknown type");
+  return new exts[type](name, content, properties); // it can throw an error
 }
 
 function getExercise(subject: string, id: string): Exercise | null {
@@ -78,7 +82,7 @@ function getExercise(subject: string, id: string): Exercise | null {
     const file = Deno.readTextFileSync(path);
     return dict[uid] = analyzeExFile(file);
   } catch (e) {
-    console.error(`ERROR (exercise ${uid}): ${e}`);
+    handleThrown(e, `exercise ${uid}`);
     return null;
   }
 }
@@ -88,10 +92,8 @@ function buildExerciseSection(subject: string, id: string): Section | null {
 }
 function buildSection(subject: string, section: YAMLSection): Section {
   const name = Object.keys(section)[0];
-  return {
-    name,
-    children: _build(subject, section[name]),
-  };
+  const children = _build(subject, section[name]);
+  return { name, children };
 }
 function _build(
   subject: string,
@@ -113,8 +115,7 @@ function build(subject: string, elements: YAMLSection[]): Section[] {
 }
 
 function checkDoneStatus(user: User, id: string): number | null {
-  if (user.role.name !== "student") return null;
-  return user.role.exercises[id] ?? null;
+  return user.role.name === "student" ? user.role.exercises[id] ?? null : null;
 }
 
 function userProgress(arr: DoneSection[], user: User) {
@@ -122,19 +123,13 @@ function userProgress(arr: DoneSection[], user: User) {
     for (const e of arr) {
       if (typeof e.children === "string") {
         e.done = user.role.exercises[e.children] ?? null;
-      } else {
-        userProgress(e.children, user);
-      }
+      } else userProgress(e.children, user);
     }
   }
 }
 
 export function getStaticContentPath(subject: string) {
-  return joinThrowable(
-    exercisesPath,
-    subject,
-    "static",
-  );
+  return joinThrowable(exercisesPath, subject, "static");
 }
 
 for (
@@ -147,22 +142,24 @@ for (
     const index = join(path, "index.yml");
     if (existsSync(index)) {
       const content = parse(Deno.readTextFileSync(index));
-      if (isArrayOf(isYAMLSection, content)) {
-        const section = { name: subject, children: build(subject, content) };
-        _list.push(section);
-      } else throw new Error("index not a YAMLSection[]");
+      if (!isArrayOf(isYAMLSection, content)) {
+        throw new Error("index not a YAMLSection[]");
+      }
+      const section = { name: subject, children: build(subject, content) };
+      _list.push(section);
     }
   } catch (e) {
-    console.error(`${subject}: ${e}`);
+    handleThrown(e, `${subject}`);
   }
 }
 
 export async function getStaticContent(ctx: RouterContext) {
-  if (ctx.params.file && ctx.params.subject) {
-    await send(ctx, ctx.params.file, {
-      root: getStaticContentPath(ctx.params.subject),
-    }); // there's a problem with no permission to element
-  } else throw new Error("never");
+  if (!ctx.params.file || !ctx.params.subject) {
+    throw new Error("never");
+  }
+  await send(ctx, ctx.params.file, {
+    root: getStaticContentPath(ctx.params.subject),
+  }); // there's a problem with no permission to element
 }
 
 export function list(ctx: RouterContext) {
@@ -172,53 +169,51 @@ export function list(ctx: RouterContext) {
   ctx.response.body = userList;
 }
 export async function get(ctx: RouterContext) {
-  if (ctx.params.id) {
-    await exists(
-      ctx,
-      dict[`${ctx.params.subject}/${ctx.params.id}`],
-      (ex) => {
-        if (typeof ctx.state.seed === "number") {
-          const exercise = ex.render(ctx.state.seed);
-          if (
-            ctx.state.user && ctx.params.id &&
-            ctx.state.user.role.name === "student"
-          ) {
-            exercise.done = checkDoneStatus(ctx.state.user, ctx.params.id);
-          }
-          ctx.response.status = 200;
-          ctx.response.body = exercise;
-        } else throw new Error("seed is not a number");
-      },
-    );
-  } else throw new httpErrors["BadRequest"]("params.id is necessary");
+  if (!ctx.params.id) {
+    throw new httpErrors["BadRequest"]("params.id is necessary");
+  }
+  await exists(
+    ctx,
+    dict[`${ctx.params.subject}/${ctx.params.id}`],
+    (ex) => {
+      if (typeof ctx.state.seed !== "number") {
+        throw new Error("seed is not a number");
+      }
+      const exercise = ex.render(ctx.state.seed);
+      if (
+        ctx.state.user && ctx.params.id &&
+        ctx.state.user.role.name === "student"
+      ) {
+        exercise.done = checkDoneStatus(ctx.state.user, ctx.params.id);
+      }
+      ctx.response.status = 200;
+      ctx.response.body = exercise;
+    },
+  );
 }
 export async function check(ctx: RouterContext) {
-  if (ctx.request.hasBody && ctx.params.id) {
-    await exists(
-      ctx,
-      dict[`${ctx.params.subject}/${ctx.params.id}`],
-      async (ex) => {
-        const res = ex.check(
-          ctx.state.seed,
-          await ctx.request.body({ type: "json" }).value,
-        );
-        if (ctx.state.user && ctx.params.id) {
-          type EmailPartial = Omit<User, "email"> & { email?: string } | null;
-          const user: EmailPartial = await db.getUser(ctx.state.user.id);
-          const id = ctx.params.id;
-          if (!user || user.role.name !== "student") {
-            throw new httpErrors["Forbidden"]("User is not a student");
-          }
-          res.done = Math.max(res.done, user.role.exercises[id] ?? -Infinity);
-          delete user.email;
-          user.role.exercises[id] = res.done;
-          await db.setUser(user);
-        }
-        ctx.response.status = 200;
-        ctx.response.body = res.answers;
-      },
-    );
-  } else {
+  if (!ctx.request.hasBody || !ctx.params.id) {
     throw new httpErrors["BadRequest"]("body and params.id are necessary");
   }
+  await exists(
+    ctx,
+    dict[`${ctx.params.subject}/${ctx.params.id}`],
+    async (ex) => {
+      const res = ex.check(ctx.state.seed, await safeJSONType(ctx, "JSON"));
+      if (ctx.state.user && ctx.params.id) {
+        type EmailPartial = Omit<User, "email"> & { email?: string } | null;
+        const user: EmailPartial = await db.getUser(ctx.state.user.id);
+        const id = ctx.params.id;
+        if (!user || user.role.name !== "student") {
+          throw new httpErrors["Forbidden"]("User is not a student");
+        }
+        res.done = Math.max(res.done, user.role.exercises[id] ?? -Infinity);
+        delete user.email;
+        user.role.exercises[id] = res.done;
+        await db.setUser(user);
+      }
+      ctx.response.status = 200;
+      ctx.response.body = res.answers;
+    },
+  );
 }

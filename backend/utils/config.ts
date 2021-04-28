@@ -18,44 +18,53 @@ function isJWTAlgo(x?: string): x is Algorithm {
   return x != null && algos.includes(x as Algorithm); // fails if algos does not specifies all supported algorithms
 }
 
-function getString(key: string, def?: string) {
+export function get(type: "string", key: string, def?: string): string;
+export function get(type: "number", key: string, def?: number): number;
+export function get(type: "boolean", key: string, def?: boolean): boolean;
+export function get(
+  type: "string" | "number" | "boolean",
+  key: string,
+  def?: string | number | boolean,
+): string | number | boolean {
   const env = Deno.env.get(key) ?? def;
-  if (env == null) throw new Error(`${key} must be present`);
-  return env;
-}
-function getNumber(key: string, def?: number) {
-  const env = Deno.env.get(key) ?? def;
-  const r = +(env ?? NaN);
-  if (isNaN(r)) throw new Error(`${key} must be a number`);
-  return r;
-}
-function getBoolean(key: string, def?: boolean) {
-  let env = Deno.env.get(key) ?? def;
-  if (env == null) throw new Error(`${key} must be present`);
-  if (typeof env == "string") {
-    env = ["true", "yes", "1"].includes(env.toLocaleLowerCase());
+  let x;
+  switch (type) {
+    case "string":
+      x = env;
+      break;
+    case "number":
+      x = +(env ?? NaN);
+      if (isNaN(x)) x = null;
+      break;
+    case "boolean":
+      if (typeof env == "string") {
+        x = ["true", "yes", "1"].includes(env.toLocaleLowerCase());
+      }
+      break;
   }
-  return env;
+  if (x == null) throw new Error(`${key} must be present`);
+  return x;
 }
 
 const alg = Deno.env.get("JWT_ALG");
 if (!isJWTAlgo(alg)) throw new Error(`JWT_ALG must equal one of ${algos}.`);
-const key = getString("JWT_KEY");
-const exp = getNumber("JWT_EXP");
+const key = get("string", "JWT_KEY");
+const exp = get("number", "JWT_EXP");
 
-const url = getString("MONGODB_URL", "mongodb://mongo:27017");
-const database = getString("MONGODB_NAME", "pikne-zadania");
+const url = get("string", "MONGODB_URL", "mongodb://mongo:27017");
+const database = get("string", "MONGODB_NAME", "pikne-zadania");
+const time = get("number", "MONGODB_TIME", 5e3);
 
-export const SEED_AGE = getNumber("SEED_AGE", 60 * 60 * 24 * 31 * 12 * 4);
-export const LOGIN_TIME = getNumber("LOGIN_TIME", 2e3);
-export const USER_SALT = getString("USER_SALT", "");
-export const RNG_PREC = getNumber("RNG_PREC", 3);
-export const ANSWER_PREC = getNumber("ANSWER_PREC", .02);
-export const DECIMAL_POINT = getBoolean("DECIMAL_POINT", true);
+export const SEED_AGE = get("number", "SEED_AGE", 60 * 60 * 24 * 31 * 12 * 4);
+export const LOGIN_TIME = get("number", "LOGIN_TIME", 2e3);
+export const USER_SALT = get("string", "USER_SALT", "");
+export const RNG_PREC = get("number", "RNG_PREC", 3);
+export const ANSWER_PREC = get("number", "ANSWER_PREC", .02);
+export const DECIMAL_POINT = get("boolean", "DECIMAL_POINT", true);
 export const JWT_CONF = { exp, header: { alg, typ: "JWT" }, key };
-export const MONGO_CONF = { db: database, url };
+export const MONGO_CONF = { db: database, url, time };
 
-const ROOT_ENABLE = getBoolean("ROOT_ENABLE", false);
+const ROOT_ENABLE = get("boolean", "ROOT_ENABLE", false);
 const ROOT_PASS = Deno.env.get("ROOT_PASS");
 const ROOT_DHPASS = Deno.env.get("ROOT_DHPASS");
 
@@ -77,7 +86,7 @@ export async function setuproot(
         console.warn("ROOT was registered with ROOT_DHPASS.");
       }
     } else {
-      if (!(ROOT_PASS || root)) throw "no credentials for root";
+      if (!(ROOT_PASS || root)) throw new Error("no credentials for root");
       if (ROOT_PASS) {
         console.log(new Date(), "Generating root password hash...");
         const dhpass = secondhashSync(firsthash("root", ROOT_PASS));

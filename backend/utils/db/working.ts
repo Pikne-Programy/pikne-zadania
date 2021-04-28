@@ -33,8 +33,8 @@ export class WorkingDatabase {
   }
 
   @lock()
-  async close(): Promise<void> {
-    return await this.db.close();
+  close(): void {
+    return this.db.close();
   }
   @lock()
   async getGlobal(): Promise<Global> {
