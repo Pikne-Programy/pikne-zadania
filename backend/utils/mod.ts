@@ -8,3 +8,4 @@ export * from "./fs.ts";
 export * from "./hash.ts";
 export * from "./oak.ts";
 export * from "./rng.ts";
+export * from "./utils.ts";

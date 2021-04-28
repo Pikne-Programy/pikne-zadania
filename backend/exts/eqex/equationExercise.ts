@@ -258,7 +258,7 @@ export default class EquationExercise extends Exercise {
       },
     };
   }
-  check(seed: number, answer: JSONType): boolean[] {
+  check(seed: number, answer: JSONType): { done: number; answers: boolean[] } {
     if (!isAnswer(answer)) {
       throw new httpErrors["BadRequest"]("ERROR, INVALID ANSWER FORMAT");
     }
@@ -298,25 +298,18 @@ export default class EquationExercise extends Exercise {
       }
     }
     // go through each unknown and compare the answers to what's calculated
-    const success: boolean[] = [];
+    const answers: boolean[] = [];
     for (const name of this.unknowns) {
       const correctAns = calculated[name];
-      if (name in answerDict) {
-        const ans = answerDict[name];
-        if (
-          ans == null ||
-          ans < (1 - this.answerPrecision) * correctAns ||
-          ans > (1 + this.answerPrecision) * correctAns
-        ) {
-          success.push(false);
-        } else {
-          success.push(true);
-        }
-      } else {
-        throw new Error("UNKNOWN IS NOT IN ANSWER");
-      }
+      if (!(name in answerDict)) throw new Error("UNKNOWN IS NOT IN ANSWER");
+      const ans = answerDict[name];
+      answers.push(
+        ans != null &&
+          Math.abs(ans - correctAns) <= this.answerPrecision * correctAns,
+      );
     }
-    return success;
+    const done = answers.reduce((a: number, b) => a + (+b), 0) / answers.length;
+    return { answers, done };
   }
   static convertToLaTeX(unit: string): string {
     if (unit == "") {

@@ -13,13 +13,22 @@ import {
   send,
   walkSync,
 } from "../deps.ts";
-import { exists, joinThrowable } from "../utils/mod.ts";
+import { db, deepCopy, exists, joinThrowable } from "../utils/mod.ts";
 import exts from "../exts/mod.ts";
-import { Exercise, isArrayOf, isJSONType, isObjectOf } from "../types/mod.ts";
+import {
+  Exercise,
+  isArrayOf,
+  isJSONType,
+  isObjectOf,
+  User,
+} from "../types/mod.ts";
 
-interface section {
+interface Section {
   name: string;
-  children: section[] | string;
+  children: Section[] | string;
+}
+interface DoneSection extends Section {
+  done?: number | null;
 }
 interface YAMLSection {
   // we assume that there is only one key, feel free to tell TypeScript that
@@ -36,7 +45,7 @@ function isYAMLSection(what: unknown): what is YAMLSection {
 }
 
 const dict: { [key: string]: Exercise } = {}; // subject/id
-const _list: section[] = [];
+const _list: Section[] = [];
 const exercisesPath = "./exercises";
 
 function analyzeExFile(file: string): Exercise {
@@ -73,11 +82,11 @@ function getExercise(subject: string, id: string): Exercise | null {
     return null;
   }
 }
-function buildExerciseSection(subject: string, id: string): section | null {
+function buildExerciseSection(subject: string, id: string): Section | null {
   const ex = getExercise(subject, id);
   return ex ? { name: ex.name, children: id } : null;
 }
-function buildSection(subject: string, section: YAMLSection): section {
+function buildSection(subject: string, section: YAMLSection): Section {
   const name = Object.keys(section)[0];
   return {
     name,
@@ -87,8 +96,8 @@ function buildSection(subject: string, section: YAMLSection): section {
 function _build(
   subject: string,
   elements: (YAMLSection | string)[],
-): section[] {
-  const r: section[] = [];
+): Section[] {
+  const r: Section[] = [];
   for (const el of elements) {
     if (typeof el === "string") {
       const section = buildExerciseSection(subject, el);
@@ -99,8 +108,25 @@ function _build(
   }
   return r;
 }
-function build(subject: string, elements: YAMLSection[]): section[] {
+function build(subject: string, elements: YAMLSection[]): Section[] {
   return _build(subject, elements);
+}
+
+function checkDoneStatus(user: User, id: string): number | null {
+  if (user.role.name !== "student") return null;
+  return user.role.exercises[id] ?? null;
+}
+
+function userProgress(arr: DoneSection[], user: User) {
+  if (user && user.role.name === "student") {
+    for (const e of arr) {
+      if (typeof e.children === "string") {
+        e.done = user.role.exercises[e.children] ?? null;
+      } else {
+        userProgress(e.children, user);
+      }
+    }
+  }
 }
 
 export function getStaticContentPath(subject: string) {
@@ -140,8 +166,10 @@ export async function getStaticContent(ctx: RouterContext) {
 }
 
 export function list(ctx: RouterContext) {
+  const userList: DoneSection[] = deepCopy(_list);
+  if (ctx.state.user) userProgress(userList, ctx.state.user);
   ctx.response.status = 200;
-  ctx.response.body = _list;
+  ctx.response.body = userList;
 }
 export async function get(ctx: RouterContext) {
   if (ctx.params.id) {
@@ -150,8 +178,16 @@ export async function get(ctx: RouterContext) {
       dict[`${ctx.params.subject}/${ctx.params.id}`],
       (ex) => {
         if (typeof ctx.state.seed === "number") {
-          ctx.response.body = ex.render(ctx.state.seed);
-        } else throw new Error("seed not a number");
+          const exercise = ex.render(ctx.state.seed);
+          if (
+            ctx.state.user && ctx.params.id &&
+            ctx.state.user.role.name === "student"
+          ) {
+            exercise.done = checkDoneStatus(ctx.state.user, ctx.params.id);
+          }
+          ctx.response.status = 200;
+          ctx.response.body = exercise;
+        } else throw new Error("seed is not a number");
       },
     );
   } else throw new httpErrors["BadRequest"]("params.id is necessary");
@@ -162,10 +198,24 @@ export async function check(ctx: RouterContext) {
       ctx,
       dict[`${ctx.params.subject}/${ctx.params.id}`],
       async (ex) => {
-        ctx.response.body = ex.check(
+        const res = ex.check(
           ctx.state.seed,
           await ctx.request.body({ type: "json" }).value,
         );
+        if (ctx.state.user && ctx.params.id) {
+          type EmailPartial = Omit<User, "email"> & { email?: string } | null;
+          const user: EmailPartial = await db.getUser(ctx.state.user.id);
+          const id = ctx.params.id;
+          if (!user || user.role.name !== "student") {
+            throw new httpErrors["Forbidden"]("User is not a student");
+          }
+          res.done = Math.max(res.done, user.role.exercises[id] ?? -Infinity);
+          delete user.email;
+          user.role.exercises[id] = res.done;
+          await db.setUser(user);
+        }
+        ctx.response.status = 200;
+        ctx.response.body = res.answers;
       },
     );
   } else {

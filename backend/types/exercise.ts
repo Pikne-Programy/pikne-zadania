@@ -10,6 +10,9 @@ export abstract class Exercise {
     _content: string, // pociągi-dwa
     readonly properties: { [key: string]: JSONType }, // tags: kinematyka
   ) {}
-  abstract render(seed: number): JSONType; // GET
-  abstract check(seed: number, answer: JSONType): JSONType; // POST
+  abstract render(seed: number): { [key: string]: JSONType }; // GET
+  abstract check(
+    seed: number,
+    answer: JSONType,
+  ): { done: number; [key: string]: JSONType }; // POST
 }
