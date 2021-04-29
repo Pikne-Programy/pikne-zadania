@@ -95,7 +95,7 @@ $widescreen: nth(
   height: 1em;
   line-height: 1em;
   & .foreground {
-    overflow-x: hidden;
+    overflow: hidden;
     &.wide {
       width: 1.5em;
       margin-left: -3.5px;

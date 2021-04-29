@@ -359,7 +359,7 @@ export function startServer() {
           return changeTeamName(
             currentAccount,
             team.id,
-            request.requestBody,
+            JSON.parse(request.requestBody),
             teams
           );
         });
@@ -367,7 +367,7 @@ export function startServer() {
           return openTeamRegistration(
             currentAccount,
             team.id,
-            request.requestBody,
+            JSON.parse(request.requestBody),
             teams
           );
         });
@@ -378,7 +378,7 @@ export function startServer() {
           return changeTeamAssignee(
             currentAccount,
             team.id,
-            request.requestBody,
+            JSON.parse(request.requestBody),
             teams,
             users
           );
@@ -391,18 +391,15 @@ export function startServer() {
                 currentAccount,
                 team.id,
                 user.id,
-                request.requestBody,
+                JSON.parse(request.requestBody),
                 teams,
                 users
               );
             }
           );
-          this.delete(
-            `/api/teams/${team.id}/${user.id}`,
-            (schema: any, request: any) => {
-              return removeUser(currentAccount, team.id, user.id, teams, users);
-            }
-          );
+          this.delete(`/api/teams/${team.id}/${user.id}`, () => {
+            return removeUser(currentAccount, team.id, user.id, teams, users);
+          });
         });
       });
       this.post('/api/teams', (schema: any, request: any) => {
@@ -435,7 +432,7 @@ export function startServer() {
               return changeTeamName(
                 currentAccount,
                 newId,
-                request.requestBody,
+                JSON.parse(request.requestBody),
                 teams
               );
             });
@@ -459,7 +456,7 @@ export function startServer() {
                 return changeTeamAssignee(
                   currentAccount,
                   newId,
-                  request.requestBody,
+                  JSON.parse(request.requestBody),
                   teams,
                   users
                 );
@@ -473,24 +470,15 @@ export function startServer() {
                     currentAccount,
                     newId,
                     user.id,
-                    request.requestBody,
+                    JSON.parse(request.requestBody),
                     teams,
                     users
                   );
                 }
               );
-              this.delete(
-                `/api/teams/${newId}/${user.id}`,
-                (schema: any, request: any) => {
-                  return removeUser(
-                    currentAccount,
-                    newId,
-                    user.id,
-                    teams,
-                    users
-                  );
-                }
-              );
+              this.delete(`/api/teams/${newId}/${user.id}`, () => {
+                return removeUser(currentAccount, newId, user.id, teams, users);
+              });
             });
             return new Response(200, undefined, newId);
           } else
@@ -547,6 +535,7 @@ function openTeamRegistration(
   if (account.team === 0 && teamId > teams[teams.length - 1].id)
     return new Response(404);
 
+  if (invCode === '409') return new Response(409);
   invitation = invCode ?? 'QwErTy58';
   teams[teamId - 1].open = true;
   return new Response(200);

@@ -24,6 +24,7 @@ enum ModalType {
 })
 export class TeamItemComponent implements OnInit {
   private readonly IdError = 400;
+  readonly InvitationTakenError = 409;
   private readonly AccountError = 420;
   readonly InternalError = InternalError;
 

@@ -119,12 +119,19 @@
     <form id="invForm" [formGroup]="invitationForm" (ngSubmit)="openRegistration(false)">
       <div class="field">
         <label for="invCode" class="label">Kod zaproszenia</label>
-        <div class="control has-icons-left">
-          <input id="invCode" class="input is-primary" type="text" formControlName="invCode">
+        <div class="control has-icons-left has-icons-right">
+          <input id="invCode" class="input is-primary" [ngClass]="{
+            'is-primary': modalErrorCode !== InvitationTakenError,
+            'is-danger': modalErrorCode === InvitationTakenError
+          }" type="text" formControlName="invCode">
           <span class="icon is-small is-left">
             <i class="fas fa-key"></i>
           </span>
+          <span *ngIf="modalErrorCode === InvitationTakenError" class="icon has-text-danger is-small is-right">
+            <i class="fas fa-times"></i>
+          </span>
         </div>
+        <p *ngIf="modalErrorCode === InvitationTakenError" class="help is-danger">Ten kod zaproszenia jest już zajęty</p>
       </div>
     </form>
   </section>
@@ -226,7 +233,7 @@
 <!--#region Modal error message -->
 <ng-template #modalFooterEndTemplate>
   <button class="button" (click)="closeModal()" [disabled]="isModalLoading || isModalSecondaryLoading">Anuluj</button>
-  <p *ngIf="modalErrorCode !== null" class="has-text-danger">
+  <p *ngIf="modalErrorCode !== null && modalErrorCode !== InvitationTakenError" class="has-text-danger">
     Wystąpił błąd ({{ modalErrorCode }})
   </p>
 </ng-template>
