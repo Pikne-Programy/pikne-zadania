@@ -26,12 +26,12 @@ The common errors status codes are:
 - [GET /api/account](#get-apiaccount)
 - [GET /api/teams](#get-apiteams)
 - [POST /api/teams](#post-apiteams)
+- [GET /api/teams/:id](#get-apiteamsid)
+- [POST /api/teams/:id](#post-apiteamsid)
 - [POST /api/teams/:id/open](#post-apiteamsidopen)
 - [POST /api/teams/:id/close](#post-apiteamsidclose)
-- [GET /api/teams/:id](#get-apiteamsid)
 - [DELETE /api/teams/:id/:userid](#delete-apiteamsiduserid)
 - [POST /api/teams/:id/:userid](#post-apiteamsiduserid)
-- [POST /api/teams/:id](#post-apiteamsid)
 - [POST /api/root/teams/:id](#post-apirootteamsid)
 
 ***
@@ -317,11 +317,63 @@ it can be `null` or a number from 0 to 1, see [#24](https://github.com/Pikne-Pro
 
 ***
 
+## `GET /api/teams/:id`
+
+| Method | URL | Description | Special status codes |
+| - | - | - | - |
+| GET | `/api/teams/:id` | get info about team | 403, 404 (only if authorized as admin) |
+
+**Request**:
+
+```json
+```
+
+**Response**:
+
+```json
+{
+  "name": "2d",
+  "assignee": "Williams",
+  "invitation": "QwErTy58",
+  "members": [
+    {
+      "id": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "User",
+      "number": 11
+    }
+  ]
+}
+```
+
+**note**: Member `id` property is a hashed email. \
+**note**: When team has closed registration `invitation` is `null`.
+
+***
+
+## `POST /api/teams/:id`
+
+| Method | URL | Description | Special status codes |
+| - | - | - | - |
+| POST | `/api/teams/:id` | set a new name of team | 403, 404 (only if authorized as admin) |
+
+**Request**:
+
+```json
+"3d"
+```
+
+**Response**:
+
+```json
+```
+
+***
+
 ## `POST /api/teams/:id/open`
 
 | Method | URL | Description | Special status codes |
 | - | - | - | - |
-| POST | `/api/teams/:id/open` | change invitation code of team and open registration | 403, 404 (only if authorized as admin) |
+| POST | `/api/teams/:id/open` | change invitation code of team and open registration | 403, 404 (only if authorized as admin), 409 (invitation code is taken) |
 
 **Request**:
 
@@ -356,39 +408,6 @@ it can be `null` or a number from 0 to 1, see [#24](https://github.com/Pikne-Pro
 
 ***
 
-## `GET /api/teams/:id`
-
-| Method | URL | Description | Special status codes |
-| - | - | - | - |
-| GET | `/api/teams/:id` | get info about team | 403, 404 (only if authorized as admin) |
-
-**Request**:
-
-```json
-```
-
-**Response**:
-
-```json
-{
-  "name": "2d",
-  "assignee": "Williams",
-  "invitation": "QwErTy58",
-  "members": [
-    {
-      "id": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "name": "User",
-      "number": 11
-    }
-  ]
-}
-```
-
-**note**: Member `id` property is a hashed email. \
-**note**: When team has closed registration `invitation` is `null`.
-
-***
-
 ## `DELETE /api/teams/:id/:userid`
 
 | Method | URL | Description | Special status codes |
@@ -417,25 +436,6 @@ it can be `null` or a number from 0 to 1, see [#24](https://github.com/Pikne-Pro
 
 ```json
 34
-```
-
-**Response**:
-
-```json
-```
-
-***
-
-## `POST /api/teams/:id`
-
-| Method | URL | Description | Special status codes |
-| - | - | - | - |
-| POST | `/api/teams/:id` | set a new name of team | 403, 404 (only if authorized as admin) |
-
-**Request**:
-
-```json
-"3d"
 ```
 
 **Response**:
