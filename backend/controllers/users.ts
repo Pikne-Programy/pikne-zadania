@@ -25,7 +25,7 @@ export function getUser(ctx: RouterContext) {
 export async function setUserNumber(ctx: RouterContext) {
   const userid = ctx.params.userid;
   if (!userid) throw new httpErrors["BadRequest"]("Incorrect user id");
-  const num = await safeJSONType(ctx, "number");
+  const num = await safeJSONType(ctx, "number?");
   const user = await db.getUser(userid);
   if (!user) throw new httpErrors["NotFound"]();
   if (user.role.name !== "student") {

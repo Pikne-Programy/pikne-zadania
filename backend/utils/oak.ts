@@ -60,8 +60,16 @@ export async function safeJSONbody(
 
 export async function safeJSONType(
   ctx: RouterContext,
+  type: "string?",
+): Promise<string | null>;
+export async function safeJSONType(
+  ctx: RouterContext,
   type: "string",
 ): Promise<string>;
+export async function safeJSONType(
+  ctx: RouterContext,
+  type: "number?",
+): Promise<number | null>;
 export async function safeJSONType(
   ctx: RouterContext,
   type: "number",
@@ -76,13 +84,19 @@ export async function safeJSONType(
 ): Promise<JSONType>;
 export async function safeJSONType(
   ctx: RouterContext,
-  type: "string" | "number" | "boolean" | "JSON",
-): Promise<string | number | boolean | JSONType> {
+  type: "string?" | "string" | "number?" | "number" | "boolean" | "JSON",
+): Promise<string | number | boolean | JSONType | null> {
   try {
     const body: JSONType = await ctx.request.body({ type: "json" }).value;
     switch (type) {
+      case "string?":
+        if (typeof body !== "string" && body != null) throw "";
+        break;
       case "string":
         if (typeof body !== "string") throw "";
+        break;
+      case "number?":
+        if (typeof body !== "number" && body != null) throw "";
         break;
       case "number":
         if (typeof body !== "number") throw "";

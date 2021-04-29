@@ -19,11 +19,16 @@ try {
   handleThrown(e, "MONGO");
   db = new Database();
 }
-// create static teams if not already created
-if (!db.getTeam(1)) { // teachers' team
-  db.addTeam({
+
+if (!await db.getGlobal()) {
+  await db.createGlobal();
+}
+// create static teacher's team if not already created
+if (!await db.getTeam(1)) { // teachers' team
+  await db.addTeam({
+    id: 1,
     name: "Teachers",
-    assignee: "admin",
+    assignee: "root",
     members: [],
     invCode: null,
   });

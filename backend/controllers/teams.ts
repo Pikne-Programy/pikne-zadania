@@ -1,4 +1,5 @@
 // Copyright 2021 Michał Szymocha <szymocha.michal@gmail.com>
+// Copyright 2021 Marcin Wykpis <marwyk2003@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -78,12 +79,28 @@ export async function changeAssignee(ctx: RouterContext) {
   }
   ctx.response.status = 200;
 }
+
+function generateInvitationCode(id: number): string {
+  const ntob = (n: number): string => {
+    const base64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+      "abcdefghijklmnopqrstuvwxyz0123456789+/";
+    return base64[n];
+  };
+  const randomArray = new Uint8Array(4);
+  window.crypto.getRandomValues(randomArray);
+  let invCode = ntob(id);
+  for (const n of randomArray) {
+    invCode += ntob(n % 64);
+  }
+  return invCode;
+}
+
 export async function openRegistration(ctx: RouterContext) {
-  // TODO: handle null value
   const id = ctx.params.id == null ? null : +ctx.params.id;
   if (id == null || isNaN(id)) throw new httpErrors["BadRequest"]();
-  const invitation = await safeJSONType(ctx, "string");
   if (!await db.getTeam(id)) throw new httpErrors["NotFound"]();
+  const invitation = await safeJSONType(ctx, "string?") ??
+    generateInvitationCode(id);
   if (!await db.setInvitationCode(id, invitation)) {
     throw new httpErrors["Conflict"]();
   }

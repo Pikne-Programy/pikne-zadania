@@ -6,11 +6,21 @@
 
 // deno-lint-ignore-file no-unused-vars
 
-import { Global, IdPartial, success, Team, User } from "../../types/mod.ts";
+import {
+  Global,
+  IdOptional,
+  IdRequired,
+  success,
+  Team,
+  User,
+} from "../../types/mod.ts";
 
 export class Database {
   constructor() {}
   close(): void {}
+  async createGlobal(): Promise<void> {
+    return await new Promise((r) => r());
+  }
   async getGlobal(): Promise<Global | null> {
     return await new Promise((r) => r(null));
   }
@@ -32,7 +42,7 @@ export class Database {
   async getUser(uid: string): Promise<User | null> {
     return await new Promise((r) => r(null));
   }
-  async setUser(part: Omit<IdPartial<User>, "email">): Promise<success> {
+  async setUser(part: Omit<IdRequired<User>, "email">): Promise<success> {
     return await new Promise((r) => r(false));
   }
   async getInvitation(invCode: string): Promise<number | null> {
@@ -47,7 +57,7 @@ export class Database {
   async getAllTeams(): Promise<Team[]> {
     return await new Promise((r) => r([]));
   }
-  async addTeam(_team: Omit<Team, "id">): Promise<Team["id"] | null> {
+  async addTeam(_team: IdOptional<Team>): Promise<Team["id"] | null> {
     return await new Promise((r) => r(null));
   }
   async deleteTeam(tid: number): Promise<success> {
@@ -56,7 +66,7 @@ export class Database {
   async getTeam(tid: number): Promise<Team | null> {
     return await new Promise((r) => r(null));
   }
-  async setTeam(dif: IdPartial<Team>): Promise<success> {
+  async setTeam(dif: IdRequired<Team>): Promise<success> {
     return await new Promise((r) => r(false));
   }
 }

@@ -4,7 +4,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { MongoClient, Mutex } from "../../deps.ts";
-import { Global, IdPartial, success, Team, User } from "../../types/mod.ts";
+import {
+  Global,
+  IdOptional,
+  IdRequired,
+  success,
+  Team,
+  User,
+} from "../../types/mod.ts";
 import { FunctionalDatabase } from "./functional.ts";
 
 const mutex = new Mutex();
@@ -37,7 +44,11 @@ export class WorkingDatabase {
     return this.db.close();
   }
   @lock()
-  async getGlobal(): Promise<Global> {
+  async createGlobal(): Promise<void> {
+    await this.db.createGlobal();
+  }
+  @lock()
+  async getGlobal(): Promise<Global | null> {
     return await this.db.getGlobal();
   }
   @lock()
@@ -65,7 +76,7 @@ export class WorkingDatabase {
     return await this.db.getUser(uid);
   }
   @lock()
-  async setUser(part: Omit<IdPartial<User>, "email">): Promise<success> {
+  async setUser(part: Omit<IdRequired<User>, "email">): Promise<success> {
     return await this.db.setUser(part);
   }
   @lock()
@@ -84,7 +95,7 @@ export class WorkingDatabase {
     return await this.db.getAllTeams();
   }
   @lock()
-  async addTeam(_team: Omit<Team, "id">): Promise<Team["id"] | null> {
+  async addTeam(_team: IdOptional<Team>): Promise<Team["id"] | null> {
     return await this.db.addTeam(_team);
   }
   @lock()
@@ -96,7 +107,7 @@ export class WorkingDatabase {
     return await this.db.getTeam(tid);
   }
   @lock()
-  async setTeam(part: IdPartial<Team>): Promise<success> {
+  async setTeam(part: IdRequired<Team>): Promise<success> {
     return await this.db.setTeam(part);
   }
 }

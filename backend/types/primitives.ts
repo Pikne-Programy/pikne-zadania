@@ -31,4 +31,7 @@ export function isJSONType(what: unknown): what is JSONType {
     (what === null);
 }
 
-export type IdPartial<T extends { id: unknown }> = Partial<T> & Pick<T, "id">;
+export type IdOptional<T extends { id: unknown }> =
+  & Omit<T, "id">
+  & Partial<Pick<T, "id">>;
+export type IdRequired<T extends { id: unknown }> = Partial<T> & Pick<T, "id">;

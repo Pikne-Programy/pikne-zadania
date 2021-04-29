@@ -4,7 +4,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { Collection, MongoClient } from "../../deps.ts";
-import { Global, IdPartial, success, Team, User } from "../../types/mod.ts";
+import {
+  Global,
+  IdOptional,
+  IdRequired,
+  success,
+  Team,
+  User,
+} from "../../types/mod.ts";
 import { MONGO_CONF, userhash } from "../../utils/mod.ts";
 import { Database } from "./placeholder.ts";
 
@@ -13,7 +20,7 @@ export class FunctionalDatabase extends Database {
   readonly teams: Collection<Team>;
   readonly global: Collection<Global>;
 
-  static readonly defaultGlobal: Readonly<Global> = { lastTid: 0 };
+  static readonly defaultGlobal: Readonly<Global> = { lastTid: 1 };
 
   constructor(readonly client: MongoClient) {
     super();
@@ -27,15 +34,19 @@ export class FunctionalDatabase extends Database {
   }
 
   // GLOBAL
-  async getGlobal(): Promise<Global> {
+  async createGlobal(): Promise<void> {
+    const _global = FunctionalDatabase.defaultGlobal;
+    await this.global.insertOne(_global);
+  }
+  async getGlobal(): Promise<Global | null> {
     const global = await this.global.findOne({});
-    if (!global) {
-      console.error("No global collection in database");
-      const _global = FunctionalDatabase.defaultGlobal;
-      await this.global.insertOne(_global);
-      return _global;
-    }
-    return global;
+    return global ?? null;
+  }
+  async nextTid(): Promise<number> {
+    const global = await this.getGlobal();
+    if (!global) throw new Error("no global collection");
+    await this.global.updateOne({}, { $inc: { lastTid: 1 } });
+    return global.lastTid + 1;
   }
 
   // JWT
@@ -117,7 +128,7 @@ export class FunctionalDatabase extends Database {
     return user ?? null;
   }
 
-  async setUser(part: Omit<IdPartial<User>, "email">): Promise<success> {
+  async setUser(part: Omit<IdRequired<User>, "email">): Promise<success> {
     // ommiting "email" property because we can't change email of User without changing its id
     const user = await this.getUser(part.id);
     if (!user) {
@@ -169,14 +180,9 @@ export class FunctionalDatabase extends Database {
   async getAllTeams(): Promise<Team[]> {
     return await this.teams.find().toArray();
   }
-  async addTeam(_team: Omit<Team, "id">): Promise<Team["id"] | null> {
-    const global = await this.getGlobal();
-    if (!global) {
-      console.error("addTeam: no global collection");
-      return null;
-    }
-    const team: Team = { ..._team, id: global.lastTid + 1 };
-    await this.global.updateOne({}, { $inc: { lastTid: 1 } });
+  async addTeam(_team: IdOptional<Team>): Promise<Team["id"] | null> {
+    // if (!_team.id) await this.global.updateOne({}, { $inc: { lastTid: 1 } });
+    const team = { ..._team, id: _team.id ?? await this.nextTid() };
     await this.teams.insertOne(team);
     return team.id;
   }
@@ -199,7 +205,7 @@ export class FunctionalDatabase extends Database {
     return team ?? null;
   }
 
-  async setTeam(part: IdPartial<Team>): Promise<success> {
+  async setTeam(part: IdRequired<Team>): Promise<success> {
     if (!await this.getTeam(part.id)) {
       return false;
     }
