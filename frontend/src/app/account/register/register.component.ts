@@ -26,7 +26,7 @@ export class RegisterComponent implements OnDestroy {
       Validators.email,
       this.submitErrorValidator(this.emailError),
     ]),
-    username: new FormControl('', [Validators.required]),
+    name: new FormControl('', [Validators.required]),
     password: new FormControl('', [Validators.required]),
     password2: new FormControl('', [Validators.required]),
     invitation: new FormControl('', [
@@ -59,8 +59,8 @@ export class RegisterComponent implements OnDestroy {
   get email() {
     return this.form.get('email');
   }
-  get username() {
-    return this.form.get('username');
+  get name() {
+    return this.form.get('name');
   }
   get password() {
     return this.form.get('password');
@@ -104,7 +104,7 @@ export class RegisterComponent implements OnDestroy {
     this.accountService
       .createAccount(
         this.email!.value,
-        this.username!.value,
+        this.name!.value,
         this.password!.value,
         this.invitation!.value,
         this.hasNumber ? this.number!.value : null

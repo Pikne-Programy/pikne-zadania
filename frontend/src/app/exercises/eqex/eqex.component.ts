@@ -5,7 +5,9 @@ import {
   Input,
   Output,
 } from '@angular/core';
+import { AccountService } from 'src/app/account/account.service';
 import { ExerciseService } from 'src/app/exercise-service/exercise.service';
+import { Role, RoleGuardService } from 'src/app/guards/role-guard.service';
 import { serverMockEnabled } from 'src/app/helper/tests/tests.config';
 import { getErrorCode, removeMathTabIndex } from 'src/app/helper/utils';
 import { image } from 'src/app/server-routes';
@@ -72,7 +74,16 @@ export class EqexComponent implements ExerciseComponent, AfterViewInit {
   private imgAlts?: string[];
   unknowns: Unknown[] = [];
 
-  constructor(private exerciseService: ExerciseService) {}
+  private isUser: boolean;
+  constructor(
+    private exerciseService: ExerciseService,
+    accountService: AccountService
+  ) {
+    const account = accountService.currentAccount.getValue();
+    this.isUser = account
+      ? RoleGuardService.getRole(account) === Role.USER
+      : true;
+  }
 
   getTextAsMath(text: string): string {
     return `\\(${text}\\)`;
@@ -90,7 +101,8 @@ export class EqexComponent implements ExerciseComponent, AfterViewInit {
         .submitAnswers(this.subject, this.exerciseId, list)
         .then((response) => {
           if (Exercise.isEqExAnswer(response, this.unknowns.length)) {
-            if (this.exerciseId) this.setLocalDone(this.exerciseId, response);
+            if (this.exerciseId && this.isUser)
+              this.setLocalDone(this.exerciseId, response);
             this.onAnswers.emit(null);
             for (let i = 0; i < response.length; i++)
               this.unknowns[i].setAnswerCorrectness(response[i]);

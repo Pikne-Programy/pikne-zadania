@@ -11,7 +11,8 @@ export class Subject {
   constructor(public name: string, public exerciseTree: ExerciseTreeNode) {}
 
   static createSubjectList(
-    serverResponse: ServerResponseNode[]
+    serverResponse: ServerResponseNode[],
+    getLocalDone: boolean
   ): Subject[] | null {
     const list: Subject[] = [];
     for (let node of serverResponse) {
@@ -20,6 +21,7 @@ export class Subject {
           new Subject(
             node.name,
             ExerciseTreeNode.createExerciseTree(
+              getLocalDone,
               node.name,
               node.children,
               node.name
@@ -64,6 +66,7 @@ export class ExerciseTreeNode {
   }
 
   static createExerciseTree(
+    getLocal: boolean,
     value: string | null,
     children: ServerResponseNode[],
     subject: string,
@@ -73,16 +76,24 @@ export class ExerciseTreeNode {
     children.forEach((child) => {
       if (Array.isArray(child.children)) {
         node.children.push(
-          this.createExerciseTree(child.name, child.children, subject, node)
+          this.createExerciseTree(
+            getLocal,
+            child.name,
+            child.children,
+            subject,
+            node
+          )
         );
       } else {
+        if (child.done !== undefined && getLocal)
+          setLocalDone(child.children, child.done);
         node.children.push(
           new ExerciseTreeNode(
             capitalize(child.name),
             node,
             child.children,
-            child.done === undefined
-              ? ExerciseTreeNode.getDone(child.children)
+            child.done === undefined && getLocal
+              ? getLocalDone(child.children)
               : child.done
           )
         );
@@ -90,9 +101,20 @@ export class ExerciseTreeNode {
     });
     return node;
   }
+}
 
-  static getDone(url: string): number | null {
-    const localDone = localStorage.getItem(url);
-    return localDone !== null ? Number(localDone) : null;
+function getLocalDone(url: string): number | null {
+  const localDone = localStorage.getItem(url);
+  switch (localDone) {
+    case null:
+    case 'null':
+      return null;
+    default:
+      if (isNaN(Number(localDone))) return null;
+      return Number(localDone);
   }
+}
+
+function setLocalDone(name: string, done: number | null) {
+  localStorage.setItem(name, done?.toString() ?? 'null');
 }

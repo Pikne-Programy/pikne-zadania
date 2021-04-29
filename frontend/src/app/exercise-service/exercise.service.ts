@@ -2,7 +2,9 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { Exercise } from '../exercises/exercises';
+import { AccountService } from '../account/account.service';
+import { Exercise, ExerciseType } from '../exercises/exercises';
+import { Role, RoleGuardService } from '../guards/role-guard.service';
 import { getErrorCode } from '../helper/utils';
 import * as ServerRoutes from '../server-routes';
 import { Subject } from './exercise.utils';
@@ -12,8 +14,12 @@ import { Subject } from './exercise.utils';
 })
 export class ExerciseService {
   private readonly TypeError = 400;
+  private readonly AnswerFormatError = 420;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private accountService: AccountService
+  ) {}
 
   private fetchExercises() {
     return this.http
@@ -30,11 +36,15 @@ export class ExerciseService {
 
   getSubjectList() {
     return this.fetchExercises()
-      .then((response) =>
-        response.length > 0
-          ? Subject.createSubjectList(response) ?? this.TypeError
-          : this.TypeError
-      )
+      .then((response) => {
+        const account = this.accountService.currentAccount.getValue();
+        const isUser = account
+          ? RoleGuardService.getRole(account) === Role.USER
+          : true;
+        return response.length > 0
+          ? Subject.createSubjectList(response, isUser) ?? this.TypeError
+          : this.TypeError;
+      })
       .catch((error) => getErrorCode(error, this.TypeError));
   }
 

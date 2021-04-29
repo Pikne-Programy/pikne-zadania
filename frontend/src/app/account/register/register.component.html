@@ -13,6 +13,18 @@
         </a>
 
         <form class="width-full" [formGroup]="form" (ngSubmit)="submit()">
+          <!--#region Name -->
+          <div class="field">
+            <label for="name" class="label">Imię</label>
+            <div class="control has-icons-left">
+              <input id="name" class="input is-primary" type="text" formControlName="name">
+              <span class="icon is-small is-left">
+                <i class="fas fa-user"></i>
+              </span>
+            </div>
+          </div>
+          <!--#endregion-->
+          <!--#region Email -->
           <div class="field">
             <label for="email" class="label">E-mail</label>
             <div class="control has-icons-left has-icons-right">
@@ -34,18 +46,8 @@
             <p *ngIf="email!.errors?.email" class="help is-warning">Nieprawidłowy adres e-mail</p>
             <p *ngIf="email!.errors?.submit" class="help is-danger">Konto z tym adresem e-mail już istnieje</p>
           </div>
-
-          <div class="field">
-            <label for="username" class="label">Nazwa użytkownika</label>
-            <div class="control has-icons-left">
-              <input id="username" class="input is-primary" type="text" formControlName="username">
-              <span class="icon is-small is-left">
-                <i class="fas fa-user"></i>
-              </span>
-            </div>
-          </div>
-
-
+          <!--#endregion-->
+          <!--#region Password -->
           <fieldset class="columns my-0">
             <div class="column field py-0">
               <label for="password" class="label">Hasło</label>
@@ -74,7 +76,8 @@
             </div>
           </fieldset>
           <p *ngIf="password2!.errors?.password && password2!.dirty" class="help outside is-danger">Hasła nie są takie same</p>
-
+          <!--#endregion-->
+          <!--#region Invitation -->
           <div class="field">
             <label for="invitation" class="label">
               <span (click)="onInfoClick()">Kod zaproszenia </span>
@@ -96,7 +99,8 @@
             </div>
             <p *ngIf="invitation!.errors?.submit" class="help is-danger">Nieprawidłowy kod zaproszenia</p>
           </div>
-
+          <!--#endregion-->
+          <!--#region Number -->
           <div class="field">
             <div class="columns is-mobile m-0">
               <label for="number" class="column label p-0">Numer w dzienniku</label>
@@ -119,7 +123,8 @@
             </fieldset>
             <p *ngIf="number!.errors?.pattern" class="help is-warning">Wymagana liczba</p>
           </div>
-
+          <!--#endregion-->
+          <!--#region Submit -->
           <div class="field mt-3 ">
             <div class="control">
               <button type="submit" class="button is-primary width-full" [ngClass]="{'is-loading': isSubmitted}" [disabled]="form.invalid">Zarejestruj</button>
@@ -129,6 +134,7 @@
               <a routerLink="/login" class="has-text-centered mt-3" queryParamsHandling="preserve">Masz już konto? Zaloguj&nbsp;się</a>
             </div>
           </div>
+          <!--#endregion-->
         </form>
       </div>
     </div>
