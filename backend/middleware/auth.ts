@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { httpErrors, RouterContext } from "../deps.ts";
+import { httpErrors } from "../deps.ts";
 import { validateJWT } from "../controllers/auth.ts";
-import { db } from "../utils/mod.ts";
+import { db, RouterContext } from "../utils/mod.ts";
 
 function authorize(required: boolean) {
   return async (ctx: RouterContext, next: () => Promise<void>) => {

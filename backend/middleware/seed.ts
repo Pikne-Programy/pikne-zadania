@@ -3,8 +3,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { RouterContext } from "../deps.ts";
-import { generateSeed, SEED_AGE } from "../utils/mod.ts";
+import { generateSeed, RouterContext, SEED_AGE } from "../utils/mod.ts";
 
 function setSeed(ctx: RouterContext, seed: number) {
   ctx.state.seed = seed;

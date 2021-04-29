@@ -9,7 +9,6 @@ import {
   httpErrors,
   join,
   parse,
-  RouterContext,
   send,
   walkSync,
 } from "../deps.ts";
@@ -19,6 +18,7 @@ import {
   exists,
   handleThrown,
   joinThrowable,
+  RouterContext,
   safeJSONType,
 } from "../utils/mod.ts";
 import exts from "../exts/mod.ts";
@@ -204,13 +204,12 @@ export async function check(ctx: RouterContext) {
         type EmailPartial = Omit<User, "email"> & { email?: string } | null;
         const user: EmailPartial = await db.getUser(ctx.state.user.id);
         const id = ctx.params.id;
-        if (!user || user.role.name !== "student") {
-          throw new httpErrors["Forbidden"]("User is not a student");
+        if (user && user.role.name === "student") {
+          res.done = Math.max(res.done, user.role.exercises[id] ?? -Infinity);
+          delete user.email;
+          user.role.exercises[id] = res.done;
+          await db.setUser(user);
         }
-        res.done = Math.max(res.done, user.role.exercises[id] ?? -Infinity);
-        delete user.email;
-        user.role.exercises[id] = res.done;
-        await db.setUser(user);
       }
       ctx.response.status = 200;
       ctx.response.body = res.answers;

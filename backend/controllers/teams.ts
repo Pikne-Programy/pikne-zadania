@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { httpErrors, RouterContext } from "../deps.ts";
-import { db, safeJSONbody, safeJSONType } from "../utils/mod.ts";
+import { httpErrors } from "../deps.ts";
+import { db, RouterContext, safeJSONbody, safeJSONType } from "../utils/mod.ts";
 import { endpointSchema as endpoint, Team } from "../types/mod.ts";
 
 export async function getAllTeams(ctx: RouterContext) {

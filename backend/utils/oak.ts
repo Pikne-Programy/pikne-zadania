@@ -4,14 +4,26 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {
+  _Context,
+  _RouterContext,
   httpErrors,
   ObjectTypeOf,
-  RouterContext,
+  RouteParams,
   SchemaObject,
   vs,
 } from "../deps.ts";
-import { JSONType } from "../types/mod.ts";
+import { JSONType, User } from "../types/mod.ts";
 import { assertUnreachable } from "./mod.ts";
+
+export interface State {
+  seed: number;
+  user: User | null;
+}
+export type Context = _Context<State>;
+export type RouterContext<P extends RouteParams = RouteParams> = _RouterContext<
+  P,
+  State
+>;
 
 function _placeholder(status: number, body?: JSONType) {
   return (ctx: RouterContext) => {

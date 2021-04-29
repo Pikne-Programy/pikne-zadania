@@ -10,7 +10,6 @@ import {
   getNumericDate,
   httpErrors,
   Payload,
-  RouterContext,
   verify,
 } from "../deps.ts";
 import { endpointSchema as endpoint } from "../types/mod.ts";
@@ -18,6 +17,7 @@ import {
   db,
   delay,
   handleThrown,
+  RouterContext,
   safeJSONbody,
   secondhash,
   userhash,

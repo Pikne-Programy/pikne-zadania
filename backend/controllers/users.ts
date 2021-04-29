@@ -3,8 +3,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { httpErrors, RouterContext } from "../deps.ts";
-import { db, safeJSONType } from "../utils/mod.ts";
+import { httpErrors } from "../deps.ts";
+import { db, RouterContext, safeJSONType } from "../utils/mod.ts";
 
 export async function deleteUser(ctx: RouterContext) {
   const id = ctx.params.userid;

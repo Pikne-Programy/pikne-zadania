@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-FROM hayd/alpine-deno:1.7.2
+FROM hayd/alpine-deno:1.9.2
 EXPOSE 8000
 WORKDIR /app
 RUN chown -R deno:deno /usr/local

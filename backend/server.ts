@@ -2,15 +2,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Application, Context, HttpError } from "./deps.ts";
-import { User } from "./types/mod.ts";
+import { Application, HttpError } from "./deps.ts";
 import router from "./router.ts";
-import { db, handleThrown } from "./utils/mod.ts";
-
-export interface State {
-  seed: number;
-  user: User | null;
-}
+import { Context, db, handleThrown, State } from "./utils/mod.ts";
 
 const app = new Application<State>();
 
