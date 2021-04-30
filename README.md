@@ -37,7 +37,7 @@ Install our app (use `sudo` if you are not in `docker` group):
 ```sh
 curl -L https://raw.githubusercontent.com/Pikne-Programy/pikne-zadania/master/docker-compose.latest.yml --create-dirs -o pikne-zadania/docker-compose.yml
 cd pikne-zadania/
-printf "JWT_ALG=HS512\nJWT_KEY=changeme\nJWT_EXP=$((7*24*60*60))\nLOGIN_TIME=2e3\nUSER_SALT=changeme\nDECIMAL_POINT=false\nROOT_ENABLE=yes\nROOT_PASS=changeme\n" > api.env
+printf "JWT_ALG=HS512\nJWT_KEY=$(openssl rand -base64 32)\nJWT_EXP=$((7*24*60*60))\nLOGIN_TIME=2e3\nUSER_SALT=$(openssl rand -base64 32)\nDECIMAL_POINT=false\nROOT_ENABLE=yes\nROOT_PASS=$(openssl rand -base64 32)\n" > api.env
 docker-compose up -d
 ```
 

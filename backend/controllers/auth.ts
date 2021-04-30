@@ -55,7 +55,7 @@ export async function register(ctx: RouterContext) {
   const { login, name, hashed_password, number, invitation } =
     await safeJSONbody(ctx, endpoint.register);
   const team = await db.getInvitation(invitation);
-  if (!team) throw new httpErrors["NotFound"]();
+  if (!team) throw new httpErrors["Forbidden"]();
   const user = {
     email: login,
     name,

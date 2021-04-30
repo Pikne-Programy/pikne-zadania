@@ -37,9 +37,9 @@ export function get(
       if (isNaN(x)) x = null;
       break;
     case "boolean":
-      if (typeof env == "string") {
-        x = ["true", "yes", "1"].includes(env.toLocaleLowerCase());
-      }
+      x = (typeof env == "string")
+        ? ["true", "yes", "1"].includes(env.toLocaleLowerCase())
+        : env;
       break;
   }
   if (x == null) throw new Error(`${key} must be present`);
@@ -59,7 +59,7 @@ export const SEED_AGE = get("number", "SEED_AGE", 60 * 60 * 24 * 31 * 12 * 4);
 export const LOGIN_TIME = get("number", "LOGIN_TIME", 2e3);
 export const USER_SALT = get("string", "USER_SALT", "");
 export const RNG_PREC = get("number", "RNG_PREC", 3);
-export const ANSWER_PREC = get("number", "ANSWER_PREC", .02);
+export const ANSWER_PREC = get("number", "ANSWER_PREC", .01);
 export const DECIMAL_POINT = get("boolean", "DECIMAL_POINT", true);
 export const JWT_CONF = { exp, header: { alg, typ: "JWT" }, key };
 export const MONGO_CONF = { db: database, url, time };

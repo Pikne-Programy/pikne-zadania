@@ -181,7 +181,6 @@ export class FunctionalDatabase extends Database {
     return await this.teams.find().toArray();
   }
   async addTeam(_team: IdOptional<Team>): Promise<Team["id"] | null> {
-    // if (!_team.id) await this.global.updateOne({}, { $inc: { lastTid: 1 } });
     const team = { ..._team, id: _team.id ?? await this.nextTid() };
     await this.teams.insertOne(team);
     return team.id;
