@@ -16,6 +16,10 @@ $button-colors: mergeColorMaps(
       $primary-dark,
       findColorInvert($primary-dark),
     ),
+    "warning-dark": (
+      $warning-dark,
+      findColorInvert($warning-dark),
+    ),
   )
 );
 @import "~bulma/sass/elements/button";

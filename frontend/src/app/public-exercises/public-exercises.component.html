@@ -1,7 +1,9 @@
 <div *ngIf="!isLoading && errorCode === null" class="columns height-full m-0">
+  <!--#region Categories -->
   <div *ngIf="screenSize !== mobileSize || exercise === null" class="height-full column is-one-quarter-tablet is-one-fifth-desktop">
     <div class="box height-full p-0">
       <aside class="menu height-full is-flex is-flex-direction-column">
+        <!--#region Breadcrumbs -->
         <nav class="breadcrumb is-bold divider-bottom p-4 pb-4 mb-0" aria-label="breadcrumbs">
           <ul>
             <li *ngIf="!isSingleSubject" class="is-align-self-center">
@@ -21,6 +23,8 @@
             </li>
           </ul>
         </nav>
+        <!--#endregion-->
+        <!--#region Category tree -->
         <div class="height-full scrollable px-4">
           <ul class="menu-list py-3">
             <li *ngFor="let node of list" tabindex="0" (keydown.enter)="navigate(node)">
@@ -41,11 +45,15 @@
             </li>
           </ul>
         </div>
+        <!--#endregion-->
       </aside>
     </div>
   </div>
+  <!--#endregion-->
+  <!--#region Exercise -->
   <div *ngIf="screenSize !== mobileSize || exercise !== null" class="column height-full">
     <div class="box height-full is-flex is-flex-direction-column p-0">
+      <!--#region Back button -->
       <nav *ngIf="screenSize === mobileSize" class="level divider-bottom p-2 m-0" (click)="resetExercise()">
         <div class="level-left">
           <button class="button is-rounded is-small">
@@ -56,6 +64,7 @@
           </button>
         </div>
       </nav>
+      <!--#endregion-->
       <div *ngIf="exercise !== null" class="height-full scrollable">
         <app-exercise [subject]="subject?.name" [exerciseUrl]="getExerciseUrl()" (onAnswerSubmit)="updateExerciseTree()"></app-exercise>
       </div>
@@ -64,7 +73,16 @@
       </div>
     </div>
   </div>
+  <!--#endregion-->
+  <!--#region Not logged in warning -->
+  <div *ngIf="isLoginWarningShown" class="box warning has-background-warning">
+    <div class="buttons is-right is-flex-wrap-nowrap">
+      <p><b>UWAGA! Jesteś niezalogowany</b></p>
+      <button class="button is-warning-dark has-text-black" (click)="isLoginWarningShown = false">Rozumiem</button>
+    </div>
+  </div>
+  <!--#endregion-->
 </div>
 <!--TODO Make loading component w/ pulsating logo -->
 <app-loading *ngIf="isLoading && errorCode === null"></app-loading>
-<app-error *ngIf="errorCode !== null" [code]="errorCode" [message]="'Ups, przedmiot, którego szukasz, nie istnieje!'" [link]="null"></app-error>
+<app-error *ngIf="errorCode !== null" [code]="getSpecialErrorCode(errorCode)" [message]="getErrorMessage(errorCode)" [link]="null"></app-error>

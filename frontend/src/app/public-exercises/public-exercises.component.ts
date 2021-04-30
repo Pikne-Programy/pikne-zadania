@@ -7,6 +7,7 @@ import {
   ScreenSizeService,
   ScreenSizes,
 } from 'src/app/helper/screen-size.service';
+import { AccountService } from '../account/account.service';
 import { ExerciseTreeNode, Subject } from '../exercise-service/exercise.utils';
 
 @Component({
@@ -15,7 +16,7 @@ import { ExerciseTreeNode, Subject } from '../exercise-service/exercise.utils';
   styleUrls: ['./public-exercises.component.scss'],
 })
 export class PublicExercisesComponent implements OnInit, OnDestroy {
-  private readonly SubjectError = 404;
+  readonly NotFoundError = 404;
 
   isSingleSubject = false;
   isLoading = true;
@@ -28,6 +29,7 @@ export class PublicExercisesComponent implements OnInit, OnDestroy {
   categories = new BehaviorSubject<string>('');
   currentCategory: string | null = null;
 
+  isLoginWarningShown = false;
   readonly mobileSize = ScreenSizes.MOBILE;
   screenSize: number = ScreenSizes.FULL_HD;
   private screenSizeSub?: Subscription;
@@ -36,9 +38,14 @@ export class PublicExercisesComponent implements OnInit, OnDestroy {
   constructor(
     private exerciseService: ExerciseService,
     private screenSizeService: ScreenSizeService,
+    accountService: AccountService,
     private router: Router,
     private route: ActivatedRoute
-  ) {}
+  ) {
+    accountService.getAccount().then((val) => {
+      if (!val.observable.getValue()) this.isLoginWarningShown = true;
+    });
+  }
 
   ngOnInit() {
     this.fetchSubjectList();
@@ -65,7 +72,7 @@ export class PublicExercisesComponent implements OnInit, OnDestroy {
     this.screenSizeSub?.unsubscribe();
   }
 
-  private throwError(error: number = this.SubjectError) {
+  private throwError(error: number = this.NotFoundError) {
     this.errorCode = error;
   }
 
@@ -150,7 +157,6 @@ export class PublicExercisesComponent implements OnInit, OnDestroy {
       this.currentCategory = this.breadcrumbs[
         this.breadcrumbs.length - 1
       ].getPath();
-    //this.exerciseService.updateSubjectList();
     this.fetchSubjectList();
   }
 
@@ -181,5 +187,23 @@ export class PublicExercisesComponent implements OnInit, OnDestroy {
         } else this.throwError(response);
       });
     } else this.throwError();
+  }
+
+  getSpecialErrorCode(errorCode: number) {
+    switch (errorCode) {
+      case this.NotFoundError:
+        return undefined;
+      default:
+        return errorCode;
+    }
+  }
+
+  getErrorMessage(errorCode: number) {
+    switch (errorCode) {
+      case this.NotFoundError:
+        return 'Ups, przedmiot, którego szukasz, nie istnieje!';
+      default:
+        return undefined;
+    }
   }
 }
