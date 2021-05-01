@@ -13,6 +13,7 @@ import { TeamsComponent } from './teams/teams.component';
 import { TeamItemComponent } from './teams/item/item.component';
 import { RoleGuardService } from '../guards/role-guard.service';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { AchievementsComponent } from './achievements/achievements.component';
 
 @NgModule({
   declarations: [
@@ -22,6 +23,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
     UserDashboardComponent,
     TeamsComponent,
     TeamItemComponent,
+    AchievementsComponent,
   ],
   imports: [
     CommonModule,

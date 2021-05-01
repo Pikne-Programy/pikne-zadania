@@ -1,0 +1,32 @@
+/*
+ * Copyright 2021 Miłosz Wąsacz <wasacz.dev@gmail.com>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+@use "~bulma/sass/utilities/initial-variables" as iv;
+$d_primary: iv.$turquoise !default;
+@use "./theme.variables.scss" as * with (
+  $prim: $d_primary,
+  $lnk-hover: iv.$grey-lighter,
+
+  $bg: iv.$black-ter,
+  $txt: iv.$grey-light,
+  $txt-light: iv.$grey-lighter,
+  $txt-strong: iv.$grey,
+  
+  $bor: iv.$grey-darker,
+  $bor-hover: iv.$grey-dark,
+  $bor-light: iv.$grey-darker,
+  $bor-light-hover: iv.$grey-dark,
+
+  $sch-main: iv.$black,
+  $sch-main-bis: iv.$black-bis,
+  $sch-main-ter: iv.$black-ter,
+  $sch-invert: iv.$white,
+  $sch-invert-bis: iv.$white-bis,
+  $sch-invert-ter: iv.$white-ter,
+
+  $is-dark: true
+);
+@import "../styles.scss";

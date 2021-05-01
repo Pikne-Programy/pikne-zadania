@@ -1,5 +1,6 @@
 import { Component, HostBinding, Input } from '@angular/core';
 import { Tuple } from 'src/app/helper/utils';
+import { TextPipe } from '../panel/panel.component';
 
 @Component({
   selector: 'app-select',
@@ -16,6 +17,7 @@ export class SelectComponent {
   @Input() header?: string;
   @Input() color?: string;
   @Input('loading') isLoading?: boolean;
+  @Input('text-pipe') pipe?: TextPipe;
   /**
    * Adds appropriate padding
    *

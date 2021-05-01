@@ -1,5 +1,8 @@
+import { LowerCasePipe, TitleCasePipe, UpperCasePipe } from '@angular/common';
 import { Component, HostBinding, Input } from '@angular/core';
 import { Tuple } from 'src/app/helper/utils';
+
+export type TextPipe = 'uppercase' | 'lowercase' | 'titlecase';
 
 @Component({
   selector: 'app-panel',
@@ -16,6 +19,7 @@ export class PanelComponent {
   @Input() header?: string;
   @Input() color?: string;
   @Input('loading') isLoading?: boolean;
+  @Input('text-pipe') pipe?: TextPipe;
 
   @HostBinding('class') get class() {
     return this.getColor();
@@ -28,5 +32,18 @@ export class PanelComponent {
 
   getColor(): string {
     return this.color ? `is-${this.color.toLowerCase()}` : '';
+  }
+
+  getPipedText(text: string): string {
+    switch (this.pipe) {
+      case 'uppercase':
+        return new UpperCasePipe().transform(text);
+      case 'lowercase':
+        return new LowerCasePipe().transform(text);
+      case 'titlecase':
+        return new TitleCasePipe().transform(text);
+      default:
+        return text;
+    }
   }
 }

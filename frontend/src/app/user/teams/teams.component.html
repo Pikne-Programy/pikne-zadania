@@ -1,4 +1,4 @@
-<app-select *ngIf="errorCode === null" [main-link]="'/user/teams'" [items]="getTeamList()" [header]="'Klasy'" [loading]="isLoading">
+<app-select *ngIf="errorCode === null" [main-link]="'/user/teams'" [items]="getTeamList()" [header]="'Klasy'" [loading]="isLoading" [text-pipe]="'uppercase'">
   <div class="buttons is-right">
     <a class="button is-primary is-flex is-align-items-baseline" (click)="openModal()">
       <span class="icon">

@@ -53,8 +53,10 @@ export class NavService implements OnDestroy {
     this.accountService.getAccount().then((account) => {
       this.accountSubscription = account.observable.subscribe((val) => {
         this.menuElements.next(
-          val && RoleGuardService.getRole(val) !== Role.USER
-            ? teacherMenuElements
+          val
+            ? RoleGuardService.getRole(val) === Role.USER
+              ? userElements
+              : teacherMenuElements
             : menuElements
         );
         this.buttonElements.next(val ? accountButtons : loginButtons);
@@ -86,12 +88,25 @@ const menuElements: Pair<string, string>[] = [
   new Pair('/public-exercises', 'Baza zadań'),
   new Pair('/about', 'O projekcie'),
 ];
+const userElements: Pair<string, string>[] = createUserMenuElements();
 const teacherMenuElements: Pair<string, string>[] = createTeacherMenuElements();
+function createUserMenuElements() {
+  const list = menuElements.concat([]);
+  const last = list.pop()!!;
+  //NOTE User specific menu elements
+  return list.concat([new Pair('/user/achievements', 'Osiągnięcia')], last);
+}
 function createTeacherMenuElements() {
   const list = menuElements.concat([]);
   const last = list.pop()!!;
-  //TODO Teacher specific menu elements
-  return list.concat([new Pair('/user/teams', 'Klasy')], last);
+  //NOTE Teacher specific menu elements
+  return list.concat(
+    [
+      new Pair('/user/teams', 'Klasy'),
+      new Pair('/user/achievements', 'Osiągnięcia'),
+    ],
+    last
+  );
 }
 
 const loginButtons: ButtonElement[] = [

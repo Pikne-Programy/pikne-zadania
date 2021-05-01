@@ -1,0 +1,9 @@
+/*
+ * Copyright 2021 Miłosz Wąsacz <wasacz.dev@gmail.com>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+@use "./dark.scss" with(
+  $d_primary: darkred
+);

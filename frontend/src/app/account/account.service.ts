@@ -5,6 +5,7 @@ import { getErrorCode, pbkdf2 } from '../helper/utils';
 import { BehaviorSubject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs/operators';
+import { ThemeService } from '../helper/theme.service';
 
 export interface Account {
   name: string;
@@ -29,6 +30,7 @@ export class AccountService {
   currentAccount = new BehaviorSubject<Account | null>(null);
   constructor(
     private http: HttpClient,
+    private themeService: ThemeService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
@@ -93,6 +95,7 @@ export class AccountService {
         console.warn('Logout error', error);
       })
       .finally(() => {
+        this.themeService.resetTheme();
         this.router.navigate(['./'], {
           relativeTo: this.route,
           queryParamsHandling: 'preserve',

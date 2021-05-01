@@ -1,0 +1,46 @@
+/*
+ * Copyright 2021 Miłosz Wąsacz <wasacz.dev@gmail.com>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+@use "~bulma/sass/utilities/initial-variables" as iv;
+@import "~bulma/sass/utilities/derived-variables";
+$prim: $primary !default;
+$lnk-hover: $link-hover !default;
+
+$bg: iv.$white-bis !default;
+$txt: $text !default;
+$txt-light: $text-light !default;
+$txt-strong: $text-strong !default;
+
+$bor: $border !default;
+$bor-hover: $border-hover !default;
+$bor-light: $border-light !default;
+$bor-light-hover: $border-light-hover !default;
+
+$sch-main: $scheme-main !default;
+$sch-main-bis: $scheme-main-bis !default;
+$sch-main-ter: $scheme-main-ter !default;
+$sch-invert: $scheme-invert !default;
+$sch-invert-bis: $scheme-invert-bis !default;
+$sch-invert-ter: $scheme-invert-ter !default;
+
+$prim-dark: findDarkColor($prim);
+$prim-dark-invert: findColorInvert($prim-dark) !default;
+
+$warn-dark: $warning-dark;
+$warn-dark-invert: findColorInvert($warning-dark) !default;
+
+$custom-col: (
+  "primary-dark": (
+    $prim-dark,
+    $prim-dark-invert,
+  ),
+  "warning-dark": (
+    $warn-dark,
+    $warn-dark-invert,
+  ),
+);
+
+$is-dark: false !default;

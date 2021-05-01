@@ -6,34 +6,49 @@
 
 //#region Overriding bulma variables
 @use "~bulma/sass/utilities/initial-variables" as iv;
+@use "./themes/theme.variables.scss" as theme;
+@use "./styles.variables.scss" as var;
 @use "~bulma/sass/utilities/derived-variables" as * with(
-  $background: iv.$white-bis
+  $primary: theme.$prim,
+  $link-hover: theme.$lnk-hover,
+
+  $background: theme.$bg,
+  $text: theme.$txt,
+  $text-light: theme.$txt-light,
+  $text-strong: theme.$txt-strong,
+
+  $border: theme.$bor,
+  $border-hover: theme.$bor-hover,
+  $border-light: theme.$bor-light,
+  $border-light-hover: theme.$bor-light-hover,
+
+  $scheme-main: theme.$sch-main,
+  $scheme-main-bis: theme.$sch-main-bis,
+  $scheme-main-ter: theme.$sch-main-ter,
+  $scheme-invert: theme.$sch-invert,
+  $scheme-invert-bis: theme.$sch-invert-bis,
+  $scheme-invert-ter: theme.$sch-invert-ter,
+
+  $custom-colors: theme.$custom-col
 );
-$button-colors: mergeColorMaps(
-  $colors,
-  (
-    "primary-dark": (
-      $primary-dark,
-      findColorInvert($primary-dark),
-    ),
-    "warning-dark": (
-      $warning-dark,
-      findColorInvert($warning-dark),
-    ),
-  )
-);
+:root {
+  --footer-color: #ededed;
+  @if theme.$is-dark {
+    --footer-color: #121212;
+  }
+}
 @import "~bulma/sass/elements/button";
 //#endregion
 
 @import "~@angular/material/prebuilt-themes/deeppurple-amber.css";
 @import "~bulma-switch";
-@import "./styles.variables.scss";
 /* You can add global styles to this file, and also import other style files */
 
 //#region Overriding stylesheets
-.mat-drawer-container {
-  background-color: inherit;
-  color: inherit;
+.mat-drawer-container,
+.mat-drawer {
+  background-color: $background !important;
+  color: $text !important;
 }
 
 .hero {
@@ -57,12 +72,27 @@ $button-colors: mergeColorMaps(
 .button {
   font-weight: iv.$weight-semibold;
 
-  &.is-primary.is-inverted {
-    &:active {
-      background-color: bulmaDarken($primary-invert, 5%);
+  &.is-inverted {
+    &.is-primary {
+      &:hover,
+      &:active {
+        background-color: bulmaDarken($primary-invert, 5%);
+      }
+      &:focus:not(:active) {
+        box-shadow: $button-focus-box-shadow-size
+          bulmaRgba($primary-invert, 0.25);
+      }
     }
-    &:focus:not(:active) {
-      box-shadow: $button-focus-box-shadow-size bulmaRgba($primary-invert, 0.25);
+    @if theme.$is-dark {
+      background-color: black !important;
+      &:hover,
+      &:active {
+        background-color: bulmaLighten(black, 10%) !important;
+      }
+      &:focus:not(:active) {
+        box-shadow: $button-focus-box-shadow-size
+          bulmaRgba(black, 0.25) !important;
+      }
     }
   }
 }
@@ -156,7 +186,7 @@ body {
 
 //#region Borders
 @mixin borders($name, $size, $style, $color) {
-  @each $dir, $dir_ab in $directions {
+  @each $dir, $dir_ab in var.$directions {
     .#{$name}#{$dir} {
       border#{$dir}: $size $style $color;
     }
@@ -168,9 +198,9 @@ body {
 
 //#region Spaces(margins & padding) and Sizes(widths & height)
 @mixin breakpoint-spaces($property, $name) {
-  @each $dir, $dir_ab in $directions {
+  @each $dir, $dir_ab in var.$directions {
     @for $i from 0 through 6 {
-      @each $br_name, $br_bottom, $br_top in $size_breakpoints {
+      @each $br_name, $br_bottom, $br_top in var.$size_breakpoints {
         .#{$name}#{$dir_ab}-#{$br_name}-#{$i} {
           @media only screen and (min-width: $br_bottom) {
             @include bulma-spaces($property, $dir, $i);
@@ -189,7 +219,7 @@ body {
   $dirs: "x" "-left" "-right", "y" "-top" "-bottom";
   @each $dirName, $dir1, $dir2 in $dirs {
     @for $i from 0 through 6 {
-      @each $br_name, $br_bottom, $br_top in $size_breakpoints {
+      @each $br_name, $br_bottom, $br_top in var.$size_breakpoints {
         $directions: $dir1, $dir2;
         .#{$name}#{$dirName}-#{$br_name}-#{$i} {
           @media only screen and (min-width: $br_bottom) {
@@ -224,7 +254,7 @@ body {
   #{$property}#{$dir}: $size !important;
 }
 @mixin rem-directional-spaces($property, $name, $size) {
-  @each $dir, $dir_ab in $directions {
+  @each $dir, $dir_ab in var.$directions {
     .#{$name}#{$dir_ab}-#{$size}r {
       @include space($property, $dir, $size * 1rem);
     }

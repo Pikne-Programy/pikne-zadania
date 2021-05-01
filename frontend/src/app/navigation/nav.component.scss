@@ -6,7 +6,7 @@
 
 .footer {
   z-index: 10;
-  background-color: #ededed;
+  background-color: var(--footer-color);
   a {
     color: inherit;
   }

@@ -7,6 +7,6 @@
     <span *ngIf="item.third" class="panel-icon">
       <i class="fas" [ngClass]="item.third" aria-hidden="true"></i>
     </span>
-    {{ item.first| uppercase }}
+    {{ getPipedText(item.first) }}
   </a>
 </div>
