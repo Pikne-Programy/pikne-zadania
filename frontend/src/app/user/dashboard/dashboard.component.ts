@@ -25,7 +25,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   isLoading = true;
   errorCode: number | null = null;
-  accountSubscription?: Subscription;
+  account$?: Subscription;
   constructor(
     private accountService: AccountService,
     private teamService: TeamService
@@ -35,7 +35,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.accountService
       .getAccount()
       .then((val) => {
-        this.accountSubscription = val.observable.subscribe((account) => {
+        this.account$ = val.observable.subscribe((account) => {
           if (account) {
             this.account = account;
             switch (RoleGuardService.getRole(account)) {
@@ -70,7 +70,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.accountSubscription?.unsubscribe();
+    this.account$?.unsubscribe();
   }
 
   getRole(account: Account) {

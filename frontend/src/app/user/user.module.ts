@@ -14,6 +14,7 @@ import { TeamItemComponent } from './teams/item/item.component';
 import { RoleGuardService } from '../guards/role-guard.service';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AchievementsComponent } from './achievements/achievements.component';
+import { TeamService } from './team.service/team.service';
 
 @NgModule({
   declarations: [
@@ -34,7 +35,7 @@ import { AchievementsComponent } from './achievements/achievements.component';
     MatSidenavModule,
     TemplatesModule,
   ],
-  providers: [RoleGuardService],
+  providers: [RoleGuardService, TeamService],
   bootstrap: [UserComponent],
 })
 export class UserModule {}

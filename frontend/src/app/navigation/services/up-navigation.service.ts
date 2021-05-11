@@ -9,9 +9,9 @@ import { Subscription } from 'rxjs';
 export class UpNavService implements OnDestroy {
   private history: string[] = [];
 
-  private eventSubscription: Subscription;
+  private event$: Subscription;
   constructor(private router: Router, private location: Location) {
-    this.eventSubscription = this.router.events.subscribe((event) => {
+    this.event$ = this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd)
         this.history.push(event.urlAfterRedirects);
     });
@@ -24,6 +24,6 @@ export class UpNavService implements OnDestroy {
   }
 
   ngOnDestroy() {
-    this.eventSubscription.unsubscribe();
+    this.event$.unsubscribe();
   }
 }

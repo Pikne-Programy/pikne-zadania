@@ -33,8 +33,8 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
   @ViewChild('exContainer', { read: ViewContainerRef })
   container!: ViewContainerRef;
   componentRef?: ComponentRef<ExerciseComponentType>;
-  loadingSubscription?: Subscription;
-  answerSubscription?: Subscription;
+  loading$?: Subscription;
+  answer$?: Subscription;
 
   @Input() subject?: string;
   @Input() exerciseUrl?: string;
@@ -67,25 +67,25 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
 
   ngOnDestroy() {
     this.componentRef?.destroy();
-    this.loadingSubscription?.unsubscribe();
-    this.answerSubscription?.unsubscribe();
+    this.loading$?.unsubscribe();
+    this.answer$?.unsubscribe();
   }
 
   private inflateComponent<T extends ExerciseComponentType>(
     type: Type<T>,
     exercise: Exercise
   ) {
-    this.loadingSubscription?.unsubscribe();
-    this.answerSubscription?.unsubscribe();
+    this.loading$?.unsubscribe();
+    this.answer$?.unsubscribe();
     if (this.exerciseUrl) {
       const factory = this.factoryResolver.resolveComponentFactory(type);
       this.container.clear();
       const component = this.container.createComponent(factory);
       this.componentRef = component;
-      this.loadingSubscription = component.instance.loaded.subscribe(() => {
+      this.loading$ = component.instance.loaded.subscribe(() => {
         this.isLoading = false;
-        this.loadingSubscription?.unsubscribe();
-        this.answerSubscription = component.instance.onAnswers.subscribe(
+        this.loading$?.unsubscribe();
+        this.answer$ = component.instance.onAnswers.subscribe(
           (error: number | null) => {
             this.errorCode = error;
             this.onAnswerSubmit.emit();

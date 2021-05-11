@@ -9,7 +9,7 @@ export enum ScreenSizes {
   FULL_HD,
 }
 
-export const Sizes = [
+export const Sizes: [number, number][] = [
   [ScreenSizes.MOBILE, 768],
   [ScreenSizes.TABLET, 1023],
   [ScreenSizes.DESKTOP, 1215],
@@ -23,16 +23,14 @@ export const Sizes = [
 export class ScreenSizeService implements OnDestroy {
   currentSize = new BehaviorSubject(this.getSize());
 
-  private eventSubscription: Subscription;
+  private event$: Subscription;
   constructor() {
-    this.eventSubscription = fromEvent(window, 'resize').subscribe(() =>
-      this.onResize()
-    );
+    this.event$ = fromEvent(window, 'resize').subscribe(() => this.onResize());
   }
 
   ngOnDestroy() {
     this.currentSize.complete();
-    this.eventSubscription.unsubscribe();
+    this.event$.unsubscribe();
   }
 
   private onResize() {

@@ -19,6 +19,92 @@ export function capitalize(
   else return string.charAt(0).toLocaleUpperCase(locale) + string.slice(1);
 }
 
+type ObjectType =
+  | 'string'
+  | 'number'
+  | 'bigint'
+  | 'boolean'
+  | 'symbol'
+  | 'undefined'
+  | 'object'
+  | 'function'
+  | 'null';
+
+type Example = {
+  name: string;
+  number: number;
+};
+
+/**
+ * Checks if object has all the provided fields with correct types.
+ *
+ * **IMPORTANT**: If one of the fields is an array (or nullable array) you have to check elements' types separately.
+ *
+ * @param object Object to type check
+ * @param fields Fields that must be present in the object
+ *
+ * ***Format***: [property name, list of possible property types *OR* `array` type *OR* `nullable array` type *OR* `any`]
+ * @returns If object is an instance of the provided type
+ *
+ * @example
+ * type Example = {
+ *    id: number;
+ *    name: string | null;
+ *    children: string[];
+ *    content: any;
+ *    isColorful?: boolean;
+ * };
+ *
+ * isObject<Example>(obj, [
+ *    ['id', ['number']],
+ *    ['name', ['string', 'null']],
+ *    ['children', 'array'],
+ *    ['content', 'any'],
+ *    ['isColorful', ['boolean', 'undefined']]
+ * ]);
+ *
+ * // Check types of children separately
+ * obj.children.every((child) => typeof child === 'string');
+ */
+export function isObject<T>(
+  object: any,
+  fields: [
+    string,
+    ObjectType[] | 'array' | 'array|null' | 'array|undefined' | 'any'
+  ][]
+): object is T {
+  if (fields.some((field) => field[1].length < 1)) {
+    console.error('Type checking error');
+    return false;
+  }
+  return (
+    object &&
+    typeof object === 'object' &&
+    fields.every((field) => {
+      switch (field[1]) {
+        case 'any':
+          return field[0] in object;
+        case 'array':
+          return field[0] in object && Array.isArray(object[field[0]]);
+        case 'array|null':
+          return (
+            field[0] in object &&
+            (object === null || Array.isArray(object[field[0]]))
+          );
+        case 'array|undefined':
+          if (field[0] in object) return Array.isArray(object[field[0]]);
+          return true;
+        default:
+          return (
+            (field[0] in object || field[1].includes('undefined')) &&
+            ((object[field[0]] === null && field[1].includes('null')) ||
+              field[1].includes(typeof object[field[0]]))
+          );
+      }
+    })
+  );
+}
+
 /**
  * Sets tab index of all elements with class "MathJax" to -1
  */

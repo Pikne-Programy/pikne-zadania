@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component } from '@angular/core';
 import {
   AbstractControl,
   FormControl,
@@ -7,18 +7,20 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { getErrorCode } from 'src/app/helper/utils';
 import { AccountService } from '../account.service';
+
+const SpecialLogins: string[] = ['admin', 'root'];
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
 })
-export class LoginComponent implements OnDestroy {
+export class LoginComponent {
   //Error codes
-  readonly generalError = 400;
-  readonly submitError = 401;
+  readonly GeneralError = 400;
+  readonly SubmitError = 401;
 
   readonly form = new FormGroup({
     email: new FormControl('', [Validators.required, this.emailValidator()]),
@@ -33,8 +35,6 @@ export class LoginComponent implements OnDestroy {
   }
 
   isSubmitted = false;
-  submitSubscription?: Subscription;
-  loginSubscription?: Subscription;
   submitErrorCode: number | null = null;
   returnUrl: string | null;
   constructor(
@@ -51,38 +51,17 @@ export class LoginComponent implements OnDestroy {
     this.submitErrorCode = null;
     this.accountService
       .login(this.email!.value, this.password!.value)
-      .then((obs) => {
-        this.submitSubscription?.unsubscribe();
-        this.submitSubscription = obs.subscribe(
-          () => {
-            this.loginSubscription?.unsubscribe();
-            this.accountService
-              .getAccount()
-              .then((account) => {
-                this.isSubmitted = false;
-                if (
-                  account.error === null &&
-                  account.observable.getValue() !== null
-                )
-                  this.navigateBack('/user/dashboard');
-                else this.submitErrorCode = account.error ?? this.generalError;
-              })
-              .catch((error) => {
-                this.isSubmitted = false;
-                this.submitErrorCode = error.status ?? this.generalError;
-              });
-          },
-          (error) => {
-            this.isSubmitted = false;
-            this.submitErrorCode = error.status;
-          }
-        );
+      .then(() => this.accountService.getAccount())
+      .then((account) => {
+        this.isSubmitted = false;
+        if (account.error === null && account.observable.getValue() !== null)
+          this.navigateBack('/user/dashboard');
+        else this.submitErrorCode = account.error ?? this.GeneralError;
+      })
+      .catch((error) => {
+        this.isSubmitted = false;
+        this.submitErrorCode = getErrorCode(error, this.GeneralError);
       });
-  }
-
-  ngOnDestroy() {
-    this.submitSubscription?.unsubscribe();
-    this.loginSubscription?.unsubscribe();
   }
 
   clearError() {
@@ -96,8 +75,7 @@ export class LoginComponent implements OnDestroy {
   }
 
   private emailValidator(): ValidatorFn {
-    const specialLogins = ['admin', 'root'];
     return (control: AbstractControl): { [key: string]: any } | null =>
-      specialLogins.includes(control.value) ? null : Validators.email(control);
+      SpecialLogins.includes(control.value) ? null : Validators.email(control);
   }
 }

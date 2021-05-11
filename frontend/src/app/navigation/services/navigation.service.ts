@@ -47,11 +47,11 @@ export class NavService implements OnDestroy {
   menuElements = new BehaviorSubject<Pair<string, string>[]>(menuElements);
   buttonElements = new BehaviorSubject<ButtonElement[]>(loginButtons);
 
-  private eventSubscription: Subscription;
-  private accountSubscription?: Subscription;
+  private event$: Subscription;
+  private account$?: Subscription;
   constructor(private accountService: AccountService) {
     this.accountService.getAccount().then((account) => {
-      this.accountSubscription = account.observable.subscribe((val) => {
+      this.account$ = account.observable.subscribe((val) => {
         this.menuElements.next(
           val
             ? RoleGuardService.getRole(val) === Role.USER
@@ -62,7 +62,7 @@ export class NavService implements OnDestroy {
         this.buttonElements.next(val ? accountButtons : loginButtons);
       });
     });
-    this.eventSubscription = fromEvent(window, 'resize').subscribe(() => {
+    this.event$ = fromEvent(window, 'resize').subscribe(() => {
       if (
         window.innerWidth > Sizes[ScreenSizes.TABLET][1] + 1 &&
         this.sideNavOpened.getValue()
@@ -72,8 +72,8 @@ export class NavService implements OnDestroy {
   }
 
   ngOnDestroy() {
-    this.accountSubscription?.unsubscribe();
-    this.eventSubscription.unsubscribe();
+    this.account$?.unsubscribe();
+    this.event$.unsubscribe();
     this.sideNavOpened.complete();
     this.showTabs.complete();
     this.buttonElements.complete();

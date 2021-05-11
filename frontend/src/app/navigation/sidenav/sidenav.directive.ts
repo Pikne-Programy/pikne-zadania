@@ -7,12 +7,12 @@ import { NavService } from '../services/navigation.service';
   selector: '[appSidenav]',
 })
 export class SidenavDirective implements AfterViewInit, OnDestroy {
-  private openedSub?: Subscription;
+  private opened$?: Subscription;
 
   constructor(private el: MatSidenav, private navService: NavService) {}
 
   ngAfterViewInit() {
-    this.openedSub = this.navService.sideNavOpened.subscribe({
+    this.opened$ = this.navService.sideNavOpened.subscribe({
       next: (v) => {
         if (v) this.el.open();
         else this.el.close();
@@ -21,6 +21,6 @@ export class SidenavDirective implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.openedSub?.unsubscribe();
+    this.opened$?.unsubscribe();
   }
 }

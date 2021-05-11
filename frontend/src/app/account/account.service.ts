@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import * as ServerRoutes from '../server-routes';
-import { getErrorCode, pbkdf2 } from '../helper/utils';
+import { getErrorCode, isObject, pbkdf2 } from '../helper/utils';
 import { BehaviorSubject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs/operators';
@@ -13,19 +13,18 @@ export interface Account {
   team: number;
 }
 export function isAccount(object: any): object is Account {
-  return (
-    typeof object === 'object' &&
-    'name' in object &&
-    'number' in object &&
-    'team' in object
-  );
+  return isObject<Account>(object, [
+    ['name', ['string']],
+    ['number', ['number', 'null']],
+    ['team', ['number']],
+  ]);
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class AccountService {
-  readonly accountTypeError = 400;
+  readonly AccountTypeError = 400;
 
   currentAccount = new BehaviorSubject<Account | null>(null);
   constructor(
@@ -42,24 +41,29 @@ export class AccountService {
     invitation: string,
     number: string | null
   ) {
+    email = email.toLowerCase();
     username.trim();
     invitation.trim();
     const hashedPassword = await pbkdf2(email, password);
-    return this.http.post(ServerRoutes.register, {
-      login: email,
-      name: username,
-      hashed_password: hashedPassword,
-      number: number !== null ? Number(number) : null,
-      invitation: invitation,
-    });
+    return this.http
+      .post(ServerRoutes.register, {
+        login: email,
+        name: username,
+        hashed_password: hashedPassword,
+        number: number !== null ? Number(number) : null,
+        invitation: invitation,
+      })
+      .toPromise();
   }
 
   async login(email: string, password: string) {
     const hashedPassword = await pbkdf2(email, password);
-    return this.http.post(ServerRoutes.login, {
-      login: email,
-      hashed_password: hashedPassword,
-    });
+    return this.http
+      .post(ServerRoutes.login, {
+        login: email,
+        hashed_password: hashedPassword,
+      })
+      .toPromise();
   }
 
   async getAccount(): Promise<{
@@ -71,11 +75,11 @@ export class AccountService {
       .pipe(
         map((response) => {
           if (response && isAccount(response)) return response;
-          else return this.accountTypeError;
+          else return this.AccountTypeError;
         })
       )
       .toPromise()
-      .catch((error) => getErrorCode(error, this.accountTypeError));
+      .catch((error) => getErrorCode(error, this.AccountTypeError));
     this.currentAccount.next(typeof account !== 'number' ? account : null);
 
     if (typeof account !== 'number')

@@ -32,9 +32,9 @@ export class PublicExercisesComponent implements OnInit, OnDestroy {
   isLoginWarningShown = false;
   readonly mobileSize = ScreenSizes.MOBILE;
   screenSize: number = ScreenSizes.FULL_HD;
-  private screenSizeSub?: Subscription;
-  private categoriesSub?: Subscription;
-  private queryParams?: Subscription;
+  private screenSize$?: Subscription;
+  private categories$?: Subscription;
+  private queryParams$?: Subscription;
   constructor(
     private exerciseService: ExerciseService,
     private screenSizeService: ScreenSizeService,
@@ -50,26 +50,24 @@ export class PublicExercisesComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.fetchSubjectList();
 
-    this.categoriesSub = this.categories.subscribe((categories) => {
+    this.categories$ = this.categories.subscribe((categories) => {
       this.navigateToCategory(categories);
     });
 
-    this.queryParams = this.route.queryParamMap.subscribe((params) => {
+    this.queryParams$ = this.route.queryParamMap.subscribe((params) => {
       this.exercise = params.get('exercise');
     });
 
-    this.screenSizeSub = this.screenSizeService.currentSize.subscribe(
-      (value) => {
-        this.screenSize = value;
-      }
-    );
+    this.screenSize$ = this.screenSizeService.currentSize.subscribe((value) => {
+      this.screenSize = value;
+    });
   }
 
   ngOnDestroy() {
     this.categories.complete();
-    this.categoriesSub?.unsubscribe();
-    this.queryParams?.unsubscribe();
-    this.screenSizeSub?.unsubscribe();
+    this.categories$?.unsubscribe();
+    this.queryParams$?.unsubscribe();
+    this.screenSize$?.unsubscribe();
   }
 
   private throwError(error: number = this.NotFoundError) {

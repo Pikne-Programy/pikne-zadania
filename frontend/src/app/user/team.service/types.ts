@@ -1,3 +1,5 @@
+import { isObject } from 'src/app/helper/utils';
+
 export interface TeamItem {
   id: number;
   name: string;
@@ -5,12 +7,12 @@ export interface TeamItem {
   open: boolean;
 }
 export function isTeamItem(object: any): object is TeamItem {
-  return (
-    typeof object === 'object' &&
-    'id' in object &&
-    'name' in object &&
-    'open' in object
-  );
+  return isObject<TeamItem>(object, [
+    ['id', ['number']],
+    ['name', ['string']],
+    ['assignee', ['string', 'undefined']],
+    ['open', ['boolean']],
+  ]);
 }
 export function isTeamItemList(object: any): object is TeamItem[] {
   return Array.isArray(object) && object.every((val) => isTeamItem(val));
@@ -18,18 +20,18 @@ export function isTeamItemList(object: any): object is TeamItem[] {
 
 export interface Team {
   name: string;
-  assignee?: string;
+  assignee: string;
   invitation: string | null;
   members: User[];
 }
 export function isTeam(object: any): object is Team {
   return (
-    typeof object === 'object' &&
-    'name' in object &&
-    'invitation' in object &&
-    'members' in object &&
-    Array.isArray(object.members) &&
-    (object.members as any[]).every((val) => isUser(val))
+    isObject<Team>(object, [
+      ['name', ['string']],
+      ['assignee', ['string']],
+      ['invitation', ['string', 'null']],
+      ['members', 'array'],
+    ]) && object.members.every((member) => isUser(member))
   );
 }
 
@@ -39,10 +41,9 @@ export interface User {
   number: number | null;
 }
 export function isUser(object: any): object is User {
-  return (
-    typeof object === 'object' &&
-    'id' in object &&
-    'name' in object &&
-    'number' in object
-  );
+  return isObject<User>(object, [
+    ['id', ['string']],
+    ['name', ['string']],
+    ['number', ['number', 'null']],
+  ]);
 }

@@ -18,8 +18,8 @@ export class SidenavComponent implements OnInit, OnDestroy {
   menuElements?: Pair<string, string>[];
   buttonElements?: ButtonElement[];
 
-  private menuSubscription?: Subscription;
-  private buttonsSubscription?: Subscription;
+  private menu$?: Subscription;
+  private buttons$?: Subscription;
   constructor(
     private navService: NavService,
     private accountService: AccountService,
@@ -27,19 +27,17 @@ export class SidenavComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.menuSubscription = this.navService.menuElements.subscribe((array) => {
+    this.menu$ = this.navService.menuElements.subscribe((array) => {
       this.menuElements = array;
     });
-    this.buttonsSubscription = this.navService.buttonElements.subscribe(
-      (array) => {
-        this.buttonElements = array;
-      }
-    );
+    this.buttons$ = this.navService.buttonElements.subscribe((array) => {
+      this.buttonElements = array;
+    });
   }
 
   ngOnDestroy() {
-    this.menuSubscription?.unsubscribe();
-    this.buttonsSubscription?.unsubscribe();
+    this.menu$?.unsubscribe();
+    this.buttons$?.unsubscribe();
   }
 
   closeSidenav() {

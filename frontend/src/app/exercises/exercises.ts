@@ -1,4 +1,5 @@
 import { EventEmitter } from '@angular/core';
+import { isObject } from '../helper/utils';
 
 export enum ExerciseType {
   EqEx,
@@ -16,12 +17,12 @@ export class Exercise {
   ) {}
 
   static isExercise(object: any): object is Exercise {
-    return (
-      typeof object === 'object' &&
-      'type' in object &&
-      'name' in object &&
-      'content' in object
-    );
+    return isObject<Exercise>(object, [
+      ['type', ['string']],
+      ['name', ['string']],
+      ['content', 'any'],
+      ['done', ['number', 'null', 'undefined']],
+    ]);
   }
 
   static isEqExAnswer = Exercise.isBoolArrayAnswer;

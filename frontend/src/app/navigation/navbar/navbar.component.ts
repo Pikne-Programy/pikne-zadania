@@ -20,9 +20,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
   menuElements?: Pair<string, string>[];
   buttonElements?: ButtonElement[];
 
-  private openedSub?: Subscription;
-  private menuSubscription?: Subscription;
-  private buttonsSubscription?: Subscription;
+  private opened$?: Subscription;
+  private menu$?: Subscription;
+  private buttons$?: Subscription;
   constructor(
     private navService: NavService,
     private accountService: AccountService,
@@ -30,23 +30,21 @@ export class NavbarComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.openedSub = this.navService.sideNavOpened.subscribe((val) => {
+    this.opened$ = this.navService.sideNavOpened.subscribe((val) => {
       this.sideNavOpened = val;
     });
-    this.menuSubscription = this.navService.menuElements.subscribe((array) => {
+    this.menu$ = this.navService.menuElements.subscribe((array) => {
       this.menuElements = array;
     });
-    this.buttonsSubscription = this.navService.buttonElements.subscribe(
-      (array) => {
-        this.buttonElements = array;
-      }
-    );
+    this.buttons$ = this.navService.buttonElements.subscribe((array) => {
+      this.buttonElements = array;
+    });
   }
 
   ngOnDestroy() {
-    this.openedSub?.unsubscribe();
-    this.menuSubscription?.unsubscribe();
-    this.buttonsSubscription?.unsubscribe();
+    this.opened$?.unsubscribe();
+    this.menu$?.unsubscribe();
+    this.buttons$?.unsubscribe();
   }
 
   toggleNavbar() {

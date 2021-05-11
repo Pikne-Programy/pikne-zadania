@@ -19,6 +19,12 @@ import { LoginComponent } from './account/login/login.component';
 import { environment } from '../environments/environment';
 import { TemplatesModule } from './templates/templates.module';
 import { AuthGuardService } from './guards/auth-guard.service';
+import { AccountService } from './account/account.service';
+import { NavService } from './navigation/services/navigation.service';
+import { UpNavService } from './navigation/services/up-navigation.service';
+import { ThemeService } from './helper/theme.service';
+import { ExerciseService } from './exercise-service/exercise.service';
+import { ScreenSizeService } from './helper/screen-size.service';
 
 @NgModule({
   declarations: [
@@ -45,7 +51,15 @@ import { AuthGuardService } from './guards/auth-guard.service';
       enabled: environment.production,
     }),
   ],
-  providers: [AuthGuardService],
+  providers: [
+    AccountService,
+    ExerciseService,
+    NavService,
+    UpNavService,
+    AuthGuardService,
+    ScreenSizeService,
+    ThemeService,
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

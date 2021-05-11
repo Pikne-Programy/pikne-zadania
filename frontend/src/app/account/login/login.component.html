@@ -17,9 +17,9 @@
             <label for="email" class="label">E-mail</label>
             <div class="control has-icons-left has-icons-right">
               <input id="email" class="input is-primary" [ngClass]="{
-                'is-primary': !email!.errors?.email && submitErrorCode !== submitError,
+                'is-primary': !email!.errors?.email && submitErrorCode !== SubmitError,
                 'is-warning': email!.errors?.email,
-                'is-danger': submitErrorCode === submitError
+                'is-danger': submitErrorCode === SubmitError
               }" type="email" formControlName="email" (input)="clearError()">
               <span class="icon is-small is-left">
                 <i class="fas fa-envelope"></i>
@@ -27,7 +27,7 @@
               <span *ngIf="email!.errors?.email" class="icon has-text-warning is-small is-right">
                 <i class="fas fa-exclamation-triangle"></i>
               </span>
-              <span *ngIf="submitErrorCode === submitError" class="icon has-text-danger is-small is-right">
+              <span *ngIf="submitErrorCode === SubmitError" class="icon has-text-danger is-small is-right">
                 <i class="fas fa-times"></i>
               </span>
             </div>
@@ -38,13 +38,13 @@
             <label for="password" class="label">Hasło</label>
             <div class="control has-icons-left has-icons-right">
               <input id="password" class="input" [ngClass]="{
-                'is-primary': submitErrorCode !== submitError,
-                'is-danger': submitErrorCode === submitError
+                'is-primary': submitErrorCode !== SubmitError,
+                'is-danger': submitErrorCode === SubmitError
               }" type="password" formControlName="password" (input)="clearError()">
               <span class="icon is-small is-left">
                 <i class="fas fa-lock"></i>
               </span>
-              <span *ngIf="submitErrorCode === submitError" class="icon has-text-danger is-small is-right">
+              <span *ngIf="submitErrorCode === SubmitError" class="icon has-text-danger is-small is-right">
                 <i class="fas fa-times"></i>
               </span>
             </div>
@@ -55,7 +55,7 @@
               <button type="submit" class="button is-primary width-full" [ngClass]="{'is-loading': isSubmitted}" [disabled]="form.invalid">Zaloguj</button>
             </div>
             <div class="is-flex is-flex-direction-column is-align-items-center mt-2">
-              <p *ngIf="submitErrorCode !== null && submitErrorCode !== submitError" class="help is-danger has-text-centered">Coś poszło nie tak, spróbuj&nbsp;ponownie później</p>
+              <p *ngIf="submitErrorCode !== null && submitErrorCode !== SubmitError" class="help is-danger has-text-centered">Coś poszło nie tak, spróbuj&nbsp;ponownie później</p>
               <a class="has-text-centered mt-3" routerLink="/register" queryParamsHandling="preserve">Nie masz jeszcze konta?<br />Zarejestruj&nbsp;się</a>
             </div>
           </div>
