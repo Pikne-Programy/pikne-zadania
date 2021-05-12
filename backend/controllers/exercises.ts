@@ -15,11 +15,9 @@ import {
 import {
   db,
   deepCopy,
-  exists,
   handleThrown,
   joinThrowable,
   RouterContext,
-  safeJSONType,
 } from "../utils/mod.ts";
 import exts from "../exts/mod.ts";
 import {
@@ -27,6 +25,7 @@ import {
   isArrayOf,
   isJSONType,
   isObjectOf,
+  JSONType,
   User,
 } from "../types/mod.ts";
 
@@ -168,51 +167,41 @@ export function list(ctx: RouterContext) {
   ctx.response.status = 200;
   ctx.response.body = userList;
 }
-export async function get(ctx: RouterContext) {
-  if (!ctx.params.id) {
-    throw new httpErrors["BadRequest"]("params.id is necessary");
+export function get(ctx: RouterContext) {
+  if (!ctx.params.id) throw new httpErrors["BadRequest"]();
+  const ex = dict[`${ctx.params.subject}/${ctx.params.id}`];
+  if (ex == null) throw new httpErrors["NotFound"]();
+  const exercise = ex.render(ctx.state.seed);
+  if (ctx.state.user?.role.name === "student") {
+    exercise.done = checkDoneStatus(ctx.state.user, ctx.params.id);
   }
-  await exists(
-    ctx,
-    dict[`${ctx.params.subject}/${ctx.params.id}`],
-    (ex) => {
-      if (typeof ctx.state.seed !== "number") {
-        throw new Error("seed is not a number");
-      }
-      const exercise = ex.render(ctx.state.seed);
-      if (
-        ctx.state.user && ctx.params.id &&
-        ctx.state.user.role.name === "student"
-      ) {
-        exercise.done = checkDoneStatus(ctx.state.user, ctx.params.id);
-      }
-      ctx.response.status = 200;
-      ctx.response.body = exercise;
-    },
-  );
+  ctx.response.status = 200;
+  ctx.response.body = exercise;
 }
 export async function check(ctx: RouterContext) {
   if (!ctx.request.hasBody || !ctx.params.id) {
-    throw new httpErrors["BadRequest"]("body and params.id are necessary");
+    throw new httpErrors["BadRequest"]();
   }
-  await exists(
-    ctx,
-    dict[`${ctx.params.subject}/${ctx.params.id}`],
-    async (ex) => {
-      const res = ex.check(ctx.state.seed, await safeJSONType(ctx, "JSON"));
-      if (ctx.state.user && ctx.params.id) {
-        type EmailPartial = Omit<User, "email"> & { email?: string } | null;
-        const user: EmailPartial = await db.getUser(ctx.state.user.id);
-        const id = ctx.params.id;
-        if (user && user.role.name === "student") {
-          res.done = Math.max(res.done, user.role.exercises[id] ?? -Infinity);
-          delete user.email;
-          user.role.exercises[id] = res.done;
-          await db.setUser(user);
-        }
-      }
-      ctx.response.status = 200;
-      ctx.response.body = res.answers;
-    },
-  );
+  const ex = dict[`${ctx.params.subject}/${ctx.params.id}`];
+  if (ex == null) throw new httpErrors["NotFound"]();
+  let body: JSONType;
+  try {
+    body = await ctx.request.body({ type: "json" }).value;
+  } catch {
+    throw new httpErrors["BadRequest"]();
+  }
+  const res = ex.check(ctx.state.seed, body);
+  if (ctx.state.user && ctx.params.id) {
+    type EmailPartial = Omit<User, "email"> & { email?: string } | null;
+    const user: EmailPartial = await db.getUser(ctx.state.user.id);
+    const id = ctx.params.id;
+    if (user && user.role.name === "student") {
+      res.done = Math.max(res.done, user.role.exercises[id] ?? -Infinity);
+      delete user.email;
+      user.role.exercises[id] = res.done;
+      await db.setUser(user);
+    }
+  }
+  ctx.response.status = 200;
+  ctx.response.body = res.answers;
 }

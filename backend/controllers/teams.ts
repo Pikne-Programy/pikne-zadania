@@ -4,8 +4,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { httpErrors } from "../deps.ts";
-import { db, RouterContext, safeJSONbody, safeJSONType } from "../utils/mod.ts";
-import { endpointSchema as endpoint, Team } from "../types/mod.ts";
+import { db, followSchema, RouterContext } from "../utils/mod.ts";
+import { Team, teamSchema } from "../types/mod.ts";
 
 export async function getAllTeams(ctx: RouterContext) {
   // TODO: check assignee if not root
@@ -19,21 +19,23 @@ export async function getAllTeams(ctx: RouterContext) {
     open: team.invCode !== null,
   }));
 }
-export async function addTeam(ctx: RouterContext) {
-  const req = await safeJSONbody(ctx, endpoint.addTeam);
-  const user = ctx.state.user!; // auth required
-  const teamid = await db.addTeam({
-    "name": req.name,
-    "assignee": user.name,
-    "members": [],
-    "invCode": null,
-  });
-  if (!teamid) {
-    throw new httpErrors["Forbidden"]();
-  }
-  ctx.response.status = 201;
-  ctx.response.body = teamid;
-}
+export const addTeam = followSchema(
+  { name: teamSchema.name },
+  async (ctx, req) => {
+    const user = ctx.state.user!; // auth required
+    const teamid = await db.addTeam({
+      "name": req.name,
+      "assignee": user.name,
+      "members": [],
+      "invCode": null,
+    });
+    if (!teamid) {
+      throw new httpErrors["Forbidden"]();
+    }
+    ctx.response.status = 201;
+    ctx.response.body = teamid;
+  },
+);
 export async function getTeam(ctx: RouterContext) {
   const id = ctx.params.id == null ? null : +ctx.params.id;
   if (id == null || isNaN(id)) throw new httpErrors["BadRequest"]();
@@ -61,17 +63,29 @@ export async function getTeam(ctx: RouterContext) {
 export async function setTeamName(ctx: RouterContext) {
   const id = ctx.params.id == null ? null : +ctx.params.id;
   if (id == null || isNaN(id)) throw new httpErrors["BadRequest"]();
-  const name = await safeJSONType(ctx, "string");
+  let name;
+  try {
+    name = await ctx.request.body({ type: "json" }).value;
+    if (typeof name !== "string") throw "xd";
+  } catch {
+    throw new httpErrors["BadRequest"]();
+  }
   if (!await db.setTeam({ id, name })) throw new httpErrors["NotFound"]();
   ctx.response.status = 200;
 }
 export async function changeAssignee(ctx: RouterContext) {
   const id = ctx.params.id == null ? null : +ctx.params.id;
   if (id == null || isNaN(id)) throw new httpErrors["BadRequest"]();
-  const userid = await safeJSONType(ctx, "string");
-  const user = await db.getUser(userid);
+  let userId;
+  try {
+    userId = await ctx.request.body({ type: "json" }).value;
+    if (typeof userId !== "string") throw "xd";
+  } catch {
+    throw new httpErrors["BadRequest"]();
+  }
+  const user = await db.getUser(userId);
   if (!user) {
-    console.error(`changeAssignee: User with id ${userid} doesn't exist`);
+    console.error(`changeAssignee: User with id ${userId} doesn't exist`);
     throw new httpErrors["NotFound"]();
   }
   if (!await db.setTeam({ id, assignee: user.name })) {
@@ -99,8 +113,13 @@ export async function openRegistration(ctx: RouterContext) {
   const id = ctx.params.id == null ? null : +ctx.params.id;
   if (id == null || isNaN(id)) throw new httpErrors["BadRequest"]();
   if (!await db.getTeam(id)) throw new httpErrors["NotFound"]();
-  const invitation = await safeJSONType(ctx, "string?") ??
-    generateInvitationCode(id);
+  let invitation;
+  try {
+    invitation = await ctx.request.body({ type: "json" }).value;
+    if (typeof invitation !== "string") invitation = generateInvitationCode(id);
+  } catch {
+    throw new httpErrors["BadRequest"]();
+  }
   if (!await db.setInvitationCode(id, invitation)) {
     throw new httpErrors["Conflict"]();
   }

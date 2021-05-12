@@ -15,7 +15,7 @@ function die(ctx: Context, status = 500, msg = "") {
   ctx.response.body = { status, msg };
 }
 
-app.use(async (ctx, next) => {
+app.use(async (ctx: Context, next: () => unknown) => {
   try {
     await next();
   } catch (e) {
