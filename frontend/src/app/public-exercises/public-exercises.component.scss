@@ -13,6 +13,7 @@
   max-width: 100%;
   margin: 1.5rem;
   padding: 1rem;
+  z-index: 10;
 
   & .button {
     border: 1px solid dv.$warning-dark;

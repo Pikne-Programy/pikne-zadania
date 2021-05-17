@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { getErrorCode, Tuple } from 'src/app/helper/utils';
 import { TeamService } from '../team.service/team.service';
 import { TeamItem } from '../team.service/types';
@@ -10,7 +11,11 @@ import { TeamItem } from '../team.service/types';
   styleUrls: ['./teams.component.scss'],
 })
 export class TeamsComponent implements OnInit {
-  constructor(private teamService: TeamService) {}
+  constructor(
+    private teamService: TeamService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit() {
     this.fetchTeams();
@@ -53,9 +58,8 @@ export class TeamsComponent implements OnInit {
     this.isModalLoading = true;
     this.teamService
       .createTeam(this.name!.value)
-      .then(() => {
-        this.closeModal();
-        this.fetchTeams();
+      .then((id) => {
+        this.router.navigate([id], { relativeTo: this.route });
       })
       .catch((error) => (this.modalErrorCode = getErrorCode(error)))
       .finally(() => (this.isModalLoading = false));

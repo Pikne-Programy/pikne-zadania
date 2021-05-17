@@ -32,12 +32,15 @@
   $custom-colors: theme.$custom-col
 );
 :root {
+  --primary: #{$primary};
+  --tooltip-background: #{$primary-invert};
   --footer-color: #ededed;
   @if theme.$is-dark {
+    --tooltip-background: #{$background};
     --footer-color: #121212;
   }
 }
-@import "~bulma/sass/elements/button";
+$dark-box-background: bulmaDarken($background, 5%);
 //#endregion
 
 @import "~@angular/material/prebuilt-themes/deeppurple-amber.css";
@@ -74,24 +77,39 @@
 
   &.is-inverted {
     &.is-primary {
-      &:hover,
+      &:hover {
+        background-color: bulmaDarken($primary-invert, 2.5%);
+      }
       &:active {
         background-color: bulmaDarken($primary-invert, 5%);
       }
       &:focus:not(:active) {
-        box-shadow: $button-focus-box-shadow-size
+        box-shadow: var.$button-focus-box-shadow-size
           bulmaRgba($primary-invert, 0.25);
       }
     }
     @if theme.$is-dark {
-      background-color: black !important;
+      background-color: $dark-box-background !important;
       &:hover,
       &:active {
         background-color: bulmaLighten(black, 10%) !important;
       }
       &:focus:not(:active) {
-        box-shadow: $button-focus-box-shadow-size
+        box-shadow: var.$button-focus-box-shadow-size
           bulmaRgba(black, 0.25) !important;
+      }
+    }
+  }
+  @if theme.$is-dark {
+    &.is-primary.is-light {
+      &:hover {
+        background-color: bulmaRgba(
+          bulmaDarken($primary, 2.5%),
+          0.25
+        ) !important;
+      }
+      &:active {
+        background-color: bulmaRgba(bulmaDarken($primary, 5%), 0.25) !important;
       }
     }
   }
@@ -106,9 +124,20 @@
   border-top-right-radius: 0;
 }
 
-.box .level {
-  border-top-left-radius: inherit;
-  border-top-right-radius: inherit;
+@if theme.$is-dark {
+  .panel {
+    background-color: $dark-box-background;
+  }
+}
+
+.box {
+  @if theme.$is-dark {
+    background-color: $dark-box-background !important;
+  }
+  & .level {
+    border-top-left-radius: inherit;
+    border-top-right-radius: inherit;
+  }
 }
 
 .menu-list a:not(.is-active) .icon {

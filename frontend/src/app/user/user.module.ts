@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { ClipboardModule } from '@angular/cdk/clipboard';
 
 import { UserRoutingModule } from './user-routing.module';
 import { DashboardComponent } from './dashboard/dashboard.component';
@@ -31,6 +32,7 @@ import { TeamService } from './team.service/team.service';
     UserRoutingModule,
     FormsModule,
     ReactiveFormsModule,
+    ClipboardModule,
     NavModule,
     MatSidenavModule,
     TemplatesModule,

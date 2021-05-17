@@ -16,6 +16,13 @@
         <div *ngIf="team.invitation" class="panel-block">
           <h2 class="subtitle is-6 no-word-break m-0"><b>Kod zaproszenia:&nbsp;</b></h2>
           <h2 class="subtitle is-6 is-flex-grow-1 m-0">{{ team.invitation }}</h2>
+          <button class="button is-text copy-to-clipboard has-tooltip-right has-tooltip-left-mobile" data-tooltip="Skopiowano" [ngClass]="{
+            'is-tooltip-hidden': !isCopiedNotification
+          }" title="Skopiuj kod zaproszenia do schowka" (click)="copyInvitation()" [disabled]="isRefreshing">
+            <span class="icon">
+              <i class="fas fa-copy"></i>
+            </span>
+          </button>
         </div>
         <!-- Actions (mobile) -->
         <div class="panel-block buttons is-centered is-full is-only-mobile">
@@ -48,9 +55,14 @@
     <!--#region Members -->
     <div class="tile is-parent is-4">
       <div class="tile is-child is-vertical panel is-primary is-flex unscrollable">
-        <p class="panel-heading">Członkowie</p>
+        <p class="panel-heading is-flex is-align-items-center">
+          <span class="is-flex-grow-1">Członkowie</span>
+          <button class="button is-primary" title="Odśwież klasę" (click)="refreshTeam()">
+            <i class="fas fa-sync-alt" [ngClass]="{ 'is-spinning': isRefreshing }"></i>
+          </button>
+        </p>
         <div class="panel height-full is-primary scrollable">
-          <div *ngFor="let member of team.members" class="panel-block has-hiding-buttons is-flex">
+          <div *ngFor="let member of team.members" class="panel-block has-hiding-buttons is-flex" tabindex="0">
             <span class="panel-icon">
               <i *ngIf="member.number === null" class="fas fa-user" aria-hidden="true"></i>
               <span *ngIf="member.number !== null" class="fa-stack">
@@ -60,12 +72,12 @@
             </span>
             <span class="is-flex-grow-1">{{ member.name | titlecase }}</span>
             <span class="buttons actions">
-              <button class="button is-text" title="Zmień numer członka" (click)="selectedUser = member; openModal(ModalType.EDIT_USER)">
+              <button class="button is-text" title="Zmień numer członka" (click)="selectedUser = member; openModal(ModalType.EDIT_USER)" [disabled]="isRefreshing">
                 <span class="icon">
                   <i class="fas fa-pen is-hiding"></i>
                 </span>
               </button>
-              <button class="button is-text" title="Usuń członka" (click)="selectedUser = member; openModal(ModalType.DELETE_USER)">
+              <button class="button is-text" title="Usuń członka" (click)="selectedUser = member; openModal(ModalType.DELETE_USER)" [disabled]="isRefreshing">
                 <span class="icon">
                   <i class="fas fa-trash is-hiding"></i>
                 </span>
@@ -241,25 +253,25 @@
 
 <!--#region Action buttons -->
 <ng-template #buttonsTemplate>
-  <button class="button is-primary is-light" (click)="openModal(ModalType.NAME)">
+  <button class="button is-primary is-light" (click)="openModal(ModalType.NAME)" [disabled]="isRefreshing">
     <span class="icon">
       <i class="fas fa-pen"></i>
     </span>
     <span>Zmień nazwę klasy</span>
   </button>
-  <button *ngIf="isAdmin" class="button is-primary is-light" (click)="getAssignees(); openModal(ModalType.ASSIGNEE)">
+  <button *ngIf="isAdmin" class="button is-primary is-light" (click)="getAssignees(); openModal(ModalType.ASSIGNEE)" [disabled]="isRefreshing">
     <span class="icon">
       <i class="fas fa-people-arrows"></i>
     </span>
     <span>Zmień właściciela</span>
   </button>
-  <button *ngIf="!team?.invitation" class="button is-primary is-light" (click)="openModal(ModalType.OPEN_INV)">
+  <button *ngIf="!team?.invitation" class="button is-primary is-light" (click)="openModal(ModalType.OPEN_INV)" [disabled]="isRefreshing">
     <span class="icon">
       <i class="fas fa-clipboard"></i>
     </span>
     <span>Otwórz rejestrację</span>
   </button>
-  <button *ngIf="team?.invitation" class="button is-primary is-light" (click)="openModal(ModalType.CLOSE_INV)">
+  <button *ngIf="team?.invitation" class="button is-primary is-light" (click)="openModal(ModalType.CLOSE_INV)" [disabled]="isRefreshing">
     <span class="icon">
       <i class="far fa-clipboard"></i>
     </span>

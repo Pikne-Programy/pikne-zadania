@@ -1,4 +1,6 @@
 @use "../../../../styles.variables.scss" as *;
+@use "../../../../themes/theme.variables.scss" as theme;
+@import "~bulma/sass/utilities/functions.sass";
 
 $mobile: nth(
   $list: $size_breakpoints,
@@ -28,24 +30,60 @@ $widescreen: nth(
   border-bottom: none;
 }
 
-.has-hiding-buttons:not(:hover) {
-  & .button {
+.has-hiding-buttons:not(:hover):not(:focus) {
+  & .button:not(:focus) {
     background-color: transparent;
     box-shadow: none;
-  }
-  & i.is-hiding {
-    @media only screen and (min-width: nth($list: $widescreen, $n: 2)) {
-      display: none;
+
+    & i.is-hiding {
+      @media only screen and (min-width: nth($list: $widescreen, $n: 2)) {
+        display: none;
+      }
     }
   }
 }
 
 .button {
-  &.is-light:not(:focus) {
+  &.is-light:not(:hover):not(:focus):not(:active) {
     background-color: transparent;
   }
   &.is-text {
     text-decoration: none;
+  }
+  &.copy-to-clipboard {
+    height: 2rem;
+    width: 2rem;
+    padding: 0;
+    margin: -0.5rem;
+    margin-left: 0;
+    flex-shrink: 0;
+    &:focus {
+      box-shadow: none;
+    }
+    &:focus,
+    &:hover,
+    &:active {
+      background-color: transparent;
+    }
+
+    &::before {
+      visibility: visible;
+      opacity: 1;
+      transition: 0.25s;
+
+      color: var(--primary);
+      background-color: var(--tooltip-background);
+
+      font-size: 0.8em;
+      font-weight: 700;
+
+      border: 2px solid var(--primary);
+      border-radius: 6px;
+    }
+    &.is-tooltip-hidden::before {
+      opacity: 0;
+      transition: 1s;
+    }
   }
 }
 
@@ -87,6 +125,23 @@ $widescreen: nth(
         margin-right: 1rem;
       }
     }
+  }
+}
+
+.panel-heading .button {
+  padding: 0;
+  height: 1.5rem;
+  width: 1.5rem;
+
+  &.is-primary:focus:not(:active) {
+    box-shadow: $button-focus-box-shadow-size
+      bulmaRgba(findColorInvert(theme.$prim), 0.25);
+    @if theme.$is-dark {
+      box-shadow: $button-focus-box-shadow-size bulmaRgba(black, 0.25);
+    }
+  }
+  & i.fa-sync-alt.is-spinning {
+    animation: spinAround 1000ms infinite linear;
   }
 }
 

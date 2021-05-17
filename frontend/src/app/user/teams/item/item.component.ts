@@ -1,3 +1,4 @@
+import { Clipboard } from '@angular/cdk/clipboard';
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -33,13 +34,16 @@ export class TeamItemComponent implements OnInit {
 
   isAdmin = false;
   isLoading = true;
+  isRefreshing = false;
+  isCopiedNotification = false;
   errorCode: number | null = null;
   defaultErrorMessage = true;
 
   constructor(
     private teamService: TeamService,
     private accountService: AccountService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private clipboard: Clipboard
   ) {}
 
   ngOnInit() {
@@ -67,6 +71,19 @@ export class TeamItemComponent implements OnInit {
     } else {
       this.errorCode = this.IdError;
       this.isLoading = false;
+    }
+  }
+
+  refreshTeam() {
+    this.isRefreshing = true;
+    this.fetchTeam();
+    setTimeout(() => (this.isRefreshing = false), 500);
+  }
+
+  copyInvitation() {
+    if (this.team?.invitation && this.clipboard.copy(this.team.invitation)) {
+      this.isCopiedNotification = true;
+      setTimeout(() => (this.isCopiedNotification = false), 2500);
     }
   }
 
@@ -264,7 +281,7 @@ export class TeamItemComponent implements OnInit {
   private onModalSuccess() {
     this.isModalLoading = false;
     this.closeModal();
-    this.fetchTeam();
+    this.refreshTeam();
   }
 
   private onModalError(error: any, fallback: number) {

@@ -1,13 +1,14 @@
 <app-select *ngIf="errorCode === null" [main-link]="'/user/teams'" [items]="getTeamList()" [header]="'Klasy'" [loading]="isLoading" [text-pipe]="'uppercase'">
   <div class="buttons is-right">
-    <a class="button is-primary is-flex is-align-items-baseline" (click)="openModal()">
+    <button class="button is-primary is-flex is-align-items-baseline" (click)="openModal()">
       <span class="icon">
         <i class="fas fa-plus"></i>
       </span>
       <span>Dodaj nową klasę</span>
-    </a>
+    </button>
   </div>
 </app-select>
+<!--#region New Team Modal -->
 <app-card-modal [title]="'Nowa klasa'" [open]="isModalOpen" (onClose)="closeModal()">
   <section>
     <form id="form" [formGroup]="form" (ngSubmit)="addTeam()">
@@ -34,4 +35,5 @@
     </div>
   </footer>
 </app-card-modal>
+<!--#endregion-->
 <app-error *ngIf="errorCode !== null" [code]="errorCode"></app-error>
