@@ -13,9 +13,9 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 - add a possibility to upload images
 - add a WebSocket endpoint
 
-## Table of Content
+## Table of Contents
 
-- [Table of Content](#table-of-content)
+- [Table of Contents](#table-of-contents)
 - [Exercise](#exercise)
   - [`GET /api/exercise/list`](#get-apiexerciselist)
   - [`GET /api/exercise/get`](#get-apiexerciseget)
@@ -806,6 +806,7 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 ```json
 {
   "id": "physics-2021d",
+  "name": "Physics 1d",
   "assignee": "Williams",
   "invitation": "QwErTy58",
   "members": [
