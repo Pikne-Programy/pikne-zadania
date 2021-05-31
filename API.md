@@ -18,14 +18,14 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 - [Table of Contents](#table-of-contents)
 - [Exercise](#exercise)
   - [`GET /api/exercise/list`](#get-apiexerciselist)
-  - [`GET /api/exercise/get`](#get-apiexerciseget)
+  - [`POST /api/exercise/get`](#post-apiexerciseget)
   - [`POST /api/exercise/update`](#post-apiexerciseupdate)
   - [`POST /api/exercise/check`](#post-apiexercisecheck)
-  - [`GET /api/exercise/render`](#get-apiexerciserender)
-  - [`GET /api/exercise/preview`](#get-apiexercisepreview)
+  - [`POST /api/exercise/render`](#post-apiexerciserender)
+  - [`POST /api/exercise/preview`](#post-apiexercisepreview)
 - [Subject](#subject)
   - [`POST /api/subject/create`](#post-apisubjectcreate)
-  - [`GET /api/subject/info`](#get-apisubjectinfo)
+  - [`POST /api/subject/info`](#post-apisubjectinfo)
   - [`POST /api/subject/permit`](#post-apisubjectpermit)
 - [Auth](#auth)
   - [`POST /api/auth/register`](#post-apiauthregister)
@@ -35,19 +35,19 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
   - [`GET /api/user/current`](#get-apiusercurrent)
   - [`DELETE /api/user/delete`](#delete-apiuserdelete)
   - [`POST /api/user/update`](#post-apiuserupdate)
-  - [`GET /api/user/info`](#get-apiuserinfo)
+  - [`POST /api/user/info`](#post-apiuserinfo)
 - [Team](#team)
   - [`POST /api/team/create`](#post-apiteamcreate)
   - [`DELETE /api/team/delete`](#delete-apiteamdelete)
   - [`POST /api/team/update`](#post-apiteamupdate)
   - [`GET /api/team/list`](#get-apiteamlist)
-  - [`GET /api/team/info`](#get-apiteaminfo)
+  - [`POST /api/team/info`](#post-apiteaminfo)
 - [Group](#group)
   - [`POST /api/group/create`](#post-apigroupcreate)
   - [`DELETE /api/group/delete`](#delete-apigroupdelete)
   - [`POST /api/group/update`](#post-apigroupupdate)
   - [`GET /api/group/list`](#get-apigrouplist)
-  - [`GET /api/group/info`](#get-apigroupinfo)
+  - [`POST /api/group/info`](#post-apigroupinfo)
   - [`POST /api/group/join`](#post-apigroupjoin)
   - [`POST /api/group/add`](#post-apigroupadd)
 - [Exam](#exam)
@@ -55,11 +55,11 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
   - [`DELETE /api/exam/delete`](#delete-apiexamdelete)
   - [`POST /api/exam/update`](#post-apiexamupdate)
   - [`POST /api/exam/exercise`](#post-apiexamexercise)
-  - [`GET /api/exam/info`](#get-apiexaminfo)
-  - [`GET /api/exam/user`](#get-apiexamuser)
-  - [`GET /api/exam/stats`](#get-apiexamstats)
-  - [`GET /api/exam/render`](#get-apiexamrender)
-  - [`GET /api/exam/static`](#get-apiexamstatic)
+  - [`POST /api/exam/info`](#post-apiexaminfo)
+  - [`POST /api/exam/user`](#post-apiexamuser)
+  - [`POST /api/exam/stats`](#post-apiexamstats)
+  - [`POST /api/exam/render`](#post-apiexamrender)
+  - [`POST /api/exam/static`](#post-apiexamstatic)
   - [`POST /api/exam/leave`](#post-apiexamleave)
   - [`POST /api/exam/submit`](#post-apiexamsubmit)
 
@@ -112,11 +112,11 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ---
 
-### `GET /api/exercise/get`
+### `POST /api/exercise/get`
 
 | Method | URL                 | Description      | Special status codes |
 | ------ | ------------------- | ---------------- | -------------------- |
-| GET    | `/api/exercise/get` | get one Exercise | 403, 404             |
+| POST   | `/api/exercise/get` | get one Exercise | 403, 404             |
 
 **Request**:
 
@@ -189,11 +189,11 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ---
 
-### `GET /api/exercise/render`
+### `POST /api/exercise/render`
 
 | Method | URL                    | Description        | Special status codes |
 | ------ | ---------------------- | ------------------ | -------------------- |
-| GET    | `/api/exercise/render` | render an exercise | 403, 404             |
+| POST   | `/api/exercise/render` | render an exercise | 403, 404             |
 
 **Request**:
 
@@ -226,15 +226,15 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 **note**: The content can contain links to static content. It can be accessed via `GET /img/:subject/:file` request. \
 **note**: User will receive correct answers only if authorized as teacher or admin. \
 **note**: `seed` property is optional. It may be given if a user is authorized as a teacher or admin. For students, it will be taken from a database. \
-**note**: With this request, it is NOT possible to access private exercises. See [`GET /api/exam/render`](#get-apiexamrender).
+**note**: With this request, it is NOT possible to access private exercises. See [`POST /api/exam/render`](#post-apiexamrender).
 
 ---
 
-### `GET /api/exercise/preview`
+### `POST /api/exercise/preview`
 
 | Method | URL                     | Description         | Special status codes |
 | ------ | ----------------------- | ------------------- | -------------------- |
-| GET    | `/api/exercise/preview` | preview an exercise | 403, 404             |
+| POST   | `/api/exercise/preview` | preview an exercise | 403, 404             |
 
 **Request**:
 
@@ -273,9 +273,9 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ### `POST /api/subject/create`
 
-| Method | URL                   | Description        | Special status codes          |
-| ------ | --------------------- | ------------------ | ----------------------------- |
-| POST   | `/api/subject/create` | create new subject | 403, 409 (id already exists)  |
+| Method | URL                   | Description        | Special status codes         |
+| ------ | --------------------- | ------------------ | ---------------------------- |
+| POST   | `/api/subject/create` | create new subject | 403, 409 (id already exists) |
 
 **Request**:
 
@@ -297,11 +297,11 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ---
 
-### `GET /api/subject/info`
+### `POST /api/subject/info`
 
 | Method | URL                 | Description                  | Special status codes |
 | ------ | ------------------- | ---------------------------- | -------------------- |
-| GET    | `/api/subject/info` | get list of authorized users | 403, 404             |
+| POST   | `/api/subject/info` | get list of authorized users | 403, 404             |
 
 **Request**:
 
@@ -497,11 +497,11 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ---
 
-### `GET /api/user/info`
+### `POST /api/user/info`
 
 | Method | URL              | Description           | Special status codes |
 | ------ | ---------------- | --------------------- | -------------------- |
-| GET    | `/api/user/info` | get info about a user | 403, 404             |
+| POST   | `/api/user/info` | get info about a user | 403, 404             |
 
 **Request**:
 
@@ -638,11 +638,11 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ---
 
-### `GET /api/team/info`
+### `POST /api/team/info`
 
 | Method | URL              | Description         | Special status codes |
 | ------ | ---------------- | ------------------- | -------------------- |
-| GET    | `/api/team/info` | get info about team | 403, 404          |
+| POST   | `/api/team/info` | get info about team | 403, 404             |
 
 **Request**:
 
@@ -722,9 +722,9 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ### `POST /api/group/update`
 
-| Method | URL                 | Description         | Special status codes                      |
-| ------ | ------------------- | ------------------- | ----------------------------------------- |
-| POST   | `/api/group/update` | change group's data | 403, 404, 409 (invitation code is taken)  |
+| Method | URL                 | Description         | Special status codes                     |
+| ------ | ------------------- | ------------------- | ---------------------------------------- |
+| POST   | `/api/group/update` | change group's data | 403, 404, 409 (invitation code is taken) |
 
 **Request**:
 
@@ -787,11 +787,11 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ---
 
-### `GET /api/group/info`
+### `POST /api/group/info`
 
 | Method | URL               | Description            | Special status codes |
 | ------ | ----------------- | ---------------------- | -------------------- |
-| GET    | `/api/group/info` | get info about a group | 403, 404             |
+| POST   | `/api/group/info` | get info about a group | 403, 404             |
 
 **Request**:
 
@@ -832,9 +832,9 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ### `POST /api/group/join`
 
-| Method | URL                 | Description  | Special status codes |
-| ------ | ------------------- | ------------ | -------------------- |
-| POST   | `/api/group/join`   | join a group | 403, 404             |
+| Method | URL               | Description  | Special status codes |
+| ------ | ----------------- | ------------ | -------------------- |
+| POST   | `/api/group/join` | join a group | 403, 404             |
 
 **Request**:
 
@@ -855,16 +855,16 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ### `POST /api/group/add`
 
-| Method | URL                 | Description         | Special status codes |
-| ------ | ------------------- | ------------------- | -------------------- |
-| POST   | `/api/group/add`    | add user to a group | 403, 404             |
+| Method | URL              | Description         | Special status codes |
+| ------ | ---------------- | ------------------- | -------------------- |
+| POST   | `/api/group/add` | add user to a group | 403, 404             |
 
 **Request**:
 
 ```json
 {
   "id": "physics-2021d",
-  "user": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "user": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 }
 ```
 
@@ -984,11 +984,11 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ---
 
-### `GET /api/exam/info`
+### `POST /api/exam/info`
 
 | Method | URL              | Description         | Special status codes |
 | ------ | ---------------- | ------------------- | -------------------- |
-| GET    | `/api/exam/info` | get info about exam | 403, 404             |
+| POST   | `/api/exam/info` | get info about exam | 403, 404             |
 
 **Request**:
 
@@ -1020,18 +1020,18 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ---
 
-### `GET /api/exam/user`
+### `POST /api/exam/user`
 
 | Method | URL              | Description    | Special status codes |
 | ------ | ---------------- | -------------- | -------------------- |
-| GET    | `/api/exam/user` | get user stats | 403, 404             |
+| POST   | `/api/exam/user` | get user stats | 403, 404             |
 
 **Request**:
 
 ```json
 {
   "id": 153,
-  "user": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "user": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 }
 ```
 
@@ -1052,11 +1052,11 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ---
 
-### `GET /api/exam/stats`
+### `POST /api/exam/stats`
 
 | Method | URL               | Description    | Special status codes |
 | ------ | ----------------- | -------------- | -------------------- |
-| GET    | `/api/exam/stats` | get exam stats | 403, 404             |
+| POST   | `/api/exam/stats` | get exam stats | 403, 404             |
 
 **Request**:
 
@@ -1089,11 +1089,11 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ---
 
-### `GET /api/exam/render`
+### `POST /api/exam/render`
 
 | Method | URL                | Description        | Special status codes |
 | ------ | ------------------ | ------------------ | -------------------- |
-| GET    | `/api/exam/render` | render an exercise | 403, 404             |
+| POST   | `/api/exam/render` | render an exercise | 403, 404             |
 
 **Request**:
 
@@ -1122,17 +1122,17 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 }
 ```
 
-**note**: With this request, it is possible to access private exercises. See [`GET /api/exercise/render`](#get-apiexerciserender). \
+**note**: With this request, it is possible to access private exercises. See [`POST /api/exercise/render`](#post-apiexerciserender). \
 **note**: It's ExT-dependent, what is shown above is appropriate for the EqEx one.
-**note**: The content can contain links to static content. It can be accessed via [`GET /api/exam/static`](#get-apiexamstatic) request. \
+**note**: The content can contain links to static content. It can be accessed via [`POST /api/exam/static`](#post-apiexamstatic) request. \
 
 ---
 
-### `GET /api/exam/static`
+### `POST /api/exam/static`
 
 | Method | URL                | Description        | Special status codes |
 | ------ | ------------------ | ------------------ | -------------------- |
-| GET    | `/api/exam/static` | get static content | 403, 404             |
+| POST   | `/api/exam/static` | get static content | 403, 404             |
 
 **Request**:
 
