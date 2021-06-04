@@ -13,11 +13,11 @@ import {
   walkSync,
 } from "../deps.ts";
 import {
-  db,
   deepCopy,
   handleThrown,
   joinThrowable,
   RouterContext,
+  User,
 } from "../utils/mod.ts";
 import exts from "../exts/mod.ts";
 import {
@@ -26,7 +26,7 @@ import {
   isJSONType,
   isObjectOf,
   JSONType,
-  User,
+  UserType,
 } from "../types/mod.ts";
 
 type Section = {
@@ -113,11 +113,11 @@ function build(subject: string, elements: YAMLSection[]): Section[] {
   return _build(subject, elements);
 }
 
-function checkDoneStatus(user: User, id: string): number | null {
+function checkDoneStatus(user: UserType, id: string): number | null {
   return user.role.name === "student" ? user.role.exercises[id] ?? null : null;
 }
 
-function userProgress(arr: DoneSection[], user: User) {
+function userProgress(arr: DoneSection[], user: UserType) {
   if (user && user.role.name === "student") {
     for (const e of arr) {
       if (typeof e.children === "string") {
@@ -192,14 +192,14 @@ export async function check(ctx: RouterContext) {
   }
   const res = ex.check(ctx.state.seed, body);
   if (ctx.state.user && ctx.params.id) {
-    type EmailPartial = Omit<User, "email"> & { email?: string } | null;
-    const user: EmailPartial = await db.getUser(ctx.state.user.id);
+    type EmailPartial = Omit<UserType, "email"> & { email?: string } | null;
+    const user: EmailPartial = await User.get(ctx.state.user.id);
     const id = ctx.params.id;
     if (user && user.role.name === "student") {
       res.done = Math.max(res.done, user.role.exercises[id] ?? -Infinity);
       delete user.email;
       user.role.exercises[id] = res.done;
-      await db.setUser(user);
+      await User.set(user);
     }
   }
   ctx.response.status = 200;

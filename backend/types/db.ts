@@ -4,7 +4,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-export type User = {
+export type UserType = {
   id: string;
   email: string;
   name: string;
@@ -23,7 +23,7 @@ export type User = {
   };
 };
 
-export type Team = {
+export type TeamType = {
   id: number;
   name: string;
   assignee: string;
@@ -31,8 +31,17 @@ export type Team = {
   invCode: string | null;
 };
 
-export type Global = {
+export type GlobalType = {
   lastTid: number;
 };
 
 export type success = boolean;
+
+export type IdPartial<T extends { "id": unknown }> = Pick<T, "id"> & Partial<T>;
+export type IdOmit<T extends { "id": unknown }> = Omit<T, "id">;
+export type IdOptional<T extends { "id": unknown }> =
+  & Partial<Pick<T, "id">>
+  & Omit<T, "id">;
+export type IdRequired<T extends { "id": unknown }> =
+  & Pick<T, "id">
+  & Partial<T>;

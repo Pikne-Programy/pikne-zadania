@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { db, firsthash, secondhashSync, userhash } from "./mod.ts";
+import { firsthash, secondhashSync } from "./mod.ts";
 import { Algorithm } from "../deps.ts";
 const algos = [
   "none",
@@ -71,10 +71,11 @@ const ROOT_DHPASS = Deno.env.get("ROOT_DHPASS");
 export async function setuproot(
   register: (dhpassword: string) => Promise<unknown>,
   unregister: () => Promise<unknown>,
+  check: () => Promise<{ dhpassword: string } | null>,
 ) {
   const warn = (what: string, why = "Please unset it or change ROOT_ENABLE.") =>
     console.warn(`WARN: ${what} is present. ${why}`);
-  const root = await db.getUser(userhash("root"));
+  const root = await check();
   if (ROOT_ENABLE) {
     warn("ROOT_ENABLE", "It can be a security issue.");
     if (ROOT_DHPASS) {

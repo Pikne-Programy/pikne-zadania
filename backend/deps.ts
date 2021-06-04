@@ -50,8 +50,6 @@ export {
   Random,
 } from "https://cdn.skypack.dev/random-js@v2.1.0?dts";
 
-export { Mutex } from "https://cdn.skypack.dev/async-mutex";
-
 export {
   create,
   getNumericDate,

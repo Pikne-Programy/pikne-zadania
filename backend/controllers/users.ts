@@ -4,12 +4,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { httpErrors } from "../deps.ts";
-import { db, RouterContext } from "../utils/mod.ts";
+import { RouterContext, User } from "../utils/mod.ts";
 
 export async function deleteUser(ctx: RouterContext) {
   const id = ctx.params.userid;
   if (!id) throw new httpErrors["BadRequest"]();
-  if (!await db.deleteUser(id)) throw new httpErrors["NotFound"]();
+  if (!await User.delete(id)) throw new httpErrors["NotFound"]();
   ctx.response.status = 204;
 }
 export function getUser(ctx: RouterContext) {
@@ -31,7 +31,7 @@ export async function setUserNumber(ctx: RouterContext) {
   } catch {
     throw new httpErrors["BadRequest"]();
   }
-  const user = await db.getUser(userid);
+  const user = await User.get(userid);
   if (!user) throw new httpErrors["NotFound"]();
   if (user.role.name !== "student") {
     console.error("Only student can have a number");
@@ -45,6 +45,6 @@ export async function setUserNumber(ctx: RouterContext) {
       exercises: user.role.exercises,
     },
   };
-  if (!await db.setUser(part)) throw new httpErrors["NotFound"]();
+  if (!await User.set(part)) throw new httpErrors["NotFound"]();
   ctx.response.status = 200;
 }

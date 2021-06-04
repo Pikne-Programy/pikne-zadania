@@ -4,12 +4,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { httpErrors } from "../deps.ts";
-import { db, followSchema, RouterContext } from "../utils/mod.ts";
-import { Team, teamSchema } from "../types/mod.ts";
+import { followSchema, RouterContext, Team, User } from "../utils/mod.ts";
+import { teamSchema, TeamType } from "../types/mod.ts";
 
 export async function getAllTeams(ctx: RouterContext) {
   // TODO: check assignee if not root
-  const teams: Team[] = await db.getAllTeams();
+  const teams: TeamType[] = await Team.getAll();
   if (!teams) throw new httpErrors["NotFound"]();
   ctx.response.status = 200;
   ctx.response.body = teams.map((team) => ({
@@ -23,7 +23,7 @@ export const addTeam = followSchema(
   { name: teamSchema.name },
   async (ctx, req) => {
     const user = ctx.state.user!; // auth required
-    const teamid = await db.addTeam({
+    const teamid = await Team.add({
       "name": req.name,
       "assignee": user.name,
       "members": [],
@@ -39,11 +39,11 @@ export const addTeam = followSchema(
 export async function getTeam(ctx: RouterContext) {
   const id = ctx.params.id == null ? null : +ctx.params.id;
   if (id == null || isNaN(id)) throw new httpErrors["BadRequest"]();
-  const team = await db.getTeam(id);
+  const team = await Team.get(id);
   if (!team) throw new httpErrors["NotFound"]();
   const members: { id: string; name: string; number: number | null }[] = [];
   for (const member of team.members) {
-    const user = await db.getUser(member);
+    const user = await User.get(member);
     if (user) {
       members.push({
         id: user.id,
@@ -70,7 +70,7 @@ export async function setTeamName(ctx: RouterContext) {
   } catch {
     throw new httpErrors["BadRequest"]();
   }
-  if (!await db.setTeam({ id, name })) throw new httpErrors["NotFound"]();
+  if (!await Team.set({ id, name })) throw new httpErrors["NotFound"]();
   ctx.response.status = 200;
 }
 export async function changeAssignee(ctx: RouterContext) {
@@ -83,12 +83,12 @@ export async function changeAssignee(ctx: RouterContext) {
   } catch {
     throw new httpErrors["BadRequest"]();
   }
-  const user = await db.getUser(userId);
+  const user = await User.get(userId);
   if (!user) {
     console.error(`changeAssignee: User with id ${userId} doesn't exist`);
     throw new httpErrors["NotFound"]();
   }
-  if (!await db.setTeam({ id, assignee: user.name })) {
+  if (!await Team.set({ id, assignee: user.name })) {
     throw new httpErrors["NotFound"]();
   }
   ctx.response.status = 200;
@@ -112,7 +112,7 @@ function generateInvitationCode(id: number): string {
 export async function openRegistration(ctx: RouterContext) {
   const id = ctx.params.id == null ? null : +ctx.params.id;
   if (id == null || isNaN(id)) throw new httpErrors["BadRequest"]();
-  if (!await db.getTeam(id)) throw new httpErrors["NotFound"]();
+  if (!await Team.get(id)) throw new httpErrors["NotFound"]();
   let invitation;
   try {
     invitation = await ctx.request.body({ type: "json" }).value;
@@ -120,7 +120,7 @@ export async function openRegistration(ctx: RouterContext) {
   } catch {
     throw new httpErrors["BadRequest"]();
   }
-  if (!await db.setInvitationCode(id, invitation)) {
+  if (!await Team.setInvitationCode(id, invitation)) {
     throw new httpErrors["Conflict"]();
   }
   ctx.response.status = 200;
@@ -128,6 +128,8 @@ export async function openRegistration(ctx: RouterContext) {
 export async function closeRegistration(ctx: RouterContext) {
   const id = ctx.params.id == null ? null : +ctx.params.id;
   if (id == null || isNaN(id)) throw new httpErrors["BadRequest"]();
-  if (!await db.setInvitationCode(id, null)) throw new httpErrors["NotFound"]();
+  if (!await Team.setInvitationCode(id, null)) {
+    throw new httpErrors["NotFound"]();
+  }
   ctx.response.status = 200;
 }

@@ -14,12 +14,13 @@ import {
 } from "../deps.ts";
 import { teamSchema, userSchema } from "../types/mod.ts";
 import {
-  db,
   delay,
   followSchema,
   handleThrown,
   RouterContext,
   secondhash,
+  Team,
+  User,
   userhash,
 } from "../utils/mod.ts";
 import { generateSeed, JWT_CONF, LOGIN_TIME } from "../utils/mod.ts";
@@ -29,7 +30,7 @@ export const login = followSchema({
   hashed_password: userSchema.hpassword,
 }, async (ctx, req) => {
   const startTime = Date.now();
-  const dhpassword = (await db.getUser(userhash(req.login)))?.dhpassword ?? "";
+  const dhpassword = (await User.get(userhash(req.login)))?.dhpassword ?? "";
   if (await compare(req.hashed_password, dhpassword)) {
     const jwt = await makeJWT(userhash(req.login));
     if (!jwt) throw new httpErrors["Unauthorized"]();
@@ -48,7 +49,7 @@ export async function logout(ctx: RouterContext) {
   const user = ctx.state.user?.id;
   if (!user) throw new httpErrors["Forbidden"]();
   const jwt = ctx.cookies.get("jwt") ?? "";
-  await db.deleteJWT(user, jwt);
+  await User.deleteJWT(user, jwt);
   ctx.cookies.delete("jwt");
   ctx.response.status = 200;
   console.log(`logout: ${user} ${ctx.response.status}`);
@@ -60,7 +61,7 @@ export const register = followSchema({
   number: userSchema.number,
   invitation: teamSchema.invCode,
 }, async (ctx, req) => {
-  const team = await db.getInvitation(req.invitation);
+  const team = await Team.getInvitation(req.invitation);
   if (!team) throw new httpErrors["Forbidden"]();
   const user = {
     email: req.login,
@@ -73,7 +74,7 @@ export const register = followSchema({
       ? { name: "student" as const, number: req.number, exercises: {} }
       : { name: "teacher" as const },
   };
-  if (!await db.addUser(user)) throw new httpErrors["Conflict"]();
+  if (!await User.add(user)) throw new httpErrors["Conflict"]();
   ctx.response.status = 201;
   console.log(`register: ${user.name}`);
 });
@@ -85,7 +86,7 @@ const payload = (login: string) => {
 async function makeJWT(uid: string): Promise<string | null> {
   try {
     const jwt = await create(JWT_CONF.header, payload(uid), JWT_CONF.key);
-    await db.addJWT(uid, jwt);
+    await User.addJWT(uid, jwt);
     return jwt;
   } catch (e) {
     handleThrown(e);
@@ -101,7 +102,9 @@ export async function validateJWT(jwt: string): Promise<string | null> {
       JWT_CONF.header.alg,
     );
     const user = payload.id;
-    if (typeof user === "string" && await db.existsJWT(user, jwt)) return user;
+    if (typeof user === "string" && await User.existsJWT(user, jwt)) {
+      return user;
+    }
   } catch (e) {
     handleThrown(e);
   }

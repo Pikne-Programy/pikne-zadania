@@ -4,7 +4,7 @@
 
 import { Application, HttpError } from "./deps.ts";
 import router from "./router.ts";
-import { Context, db, handleThrown, State } from "./utils/mod.ts";
+import { closeDB, Context, handleThrown, State } from "./utils/mod.ts";
 
 const app = new Application<State>();
 
@@ -64,7 +64,7 @@ Promise.race([
 ]).then(() => {
   console.log("The server is closing...");
   abortController.abort();
-  db.close();
+  closeDB();
 }).then(() => countdown(5)).finally(Deno.exit);
 
 await app.listen({ port: 8000, signal });
