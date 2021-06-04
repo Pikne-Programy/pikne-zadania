@@ -207,6 +207,22 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 **Response**:
 
 ```json
+// Student version
+{
+  "type": "EqEx",
+  "name": "Pociągi dwa 2",
+  "done": 0.34,
+  "content": {
+    "main": "Z miast \\(A\\) i \\(B\\) odległych o \\(d=300\\;\\mathrm{km}\\) wyruszają jednocześnie\ndwa pociągi z prędkościami \\(v_a= 50\\;\\mathrm{\\frac{km}{h}}\\) oraz \\(v_b=70\\;\\mathrm{\\frac{km}{h}}\\).\nW jakiej odległości \\(x\\) od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie \\(t\\) się to stanie?",
+    "img": ["1.png", "2.png"],
+    "unknowns": [
+      ["x", "\\mathrm{km}"],
+      ["t", "\\mathrm{s}"]
+    ]
+  }
+}
+
+// Teacher/Admin version
 {
   "type": "EqEx",
   "name": "Pociągi dwa 2",
@@ -224,7 +240,8 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 **note**: `content` is ExT-dependent, shown above is the EqEx one. \
 **note**: The content can contain links to static content. It can be accessed via `GET /img/:subject/:file` request. \
-**note**: User will receive correct answers only if authorized as teacher or admin. \
+**note**: User will receive `done` only if authorized as Student. \
+**note**: User will receive `correct` only if authorized as teacher or admin. \
 **note**: `seed` property is optional. It may be given if a user is authorized as a teacher or admin. For students, it will be taken from a database. \
 **note**: With this request, it is NOT possible to access private exercises. See [`POST /api/exam/render`](#post-apiexamrender).
 
