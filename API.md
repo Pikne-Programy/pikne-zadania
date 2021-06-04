@@ -33,18 +33,18 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
   - [`POST /api/auth/logout`](#post-apiauthlogout)
 - [User](#user)
   - [`GET /api/user/current`](#get-apiusercurrent)
-  - [`DELETE /api/user/delete`](#delete-apiuserdelete)
+  - [`POST /api/user/delete`](#post-apiuserdelete)
   - [`POST /api/user/update`](#post-apiuserupdate)
   - [`POST /api/user/info`](#post-apiuserinfo)
 - [Team](#team)
   - [`POST /api/team/create`](#post-apiteamcreate)
-  - [`DELETE /api/team/delete`](#delete-apiteamdelete)
+  - [`POST /api/team/delete`](#post-apiteamdelete)
   - [`POST /api/team/update`](#post-apiteamupdate)
   - [`GET /api/team/list`](#get-apiteamlist)
   - [`POST /api/team/info`](#post-apiteaminfo)
 - [Group](#group)
   - [`POST /api/group/create`](#post-apigroupcreate)
-  - [`DELETE /api/group/delete`](#delete-apigroupdelete)
+  - [`POST /api/group/delete`](#post-apigroupdelete)
   - [`POST /api/group/update`](#post-apigroupupdate)
   - [`GET /api/group/list`](#get-apigrouplist)
   - [`POST /api/group/info`](#post-apigroupinfo)
@@ -52,7 +52,7 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
   - [`POST /api/group/add`](#post-apigroupadd)
 - [Exam](#exam)
   - [`POST /api/exam/create`](#post-apiexamcreate)
-  - [`DELETE /api/exam/delete`](#delete-apiexamdelete)
+  - [`POST /api/exam/delete`](#post-apiexamdelete)
   - [`POST /api/exam/update`](#post-apiexamupdate)
   - [`POST /api/exam/exercise`](#post-apiexamexercise)
   - [`POST /api/exam/info`](#post-apiexaminfo)
@@ -450,11 +450,11 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 }
 ```
 
-### `DELETE /api/user/delete`
+### `POST /api/user/delete`
 
 | Method | URL                | Description       | Special status codes |
 | ------ | ------------------ | ----------------- | -------------------- |
-| DELETE | `/api/user/delete` | unregister a user | 403, 404             |
+| POST   | `/api/user/delete` | unregister a user | 403, 404             |
 
 **Request**:
 
@@ -547,11 +547,11 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ---
 
-### `DELETE /api/team/delete`
+### `POST /api/team/delete`
 
 | Method | URL                | Description   | Special status codes |
 | ------ | ------------------ | ------------- | -------------------- |
-| DELETE | `/api/team/delete` | delete a team | 403, 404             |
+| POST   | `/api/team/delete` | delete a team | 403, 404             |
 
 **Request**:
 
@@ -698,11 +698,11 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ---
 
-### `DELETE /api/group/delete`
+### `POST /api/group/delete`
 
 | Method | URL                 | Description    | Special status codes |
 | ------ | ------------------- | -------------- | -------------------- |
-| DELETE | `/api/group/delete` | delete a group | 403, 404             |
+| POST   | `/api/group/delete` | delete a group | 403, 404             |
 
 **Request**:
 
@@ -908,11 +908,11 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ---
 
-### `DELETE /api/exam/delete`
+### `POST /api/exam/delete`
 
 | Method | URL                | Description    | Special status codes |
 | ------ | ------------------ | -------------- | -------------------- |
-| Delete | `/api/exam/delete` | delete an exam | 403, 404             |
+| POST   | `/api/exam/delete` | delete an exam | 403, 404             |
 
 **Request**:
 
