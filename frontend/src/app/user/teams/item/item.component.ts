@@ -65,7 +65,10 @@ export class TeamItemComponent implements OnInit {
           throw { status: getErrorCode(error, this.AccountError) };
         })
         .then(() => this.teamService.getTeam(teamId))
-        .then((team) => (this.team = team))
+        .then((team) => {
+          if (team.invitation !== undefined && team.members) this.team = team;
+          else this.errorCode = getErrorCode({}, this.AccountError);
+        })
         .catch((error) => (this.errorCode = getErrorCode(error, this.IdError)))
         .finally(() => (this.isLoading = false));
     } else {
@@ -106,6 +109,7 @@ export class TeamItemComponent implements OnInit {
 
   openModal(type: ModalType) {
     this.openedModal = type;
+    if (type === ModalType.EDIT_USER) this.userForm.reset();
   }
   closeModal() {
     if (!this.isModalLoading && !this.isModalSecondaryLoading) {
@@ -178,7 +182,7 @@ export class TeamItemComponent implements OnInit {
       this.submitRegistration(
         this.teamService.openTeam(
           this.teamId,
-          generate ? null : this.invCode!.value
+          generate ? '' : this.invCode!.value
         ),
         this.OpenInvError
       );
@@ -232,35 +236,42 @@ export class TeamItemComponent implements OnInit {
   //#region Edit/Delete Member
   selectedUser: User | null = null;
   userForm = new FormGroup({
-    userNumber: new FormControl('', [
+    userName: new FormControl(this.selectedUser?.name ?? '', [
       Validators.required,
+    ]),
+    userNumber: new FormControl(this.selectedUser?.number ?? '', [
       Validators.pattern('^\\d*$'),
     ]),
   });
+  get userName() {
+    return this.userForm.get('userName');
+  }
   get userNumber() {
     return this.userForm.get('userNumber');
   }
 
-  editUser(resetNumber: boolean = false) {
+  editUser() {
+    const newName = (this.userName!.value as string).trim();
     const newNumber = Number(this.userNumber!.value);
-    if (!resetNumber && isNaN(newNumber)) this.modalErrorCode = this.InputError;
+    if (newName.length === 0) this.modalErrorCode = this.InputError;
     else if (this.teamId === undefined) this.errorCode = this.InternalError;
     else if (this.selectedUser) {
-      if (resetNumber) this.isModalSecondaryLoading = true;
-      else this.isModalLoading = true;
+      this.isModalLoading = true;
       this.teamService
-        .setUserNumber(
-          this.teamId,
+        .editUser(
           this.selectedUser.id,
-          resetNumber ? null : newNumber
+          newName !== this.selectedUser?.name ? newName : undefined,
+          isNaN(newNumber)
+            ? null
+            : newNumber !== this.selectedUser?.number
+            ? newNumber
+            : undefined
         )
         .then(() => {
-          this.isModalSecondaryLoading = false;
           this.onModalSuccess();
         })
         .catch((error) => {
           this.onModalError(error, this.UserError);
-          this.isModalSecondaryLoading = false;
         });
     } else this.modalErrorCode = this.UserError;
   }
@@ -270,7 +281,7 @@ export class TeamItemComponent implements OnInit {
     else if (this.selectedUser) {
       this.isModalLoading = true;
       this.teamService
-        .removeUser(this.teamId, this.selectedUser.id)
+        .removeUser(this.selectedUser.id)
         .then(() => this.onModalSuccess())
         .catch((error) => this.onModalError(error, this.UserError));
     } else this.modalErrorCode = this.UserError;

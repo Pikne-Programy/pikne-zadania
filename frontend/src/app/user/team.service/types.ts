@@ -4,14 +4,14 @@ export interface TeamItem {
   id: number;
   name: string;
   assignee?: string;
-  open: boolean;
+  invitation?: string | null;
 }
 export function isTeamItem(object: any): object is TeamItem {
   return isObject<TeamItem>(object, [
     ['id', ['number']],
     ['name', ['string']],
     ['assignee', ['string', 'undefined']],
-    ['open', ['boolean']],
+    ['invitation', ['string', 'null', 'undefined']],
   ]);
 }
 export function isTeamItemList(object: any): object is TeamItem[] {
@@ -21,17 +21,18 @@ export function isTeamItemList(object: any): object is TeamItem[] {
 export interface Team {
   name: string;
   assignee: string;
-  invitation: string | null;
-  members: User[];
+  invitation?: string | null;
+  members?: User[];
 }
 export function isTeam(object: any): object is Team {
   return (
     isObject<Team>(object, [
       ['name', ['string']],
       ['assignee', ['string']],
-      ['invitation', ['string', 'null']],
-      ['members', 'array'],
-    ]) && object.members.every((member) => isUser(member))
+      ['invitation', ['string', 'null', 'undefined']],
+      ['members', 'array|undefined'],
+    ]) &&
+    (!object.members || object.members.every((member) => isUser(member)))
   );
 }
 

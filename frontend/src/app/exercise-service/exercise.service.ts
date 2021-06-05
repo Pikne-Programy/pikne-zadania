@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { AccountService } from '../account/account.service';
-import { Exercise, ExerciseType } from '../exercises/exercises';
+import { Exercise } from '../exercises/exercises';
 import { Role, RoleGuardService } from '../guards/role-guard.service';
 import { getErrorCode } from '../helper/utils';
 import * as ServerRoutes from '../server-routes';
@@ -14,7 +14,6 @@ import { Subject } from './exercise.utils';
 })
 export class ExerciseService {
   private readonly TypeError = 400;
-  private readonly AnswerFormatError = 420;
 
   constructor(
     private http: HttpClient,
@@ -23,7 +22,7 @@ export class ExerciseService {
 
   private fetchExercises() {
     return this.http
-      .get(ServerRoutes.publicExerciseList)
+      .get(ServerRoutes.exerciseList)
       .pipe(
         switchMap((response) =>
           Subject.checkSubjectListValidity(response)
@@ -52,9 +51,9 @@ export class ExerciseService {
     return subjectList.find((subject) => subject.name === id) ?? null;
   }
 
-  getExercise(subject: string, id: string) {
+  getExercise(subject: string, id: string, seed?: number) {
     return this.http
-      .get(ServerRoutes.exercise(subject, id))
+      .post(ServerRoutes.exerciseRender, { id: `${subject}/${id}`, seed: seed })
       .pipe(
         switchMap((response) => {
           if (Exercise.isExercise(response)) {
@@ -68,7 +67,10 @@ export class ExerciseService {
 
   submitAnswers(subject: string, id: string, answers: any) {
     return this.http
-      .post(ServerRoutes.exercise(subject, id), answers)
+      .post(ServerRoutes.exerciseCheck, {
+        id: `${subject}/${id}`,
+        answers: answers,
+      })
       .toPromise();
   }
 }

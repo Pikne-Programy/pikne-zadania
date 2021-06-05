@@ -1,49 +1,65 @@
-export const publicExerciseList = '/api/public';
-export function exercise(subject: string, id: string) {
-  return `/api/public/${subject}/${id}`;
-}
-
-//#region Account
-export const register = '/api/register';
-export const login = '/api/login';
-export const logout = '/api/logout';
-export const account = '/api/account';
+//#region Exercise
+export const exerciseList = '/api/exercise/list';
+export const exercise = '/api/exercise/get';
+export const exerciseUpdate = '/api/exercise/update';
+export const exerciseCheck = '/api/exercise/check';
+export const exerciseRender = '/api/exercise/render';
+export const exercisePreview = '/api/exercise/preview';
 //#endregion
 
-//#region Teams
-export const teams = '/api/teams';
-export function team(id: number | string): string {
-  return `/api/teams/${id}`;
-}
-export const addTeam = '/api/teams';
-export function openTeam(id: number | string): string {
-  return `/api/teams/${id}/open`;
-}
-export function closeTeam(id: number | string): string {
-  return `/api/teams/${id}/close`;
-}
-export function deleteFromTeam(
-  userId: number | string,
-  teamId: number | string
-): string {
-  return `/api/teams/${teamId}/${userId}`;
-}
-export function setUserNumber(
-  userId: number | string,
-  teamId: number | string
-): string {
-  return `/api/teams/${teamId}/${userId}`;
-}
-export function setTeamName(id: number | string): string {
-  return `/api/teams/${id}`;
-}
-export function changeTeamAssignee(id: number | string): string {
-  return `/api/root/teams/${id}`;
-}
+//#region Subject
+export const subjectCreate = '/api/subject/create';
+export const subjectInfo = '/api/subject/info';
+export const subjectPermit = '/api/subject/permit';
+//#endregion
+
+//#region Authentication
+export const register = '/api/auth/register';
+export const login = '/api/auth/login';
+export const logout = '/api/auth/logout';
+//#endregion
+
+//#region User
+export const user = '/api/user/current';
+export const userDelete = '/api/user/delete';
+export const userUpdate = '/api/user/update';
+export const userInfo = '/api/user/info';
+//#endregion
+
+//#region Team
+export const team = '/api/team/info';
+export const teamList = '/api/team/list';
+export const teamCreate = '/api/team/create';
+export const teamDelete = '/api/team/delete';
+export const teamUpdate = '/api/team/update';
+//#endregion
+
+//#region Group
+export const group = '/api/group/info';
+export const groupList = '/api/group/list';
+export const groupCreate = '/api/group/create';
+export const groupDelete = '/api/group/delete';
+export const groupUpdate = '/api/group/update';
+export const groupJoin = '/api/group/join';
+export const groupAddUser = '/api/group/add';
+//#endregion
+
+//#region Exam
+export const exam = '/api/exam/info';
+export const examCreate = '/api/exam/create';
+export const examDelete = '/api/exam/delete';
+export const examUpdate = '/api/exam/update';
+export const examSetExercises = '/api/exam/exercise';
+export const examStats = '/api/exam/stats';
+export const examUserStats = '/api/exam/user';
+export const examRender = '/api/exam/render';
+export const examStatic = '/api/exam/static';
+export const examClose = '/api/exam/leave';
+export const examSubmit = '/api/exam/submit';
 //#endregion
 
 //#region Misc
 export function image(subject: string, file: string): string {
-  return `/api/public/${subject}/static/${file}`;
+  return `/img/${subject}/${file}`;
 }
 //#endregion

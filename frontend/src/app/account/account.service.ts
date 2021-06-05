@@ -71,7 +71,7 @@ export class AccountService {
     error: number | null;
   }> {
     const account = await this.http
-      .get(ServerRoutes.account)
+      .get(ServerRoutes.user)
       .pipe(
         map((response) => {
           if (response && isAccount(response)) return response;
