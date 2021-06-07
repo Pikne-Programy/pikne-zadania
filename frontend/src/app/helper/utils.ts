@@ -1,11 +1,3 @@
-export class Pair<A, B> {
-  constructor(public first: A, public second: B) {}
-}
-
-export class Tuple<A, B, C> {
-  constructor(public first: A, public second: B, public third: C) {}
-}
-
 /**
  * Capitalizes first letter of the string
  * @param string Text to be capitalized
@@ -29,11 +21,6 @@ type ObjectType =
   | 'object'
   | 'function'
   | 'null';
-
-type Example = {
-  name: string;
-  number: number;
-};
 
 /**
  * Checks if object has all the provided fields with correct types.

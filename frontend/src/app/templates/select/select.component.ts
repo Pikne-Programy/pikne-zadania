@@ -1,5 +1,4 @@
 import { Component, HostBinding, Input } from '@angular/core';
-import { Tuple } from 'src/app/helper/utils';
 import { TextPipe } from '../panel/panel.component';
 
 @Component({
@@ -13,7 +12,7 @@ export class SelectComponent {
   /**
    * First - Text; Second - link; Third - icon
    */
-  @Input() items!: Tuple<string, string, string | undefined>[];
+  @Input() items!: [string, string, string | undefined][];
   @Input() header?: string;
   @Input() color?: string;
   @Input('loading') isLoading?: boolean;

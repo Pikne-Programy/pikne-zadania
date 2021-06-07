@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { getErrorCode, Tuple } from 'src/app/helper/utils';
+import { getErrorCode } from 'src/app/helper/utils';
 import { TeamService } from '../team.service/team.service';
 import { TeamItem } from '../team.service/types';
 
@@ -26,10 +26,8 @@ export class TeamsComponent implements OnInit {
   errorCode: number | null = null;
   isLoading = true;
 
-  getTeamList(): Tuple<string, string, string>[] {
-    return this.teams.map(
-      (val) => new Tuple(val.name, val.id.toString(), 'fa-users')
-    );
+  getTeamList(): [string, string, string][] {
+    return this.teams.map((val) => [val.name, val.id.toString(), 'fa-users']);
   }
 
   fetchTeams() {

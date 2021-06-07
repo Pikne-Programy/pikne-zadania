@@ -2,7 +2,6 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AccountService } from 'src/app/account/account.service';
-import { Pair } from 'src/app/helper/utils';
 import {
   ButtonElement,
   executeButtonClick,
@@ -15,7 +14,10 @@ import {
   styleUrls: ['./sidenav.component.scss'],
 })
 export class SidenavComponent implements OnInit, OnDestroy {
-  menuElements?: Pair<string, string>[];
+  /**
+   * First - link; Second - text
+   */
+  menuElements?: [string, string][];
   buttonElements?: ButtonElement[];
 
   private menu$?: Subscription;

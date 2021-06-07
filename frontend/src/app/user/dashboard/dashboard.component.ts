@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Account, AccountService } from 'src/app/account/account.service';
 import { Role, RoleGuardService } from 'src/app/guards/role-guard.service';
-import { getErrorCode, Tuple } from 'src/app/helper/utils';
+import { getErrorCode } from 'src/app/helper/utils';
 import { TeamService } from '../team.service/team.service';
 import * as Utils from './dashboard.utils';
 
@@ -21,7 +21,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   /**
    * First - text; Second - link; Third - icon
    */
-  shortcuts: Tuple<string, string, string>[] = [];
+  shortcuts: [string, string, string][] = [];
 
   isLoading = true;
   errorCode: number | null = null;

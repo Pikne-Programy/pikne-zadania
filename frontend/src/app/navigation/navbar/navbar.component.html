@@ -15,7 +15,7 @@
 
       <div id="navbarTop" class="navbar-menu">
         <div class="navbar-start">
-          <a *ngFor="let item of menuElements" class="navbar-item menu-item has-text-weight-semibold" [routerLink]="item.first">{{ item.second }}</a>
+          <a *ngFor="let item of menuElements" class="navbar-item menu-item has-text-weight-semibold" [routerLink]="item[0]">{{ item[1] }}</a>
         </div>
 
         <div class="navbar-end">
