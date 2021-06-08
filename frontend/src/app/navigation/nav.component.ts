@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { AccountService } from '../account/account.service';
 import { NavService } from './services/navigation.service';
 
 @Component({
@@ -7,7 +8,13 @@ import { NavService } from './services/navigation.service';
   styleUrls: ['./nav.component.scss'],
 })
 export class NavComponent {
-  constructor(private navService: NavService) {}
+  isLoginWarningShown = false;
+
+  constructor(private navService: NavService, accountService: AccountService) {
+    accountService.getAccount().then((val) => {
+      if (!val.observable.getValue()) this.isLoginWarningShown = true;
+    });
+  }
 
   toggleSidenav() {
     this.navService.toggleSidenav();

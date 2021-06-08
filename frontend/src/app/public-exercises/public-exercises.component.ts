@@ -7,7 +7,6 @@ import {
   ScreenSizeService,
   ScreenSizes,
 } from 'src/app/helper/screen-size.service';
-import { AccountService } from '../account/account.service';
 import { ExerciseTreeNode, Subject } from '../exercise-service/exercise.utils';
 
 @Component({
@@ -29,7 +28,6 @@ export class PublicExercisesComponent implements OnInit, OnDestroy {
   categories = new BehaviorSubject<string>('');
   currentCategory: string | null = null;
 
-  isLoginWarningShown = false;
   readonly mobileSize = ScreenSizes.MOBILE;
   screenSize: number = ScreenSizes.FULL_HD;
   private screenSize$?: Subscription;
@@ -38,14 +36,9 @@ export class PublicExercisesComponent implements OnInit, OnDestroy {
   constructor(
     private exerciseService: ExerciseService,
     private screenSizeService: ScreenSizeService,
-    accountService: AccountService,
     private router: Router,
     private route: ActivatedRoute
-  ) {
-    accountService.getAccount().then((val) => {
-      if (!val.observable.getValue()) this.isLoginWarningShown = true;
-    });
-  }
+  ) {}
 
   ngOnInit() {
     this.fetchSubjectList();
@@ -152,9 +145,8 @@ export class PublicExercisesComponent implements OnInit, OnDestroy {
 
   updateExerciseTree() {
     if (this.breadcrumbs.length > 0)
-      this.currentCategory = this.breadcrumbs[
-        this.breadcrumbs.length - 1
-      ].getPath();
+      this.currentCategory =
+        this.breadcrumbs[this.breadcrumbs.length - 1].getPath();
     this.fetchSubjectList();
   }
 

@@ -1,4 +1,7 @@
+@use "~bulma/sass/utilities/derived-variables" as dv;
+
 .section-root {
+  position: relative;
   overflow: hidden;
   height: 100%;
   width: 100%;
@@ -9,5 +12,32 @@
   background-color: var(--footer-color);
   a {
     color: inherit;
+  }
+}
+
+.box.warning {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  max-width: 100%;
+  margin: 1.5rem;
+  padding: 1rem;
+  z-index: 10;
+
+  & .button {
+    border: 1px solid dv.$warning-dark;
+    color: findColorInvert(dv.$warning);
+    &:not(:hover) {
+      background-color: transparent;
+    }
+  }
+  & .buttons {
+    & .button {
+      margin-left: 0.75rem;
+      margin-right: 0;
+    }
+    & p {
+      margin-bottom: 0.5rem;
+    }
   }
 }

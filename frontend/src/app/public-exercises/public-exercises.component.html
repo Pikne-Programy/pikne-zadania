@@ -74,14 +74,6 @@
     </div>
   </div>
   <!--#endregion-->
-  <!--#region Not logged in warning -->
-  <div *ngIf="isLoginWarningShown" class="box warning has-background-warning">
-    <div class="buttons is-right is-flex-wrap-nowrap">
-      <p><b>UWAGA! Jesteś niezalogowany</b></p>
-      <button class="button is-warning-dark has-text-black" (click)="isLoginWarningShown = false">Rozumiem</button>
-    </div>
-  </div>
-  <!--#endregion-->
 </div>
 <!--TODO Make loading component w/ pulsating logo -->
 <app-loading *ngIf="isLoading && errorCode === null"></app-loading>
