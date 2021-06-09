@@ -7,20 +7,22 @@ export function capitalize(
   string: string | null,
   locale: string = navigator.language
 ) {
-  if (string == null || string == undefined) return string;
+  if (string === null || string === undefined) return string;
   else return string.charAt(0).toLocaleUpperCase(locale) + string.slice(1);
 }
 
-type ObjectType =
-  | 'string'
-  | 'number'
-  | 'bigint'
-  | 'boolean'
-  | 'symbol'
-  | 'undefined'
-  | 'object'
-  | 'function'
-  | 'null';
+export const objectTypes = [
+  'string',
+  'number',
+  'bigint',
+  'boolean',
+  'symbol',
+  'undefined',
+  'object',
+  'function',
+  'null',
+] as const;
+type ObjectType = typeof objectTypes[number];
 
 /**
  * Checks if object has all the provided fields with correct types.
@@ -76,10 +78,11 @@ export function isObject<T>(
         case 'array|null':
           return (
             field[0] in object &&
-            (object === null || Array.isArray(object[field[0]]))
+            (object[field[0]] === null || Array.isArray(object[field[0]]))
           );
         case 'array|undefined':
-          if (field[0] in object) return Array.isArray(object[field[0]]);
+          if (field[0] in object && object[field[0]] !== undefined)
+            return Array.isArray(object[field[0]]);
           return true;
         default:
           return (
