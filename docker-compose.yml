@@ -32,12 +32,14 @@ services:
       dockerfile: denon.dockerfile
     volumes:
       - ./backend:/app
+      - ./exercises:/app/exercises
     expose:
       - 8000
     links:
       - db:mongo
     depends_on:
       - db
+    user: "deno:${GID}"
   db:
     image: mongo
     ports:

@@ -38,6 +38,7 @@ Install our app (use `sudo` if you are not in `docker` group):
 curl -L https://raw.githubusercontent.com/Pikne-Programy/pikne-zadania/master/docker-compose.latest.yml --create-dirs -o pikne-zadania/docker-compose.yml
 cd pikne-zadania/
 printf "JWT_ALG=HS512\nJWT_KEY=$(openssl rand -base64 32)\nJWT_EXP=$((7*24*60*60))\nLOGIN_TIME=2e3\nUSER_SALT=$(openssl rand -base64 32)\nDECIMAL_POINT=false\nROOT_ENABLE=yes\nROOT_PASS=$(openssl rand -base64 32)\n" > api.env
+# get exercises (see section below)
 docker-compose up -d
 ```
 
@@ -47,12 +48,22 @@ Perform updates automatically with the [Watchtower](https://github.com/containrr
 docker run --name watchtower -dv /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower
 ```
 
+## Get exercises
+
+```sh
+git clone https://github.com/Pikne-Programy/pikne-zadania-exercises.git exercises # or
+git clone git@github.com:Pikne-Programy/pikne-zadania-exercises.git exercises
+printf "$(stat -c "GID=%g\n" exercises)" > .env
+chmod -R g+ws exercises
+```
+
 ## Build
 
 ```sh
 git clone --recursive https://github.com/Pikne-Programy/pikne-zadania.git # clone via HTTPS
 git clone --recursive git@github.com:Pikne-Programy/pikne-zadania.git # clone via SSH
 cd pikne-zadania
+# get exercises (see section above)
 # build and run, can be repeated on and on:
 docker-compose up --build # with auto-update, denon and angular CLI running in background, port 80
 docker-compose -f docker-compose.prod.yml up --build # production-like environment, port 8080

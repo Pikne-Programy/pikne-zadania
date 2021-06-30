@@ -16,6 +16,8 @@ services:
   api:
     image: nircek/pikne-zadania
     env_file: api.env
+    volumes:
+      - ./exercises:/app/exercises
     expose:
       - 8000
     links:
@@ -23,6 +25,7 @@ services:
     depends_on:
       - db
     restart: unless-stopped
+    user: "deno:${GID}"
   db:
     image: mongo
     expose:

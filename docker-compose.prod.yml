@@ -15,12 +15,15 @@ services:
   api:
     build: backend
     env_file: api.env
+    volumes:
+      - ./exercises:/app/exercises
     expose:
       - 8000
     links:
       - db:mongo
     depends_on:
       - db
+    user: "deno:${GID}"
   db:
     image: mongo
     expose:
