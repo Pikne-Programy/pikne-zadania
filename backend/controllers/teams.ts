@@ -16,18 +16,18 @@ export async function getAllTeams(ctx: RouterContext) {
     id: team.id,
     name: team.name,
     assignee: team.assignee,
-    open: team.invCode !== null,
+    open: team.invitation !== null,
   }));
 }
 export const addTeam = followSchema(
-  { name: teamSchema.name },
+  { name: teamSchema.nameReq },
   async (ctx, req) => {
     const user = ctx.state.user!; // auth required
     const teamid = await Team.add({
       "name": req.name,
       "assignee": user.name,
       "members": [],
-      "invCode": null,
+      "invitation": null,
     });
     if (!teamid) {
       throw new httpErrors["Forbidden"]();
@@ -36,10 +36,19 @@ export const addTeam = followSchema(
     ctx.response.body = teamid;
   },
 );
-export async function getTeam(ctx: RouterContext) {
-  const id = ctx.params.id == null ? null : +ctx.params.id;
-  if (id == null || isNaN(id)) throw new httpErrors["BadRequest"]();
-  const team = await Team.get(id);
+
+export const deleteTeam = followSchema(
+  { id: teamSchema.id },
+  async (ctx, req) => {
+    const team = await Team.get(req.id);
+    if (!team) throw new httpErrors["NotFound"]();
+    if (!await Team.delete(req.id)) throw new httpErrors["Forbidden"]();
+    ctx.response.status = 200;
+  },
+);
+
+export const getTeam = followSchema({ id: teamSchema.id }, async (ctx, req) => {
+  const team = await Team.get(req.id);
   if (!team) throw new httpErrors["NotFound"]();
   const members: { id: string; name: string; number: number | null }[] = [];
   for (const member of team.members) {
@@ -50,49 +59,16 @@ export async function getTeam(ctx: RouterContext) {
         name: user.name,
         number: user.role.name === "student" ? user.role.number : null,
       });
-    } else console.warn(`${member} not in team ${id}`);
+    } else console.warn(`${member} not in team ${req.id}`);
   }
   ctx.response.status = 200;
   ctx.response.body = {
     "name": team.name,
-    "invitation": team.invCode,
     "assignee": team.assignee,
+    "invitation": team.invitation,
     "members": members,
   };
-}
-export async function setTeamName(ctx: RouterContext) {
-  const id = ctx.params.id == null ? null : +ctx.params.id;
-  if (id == null || isNaN(id)) throw new httpErrors["BadRequest"]();
-  let name;
-  try {
-    name = await ctx.request.body({ type: "json" }).value;
-    if (typeof name !== "string") throw "xd";
-  } catch {
-    throw new httpErrors["BadRequest"]();
-  }
-  if (!await Team.set({ id, name })) throw new httpErrors["NotFound"]();
-  ctx.response.status = 200;
-}
-export async function changeAssignee(ctx: RouterContext) {
-  const id = ctx.params.id == null ? null : +ctx.params.id;
-  if (id == null || isNaN(id)) throw new httpErrors["BadRequest"]();
-  let userId;
-  try {
-    userId = await ctx.request.body({ type: "json" }).value;
-    if (typeof userId !== "string") throw "xd";
-  } catch {
-    throw new httpErrors["BadRequest"]();
-  }
-  const user = await User.get(userId);
-  if (!user) {
-    console.error(`changeAssignee: User with id ${userId} doesn't exist`);
-    throw new httpErrors["NotFound"]();
-  }
-  if (!await Team.set({ id, assignee: user.name })) {
-    throw new httpErrors["NotFound"]();
-  }
-  ctx.response.status = 200;
-}
+});
 
 function generateInvitationCode(id: number): string {
   const ntob = (n: number): string => {
@@ -102,34 +78,33 @@ function generateInvitationCode(id: number): string {
   };
   const randomArray = new Uint8Array(4);
   window.crypto.getRandomValues(randomArray);
-  let invCode = ntob(id);
+  let invitation = ntob(id);
   for (const n of randomArray) {
-    invCode += ntob(n % 64);
+    invitation += ntob(n % 64);
   }
-  return invCode;
+  return invitation;
 }
-
-export async function openRegistration(ctx: RouterContext) {
-  const id = ctx.params.id == null ? null : +ctx.params.id;
-  if (id == null || isNaN(id)) throw new httpErrors["BadRequest"]();
-  if (!await Team.get(id)) throw new httpErrors["NotFound"]();
-  let invitation;
-  try {
-    invitation = await ctx.request.body({ type: "json" }).value;
-    if (typeof invitation !== "string") invitation = generateInvitationCode(id);
-  } catch {
-    throw new httpErrors["BadRequest"]();
+export const updateTeam = followSchema({
+  id: teamSchema.id,
+  invitation: teamSchema.invitation,
+  assignee: teamSchema.assignee,
+  name: teamSchema.name,
+}, async (ctx, req) => {
+  console.log(123);
+  const team = await Team.get(req.id);
+  if (!team) throw new httpErrors["NotFound"]();
+  if (req.invitation === "") team.invitation = generateInvitationCode(req.id);
+  else if (req.invitation === "null") team.invitation = null;
+  else if (req.invitation !== null) team.invitation = req.invitation;
+  if (req.name !== null) team.name = req.name;
+  if (req.assignee !== null) {
+    const assignee = await User.get(req.assignee);
+    if (!assignee) {
+      console.error(`updateTeam: User with id ${req.assignee} doesn't exist`);
+      throw new httpErrors["Conflict"]();
+    }
+    team.assignee = assignee.name;
   }
-  if (!await Team.setInvitationCode(id, invitation)) {
-    throw new httpErrors["Conflict"]();
-  }
+  if (!await Team.set(team)) throw new httpErrors["InternalServerError"]();
   ctx.response.status = 200;
-}
-export async function closeRegistration(ctx: RouterContext) {
-  const id = ctx.params.id == null ? null : +ctx.params.id;
-  if (id == null || isNaN(id)) throw new httpErrors["BadRequest"]();
-  if (!await Team.setInvitationCode(id, null)) {
-    throw new httpErrors["NotFound"]();
-  }
-  ctx.response.status = 200;
-}
+});

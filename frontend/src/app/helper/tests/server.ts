@@ -249,7 +249,7 @@ export function startServer() {
         const attrs = JSON.parse(request.requestBody);
         switch (attrs.login) {
           case 'b@b.bb':
-            switch (attrs.hashed_password) {
+            switch (attrs.hashedPassword) {
               case 'ZywyW1h4EKLJe/jAjKiDN+eufwV0SOeTIjb2DBMgJqQ=': //Password 'b' hashed with email 'b@b.bb'
                 return new Response(401);
               case 'xfDzQivyYi4/DyiVO/d+1DBbR6WXxBe2v2xGVx0k5Lw=': //Password '1' hashed with email 'b@b.bb'

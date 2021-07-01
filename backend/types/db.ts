@@ -28,7 +28,7 @@ export type TeamType = {
   name: string;
   assignee: string;
   members: string[];
-  invCode: string | null;
+  invitation: string | null;
 };
 
 export type GlobalType = {

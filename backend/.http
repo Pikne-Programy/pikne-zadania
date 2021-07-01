@@ -5,64 +5,127 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 ### List exercises
-GET http://localhost/api/public/ HTTP/1.1
+GET http://localhost/api/exercise/list HTTP/1.1
 
 
-### Get the exercise
-GET http://localhost/api/public/fizyka/pociagi-dwa HTTP/1.1
-Cookie: seed=0
+### Get a raw exercise
+POST http://localhost/api/exercise/get HTTP/1.1
+Content-Type: application/json
+
+{
+  "id": "fizyka/pociagi-dwa"
+}
+
+
+### Update an exercise
+POST http://localhost/api/exercise/update HTTP/1.1
+Content-Type: application/json
+
+{
+  "id": "fizyka/pociagi-dwa",
+  "content": "---\ntype: EqEx\nname: Pociągi dwa\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n"
+}
 
 
 ### Check the solution of exercise
-POST http://localhost/api/public/fizyka/pociagi-dwa HTTP/1.1
+POST http://localhost/api/exercise/check HTTP/1.1
 Content-Type: application/json
 Cookie: seed=0
 
-[
-    167, 2.9
-]
+{
+  "id": "fizyka/pociagi-dwa",
+  "answers": [167, 2.9]
+}
+
+
+### Render an exercise
+POST http://localhost/api/exercise/render HTTP/1.1
+Content-Type: application/json
+Cookie: seed=0
+
+{
+  "id": "fizyka/pociagi-dwa",
+  "seed": 0
+}
+
+### Preview an exercise
+POST http://localhost/api/exercise/preview HTTP/1.1
+Content-Type: application/json
+
+{
+  "content": "---\ntype: EqEx\nname: Pociągi dwa\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n",
+  "seed": 0
+}
 
 ### Get a static file
-GET http://localhost/api/public/fizyka/static/spotkanie.jpg HTTP/1.1
+GET http://localhost/img/fizyka/spotkanie.jpg HTTP/1.1
 
 
 ### Register a user
-POST http://localhost/api/register HTTP/1.1
+POST http://localhost/api/auth/register HTTP/1.1
 Content-Type: application/json
 
 {
   "login": "user@example.com",
   "name": "User",
-  "hashed_password": "r02H/fnQ3M3Xfjqsr3dg8mY78lBDXWoiR0O0JcXW8VM=",
+  "hashedPassword": "r02H/fnQ3M3Xfjqsr3dg8mY78lBDXWoiR0O0JcXW8VM=",
   "number": 11,
   "invitation": "QwErTy58"
 }
 
 
 ### Authenticate
-POST http://localhost/api/login HTTP/1.1
+POST http://localhost/api/auth/login HTTP/1.1
 Content-Type: application/json
 
 {
   "login": "user@example.com",
-  "hashed_password": "r02H/fnQ3M3Xfjqsr3dg8mY78lBDXWoiR0O0JcXW8VM="
+  "hashedPassword": "r02H/fnQ3M3Xfjqsr3dg8mY78lBDXWoiR0O0JcXW8VM="
 }
 
 
 ### Unauthenticate
-POST http://localhost/api/logout HTTP/1.1
+POST http://localhost/api/auth/logout HTTP/1.1
 
 
-### Get info about user
-GET http://localhost/api/account HTTP/1.1
+
+### Get info about currently authenticated user
+GET http://localhost/api/user/current HTTP/1.1
 
 
 ### Get list of teams
-GET http://localhost/api/teams HTTP/1.1
+GET http://localhost/api/team/list HTTP/1.1
 
+
+### Delete a user
+POST http://localhost/api/user/delete HTTP/1.1
+Content-Type: application/json
+
+{
+  "id": "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755"
+}
+
+
+### Update a user
+POST http://localhost/api/user/update HTTP/1.1
+Content-Type: application/json
+
+{
+  "id": "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755",
+  "number": 34
+}
+
+
+### Get info about user
+POST http://localhost/api/user/info HTTP/1.1
+Content-Type: application/json
+
+{
+  "id": "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755"
+}
 
 ### Create a new team
-POST http://localhost//api/teams HTTP/1.1
+POST http://localhost/api/team/create HTTP/1.1
 Content-Type: application/json
 
 {
@@ -70,40 +133,33 @@ Content-Type: application/json
 }
 
 
-### Open registration and change invitation code
-POST http://localhost/api/teams/1/open HTTP/1.1
+### Delete a team
+POST http://localhost/api/team/delete HTTP/1.1
 Content-Type: application/json
 
-  "QwErTy58"
+{
+  "id": 3
+}
 
 
-### Close registration
-POST http://localhost/api/teams/1/close HTTP/1.1
+### Update a team
+POST http://localhost/api/team/update HTTP/1.1
+Content-Type: application/json
+
+{
+  "id": 2,
+  "invitation": "QwErTy58"
+}
+
+
+### Get a list of teams
+GET http://localhost/api/team/list HTTP/1.1
 
 
 ### Get info about team
-GET http://localhost/api/teams/1 HTTP/1.1
+POST http://localhost/api/team/info HTTP/1.1
+Content-Type: : application/json
 
-
-### Unregister the user
-DELETE http://localhost/api/teams/1/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855c HTTP/1.1
-
-
-### Set a new number
-POST http://localhost/api/teams/1/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 HTTP/1.1
-Content-Type: application/json
-
-  34
-
-### Set a new number of team
-POST http://localhost/api/teams/1 HTTP/1.1
-Content-Type: application/json
-
-  "3d"
-
-
-### Change an assignee
-POST http://localhost/api/root/teams/1 HTTP/1.1
-Content-Type: application/json
-
-  "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755"
+{
+  "id" : 2
+}
