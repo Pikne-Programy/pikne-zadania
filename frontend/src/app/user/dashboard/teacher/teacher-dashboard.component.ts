@@ -1,6 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Account } from 'src/app/account/account.service';
-import { Tuple } from 'src/app/helper/utils';
 import { TeamItem } from '../../team.service/types';
 import * as Utils from '../dashboard.utils';
 
@@ -10,7 +9,8 @@ import * as Utils from '../dashboard.utils';
   styleUrls: ['./teacher-dashboard.component.scss'],
 })
 export class TeacherDashboardComponent
-  implements Utils.DashboardComponentType, OnInit {
+  implements Utils.DashboardComponentType, OnInit
+{
   readonly ErrorMessage = Utils.ErrorMessage;
 
   @Input() account!: Account;
@@ -30,9 +30,11 @@ export class TeacherDashboardComponent
     }
   }
 
-  getTeamNames(): Tuple<string, string, string>[] {
-    return this.teams.map(
-      (team) => new Tuple(team.name, team.id.toString(), 'fa-users')
-    );
+  getTeamNames(): [string, string, string][] {
+    return this.teams.map((team) => [
+      team.name,
+      team.id.toString(),
+      'fa-users',
+    ]);
   }
 }

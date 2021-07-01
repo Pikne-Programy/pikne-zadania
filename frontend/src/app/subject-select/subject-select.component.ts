@@ -2,7 +2,6 @@ import { AfterContentInit, Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExerciseService } from '../exercise-service/exercise.service';
 import { Subject } from '../exercise-service/exercise.utils';
-import { Tuple } from '../helper/utils';
 
 @Component({
   selector: 'app-subject-select',
@@ -34,7 +33,7 @@ export class SubjectSelectComponent implements AfterContentInit {
     });
   }
 
-  getSubjectList(): Tuple<string, string, string>[] {
-    return this.list.map((val) => new Tuple(val.name, val.name, 'fa-book'));
+  getSubjectList(): [string, string, string][] {
+    return this.list.map((val) => [val.name, val.name, 'fa-book']);
   }
 }

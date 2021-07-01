@@ -10,13 +10,14 @@ import { of, throwError } from 'rxjs';
 })
 export class TeamService {
   private readonly TypeError = 400;
+  private readonly PermissionError = 403;
 
   constructor(private http: HttpClient) {}
 
   //#region Fetching
   getTeams() {
     return this.http
-      .get(ServerRoutes.teams)
+      .get(ServerRoutes.teamList)
       .pipe(
         switchMap((response) =>
           response && Utils.isTeamItemList(response)
@@ -29,10 +30,10 @@ export class TeamService {
 
   getTeam(id: number) {
     return this.http
-      .get(ServerRoutes.team(id))
+      .post(ServerRoutes.team, { id: id })
       .pipe(
         switchMap((response) => {
-          if (response && Utils.isTeam(response)) {
+          if (response && Utils.isTeam(response) && response.members) {
             response.members.sort((a, b) => {
               if (a.number !== null && b.number !== null)
                 return a.number - b.number;
@@ -50,11 +51,13 @@ export class TeamService {
   getAssigneeList() {
     const TeacherTeamId = 1;
     return this.http
-      .get(ServerRoutes.team(TeacherTeamId))
+      .post(ServerRoutes.team, { id: TeacherTeamId })
       .pipe(
         switchMap((response) =>
           response && Utils.isTeam(response)
-            ? of(response.members)
+            ? response.members
+              ? of(response.members)
+              : throwError({ status: this.PermissionError })
             : throwError({ status: this.TypeError })
         )
       )
@@ -65,7 +68,7 @@ export class TeamService {
   //#region Team modification
   createTeam(name: string) {
     return this.http
-      .post(ServerRoutes.addTeam, { name: name })
+      .post(ServerRoutes.teamCreate, { name: name })
       .pipe(
         switchMap((response) =>
           typeof response === 'number'
@@ -75,46 +78,50 @@ export class TeamService {
       )
       .toPromise();
   }
+  deleteTeam(id: number) {
+    return this.http.post(ServerRoutes.teamDelete, { id: id }).toPromise();
+  }
   setTeamName(id: number, name: string) {
     return this.http
-      .post(ServerRoutes.setTeamName(id), JSON.stringify(name))
+      .post(ServerRoutes.teamUpdate, { id: id, name: name })
       .toPromise();
   }
   setAssignee(id: number, assignee: string) {
     return this.http
-      .post(ServerRoutes.changeTeamAssignee(id), JSON.stringify(assignee))
+      .post(ServerRoutes.teamUpdate, { id: id, assignee: assignee })
       .toPromise();
   }
   //#endregion
 
   //#region Registration
-  openTeam(id: number, code: string | null) {
+  openTeam(id: number, code: string) {
     if (code !== null) code = code.trim();
     return this.http
-      .post(
-        ServerRoutes.openTeam(id),
-        JSON.stringify(code !== null && code.length > 0 ? code : null)
-      )
+      .post(ServerRoutes.teamUpdate, {
+        id: id,
+        invitation: code,
+      })
       .toPromise();
   }
   closeTeam(id: number) {
-    return this.http.post(ServerRoutes.closeTeam(id), {}).toPromise();
+    return this.http
+      .post(ServerRoutes.teamUpdate, { id: id, invitation: null })
+      .toPromise();
   }
   //#endregion
 
   //#region User modification
-  setUserNumber(teamId: number, userId: string, newNumber: number | null) {
+  editUser(id: string, newName?: string, newNumber?: number | null) {
     return this.http
-      .post(
-        ServerRoutes.setUserNumber(userId, teamId),
-        JSON.stringify(newNumber)
-      )
+      .post(ServerRoutes.userUpdate, {
+        id: id,
+        name: newName,
+        number: newNumber,
+      })
       .toPromise();
   }
-  removeUser(teamId: number, userId: string) {
-    return this.http
-      .delete(ServerRoutes.deleteFromTeam(userId, teamId))
-      .toPromise();
+  removeUser(id: string) {
+    return this.http.post(ServerRoutes.userDelete, { id: id }).toPromise();
   }
   //#endregion
 }

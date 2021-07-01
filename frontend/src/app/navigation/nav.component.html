@@ -7,7 +7,16 @@
     <mat-sidenav-content class="is-flex is-flex-direction-column">
       <section class="section-root">
         <router-outlet></router-outlet>
+        <!--#region Not logged in warning -->
+        <div *ngIf="isLoginWarningShown" class="box warning has-background-warning">
+          <div class="buttons is-right is-flex-wrap-nowrap">
+            <p><b>UWAGA! Jesteś niezalogowany</b></p>
+            <button class="button is-warning-dark has-text-black" (click)="isLoginWarningShown = false">Rozumiem</button>
+          </div>
+        </div>
+        <!--#endregion-->
       </section>
+      <!--#region Footer -->
       <footer class="footer divider-top p-3 p-desktop-4">
         <div class="content has-text-centered">
           <span class="icon">
@@ -17,6 +26,7 @@
           </span>
         </div>
       </footer>
+      <!--#endregion-->
     </mat-sidenav-content>
   </mat-sidenav-container>
 </main>

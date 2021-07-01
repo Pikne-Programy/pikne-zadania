@@ -196,11 +196,23 @@
 </app-card-modal>
 <!--#endregion-->
 <!--#region Edit user Modal -->
-<app-card-modal [title]="'Edytuj numer członka'" [open]="openedModal === ModalType.EDIT_USER" (onClose)="closeModal()">
+<app-card-modal [title]="'Edytuj członka'" [open]="openedModal === ModalType.EDIT_USER" (onClose)="closeModal()">
   <section>
     <form id="userForm" [formGroup]="userForm" (ngSubmit)="editUser()">
+      <!--#region Name -->
       <div class="field">
-        <label for="userNum" class="label">Nowy numer</label>
+        <label for="userNam" class="label">Imię</label>
+        <div class="control has-icons-left">
+          <input id="userNam" class="input is-primary" type="text" formControlName="userName">
+          <span class="icon is-small is-left">
+            <i class="fas fa-user"></i>
+          </span>
+        </div>
+      </div>
+      <!--#endregion-->
+      <!--#region Number -->
+      <div class="field">
+        <label for="userNum" class="label">Numer</label>
         <div class="control has-icons-left has-icons-right">
           <input id="userNum" class="input" [ngClass]="{
             'is-primary': !userNumber!.errors?.pattern,
@@ -215,14 +227,14 @@
         </div>
         <p *ngIf="userNumber!.errors?.pattern" class="help is-warning">Wymagana liczba</p>
       </div>
+      <!--#endregion-->
     </form>
   </section>
   <footer class="width-full">
     <div class="buttons width-full is-align-items-baseline">
-      <button type="submit" form="userForm" class="button is-success" [ngClass]="{ 'is-loading': isModalLoading }" [disabled]="userForm.invalid || isModalSecondaryLoading">
-        Ustaw
+      <button type="submit" form="userForm" class="button is-success" [ngClass]="{ 'is-loading': isModalLoading }" [disabled]="userForm.invalid">
+        Zapisz
       </button>
-      <button class="button is-warning" [ngClass]="{ 'is-loading': isModalSecondaryLoading }" (click)="editUser(true)" [disabled]="isModalLoading">Zresetuj</button>
       <ng-container *ngTemplateOutlet="modalFooterEndTemplate"></ng-container>
     </div>
   </footer>

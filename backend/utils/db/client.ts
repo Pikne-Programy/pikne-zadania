@@ -56,7 +56,7 @@ if (!await Team.get(1)) { // teachers' team
     name: "Teachers",
     assignee: "root",
     members: [],
-    invCode: null,
+    invitation: null,
   });
 }
 

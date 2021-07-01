@@ -49,7 +49,7 @@ export class AccountService {
       .post(ServerRoutes.register, {
         login: email,
         name: username,
-        hashed_password: hashedPassword,
+        hashedPassword,
         number: number !== null ? Number(number) : null,
         invitation: invitation,
       })
@@ -61,7 +61,7 @@ export class AccountService {
     return this.http
       .post(ServerRoutes.login, {
         login: email,
-        hashed_password: hashedPassword,
+        hashedPassword,
       })
       .toPromise();
   }
@@ -71,7 +71,7 @@ export class AccountService {
     error: number | null;
   }> {
     const account = await this.http
-      .get(ServerRoutes.account)
+      .get(ServerRoutes.user)
       .pipe(
         map((response) => {
           if (response && isAccount(response)) return response;

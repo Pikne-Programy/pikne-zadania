@@ -2,7 +2,8 @@ import { DOCUMENT } from '@angular/common';
 import { Inject, Injectable } from '@angular/core';
 
 //TODO More themes
-export type Theme = 'default' | 'dark' | 'dark-red';
+export const themes = ['default', 'dark', 'dark-red'] as const;
+export type Theme = typeof themes[number];
 
 @Injectable({
   providedIn: 'root',

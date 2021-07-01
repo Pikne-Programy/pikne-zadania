@@ -68,21 +68,21 @@ export abstract class Team {
   }
   @lock()
   static async getInvitation(
-    invCode: TeamType["invCode"],
+    invitation: TeamType["invitation"],
     _lock?: symbol,
   ): Promise<number | null> {
-    const team = await db.teams.findOne({ invCode: invCode });
+    const team = await db.teams.findOne({ invitation: invitation });
     return team ? team.id : null;
   }
   @lock()
   static async setInvitationCode(
     id: TeamType["id"],
-    invCode: TeamType["invCode"] | null,
+    invitation: TeamType["invitation"] | null,
     lock?: symbol,
   ): Promise<success> {
     if (!await Team.get(id, lock)) return false;
-    if (invCode && await this.getInvitation(invCode, lock)) return false;
-    await db.teams.updateOne({ id: id }, { $set: { invCode: invCode } });
+    if (invitation && await this.getInvitation(invitation, lock)) return false;
+    await db.teams.updateOne({ id: id }, { $set: { invitation: invitation } });
     return true;
   }
 }

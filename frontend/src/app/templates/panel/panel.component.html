@@ -3,10 +3,10 @@
 </p>
 <app-loading *ngIf="isLoading"></app-loading>
 <div *ngIf="!isLoading" class="panel height-full scrollable" [ngClass]="[getColor()]">
-  <a *ngFor="let item of list" class="panel-block" [routerLink]="getRouterLink(item.second)">
-    <span *ngIf="item.third" class="panel-icon">
-      <i class="fas" [ngClass]="item.third" aria-hidden="true"></i>
+  <a *ngFor="let item of list" class="panel-block" [routerLink]="getRouterLink(item[1])">
+    <span *ngIf="item[2]" class="panel-icon">
+      <i class="fas" [ngClass]="item[2]" aria-hidden="true"></i>
     </span>
-    {{ getPipedText(item.first) }}
+    {{ getPipedText(item[0]) }}
   </a>
 </div>

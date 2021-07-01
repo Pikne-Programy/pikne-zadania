@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { startServer } from './helper/tests/server';
 import { serverMockEnabled } from './helper/tests/tests.config';
+import { UpNavService } from './navigation/services/up-navigation.service';
 
 @Component({
   selector: 'app-root',
@@ -8,9 +9,9 @@ import { serverMockEnabled } from './helper/tests/tests.config';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  title = 'Niedostateczny.pl';
+  title = 'Niedostateczny';
 
-  constructor() {
+  constructor(private upNavService: UpNavService) {
     if (serverMockEnabled) startServer();
   }
 }

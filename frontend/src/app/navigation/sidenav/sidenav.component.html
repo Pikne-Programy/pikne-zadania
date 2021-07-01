@@ -1,6 +1,6 @@
 <nav class="navbar height-full is-flex is-flex-direction-column" role="navigation" aria-label="main navigation">
   <div class="navbar-start height-full scrollable">
-    <a *ngFor="let pair of menuElements" class="navbar-item has-text-weight-semibold divider-bottom" [routerLink]="pair.first" (click)="closeSidenav()">{{ pair.second }}</a>
+    <a *ngFor="let pair of menuElements" class="navbar-item has-text-weight-semibold divider-bottom" [routerLink]="pair[0]" (click)="closeSidenav()">{{ pair[1] }}</a>
   </div>
 
   <div *ngIf="buttonElements && buttonElements.length > 0" class="navbar-end divider-top">

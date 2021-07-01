@@ -27,11 +27,11 @@ import { generateSeed, JWT_CONF, LOGIN_TIME } from "../utils/mod.ts";
 
 export const login = followSchema({
   login: userSchema.login,
-  hashed_password: userSchema.hpassword,
+  hashedPassword: userSchema.hpassword,
 }, async (ctx, req) => {
   const startTime = Date.now();
   const dhpassword = (await User.get(userhash(req.login)))?.dhpassword ?? "";
-  if (await compare(req.hashed_password, dhpassword)) {
+  if (await compare(req.hashedPassword, dhpassword)) {
     const jwt = await makeJWT(userhash(req.login));
     if (!jwt) throw new httpErrors["Unauthorized"]();
     ctx.cookies.set("jwt", jwt);
@@ -56,17 +56,17 @@ export async function logout(ctx: RouterContext) {
 }
 export const register = followSchema({
   login: vs.email(),
-  name: userSchema.name,
-  hashed_password: userSchema.hpassword,
+  name: userSchema.nameReq,
+  hashedPassword: userSchema.hpassword,
   number: userSchema.number,
-  invitation: teamSchema.invCode,
+  invitation: teamSchema.invitation,
 }, async (ctx, req) => {
   const team = await Team.getInvitation(req.invitation);
   if (!team) throw new httpErrors["Forbidden"]();
   const user = {
     email: req.login,
     name: req.name,
-    dhpassword: await secondhash(req.hashed_password),
+    dhpassword: await secondhash(req.hashedPassword),
     team,
     tokens: [],
     seed: generateSeed(),

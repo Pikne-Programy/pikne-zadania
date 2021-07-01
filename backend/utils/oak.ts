@@ -38,14 +38,16 @@ export function placeholder(first: number | JSONType, body?: JSONType) {
 
 export function followSchema<T extends SchemaObject>(
   schema: T,
-  cb: (ctx: RouterContext, req: ObjectTypeOf<T>) => Promise<void>,
+  cb: (ctx: RouterContext, req: ObjectTypeOf<T>) => Promise<void> | void,
 ) {
   return async (ctx: RouterContext) => {
+    let req;
     try {
       const body = await ctx.request.body({ type: "json" }).value;
-      await cb(ctx, vs.applySchemaObject(schema, body));
+      req = vs.applySchemaObject(schema, body);
     } catch (_) {
       throw new httpErrors["BadRequest"]();
     }
+    await cb(ctx, req);
   };
 }

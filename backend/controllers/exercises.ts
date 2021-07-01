@@ -14,18 +14,19 @@ import {
 } from "../deps.ts";
 import {
   deepCopy,
+  followSchema,
   handleThrown,
   joinThrowable,
   RouterContext,
   User,
 } from "../utils/mod.ts";
+import { exerciseSchema } from "../types/mod.ts";
 import exts from "../exts/mod.ts";
 import {
   Exercise,
   isArrayOf,
   isJSONType,
   isObjectOf,
-  JSONType,
   UserType,
 } from "../types/mod.ts";
 
@@ -113,7 +114,7 @@ function build(subject: string, elements: YAMLSection[]): Section[] {
   return _build(subject, elements);
 }
 
-function checkDoneStatus(user: UserType, id: string): number | null {
+function _checkDoneStatus(user: UserType, id: string): number | null {
   return user.role.name === "student" ? user.role.exercises[id] ?? null : null;
 }
 
@@ -167,41 +168,61 @@ export function list(ctx: RouterContext) {
   ctx.response.status = 200;
   ctx.response.body = userList;
 }
-export function get(ctx: RouterContext) {
-  if (!ctx.params.id) throw new httpErrors["BadRequest"]();
-  const ex = dict[`${ctx.params.subject}/${ctx.params.id}`];
-  if (ex == null) throw new httpErrors["NotFound"]();
-  const exercise = ex.render(ctx.state.seed);
-  if (ctx.state.user?.role.name === "student") {
-    exercise.done = checkDoneStatus(ctx.state.user, ctx.params.id);
-  }
+export const get = followSchema({ id: exerciseSchema.id }, async (ctx, req) => {
+  const ex = dict[req.id];
+  if (!ex) throw new httpErrors["NotFound"]();
+  const content = await Deno.readTextFile(`./exercises/${req.id}.txt`);
+
   ctx.response.status = 200;
-  ctx.response.body = exercise;
-}
-export async function check(ctx: RouterContext) {
-  if (!ctx.request.hasBody || !ctx.params.id) {
-    throw new httpErrors["BadRequest"]();
-  }
-  const ex = dict[`${ctx.params.subject}/${ctx.params.id}`];
-  if (ex == null) throw new httpErrors["NotFound"]();
-  let body: JSONType;
-  try {
-    body = await ctx.request.body({ type: "json" }).value;
-  } catch {
-    throw new httpErrors["BadRequest"]();
-  }
-  const res = ex.check(ctx.state.seed, body);
-  if (ctx.state.user && ctx.params.id) {
+  ctx.response.body = content;
+});
+
+export const update = followSchema({
+  id: exerciseSchema.id,
+  content: exerciseSchema.content,
+}, async (ctx, req) => {
+  await Deno.writeTextFile(`./exercises/${req.id}.txt`, req.content);
+  ctx.response.status = 200;
+});
+
+export const check = followSchema({
+  id: exerciseSchema.id,
+  answers: exerciseSchema.answers,
+}, async (ctx, req) => {
+  const ex = dict[req.id];
+  if (!ex) throw new httpErrors["NotFound"]();
+  const res = ex.check(ctx.state.seed, req.answers);
+  if (ctx.state.user) {
     type EmailPartial = Omit<UserType, "email"> & { email?: string } | null;
     const user: EmailPartial = await User.get(ctx.state.user.id);
-    const id = ctx.params.id;
     if (user && user.role.name === "student") {
-      res.done = Math.max(res.done, user.role.exercises[id] ?? -Infinity);
+      res.done = Math.max(res.done, user.role.exercises[req.id] ?? -Infinity);
       delete user.email;
-      user.role.exercises[id] = res.done;
+      user.role.exercises[req.id] = res.done;
       await User.set(user);
     }
   }
   ctx.response.status = 200;
   ctx.response.body = res.answers;
-}
+});
+
+export const preview = followSchema({
+  content: exerciseSchema.content,
+  seed: exerciseSchema.seed,
+}, (ctx, req) => {
+  //TODO: Render with correct answers
+  const ex = analyzeExFile(req.content);
+  ctx.response.body = ex.render(req.seed);
+  ctx.response.status = 200;
+});
+
+export const renderExercise = followSchema({
+  id: exerciseSchema.id,
+  seed: exerciseSchema.seed,
+}, (ctx, req) => {
+  //TODO: Render with correct answers
+  const ex = dict[req.id];
+  if (!ex) throw new httpErrors["NotFound"]();
+  ctx.response.body = ex.render(req.seed);
+  ctx.response.status = 200;
+});

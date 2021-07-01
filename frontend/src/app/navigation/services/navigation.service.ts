@@ -4,7 +4,6 @@ import { BehaviorSubject, fromEvent, Subscription } from 'rxjs';
 import { Role, RoleGuardService } from 'src/app/guards/role-guard.service';
 import { AccountService } from '../../account/account.service';
 import { ScreenSizes, Sizes } from '../../helper/screen-size.service';
-import { Pair } from '../../helper/utils';
 
 export enum ButtonFunctionType {
   DEFAULT,
@@ -44,7 +43,10 @@ export class ButtonElement {
 export class NavService implements OnDestroy {
   sideNavOpened = new BehaviorSubject(false);
   showTabs = new BehaviorSubject(false);
-  menuElements = new BehaviorSubject<Pair<string, string>[]>(menuElements);
+  /**
+   * First - link; Second - text
+   */
+  menuElements = new BehaviorSubject<[string, string][]>(menuElements);
   buttonElements = new BehaviorSubject<ButtonElement[]>(loginButtons);
 
   private event$: Subscription;
@@ -84,17 +86,17 @@ export class NavService implements OnDestroy {
   }
 }
 
-const menuElements: Pair<string, string>[] = [
-  new Pair('/public-exercises', 'Baza zadań'),
-  new Pair('/about', 'O projekcie'),
+const menuElements: [string, string][] = [
+  ['/public-exercises', 'Baza zadań'],
+  ['/about', 'O projekcie'],
 ];
-const userElements: Pair<string, string>[] = createUserMenuElements();
-const teacherMenuElements: Pair<string, string>[] = createTeacherMenuElements();
+const userElements: [string, string][] = createUserMenuElements();
+const teacherMenuElements: [string, string][] = createTeacherMenuElements();
 function createUserMenuElements() {
   const list = menuElements.concat([]);
   const last = list.pop()!!;
   //NOTE User specific menu elements
-  return list.concat([new Pair('/user/achievements', 'Osiągnięcia')], last);
+  return list.concat([['/user/achievements', 'Osiągnięcia']], last);
 }
 function createTeacherMenuElements() {
   const list = menuElements.concat([]);
@@ -102,8 +104,8 @@ function createTeacherMenuElements() {
   //NOTE Teacher specific menu elements
   return list.concat(
     [
-      new Pair('/user/teams', 'Klasy'),
-      new Pair('/user/achievements', 'Osiągnięcia'),
+      ['/user/teams', 'Klasy'],
+      ['/user/achievements', 'Osiągnięcia'],
     ],
     last
   );

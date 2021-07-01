@@ -1,6 +1,5 @@
 import { LowerCasePipe, TitleCasePipe, UpperCasePipe } from '@angular/common';
 import { Component, HostBinding, Input } from '@angular/core';
-import { Tuple } from 'src/app/helper/utils';
 
 export type TextPipe = 'uppercase' | 'lowercase' | 'titlecase';
 
@@ -15,7 +14,7 @@ export class PanelComponent {
   /**
    * First - Text; Second - link; Third - icon
    */
-  @Input('items') list!: Tuple<string, string, string | undefined>[];
+  @Input('items') list!: [string, string, string | undefined][];
   @Input() header?: string;
   @Input() color?: string;
   @Input('loading') isLoading?: boolean;
