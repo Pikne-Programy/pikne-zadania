@@ -9,7 +9,7 @@ function setSeed(ctx: RouterContext, seed: number) {
   ctx.state.seed = seed;
   ctx.cookies.set("seed", seed.toString(), { maxAge: SEED_AGE });
 }
-export async function seed(ctx: RouterContext, next: () => Promise<void>) {
+export async function seed(ctx: RouterContext, next: () => Promise<unknown>) {
   const cookie = +(ctx.cookies.get("seed") ?? NaN);
   if (ctx.state.user) setSeed(ctx, ctx.state.user.seed);
   else if (isNaN(cookie)) setSeed(ctx, generateSeed());

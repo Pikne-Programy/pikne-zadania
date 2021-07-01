@@ -25,9 +25,10 @@ export type RouterContext<P extends RouteParams = RouteParams> = _RouterContext<
 >;
 
 function _placeholder(status: number, body?: JSONType) {
-  return (ctx: RouterContext) => {
+  return (ctx: RouterContext) : unknown => {
     ctx.response.status = status;
     ctx.response.body = body;
+    return undefined;
   };
 }
 export function placeholder(first: number | JSONType, body?: JSONType) {

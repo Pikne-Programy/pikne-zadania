@@ -7,7 +7,7 @@ import { validateJWT } from "../controllers/auth.ts";
 import { RouterContext, User } from "../utils/mod.ts";
 
 function authorize(required: boolean) {
-  return async (ctx: RouterContext, next: () => Promise<void>) => {
+  return async (ctx: RouterContext, next: () => Promise<unknown>) => {
     const jwt = ctx.cookies.get("jwt");
     const uid = jwt ? await validateJWT(jwt) : null;
     ctx.state.user = uid ? await User.get(uid) : null;

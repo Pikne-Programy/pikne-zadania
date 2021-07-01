@@ -2,12 +2,12 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-FROM hayd/alpine-deno:1.9.2
+FROM denoland/deno:alpine-1.11.4
 EXPOSE 8000
 WORKDIR /app
 RUN chown -R deno:deno /usr/local
 USER deno
-RUN deno install -qAf --unstable https://deno.land/x/denon@2.4.7/denon.ts
+RUN deno install -qAf --unstable https://deno.land/x/denon@2.4.8/denon.ts
 COPY deps.ts .
 RUN deno cache --unstable deps.ts
 ADD . .
