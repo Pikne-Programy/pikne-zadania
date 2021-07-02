@@ -285,9 +285,8 @@ describe('Utils: isObject', () => {
   });
 });
 
-//TODO PBKDF2 - write better tests
 describe('Utils: pbkdf2', () => {
-  it('should correctly hash', async () => {
+  it(`should correctly hash with email 'b@b.bb`, async () => {
     /**
      * Password, email, expected hashed password
      */
@@ -295,9 +294,17 @@ describe('Utils: pbkdf2', () => {
       ['b', 'b@b.bb', 'ZywyW1h4EKLJe/jAjKiDN+eufwV0SOeTIjb2DBMgJqQ='],
       ['1', 'b@b.bb', 'xfDzQivyYi4/DyiVO/d+1DBbR6WXxBe2v2xGVx0k5Lw='],
     ];
-    for (const [password, email, hash] of list) {
+    for (const [password, email, hash] of list)
       expect(await pbkdf2(email, password)).toBe(hash);
-    }
+  });
+
+  it('should correctly hash', async () => {
+    await expectAsync(pbkdf2('admin', 'secret')).toBeResolvedTo(
+      'u/+1fh/AmmWzro+YA7khgk1L5VfYoABocupuT41i+AA='
+    );
+    await expectAsync(
+      pbkdf2('salt', 'secret', 512, 64, 'SHA-512')
+    ).toBeResolvedTo('1YqXX+X2PNg=');
   });
 });
 

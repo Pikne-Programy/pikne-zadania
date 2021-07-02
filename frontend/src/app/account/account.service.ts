@@ -7,6 +7,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs/operators';
 import { ThemeService } from '../helper/theme.service';
 
+export type AccountReturnType = {
+  observable: BehaviorSubject<Account | null>;
+  error: number | null;
+};
+
 export interface Account {
   name: string;
   number: number | null;
@@ -66,10 +71,7 @@ export class AccountService {
       .toPromise();
   }
 
-  async getAccount(): Promise<{
-    observable: BehaviorSubject<Account | null>;
-    error: number | null;
-  }> {
+  async getAccount(): Promise<AccountReturnType> {
     const account = await this.http
       .get(ServerRoutes.user)
       .pipe(

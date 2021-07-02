@@ -5,7 +5,6 @@ import {
   Router,
   RouterStateSnapshot,
 } from '@angular/router';
-import { Observable } from 'rxjs';
 import { AccountService } from '../account/account.service';
 
 @Injectable({
@@ -17,7 +16,7 @@ export class AuthGuardService implements CanActivate {
   canActivate(
     _: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
-  ): Observable<boolean> | Promise<boolean> | boolean {
+  ): Promise<boolean> {
     return this.accountService
       .getAccount()
       .then((response) => {

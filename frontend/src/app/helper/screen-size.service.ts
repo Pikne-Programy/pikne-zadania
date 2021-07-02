@@ -9,7 +9,7 @@ export enum ScreenSizes {
   FULL_HD,
 }
 
-export const Sizes: [number, number][] = [
+export const Sizes: [ScreenSizes, number][] = [
   [ScreenSizes.MOBILE, 768],
   [ScreenSizes.TABLET, 1023],
   [ScreenSizes.DESKTOP, 1215],

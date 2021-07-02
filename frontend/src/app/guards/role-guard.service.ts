@@ -6,7 +6,6 @@ import {
   Router,
   RouterStateSnapshot,
 } from '@angular/router';
-import { Observable } from 'rxjs';
 import { Account, AccountService, isAccount } from '../account/account.service';
 
 export enum Role {
@@ -28,7 +27,7 @@ export class RoleGuardService implements CanActivate {
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
-  ): boolean | Observable<boolean> | Promise<boolean> {
+  ): boolean {
     const account = this.getAccount();
     if (!account || !isAccount(account)) {
       this.redirect('/login', { returnUrl: state.url });
