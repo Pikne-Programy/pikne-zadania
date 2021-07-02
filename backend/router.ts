@@ -12,24 +12,44 @@ import { placeholder } from "./utils/mod.ts";
 const router = new Router();
 router
   .get("/api", placeholder(200, {}))
-  .get("/api/exercise/list", authNotReq, Exercises.list)
-  .post("/api/exercise/get", authNotReq, Exercises.get)
-  .post("/api/exercise/update", authReq, Exercises.update)
-  .post("/api/exercise/check", authNotReq, seed, Exercises.check)
-  .post("/api/exercise/render", authNotReq, seed, Exercises.renderExercise)
-  .post("/api/exercise/preview", authNotReq, Exercises.preview)
   .get("/img/:subject/:file", Exercises.getStaticContent)
-  .post("/api/auth/register", Auth.register)
-  .post("/api/auth/login", Auth.login)
-  .post("/api/auth/logout", authReq, Auth.logout)
-  .get("/api/user/current", authReq, Users.current)
-  .post("/api/user/delete", authReq, Users.deleteUser)
-  .post("/api/user/update", authReq, Users.updateUser)
-  .post("/api/user/info", authReq, Users.userInfo)
-  .post("/api/team/create", authReq, Teams.addTeam)
-  .post("/api/team/delete", authReq, Teams.deleteTeam)
-  .post("/api/team/update", authReq, Teams.updateTeam)
-  .get("/api/team/list", authReq, Teams.getAllTeams)
-  .post("/api/team/info", authReq, Teams.getTeam);
+  .use(
+    "/api",
+    new Router().use(
+      "/exercise",
+      new Router()
+        .get("/list", authNotReq, Exercises.list)
+        .post("/get", authNotReq, Exercises.get)
+        .post("/update", authReq, Exercises.update)
+        .post("/check", authNotReq, seed, Exercises.check)
+        .post("/render", authNotReq, seed, Exercises.renderExercise)
+        .post("/preview", authNotReq, Exercises.preview)
+        .routes(),
+    ).use(
+      "/auth",
+      new Router()
+        .post("/register", Auth.register)
+        .post("/login", Auth.login)
+        .post("/logout", authReq, Auth.logout)
+        .routes(),
+    ).use(
+      "/user",
+      new Router()
+        .get("/current", authReq, Users.current)
+        .post("/delete", authReq, Users.deleteUser)
+        .post("/update", authReq, Users.updateUser)
+        .post("/info", authReq, Users.userInfo)
+        .routes(),
+    ).use(
+      "/team",
+      new Router()
+        .post("/create", authReq, Teams.addTeam)
+        .post("/delete", authReq, Teams.deleteTeam)
+        .post("/update", authReq, Teams.updateTeam)
+        .get("/list", authReq, Teams.getAllTeams)
+        .post("/info", authReq, Teams.getTeam)
+        .routes(),
+    ).routes(),
+  );
 
 export default router;
