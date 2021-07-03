@@ -3,10 +3,11 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Exercise, JSONType } from "../../types/mod.ts";
-import { ANSWER_PREC, DECIMAL_POINT, Range, RNG } from "../../utils/mod.ts";
 import { httpErrors, vs } from "../../deps.ts";
+import { Exercise, JSONObject, JSONType } from "../../types/mod.ts";
+import { Range, RNG } from "../../utils/mod.ts";
 import RPN from "./RPN-parser/parser.ts";
+import { cfg } from "../../server.ts";
 
 const greekAlphabet: { [key: string]: string } = {
   alpha: "\\alpha",
@@ -102,15 +103,15 @@ export default class EquationExercise extends Exercise {
   readonly unknowns: string[] = []; // name
   readonly formattedUnknowns: [string, string][] = []; // [formatted name, unit]
   readonly order: number[] = []; // order of equations
-  readonly answerPrecision: number = ANSWER_PREC; // such number x that: ans*(100-x)% <= user ans <= ans*(100-x)% returns correct answer
-  readonly pointDecimalSeparator: boolean = DECIMAL_POINT; //true: '.', false: ','
+  readonly answerPrecision: number = cfg.ANSWER_PREC; // such number x that: ans*(100-x)% <= user ans <= ans*(100-x)% returns correct answer
+  readonly pointDecimalSeparator: boolean = cfg.DECIMAL_POINT; //true: '.', false: ','
   readonly img: string[];
 
   // content -> parse to latex, extract RPN, Range and number -> return parsed text
   constructor(
     readonly name: string,
     content: string,
-    readonly properties: { [key: string]: JSONType },
+    readonly properties: JSONObject,
   ) {
     super(name, content, properties);
     try {
@@ -232,7 +233,7 @@ export default class EquationExercise extends Exercise {
       img: string[];
     };
   } {
-    const rng = new RNG(seed);
+    const rng = new RNG(seed, cfg.RNG_PREC);
     let parsingContent = this.parsedContent;
     for (const [index, textIndex] of this.ranges) {
       const range = this.variables[index][1];
@@ -254,7 +255,7 @@ export default class EquationExercise extends Exercise {
       },
     };
   }
-  check(seed: number, answer: JSONType): { done: number; answers: boolean[] } {
+  check(seed: number, answer: JSONType): { done: number; answer: boolean[] } {
     if (!isAnswer(answer)) {
       throw new httpErrors["BadRequest"]("ERROR, INVALID ANSWER FORMAT");
     }
@@ -268,7 +269,7 @@ export default class EquationExercise extends Exercise {
       },
       {},
     );
-    const rng = new RNG(seed);
+    const rng = new RNG(seed, cfg.RNG_PREC);
     const calculated: { [key: string]: number } = {};
     // add already calculated numbers to calculated variables
     for (const [name, val] of this.variables) {
@@ -299,7 +300,7 @@ export default class EquationExercise extends Exercise {
       );
     }
     const done = answers.reduce((a: number, b) => a + (+b), 0) / answers.length;
-    return { answers, done };
+    return { answer: answers, done };
   }
   static convertToLaTeX(unit: string): string {
     if (unit == "") return "";

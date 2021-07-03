@@ -10,6 +10,7 @@ export type JSONType =
   | boolean
   | null;
 // export type YAMLType = JSONType;
+export type JSONObject = { [key: string]: JSONType };
 
 export function isArrayOf<T>(
   how: (x: unknown) => x is T,

@@ -3,8 +3,24 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { Application, HttpError } from "./deps.ts";
-import router from "./router.ts";
-import { closeDB, Context, handleThrown, State } from "./utils/mod.ts";
+import { Context, handleThrown, State } from "./utils/mod.ts";
+import {
+  Auth,
+  Config,
+  Database,
+  Exercises,
+  Team,
+  Teams,
+  User,
+  Users,
+} from "./services/mod.ts";
+import {
+  AuthController,
+  ExercisesController,
+  TeamsController,
+  UsersController,
+} from "./controllers/mod.ts";
+import RouterBuilder from "./router.ts";
 
 const app = new Application<State>();
 
@@ -35,6 +51,22 @@ app.use(async (ctx: Context, next: () => unknown) => {
   }
 });
 
+export const cfg = new Config();
+const db = new Database(cfg);
+const tm = new Team(db);
+const us = new User(cfg, db, tm);
+await db.init(tm, us);
+const exs = new Exercises(us);
+const tms = new Teams(tm, us);
+const uss = new Users(us);
+const auth = new Auth(cfg, tm, us);
+const authc = new AuthController(cfg, auth);
+const exc = new ExercisesController(cfg, exs);
+const tmc = new TeamsController(tms);
+const usc = new UsersController(uss);
+const rb = new RouterBuilder(authc, exc, tmc, usc);
+
+const router = rb.router;
 app.use(router.routes());
 app.use(router.allowedMethods());
 
@@ -64,7 +96,7 @@ Promise.race([
 ]).then(() => {
   console.log("The server is closing...");
   abortController.abort();
-  closeDB();
+  db.closeDB();
 }).then(() => countdown(5)).finally(Deno.exit);
 
 await app.listen({ port: 8000, signal });

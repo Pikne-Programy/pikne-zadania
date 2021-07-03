@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-export * from "./primitives.ts";
-export * from "./exercise.ts";
 export * from "./db.ts";
+export * from "./exercise.ts";
+export * from "./primitives.ts";
 export * from "./schemas.ts";

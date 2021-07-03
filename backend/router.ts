@@ -4,52 +4,70 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { Router } from "./deps.ts";
-import { seed } from "./middleware/seed.ts";
-import { authNotReq, authReq } from "./middleware/auth.ts";
-import { Auth, Exercises, Teams, Users } from "./controllers/mod.ts";
 import { placeholder } from "./utils/mod.ts";
+import {
+  AuthController,
+  ExercisesController,
+  TeamsController,
+  UsersController,
+} from "./controllers/mod.ts";
 
-const router = new Router();
-router
-  .get("/api", placeholder(200, {}))
-  .get("/img/:subject/:file", Exercises.getStaticContent)
-  .use(
-    "/api",
-    new Router().use(
-      "/exercise",
-      new Router()
-        .get("/list", authNotReq, Exercises.list)
-        .post("/get", authNotReq, Exercises.get)
-        .post("/update", authReq, Exercises.update)
-        .post("/check", authNotReq, seed, Exercises.check)
-        .post("/render", authNotReq, seed, Exercises.renderExercise)
-        .post("/preview", authNotReq, Exercises.preview)
-        .routes(),
-    ).use(
-      "/auth",
-      new Router()
-        .post("/register", Auth.register)
-        .post("/login", Auth.login)
-        .post("/logout", authReq, Auth.logout)
-        .routes(),
-    ).use(
-      "/user",
-      new Router()
-        .get("/current", authReq, Users.current)
-        .post("/delete", authReq, Users.deleteUser)
-        .post("/update", authReq, Users.updateUser)
-        .post("/info", authReq, Users.userInfo)
-        .routes(),
-    ).use(
-      "/team",
-      new Router()
-        .post("/create", authReq, Teams.addTeam)
-        .post("/delete", authReq, Teams.deleteTeam)
-        .post("/update", authReq, Teams.updateTeam)
-        .get("/list", authReq, Teams.getAllTeams)
-        .post("/info", authReq, Teams.getTeam)
-        .routes(),
-    ).routes(),
-  );
+// TODO
 
-export default router;
+export default class RouterBuilder {
+  readonly router: Router;
+
+  constructor(
+    private auth: AuthController,
+    private ex: ExercisesController,
+    private tm: TeamsController,
+    private us: UsersController,
+  ) {
+    const authReq = (b: any, n: any) => this.auth.authorize(true)(b, n);
+    const authNotReq = (b: any, n: any) => this.auth.authorize(false)(b, n);
+    const seed = (b: any, n: any) => this.ex.seed(b, n);
+
+    const b = <T, U, P>(f: (a: T, b: P) => U) => ((a: T, b: P) => f(a, b));
+    this.router = new Router()
+      .get("/api", placeholder(200, {}))
+      .get("/img/:subject/:file", (b: any) => this.ex.getStaticContent(b))
+      .use(
+        "/api",
+        new Router().use(
+          "/exercise",
+          new Router()
+            .get("/list", authNotReq, (b: any) => this.ex.list(b))
+            //.post("/get", authNotReq, (b: any) => this.ex.get(b))
+            //.post("/update", authReq, (b: any) => this.ex.update(b))
+            .post("/check", authNotReq, seed, (b: any) => this.ex.check(b))
+            .post("/render", authNotReq, seed, (b: any) => this.ex.render(b))
+            //.post("/preview", authNotReq, (b: any) => this.ex.preview(b))
+            .routes(),
+        ).use(
+          "/auth",
+          new Router()
+            .post("/register", (b: any) => this.auth.register(b))
+            .post("/login", (b: any) => this.auth.login(b))
+            .post("/logout", authReq, (b: any) => this.auth.logout(b))
+            .routes(),
+        ).use(
+          "/user",
+          new Router()
+            .get("/current", authReq, (b: any) => this.us.current(b))
+            .post("/delete", authReq, (b: any) => this.us.deleteUser(b))
+            .post("/update", authReq, (b: any) => this.us.updateUser(b))
+            .post("/info", authReq, (b: any) => this.us.userInfo(b))
+            .routes(),
+        ).use(
+          "/team",
+          new Router()
+            .post("/create", authReq, (b: any) => this.tm.add(b))
+            .post("/delete", authReq, (b: any) => this.tm.delete(b))
+            .post("/update", authReq, (b: any) => this.tm.update(b))
+            .get("/list", authReq, (b: any) => this.tm.getAll(b))
+            .post("/info", authReq, (b: any) => this.tm.get(b))
+            .routes(),
+        ).routes(),
+      ) as any;
+  }
+}

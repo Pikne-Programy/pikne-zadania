@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { browserCrypto, MersenneTwister19937, Random } from "../deps.ts";
-import { RNG_PREC } from "./mod.ts";
 
 function precision(a: number) {
   // SRC: https://stackoverflow.com/a/27865285/6732111
@@ -22,7 +21,7 @@ export function generateSeed() {
 
 export class RNG {
   readonly rng: Random;
-  constructor(readonly seed: number) {
+  constructor(readonly seed: number, readonly prec: number) {
     this.rng = new Random(MersenneTwister19937.seed(seed));
   }
   rand(min: number, max: number, step?: number): number {
@@ -31,7 +30,7 @@ export class RNG {
       const guessStepped = +(min + Math.round((guess - min) / step) * step);
       return +guessStepped.toFixed(precision(step));
     } else {
-      return +guess.toPrecision(RNG_PREC);
+      return +guess.toPrecision(this.prec);
     }
   }
 }
