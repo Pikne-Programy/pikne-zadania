@@ -11,21 +11,26 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 ## TODO
 
 - add a possibility to upload images
+- add subject category (tag) modification
 
 ## Table of Contents
 
 - [Table of Contents](#table-of-contents)
 - [Exercise](#exercise)
   - [`GET /api/exercise/list`](#get-apiexerciselist)
-  - [`POST /api/exercise/get`](#post-apiexerciseget)
-  - [`POST /api/exercise/update`](#post-apiexerciseupdate)
   - [`POST /api/exercise/check`](#post-apiexercisecheck)
   - [`POST /api/exercise/render`](#post-apiexerciserender)
-  - [`POST /api/exercise/preview`](#post-apiexercisepreview)
 - [Subject](#subject)
+  - [`GET /api/subject/list`](#get-apisubjectlist)
   - [`POST /api/subject/create`](#post-apisubjectcreate)
   - [`POST /api/subject/info`](#post-apisubjectinfo)
   - [`POST /api/subject/permit`](#post-apisubjectpermit)
+- [Exercise modification](#exercise-modification)
+  - [`POST /api/subject/exercise/list`](#post-apisubjectexerciselist)
+  - [`POST /api/subject/exercise/get`](#post-apisubjectexerciseget)
+  - [`POST /api/subject/exercise/add`](#post-apisubjectexerciseadd)
+  - [`POST /api/subject/exercise/update`](#post-apisubjectexerciseupdate)
+  - [`POST /api/subject/exercise/preview`](#post-apisubjectexercisepreview)
 - [Auth](#auth)
   - [`POST /api/auth/register`](#post-apiauthregister)
   - [`POST /api/auth/login`](#post-apiauthlogin)
@@ -88,58 +93,6 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 **note**: Private exercises (ones with `_` subject prefix) will be shown for authorized users with proper permissions. \
 **note**: Elements of the root list must be subject objects. \
 **note**: `done` property is stated only when the user is authorized, it can be `null` or a number from 0 up to and including 1, see [#24](https://github.com/Pikne-Programy/pikne-zadania/issues/24#issuecomment-782939873).
-
----
-
-### `POST /api/exercise/get`
-
-| Method | URL                 | Description      | Special status codes |
-| ------ | ------------------- | ---------------- | -------------------- |
-| POST   | `/api/exercise/get` | get one Exercise | 403, 404             |
-
-**Request**:
-
-```json
-{
-  "id": "fizyka/pociagi-dwa"
-}
-```
-
-**Response**:
-
-```json
-{
-  "content": "---\ntype: EqEx\nname: Pociągi dwa\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n"
-}
-```
-
-**note**: `content` is ExT-dependent, shown above is the EqEx one.
-
----
-
-### `POST /api/exercise/update`
-
-| Method | URL                    | Description               | Special status codes |
-| ------ | ---------------------- | ------------------------- | -------------------- |
-| POST   | `/api/exercise/update` | update exercise's content | 403, 404             |
-
-**Request**:
-
-```json
-{
-  "id": "fizyka/pociagi-dwa",
-  "content": "---\ntype: EqEx\nname: Pociągi dwa\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n"
-}
-```
-
-**Response**:
-
-```json
-
-```
-
-**note**: `content` is ExT-dependent, shown above is the EqEx one. \
-**note**: Only content can be changed, changing id will make a new exercise.
 
 ---
 
@@ -222,50 +175,38 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 **note**: User will receive `done` only if authorized as Student. \
 **note**: User will receive `correct` only if authorized as teacher or admin. \
 **note**: `seed` property is optional. It may be given if a user is authorized as a teacher or admin. For students, it will be taken from a database. \
-**note**: With this request, it is NOT possible to access private exercises. See [`POST /api/exam/render`](#post-apiexamrender).
+**note**: With this request, it is NOT possible to access private exercises (if authorized as Student). See [`POST /api/exam/render`](#post-apiexamrender).
 
 ---
 
-### `POST /api/exercise/preview`
+## Subject
 
-| Method | URL                     | Description         | Special status codes |
-| ------ | ----------------------- | ------------------- | -------------------- |
-| POST   | `/api/exercise/preview` | preview an exercise | 403, 404             |
+### `GET /api/subject/list`
+
+| Method | URL                 | Description                | Special status codes |
+| ------ | ------------------- | -------------------------- | -------------------- |
+| GET    | `/api/subject/list` | fetch list of all subjects | 403                  |
 
 **Request**:
 
 ```json
-{
-  "content": "---\ntype: EqEx\nname: Pociągi dwa\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n",
-  "seed": 0
-}
+
 ```
 
 **Response**:
 
 ```json
-{
-  "type": "EqEx",
-  "name": "Pociągi dwa 2",
-  "content": {
-    "main": "Z miast \\(A\\) i \\(B\\) odległych o \\(d=300\\;\\mathrm{km}\\) wyruszają jednocześnie\ndwa pociągi z prędkościami \\(v_a= 50\\;\\mathrm{\\frac{km}{h}}\\) oraz \\(v_b=70\\;\\mathrm{\\frac{km}{h}}\\).\nW jakiej odległości \\(x\\) od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie \\(t\\) się to stanie?",
-    "img": ["1.png", "2.png"],
-    "unknowns": [
-      ["x", "\\mathrm{km}"],
-      ["t", "\\mathrm{s}"]
-    ],
-    "correct": [2.5, 125]
-  }
-}
+[
+  "fizyka",
+  "_fizyka",
+  "astronomia"
+]
 ```
 
-**note**: `content` is ExT-dependent, shown above is the EqEx one. User not authorized as teacher or admin will not receive answers. \
-**note**: The content can contain links to static content. It can be accessed via `GET /img/:subject/:file` request. \
-**note**: `seed` property is optional.
+**note**: Subjects with `_` prefix are private (are not visible to unauthorized users). \
+**note**: Only subjects that the current user can modifiy will be fetched.
 
 ---
-
-## Subject
 
 ### `POST /api/subject/create`
 
@@ -346,6 +287,163 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ```
 
+---
+
+## Exercise modification
+
+### `POST /api/subject/exercise/list`
+
+| Method | URL                          | Description                    | Special status codes |
+| ------ | ---------------------------- | ------------------------------ | -------------------- |
+| POST   | `/api/subject/exercise/list` | get all Exercises from subject | 403, 404             |
+
+**Request**:
+
+```json
+{
+  "id": "_fizyka"
+}
+```
+
+**Response**:
+
+```json
+[
+  {
+    "name": "mechanika",
+    "children": [
+      {
+        "name": "kinematyka",
+        "children": [
+          {
+            "name": "Pociągi dwa",
+            "children": "pociagi-dwa"
+          }
+        ]
+      }
+    ]
+  }
+]
+```
+
+---
+
+### `POST /api/subject/exercise/get`
+
+| Method | URL                         | Description                | Special status codes |
+| ------ | --------------------------- | -------------------------- | -------------------- |
+| POST   | `/api/subject/exercise/get` | get content of an exercise | 403, 404             |
+
+**Request**:
+
+```json
+{
+  "id": "fizyka/pociagi-dwa"
+}
+```
+
+**Response**:
+
+```json
+{
+  "content": "---\ntype: EqEx\nname: Pociągi dwa\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n"
+}
+```
+
+**note**: `content` is ExT-dependent, shown above is the EqEx one.
+
+---
+
+### `POST /api/subject/exercise/add`
+
+| Method | URL                         | Description      | Special status codes         |
+| ------ | --------------------------- | ---------------- | ---------------------------- |
+| POST   | `/api/subject/exercise/add` | add new exercise | 403, 409 (id already exists) |
+
+**Request**:
+
+```json
+{
+  "id": "fizyka/pociagi-dwa-2",
+  "content": "---\ntype: EqEx\nname: Pociągi dwa\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n"
+}
+```
+
+**Response**:
+
+```json
+
+```
+
+**note**: `content` is ExT-dependent, shown above is the EqEx one. 
+
+---
+
+### `POST /api/subject/exercise/update`
+
+| Method | URL                            | Description               | Special status codes |
+| ------ | ------------------------------ | ------------------------- | -------------------- |
+| POST   | `/api/subject/exercise/update` | update exercise's content | 403, 404             |
+
+**Request**:
+
+```json
+{
+  "id": "fizyka/pociagi-dwa",
+  "content": "---\ntype: EqEx\nname: Pociągi dwa\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n"
+}
+```
+
+**Response**:
+
+```json
+
+```
+
+**note**: `content` is ExT-dependent, shown above is the EqEx one. \
+**note**: Only content can be changed, changing id will make a new exercise.
+
+---
+
+### `POST /api/subject/exercise/preview`
+
+| Method | URL                             | Description         | Special status codes |
+| ------ | ------------------------------- | ------------------- | -------------------- |
+| POST   | `/api/subject/exercise/preview` | preview an exercise | 403, 404             |
+
+**Request**:
+
+```json
+{
+  "content": "---\ntype: EqEx\nname: Pociągi dwa\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n",
+  "seed": 0
+}
+```
+
+**Response**:
+
+```json
+{
+  "type": "EqEx",
+  "name": "Pociągi dwa 2",
+  "content": {
+    "main": "Z miast \\(A\\) i \\(B\\) odległych o \\(d=300\\;\\mathrm{km}\\) wyruszają jednocześnie\ndwa pociągi z prędkościami \\(v_a= 50\\;\\mathrm{\\frac{km}{h}}\\) oraz \\(v_b=70\\;\\mathrm{\\frac{km}{h}}\\).\nW jakiej odległości \\(x\\) od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie \\(t\\) się to stanie?",
+    "img": ["1.png", "2.png"],
+    "unknowns": [
+      ["x", "\\mathrm{km}"],
+      ["t", "\\mathrm{s}"]
+    ],
+    "correct": [2.5, 125]
+  }
+}
+```
+
+**note**: `content` is ExT-dependent, shown above is the EqEx one. User not authorized as teacher or admin will not receive answers. \
+**note**: The content can contain links to static content. It can be accessed via `GET /img/:subject/:file` request. \
+**note**: `seed` property is optional.
+
+---
+
 ## Auth
 
 ### `POST /api/auth/register`
@@ -422,6 +520,8 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ```
 
+---
+
 ## User
 
 ### `GET /api/user/current`
@@ -445,6 +545,10 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
   "number": 11
 }
 ```
+
+**note**: `number` can be `null`.
+
+---
 
 ### `POST /api/user/delete`
 
@@ -489,7 +593,8 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
 
 ```
 
-**note**: Possible parameters to change are `number` and `name`.
+**note**: Possible parameters to change are `number` and `name`. \
+**note**: `number` can be `null`.
 
 ---
 
@@ -516,6 +621,10 @@ If there is an error (`4xx` or `5xx` status code), the API will return either no
   "number": 11
 }
 ```
+
+**note**: `number` can be `null`.
+
+---
 
 ## Team
 
