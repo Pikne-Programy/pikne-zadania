@@ -90,26 +90,18 @@ const menuElements: [string, string][] = [
   ['/public-exercises', 'Baza zadań'],
   ['/about', 'O projekcie'],
 ];
-const userElements: [string, string][] = createUserMenuElements();
-const teacherMenuElements: [string, string][] = createTeacherMenuElements();
-function createUserMenuElements() {
-  const list = menuElements.concat([]);
-  const last = list.pop()!!;
-  //NOTE User specific menu elements
-  return list.concat([['/user/achievements', 'Osiągnięcia']], last);
-}
-function createTeacherMenuElements() {
-  const list = menuElements.concat([]);
-  const last = list.pop()!!;
-  //NOTE Teacher specific menu elements
-  return list.concat(
-    [
-      ['/user/teams', 'Klasy'],
-      ['/user/achievements', 'Osiągnięcia'],
-    ],
-    last
-  );
-}
+const userElements: [string, string][] = [
+  ['/public-exercises', 'Baza zadań'],
+  //['/user/achievements', 'Osiągnięcia'], //TODO Add when ready
+  ['/about', 'O projekcie'],
+];
+const teacherMenuElements: [string, string][] = [
+  ['/public-exercises', 'Baza zadań'],
+  ['/subject/list', 'Moje zadania'],
+  ['/user/teams', 'Klasy'],
+  //['/user/achievements', 'Osiągnięcia'], //TODO Add when ready
+  ['/about', 'O projekcie'],
+];
 
 const loginButtons: ButtonElement[] = [
   new ButtonElement(

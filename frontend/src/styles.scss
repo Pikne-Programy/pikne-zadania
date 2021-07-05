@@ -119,7 +119,8 @@ $dark-box-background: bulmaDarken($background, 5%);
   flex: none;
 }
 
-.panel-heading + .panel {
+.panel-heading + .panel,
+.panel-tabs + .panel {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }

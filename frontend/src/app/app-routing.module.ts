@@ -7,6 +7,7 @@ import { PublicExercisesComponent } from './public-exercises/public-exercises.co
 import { SubjectSelectComponent } from './subject-select/subject-select.component';
 import { NavComponent } from './navigation/nav.component';
 import { AuthGuardService } from './guards/auth-guard.service';
+import { RoleGuardService, TeacherRoles } from './guards/role-guard.service';
 
 const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: '/public-exercises' },
@@ -37,6 +38,13 @@ const routes: Routes = [
     path: 'user',
     canActivate: [AuthGuardService],
     loadChildren: () => import('./user/user.module').then((m) => m.UserModule),
+  },
+  {
+    path: 'subject',
+    canActivate: [AuthGuardService, RoleGuardService],
+    data: { roles: TeacherRoles },
+    loadChildren: () =>
+      import('./subjects/subject.module').then((m) => m.SubjectModule),
   },
   {
     path: 'about',

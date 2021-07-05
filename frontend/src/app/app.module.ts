@@ -3,7 +3,6 @@ import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MatSidenavModule } from '@angular/material/sidenav';
 import { ServiceWorkerModule } from '@angular/service-worker';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -25,6 +24,7 @@ import { UpNavService } from './navigation/services/up-navigation.service';
 import { ThemeService } from './helper/theme.service';
 import { ExerciseService } from './exercise-service/exercise.service';
 import { ScreenSizeService } from './helper/screen-size.service';
+import { RoleGuardService } from './guards/role-guard.service';
 
 @NgModule({
   declarations: [
@@ -43,7 +43,6 @@ import { ScreenSizeService } from './helper/screen-size.service';
     AppRoutingModule,
     NavModule,
     BrowserAnimationsModule,
-    MatSidenavModule,
     FormsModule,
     ReactiveFormsModule,
     TemplatesModule,
@@ -57,6 +56,7 @@ import { ScreenSizeService } from './helper/screen-size.service';
     NavService,
     UpNavService,
     AuthGuardService,
+    RoleGuardService,
     ScreenSizeService,
     ThemeService,
   ],

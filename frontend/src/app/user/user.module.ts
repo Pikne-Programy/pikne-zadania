@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatSidenavModule } from '@angular/material/sidenav';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 
 import { UserRoutingModule } from './user-routing.module';
@@ -12,7 +11,6 @@ import { UserDashboardComponent } from './dashboard/user/user-dashboard.componen
 import { TemplatesModule } from '../templates/templates.module';
 import { TeamsComponent } from './teams/teams.component';
 import { TeamItemComponent } from './teams/item/item.component';
-import { RoleGuardService } from '../guards/role-guard.service';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AchievementsComponent } from './achievements/achievements.component';
 import { TeamService } from './team.service/team.service';
@@ -34,10 +32,9 @@ import { TeamService } from './team.service/team.service';
     ReactiveFormsModule,
     ClipboardModule,
     NavModule,
-    MatSidenavModule,
     TemplatesModule,
   ],
-  providers: [RoleGuardService, TeamService],
+  providers: [TeamService],
   bootstrap: [UserComponent],
 })
 export class UserModule {}

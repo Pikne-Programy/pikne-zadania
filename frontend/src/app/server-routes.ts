@@ -1,16 +1,20 @@
 //#region Exercise
 export const exerciseList = '/api/exercise/list';
-export const exercise = '/api/exercise/get';
-export const exerciseUpdate = '/api/exercise/update';
 export const exerciseCheck = '/api/exercise/check';
 export const exerciseRender = '/api/exercise/render';
-export const exercisePreview = '/api/exercise/preview';
 //#endregion
 
 //#region Subject
+export const subjectList = '/api/subject/list';
 export const subjectCreate = '/api/subject/create';
 export const subjectInfo = '/api/subject/info';
 export const subjectPermit = '/api/subject/permit';
+
+// Exercise modification
+export const subjectExerciseList = '/api/subject/exercise/list';
+export const subjectExerciseGet = '/api/subject/exercise/get';
+export const subjectExerciseUpdate = '/api/subject/exercise/update';
+export const subjectExercisePreview = '/api/subject/exercise/preview';
 //#endregion
 
 //#region Authentication

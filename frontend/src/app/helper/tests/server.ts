@@ -105,6 +105,8 @@ export function startServer() {
         });
       }
 
+      const subjects = ['fizyka', '_fizyka', 'astronomia', '_zzz', 'zz', 'zzz'];
+
       const teamAmount = 20;
       const teams: Team[] = [
         {
@@ -234,6 +236,10 @@ export function startServer() {
         setDone(list, attrs.id, result, noCategoryAmount);
         return result;
       });
+      //#endregion
+
+      //#region Subject
+      this.get('/api/subject/list', () => subjects);
       //#endregion
 
       //#region Auth

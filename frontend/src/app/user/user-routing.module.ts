@@ -1,13 +1,11 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { Role, RoleGuardService } from '../guards/role-guard.service';
+import { RoleGuardService, TeacherRoles } from '../guards/role-guard.service';
 import { NavComponent } from '../navigation/nav.component';
 import { AchievementsComponent } from './achievements/achievements.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { TeamItemComponent } from './teams/item/item.component';
 import { TeamsComponent } from './teams/teams.component';
-
-const TeacherRoles = [Role.TEACHER, Role.ADMIN];
 
 const routes: Routes = [
   {
