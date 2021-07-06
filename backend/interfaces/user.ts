@@ -3,8 +3,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { IdOmit, IdRequired, UserType } from "../types/mod.ts";
+import { User } from "../db/mod.ts"
 
 export interface IUser {
+  getUser(id: string, lock?:symbol): Promise<User|null>
   hash(login: string): string;
   get(id: string, lock?: symbol): Promise<UserType | null>;
   add(part: IdOmit<UserType>, lock?: symbol): Promise<string | null>;

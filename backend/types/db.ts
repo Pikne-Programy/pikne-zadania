@@ -4,6 +4,19 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+export type UserRole =
+  | {
+      name: "student";
+      number: number | null;
+      exercises: { [key: string]: number };
+    }
+  | {
+      name: "teacher";
+    }
+  | {
+      name: "admin";
+    };
+
 export type UserType = {
   id: string;
   email: string;
@@ -12,15 +25,7 @@ export type UserType = {
   team: number;
   tokens: string[];
   seed: number;
-  role: {
-    name: "student";
-    number: number | null;
-    exercises: { [key: string]: number };
-  } | {
-    name: "teacher";
-  } | {
-    name: "admin";
-  };
+  role: UserRole;
 };
 
 export type TeamType = {
@@ -37,11 +42,8 @@ export type GlobalType = {
 
 export type success = boolean;
 
-export type IdPartial<T extends { "id": unknown }> = Pick<T, "id"> & Partial<T>;
-export type IdOmit<T extends { "id": unknown }> = Omit<T, "id">;
-export type IdOptional<T extends { "id": unknown }> =
-  & Partial<Pick<T, "id">>
-  & Omit<T, "id">;
-export type IdRequired<T extends { "id": unknown }> =
-  & Pick<T, "id">
-  & Partial<T>;
+export type IdPartial<T extends { id: unknown }> = Pick<T, "id"> & Partial<T>;
+export type IdOmit<T extends { id: unknown }> = Omit<T, "id">;
+export type IdOptional<T extends { id: unknown }> = Partial<Pick<T, "id">> &
+  Omit<T, "id">;
+export type IdRequired<T extends { id: unknown }> = Pick<T, "id"> & Partial<T>;

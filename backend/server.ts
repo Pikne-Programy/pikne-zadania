@@ -11,7 +11,7 @@ import {
   Exercises,
   Team,
   Teams,
-  User,
+  UserFactory,
   Users,
 } from "./services/mod.ts";
 import {
@@ -54,7 +54,7 @@ app.use(async (ctx: Context, next: () => unknown) => {
 export const cfg = new Config();
 const db = new Database(cfg);
 const tm = new Team(db);
-const us = new User(cfg, db, tm);
+const us = new UserFactory(cfg, db, tm);
 await db.init(tm, us);
 const exs = new Exercises(us);
 const tms = new Teams(tm, us);
