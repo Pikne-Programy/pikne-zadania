@@ -15,10 +15,10 @@ export class TeamsController {
     private teams: ITeams,
   ) {}
 
-  getAll(ctx: RouterContext) {
+  readonly getAll = (ctx: RouterContext) => {
     ctx.response.status = 200;
     ctx.response.body = this.teams.getAllOf(ctx.state.user!); // auth required
-  }
+  };
 
   readonly add = followSchema(
     { name: teamSchema.nameReq },

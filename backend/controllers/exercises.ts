@@ -14,30 +14,30 @@ export class ExercisesController {
     private ex: IExercises,
   ) {}
 
-  setSeed(ctx: RouterContext, seed: number) {
+  readonly setSeed = (ctx: RouterContext, seed: number) => {
     ctx.state.seed = seed;
     ctx.cookies.set("seed", seed.toString(), { maxAge: this.cfg.SEED_AGE });
-  }
+  };
 
-  async seed(ctx: RouterContext, next: () => Promise<unknown>) {
+  readonly seed = async (ctx: RouterContext, next: () => Promise<unknown>) => {
     const cookie = +(ctx.cookies.get("seed") ?? NaN);
     if (ctx.state.user) this.setSeed(ctx, ctx.state.user.seed);
     else if (isNaN(cookie)) this.setSeed(ctx, generateSeed());
     else ctx.state.seed = cookie;
     await next();
-  }
+  };
 
-  async getStaticContent(ctx: RouterContext) {
+  readonly getStaticContent = async (ctx: RouterContext) => {
     if (!ctx.params.file || !ctx.params.subject) throw new Error("never");
     await send(ctx, ctx.params.file, {
       root: this.ex.getStaticContentPath(ctx.params.subject),
     }); // there's a problem with no permission to element
-  }
+  };
 
-  list(ctx: RouterContext) {
+  readonly list = (ctx: RouterContext) => {
     ctx.response.status = 200;
     ctx.response.body = this.ex.getListOf(ctx.state.user);
-  }
+  };
 
   readonly check = followSchema({
     id: exerciseSchema.id,

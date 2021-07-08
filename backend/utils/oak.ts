@@ -5,6 +5,7 @@
 
 import {
   _Context,
+  _Router,
   _RouterContext,
   httpErrors,
   ObjectTypeOf,
@@ -23,9 +24,10 @@ export type RouterContext<P extends RouteParams = RouteParams> = _RouterContext<
   P,
   State
 >;
+export class Router extends _Router<RouteParams, State> {}
 
 function _placeholder(status: number, body?: JSONType) {
-  return (ctx: RouterContext) : unknown => {
+  return (ctx: RouterContext): unknown => {
     ctx.response.status = status;
     ctx.response.body = body;
     return undefined;

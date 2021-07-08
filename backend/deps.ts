@@ -25,7 +25,7 @@ export {
   Application,
   HttpError,
   httpErrors,
-  Router,
+  Router as _Router,
   send,
 } from "https://deno.land/x/oak@v7.7.0/mod.ts";
 export {
