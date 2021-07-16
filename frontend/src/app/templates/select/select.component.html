@@ -1,6 +1,6 @@
 <div class="columns height-full is-centered">
   <div class="column is-flex is-flex-direction-column height-full is-half-tablet is-two-fifths-desktop is-one-third-widescreen is-one-forth-fullhd py-only-mobile-0">
-    <app-panel class="max-height-full" [main-link]="mainLink" [items]="items" [header]="header" [color]="color" [loading]="isLoading" [text-pipe]="pipe"></app-panel>
+    <app-panel class="max-height-full" [main-link]="mainLink" [items]="items" [tabs]="tabs" [header]="header" [color]="color" [selected-tab]="currentTab" [loading]="isLoading" [text-pipe]="pipe" (onTabClick)="onTabClick.emit($event)" [prefix]="prefix" [suffix]="suffix"></app-panel>
     <ng-content></ng-content>
   </div>
 </div>

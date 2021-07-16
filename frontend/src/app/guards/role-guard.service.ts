@@ -14,6 +14,8 @@ export enum Role {
   ADMIN,
 }
 
+export const TeacherRoles = [Role.TEACHER, Role.ADMIN];
+
 @Injectable({
   providedIn: 'root',
 })

@@ -3,16 +3,13 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Router } from "./deps.ts";
-import { placeholder } from "./utils/mod.ts";
+import { placeholder, Router } from "./utils/mod.ts";
 import {
   AuthController,
   ExercisesController,
   TeamsController,
   UsersController,
 } from "./controllers/mod.ts";
-
-// TODO
 
 export default class RouterBuilder {
   readonly router: Router;
@@ -23,51 +20,50 @@ export default class RouterBuilder {
     private tm: TeamsController,
     private us: UsersController,
   ) {
-    const authReq = (b: any, n: any) => this.auth.authorize(true)(b, n);
-    const authNotReq = (b: any, n: any) => this.auth.authorize(false)(b, n);
-    const seed = (b: any, n: any) => this.ex.seed(b, n);
+    const authReq = this.auth.authReq;
+    const authNotReq = this.auth.authNotReq;
+    const seed = this.ex.seed;
 
-    const b = <T, U, P>(f: (a: T, b: P) => U) => ((a: T, b: P) => f(a, b));
     this.router = new Router()
       .get("/api", placeholder(200, {}))
-      .get("/img/:subject/:file", (b: any) => this.ex.getStaticContent(b))
+      .get("/img/:subject/:file", this.ex.getStaticContent)
       .use(
         "/api",
         new Router().use(
           "/exercise",
           new Router()
-            .get("/list", authNotReq, (b: any) => this.ex.list(b))
-            //.post("/get", authNotReq, (b: any) => this.ex.get(b))
-            //.post("/update", authReq, (b: any) => this.ex.update(b))
-            .post("/check", authNotReq, seed, (b: any) => this.ex.check(b))
-            .post("/render", authNotReq, seed, (b: any) => this.ex.render(b))
-            //.post("/preview", authNotReq, (b: any) => this.ex.preview(b))
+            .get("/list", authNotReq, this.ex.list)
+            //.post("/get", authNotReq, this.ex.get)
+            //.post("/update", authReq, this.ex.update)
+            .post("/check", authNotReq, seed, this.ex.check)
+            .post("/render", authNotReq, seed, this.ex.render)
+            //.post("/preview", authNotReq, this.ex.preview)
             .routes(),
         ).use(
           "/auth",
           new Router()
-            .post("/register", (b: any) => this.auth.register(b))
-            .post("/login", (b: any) => this.auth.login(b))
-            .post("/logout", authReq, (b: any) => this.auth.logout(b))
+            .post("/register", this.auth.register)
+            .post("/login", this.auth.login)
+            .post("/logout", authReq, this.auth.logout)
             .routes(),
         ).use(
           "/user",
           new Router()
-            .get("/current", authReq, (b: any) => this.us.current(b))
-            .post("/delete", authReq, (b: any) => this.us.deleteUser(b))
-            .post("/update", authReq, (b: any) => this.us.updateUser(b))
-            .post("/info", authReq, (b: any) => this.us.userInfo(b))
+            .get("/current", authReq, this.us.current)
+            .post("/delete", authReq, this.us.deleteUser)
+            .post("/update", authReq, this.us.updateUser)
+            .post("/info", authReq, this.us.userInfo)
             .routes(),
         ).use(
           "/team",
           new Router()
-            .post("/create", authReq, (b: any) => this.tm.add(b))
-            .post("/delete", authReq, (b: any) => this.tm.delete(b))
-            .post("/update", authReq, (b: any) => this.tm.update(b))
-            .get("/list", authReq, (b: any) => this.tm.getAll(b))
-            .post("/info", authReq, (b: any) => this.tm.get(b))
+            .post("/create", authReq, this.tm.add)
+            .post("/delete", authReq, this.tm.delete)
+            .post("/update", authReq, this.tm.update)
+            .get("/list", authReq, this.tm.getAll)
+            .post("/info", authReq, this.tm.get)
             .routes(),
         ).routes(),
-      ) as any;
+      );
   }
 }

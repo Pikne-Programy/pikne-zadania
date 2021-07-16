@@ -2,11 +2,22 @@
   {{ header }}
 </p>
 <app-loading *ngIf="isLoading"></app-loading>
+<p *ngIf="getTabs() as tabList" class="panel-tabs">
+  <a *ngFor="let tab of tabList; index as i" [ngClass]="{ 
+    'is-active': i === getCurrentTab(tabList.length)
+  }" (click)="onTabClick.emit(i)">{{ tab | titlecase }}</a>
+</p>
 <div *ngIf="!isLoading" class="panel height-full scrollable" [ngClass]="[getColor()]">
-  <a *ngFor="let item of list" class="panel-block" [routerLink]="getRouterLink(item[1])">
+  <a *ngFor="let item of getItems()" class="panel-block" [routerLink]="getRouterLink(item[1])">
     <span *ngIf="item[2]" class="panel-icon">
       <i class="fas" [ngClass]="item[2]" aria-hidden="true"></i>
     </span>
+    <ng-container *ngIf="prefix && item[3]">
+      <ng-container *ngTemplateOutlet="prefix"></ng-container>
+    </ng-container>
     {{ getPipedText(item[0]) }}
+    <ng-container *ngIf="suffix && item[4]">
+      <ng-container *ngTemplateOutlet="suffix"></ng-container>
+    </ng-container>
   </a>
 </div>

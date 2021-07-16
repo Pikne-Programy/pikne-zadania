@@ -19,7 +19,7 @@ export class AuthController {
     private auth: IAuth,
   ) {}
 
-  authorize(required: boolean) {
+  readonly authorize = (required: boolean) => {
     return async (ctx: RouterContext, next: () => Promise<unknown>) => {
       const jwt = ctx.cookies.get("jwt");
       ctx.state.user = await this.auth.resolve(jwt);
@@ -27,7 +27,9 @@ export class AuthController {
       if (required && !ctx.state.user) throw new httpErrors["Forbidden"]();
       await next();
     };
-  }
+  };
+  readonly authReq = this.authorize(true);
+  readonly authNotReq = this.authorize(false);
 
   readonly login = followSchema({
     login: userSchema.login,
@@ -53,7 +55,7 @@ export class AuthController {
     console.log(`login: ${req.login} ${ctx.response.status} ${time} ms`);
   });
 
-  async logout(ctx: RouterContext) {
+  readonly logout = async (ctx: RouterContext) => {
     const user = ctx.state.user?.id;
     if (!user) throw new httpErrors["Forbidden"]();
     const jwt = ctx.cookies.get("jwt") ?? "";
@@ -61,7 +63,7 @@ export class AuthController {
     ctx.cookies.delete("jwt");
     ctx.response.status = 200;
     console.log(`logout: ${user} ${ctx.response.status}`);
-  }
+  };
 
   readonly register = followSchema({
     login: vs.email(),
