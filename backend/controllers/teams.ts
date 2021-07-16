@@ -15,9 +15,9 @@ export class TeamsController {
     private teams: ITeams,
   ) {}
 
-  readonly getAll = (ctx: RouterContext) => {
+  readonly getAll = async (ctx: RouterContext) => {
     ctx.response.status = 200;
-    ctx.response.body = this.teams.getAllOf(ctx.state.user!); // auth required
+    ctx.response.body = await this.teams.getAllOf(ctx.state.user!); // auth required
   };
 
   readonly add = followSchema(
