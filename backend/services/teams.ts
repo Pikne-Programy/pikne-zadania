@@ -4,28 +4,28 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { TeamType, UserType } from "../types/mod.ts";
-import { ITeam, ITeams, IUser } from "../interfaces/mod.ts";
+import { Team, User } from "../models/mod.ts";
+import { ITeamFactory, ITeams, IUserFactory } from "../interfaces/mod.ts";
 
 export class Teams implements ITeams {
   constructor(
-    private team: ITeam,
-    private user: IUser,
+    private tf: ITeamFactory,
+    private uf: IUserFactory,
   ) {}
 
-  async getAllOf(_user: UserType) {
+  async getAllOf(_user: User) {
     // TODO: check assignee if not root
-    const teams: TeamType[] = await this.team.getAll();
+    const teams: Team[] = await this.tf.getAll();
     return teams.map((team) => ({
       id: team.id,
       name: team.name,
       assignee: team.assignee,
-      open: team.invitation !== null,
+      open: team.invitation.get() !== null,
     }));
   }
 
-  add(name: string, assignee: UserType) {
-    return this.team.add({
+  add(name: string, assignee: User) {
+    return this.tf.add({
       name,
       assignee: assignee.id,
       members: [],
@@ -34,16 +34,17 @@ export class Teams implements ITeams {
   }
 
   delete(id: number) {
-    return this.team.delete(id);
+    return this.tf.delete(id);
   }
 
   async get(id: number) {
-    const team = await this.team.get(id);
+    const team = await this.tf.get(id);
     if (!team) return null;
-    const { name, assignee, invitation } = team;
+    const { name, assignee } = team;
+    const invitation = team.invitation.get();
     const members: { id: string; name: string; number: number | null }[] = [];
-    for (const member of team.members) {
-      const user = await this.user.get(member);
+    for (const member of team.members.get()) {
+      const user = await this.uf.get(member);
       if (user) {
         members.push({
           id: user.id,
@@ -76,21 +77,19 @@ export class Teams implements ITeams {
     assignee?: string,
     name?: string,
   ) {
-    const team = await this.team.get(id);
+    const team = await this.tf.get(id);
     if (!team) return 1;
-    if (invitation === "") team.invitation = Teams.generateInvitationCode(id);
-    else if (invitation === "null") team.invitation = null;
-    else if (invitation != null) team.invitation = invitation;
+    if (invitation === "") {
+      team.invitation.set(Teams.generateInvitationCode(id));
+    } else if (invitation === "null") await team.invitation.set(null);
+    else if (invitation != null) await team.invitation.set(invitation);
     if (name != null) team.name = name;
     if (assignee != null) {
-      if (!await this.user.get(assignee)) {
+      if (!await this.uf.get(assignee)) {
         console.error(`User with id ${assignee} doesn't exist.`);
         return 2;
       }
       team.assignee = assignee;
-    }
-    if (!await this.team.set(team)) {
-      throw new Error(`The team ${id} existed but it doesn't exist.`);
     }
     return 0;
   }

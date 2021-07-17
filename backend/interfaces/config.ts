@@ -17,6 +17,7 @@ export interface IConfig {
     key: string;
   };
   readonly MONGO_CONF: { db: string; url: string; time: number };
+  hash(email: string): string;
   setuproot(
     register: (dhpassword: string) => Promise<unknown>,
     unregister: () => Promise<unknown>,

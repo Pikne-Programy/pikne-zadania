@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { UserType } from "../types/mod.ts";
+import { User } from "../models/mod.ts";
 
 export interface IUsers {
   delete(id: string): Promise<boolean>;
-  parse(user: UserType): { name: string; team: number; number: number | null };
+  parse(user: User): { name: string; team: number; number: number | null };
   info(
     id: string,
   ): Promise<{ name: string; team: number; number: number | null } | null>;

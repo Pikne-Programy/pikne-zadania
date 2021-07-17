@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { UserFactory } from "../services/user.ts";
 import { UserRole, UserType } from "../types/db.ts";
+import { IDatabase } from "../interfaces/mod.ts";
 
 export class User {
   private _id: string;
@@ -15,7 +15,10 @@ export class User {
   private _seed: number;
   private _role: UserRole;
 
-  constructor(private user: UserType, private userFactory: UserFactory) {
+  constructor(
+    private user: UserType,
+    private db: IDatabase,
+  ) {
     this._id = user.id;
     this._email = user.email;
     this._name = user.name;
@@ -37,8 +40,8 @@ export class User {
   }
   set name(value: string) {
     this._name = value;
-    this.userFactory.promiseQueue.push(() =>
-      this.userFactory.set({ id: this.id, name: this.name })
+    this.db.promiseQueue.push(
+      this.db.users!.updateOne({ id: this.id }, { $set: { name: this.name } }),
     );
   }
   get dhpassword() {
@@ -49,26 +52,40 @@ export class User {
   }
   set team(value: number) {
     this._team = value;
-    this.userFactory.promiseQueue.push(() =>
-      this.userFactory.set({ id: this.id, name: this.name })
+    this.db.promiseQueue.push(
+      this.db.users!.updateOne({ id: this.id }, { $set: { team: this.team } }),
     );
   }
-  get tokens() {
-    return this._tokens;
-  }
-  set tokens(value: string[]) {
-    this._tokens = value;
-    this.userFactory.promiseQueue.push(() =>
-      this.userFactory.set({ id: this.id, tokens: this.tokens })
-    );
-  }
+  readonly tokens = {
+    exists: (jwt: string) => {
+      return this._tokens.includes(jwt) ? true : false;
+    },
+    add: (jwt: string) => {
+      this._tokens.push(jwt);
+      this.db.promiseQueue.push(
+        this.db.users!.updateOne(
+          { id: this.id },
+          { $addToSet: { tokens: jwt } },
+        ),
+      );
+      return true;
+    },
+    remove: (jwt: string) => {
+      if (!this.tokens.exists(jwt)) return false;
+      this.db.promiseQueue.push(
+        this.db.users!.updateOne({ id: this.id }, { $pull: { tokens: jwt } }),
+      );
+      return true;
+    },
+  };
+
   get seed() {
     return this._seed;
   }
   set seed(value: number) {
     this._seed = value;
-    this.userFactory.promiseQueue.push(() =>
-      this.userFactory.set({ id: this.id, seed: this.seed })
+    this.db.promiseQueue.push(
+      this.db.users!.updateOne({ id: this.id }, { $set: { seed: this.seed } }),
     );
   }
   get role() {
@@ -76,8 +93,8 @@ export class User {
   }
   set role(value: UserRole) {
     this._role = value;
-    this.userFactory.promiseQueue.push(() =>
-      this.userFactory.set({ id: this.id, role: this.role })
+    this.db.promiseQueue.push(
+      this.db.users!.updateOne({ id: this.id }, { $set: { role: this.role } }),
     );
   }
 }

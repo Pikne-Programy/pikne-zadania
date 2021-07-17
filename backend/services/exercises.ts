@@ -10,14 +10,14 @@ import {
   isJSONType,
   isObjectOf,
   JSONType,
-  UserType,
 } from "../types/mod.ts";
+import { User } from "../models/mod.ts";
 import { deepCopy, handleThrown, joinThrowable } from "../utils/mod.ts";
 import {
   DoneSection,
   IExercises,
   isYAMLSection,
-  IUser,
+  IUserFactory,
   Section,
   YAMLSection,
 } from "../interfaces/mod.ts";
@@ -29,7 +29,7 @@ export class Exercises implements IExercises {
   private readonly exercisesPath = "./exercises";
 
   constructor(
-    private user: IUser,
+    private uf: IUserFactory,
   ) {
     for (
       const { path } of [
@@ -118,11 +118,11 @@ export class Exercises implements IExercises {
     return this._build(subject, elements);
   }
 
-  private userProgress(arr: DoneSection[], user: UserType) {
+  private userProgress(arr: DoneSection[], user: User) {
     if (user && user.role.name === "student") {
       for (const e of arr) {
         if (typeof e.children === "string") {
-          e.done = user.role.exercises[e.children] ?? null;
+          e.done = user.role.exercises[e.children] ?? null; //TODO(nircek): subject/id
         } else this.userProgress(e.children, user);
       }
     }
@@ -132,32 +132,26 @@ export class Exercises implements IExercises {
     return joinThrowable(this.exercisesPath, subject, "static");
   }
 
-  getListOf(user: UserType | null) {
+  getListOf(user: User | null) {
     const userList: DoneSection[] = deepCopy(this._list);
     if (user) this.userProgress(userList, user);
     return userList;
   }
 
-  async check(id: string, answer: JSONType, user: UserType | { seed: number }) {
+  check(id: string, answer: JSONType, user: User | { seed: number }) {
     const ex = this.dict[id];
-    if (!ex) return null;
+    if (ex === undefined) return null;
     const res = ex.check(user.seed, answer);
-    if ("id" in user) {
-      type EmailPartial = Omit<UserType, "email"> & { email?: string } | null;
-      const euser: EmailPartial = await this.user.get(user.id);
-      if (euser && euser.role.name === "student") {
-        res.done = Math.max(res.done, euser.role.exercises[id] ?? -Infinity);
-        delete euser.email;
-        euser.role.exercises[id] = res.done;
-        await this.user.set(euser);
-      }
+    if (user instanceof User && user.role.name === "student") {
+      res.done = Math.max(res.done, user.role.exercises[id] ?? -Infinity);
+      user.role.exercises[id] = res.done;
     }
     return res.answer;
   }
 
   render(id: string, seed: number) {
     const ex = this.dict[id];
-    if (!ex) return null;
+    if (ex === undefined) return null;
     return ex.render(seed);
   }
 }

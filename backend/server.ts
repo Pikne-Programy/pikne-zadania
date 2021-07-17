@@ -9,7 +9,7 @@ import {
   Config,
   Database,
   Exercises,
-  Team,
+  TeamFactory,
   Teams,
   UserFactory,
   Users,
@@ -53,13 +53,13 @@ app.use(async (ctx: Context, next: () => unknown) => {
 
 export const cfg = new Config();
 const db = new Database(cfg);
-const tm = new Team(db);
-const us = new UserFactory(cfg, db, tm);
-await db.init(tm, us);
-const exs = new Exercises(us);
-const tms = new Teams(tm, us);
-const uss = new Users(us);
-const auth = new Auth(cfg, tm, us);
+const tf = new TeamFactory(db);
+const uf = new UserFactory(cfg, db, tf);
+await db.init(tf, uf);
+const exs = new Exercises(uf);
+const tms = new Teams(tf, uf);
+const uss = new Users(uf);
+const auth = new Auth(cfg, uf);
 const authc = new AuthController(cfg, auth);
 const exc = new ExercisesController(cfg, exs);
 const tmc = new TeamsController(tms);

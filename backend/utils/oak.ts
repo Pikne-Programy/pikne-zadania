@@ -13,11 +13,12 @@ import {
   SchemaObject,
   vs,
 } from "../deps.ts";
-import { JSONType, UserType } from "../types/mod.ts";
+import { JSONType } from "../types/mod.ts";
+import { User } from "../models/mod.ts";
 
 export interface State {
   seed: number;
-  user: UserType | null;
+  user: User | null;
 }
 export type Context = _Context<State>;
 export type RouterContext<P extends RouteParams = RouteParams> = _RouterContext<

@@ -42,9 +42,9 @@ export class ExercisesController {
   readonly check = followSchema({
     id: exerciseSchema.id,
     answers: exerciseSchema.answers,
-  }, async (ctx, req) => {
+  }, (ctx, req) => {
     ctx.response.status = 200;
-    ctx.response.body = await this.ex.check(
+    ctx.response.body = this.ex.check(
       req.id,
       req.answers,
       ctx.state.user ?? { seed: ctx.state.seed },

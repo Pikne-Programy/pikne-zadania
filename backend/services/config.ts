@@ -5,6 +5,7 @@
 import { Algorithm } from "../deps.ts";
 import { firsthash, secondhashSync } from "../utils/mod.ts";
 import { IConfig } from "../interfaces/mod.ts";
+import { sha256 } from "../utils/mod.ts";
 
 const algos = [
   "none",
@@ -91,6 +92,10 @@ export class Config implements IConfig {
     this.ROOT_ENABLE = get("boolean", "ROOT_ENABLE", false);
     this.ROOT_PASS = Deno.env.get("ROOT_PASS");
     this.ROOT_DHPASS = Deno.env.get("ROOT_DHPASS");
+  }
+
+  hash(mail: string) {
+    return sha256(mail, this.USER_SALT);
   }
 
   async setuproot(

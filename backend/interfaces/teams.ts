@@ -2,13 +2,13 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { UserType } from "../types/mod.ts";
+import { User } from "../models/mod.ts";
 
 export interface ITeams {
   getAllOf(
-    user: UserType,
+    user: User,
   ): Promise<{ id: number; name: string; assignee: string; open: boolean }[]>;
-  add(name: string, assignee: UserType): Promise<number | null>;
+  add(name: string, assignee: User): Promise<number | null>;
   delete(id: number): Promise<boolean>;
   get(id: number): Promise<
     {
@@ -19,9 +19,9 @@ export interface ITeams {
     } | null
   >;
   /** Returns:
-  * - 1 if team was not found,
-  * - 2 if assignee was not found.
-  */
+   * - 1 if team was not found,
+   * - 2 if assignee was not found.
+   */
   update(
     id: number,
     invitation?: string,

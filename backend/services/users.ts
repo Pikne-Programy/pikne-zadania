@@ -3,19 +3,19 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { UserType } from "../types/mod.ts";
-import { IUser, IUsers } from "../interfaces/mod.ts";
+import { User } from "../models/mod.ts";
+import { IUserFactory, IUsers } from "../interfaces/mod.ts";
 
 export class Users implements IUsers {
   constructor(
-    private user: IUser,
+    private uf: IUserFactory,
   ) {}
 
   delete(id: string) {
-    return this.user.delete(id);
+    return this.uf.delete(id);
   }
 
-  parse(user: UserType) {
+  parse(user: User) {
     return {
       name: user.name,
       team: user.team,
@@ -24,31 +24,19 @@ export class Users implements IUsers {
   }
 
   async info(id: string) {
-    const user = await this.user.get(id);
+    const user = await this.uf.get(id);
     if (!user) return null;
     return this.parse(user);
   }
 
   async update(id: string, number?: number, name?: string) {
-    const user = await this.user.get(id);
+    const user = await this.uf.get(id);
     if (!user) return 1;
-    if (!name) name = user.name;
-    if (number !== undefined && !isNaN(number)) {
+    if (number !== undefined && !isNaN(number)) { // TODO(Nircek): rework schemas
       if (user.role.name !== "student") return 2;
       user.role.number = number;
     }
-    const part = {
-      id,
-      name,
-      role: user.role.name !== "student" ? undefined : {
-        name: "student" as const,
-        number: user.role.number,
-        exercises: user.role.exercises,
-      },
-    };
-    if (!await this.user.set(part)) {
-      throw new Error(`The user ${id} existed but it doesn't exist.`);
-    }
+    if (name !== undefined) user.name = name;
     return 0;
   }
 }

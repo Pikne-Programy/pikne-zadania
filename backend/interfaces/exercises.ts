@@ -8,8 +8,8 @@ import {
   isObjectOf,
   JSONObject,
   JSONType,
-  UserType,
 } from "../types/mod.ts";
+import { User } from "../models/mod.ts";
 
 export type Section = {
   name: string;
@@ -34,11 +34,11 @@ export function isYAMLSection(what: unknown): what is YAMLSection {
 export interface IExercises {
   analyze(content: string): Exercise;
   getStaticContentPath(subject: string): string;
-  getListOf(user: UserType | null): DoneSection[];
+  getListOf(user: User | null): DoneSection[];
   check(
     id: string,
     answer: JSONType,
-    user: UserType | { seed: number },
-  ): Promise<JSONType | null>;
+    user: User | { seed: number },
+  ): JSONType | null;
   render(id: string, seed: number): JSONObject | null;
 }

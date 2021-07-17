@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { UserType } from "../types/mod.ts";
+import { User } from "../models/mod.ts";
 
 export interface IAuth {
-  resolve(jwt?: string): Promise<UserType | null>;
+  resolve(jwt?: string): Promise<User | null>;
   login(login: string, hashedPassword: string): Promise<string | null>;
   logout(login: string, jwt: string): Promise<boolean>;
   /** Returns:
