@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-export * from "./auth.ts";
 export * from "./config.ts";
 export * from "./db.ts";
-export * from "./exercises.ts";
-export * from "./teamFactory.ts";
-export * from "./teams.ts";
-export * from "./userFactory.ts";
-export * from "./users.ts";
+export * from "./jwt.ts";
+export * from "./exercise.ts";
+export * from "./exerciseStore.ts";
+export * from "./subjectStore.ts";
+export * from "./userStore.ts";
+export * from "./teamStore.ts";

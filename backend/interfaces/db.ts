@@ -4,15 +4,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { Collection } from "../deps.ts";
-import { GlobalType, TeamType, UserType } from "../types/mod.ts";
-import { ITeamFactory, IUserFactory } from "./mod.ts";
+import { TeamType, UserType } from "../types/db.ts";
 
-export interface IDatabase {
+export interface IDatabaseService {
   users?: Collection<UserType>;
   teams?: Collection<TeamType>;
-  global?: Collection<GlobalType>;
-  promiseQueue: Promise<unknown>[];
-  invitations: { [key: string]: number };
-  closeDB(): void;
-  init(team: ITeamFactory, user: IUserFactory): Promise<void>;
+  close(): void;
 }

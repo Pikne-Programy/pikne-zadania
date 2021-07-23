@@ -4,7 +4,7 @@
 
 import { Algorithm } from "../deps.ts";
 
-export interface IConfig {
+export interface IConfigService {
   readonly SEED_AGE: number;
   readonly LOGIN_TIME: number;
   readonly USER_SALT: string;
@@ -17,10 +17,10 @@ export interface IConfig {
     key: string;
   };
   readonly MONGO_CONF: { db: string; url: string; time: number };
-  hash(email: string): string;
-  setuproot(
-    register: (dhpassword: string) => Promise<unknown>,
-    unregister: () => Promise<unknown>,
-    check: () => Promise<{ dhpassword: string } | null>,
-  ): Promise<void>;
+  readonly ROOT_CONF: {
+    enable: boolean;
+    password?: string;
+    dhPassword?: string;
+  };
+  hash(login: string): string;
 }

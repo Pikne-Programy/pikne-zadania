@@ -4,28 +4,19 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-export type UserRole =
-  | {
-      name: "student";
-      number: number | null;
-      exercises: { [key: string]: number };
-    }
-  | {
-      name: "teacher";
-    }
-  | {
-      name: "admin";
-    };
+export type Role = "student" | "teacher" | "admin";
 
 export type UserType = {
   id: string;
-  email: string;
+  login: string;
   name: string;
-  dhpassword: string;
+  dhPassword: string; // double hashed password
   team: number;
   tokens: string[];
   seed: number;
-  role: UserRole;
+  role: Role;
+  number?: number | null;
+  exercises: { [key: string]: number };
 };
 
 export type TeamType = {
@@ -36,14 +27,7 @@ export type TeamType = {
   invitation: string | null;
 };
 
-export type GlobalType = {
-  lastTid: number;
+export type SubjectType = {
+  id: string;
+  assignees: string[];
 };
-
-export type success = boolean;
-
-export type IdPartial<T extends { id: unknown }> = Pick<T, "id"> & Partial<T>;
-export type IdOmit<T extends { id: unknown }> = Omit<T, "id">;
-export type IdOptional<T extends { id: unknown }> = Partial<Pick<T, "id">> &
-  Omit<T, "id">;
-export type IdRequired<T extends { id: unknown }> = Pick<T, "id"> & Partial<T>;
