@@ -20,14 +20,17 @@ export class Subject {
   providedIn: 'root',
 })
 export class SubjectService {
-  readonly TypeError = 400;
+  private readonly TypeError = 400;
 
   constructor(private http: HttpClient) {}
 
   private createSubjectList(serverResponse: string[]): Subject[] {
     const res = serverResponse.map((id) => new Subject(id));
     res.sort((a, b) => {
-      const comp = a.getName().toLocaleLowerCase().localeCompare(b.getName());
+      const comp = a
+        .getName()
+        .toLocaleLowerCase()
+        .localeCompare(b.getName().toLocaleLowerCase());
       if (!comp) {
         if (a.isPrivate && !b.isPrivate) return 1;
         if (!a.isPrivate && b.isPrivate) return -1;

@@ -5,7 +5,6 @@ import { switchMap } from 'rxjs/operators';
 import { AccountService } from '../account/account.service';
 import { Exercise } from '../exercises/exercises';
 import { Role, RoleGuardService } from '../guards/role-guard.service';
-import { getErrorCode } from '../helper/utils';
 import * as ServerRoutes from '../server-routes';
 import { Subject } from './exercise.utils';
 
@@ -14,6 +13,7 @@ import { Subject } from './exercise.utils';
 })
 export class ExerciseService {
   private readonly TypeError = 400;
+  private readonly LengthError = 419;
 
   constructor(
     private http: HttpClient,
@@ -27,24 +27,27 @@ export class ExerciseService {
         switchMap((response) =>
           Subject.checkSubjectListValidity(response)
             ? of(response)
-            : throwError({ status: 400 })
+            : throwError({ status: this.TypeError })
         )
       )
       .toPromise();
   }
 
   getSubjectList() {
-    return this.fetchExercises()
-      .then((response) => {
-        const account = this.accountService.currentAccount.getValue();
-        const isUser = account
-          ? RoleGuardService.getRole(account) === Role.USER
-          : true;
-        return response.length > 0
-          ? Subject.createSubjectList(response, isUser) ?? this.TypeError
-          : this.TypeError;
-      })
-      .catch((error) => getErrorCode(error, this.TypeError));
+    return this.fetchExercises().then((response) => {
+      const account = this.accountService.currentAccount.getValue();
+      const isUser = account
+        ? RoleGuardService.getRole(account) === Role.USER
+        : true;
+
+      if (response.length <= 0)
+        return Promise.reject({ status: this.LengthError });
+
+      return (
+        Subject.createSubjectList(response, isUser) ??
+        Promise.reject({ status: this.TypeError })
+      );
+    });
   }
 
   findSubjectById(id: string, subjectList: Subject[]): Subject | null {
@@ -57,7 +60,7 @@ export class ExerciseService {
       .pipe(
         switchMap((response) => {
           if (Exercise.isExercise(response)) {
-            Exercise.getDone(response);
+            Exercise.getDone(response, subject);
             return of(response);
           } else return throwError({ status: this.TypeError });
         })

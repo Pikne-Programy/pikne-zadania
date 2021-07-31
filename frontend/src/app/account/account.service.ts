@@ -29,7 +29,7 @@ export function isAccount(object: any): object is Account {
   providedIn: 'root',
 })
 export class AccountService {
-  readonly AccountTypeError = 400;
+  private readonly AccountTypeError = 400;
 
   currentAccount = new BehaviorSubject<Account | null>(null);
   constructor(
@@ -56,12 +56,13 @@ export class AccountService {
         name: username,
         hashedPassword,
         number: number !== null ? Number(number) : null,
-        invitation: invitation,
+        invitation,
       })
       .toPromise();
   }
 
   async login(email: string, password: string) {
+    email = email.toLowerCase();
     const hashedPassword = await pbkdf2(email, password);
     return this.http
       .post(ServerRoutes.login, {

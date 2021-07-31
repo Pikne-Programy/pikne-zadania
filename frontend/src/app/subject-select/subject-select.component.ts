@@ -2,6 +2,7 @@ import { AfterContentInit, Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExerciseService } from '../exercise-service/exercise.service';
 import { Subject } from '../exercise-service/exercise.utils';
+import { getErrorCode } from '../helper/utils';
 
 @Component({
   selector: 'app-subject-select',
@@ -20,8 +21,9 @@ export class SubjectSelectComponent implements AfterContentInit {
   ) {}
 
   ngAfterContentInit() {
-    this.exerciseService.getSubjectList().then((response) => {
-      if (Array.isArray(response)) {
+    this.exerciseService
+      .getSubjectList()
+      .then((response) => {
         this.list = response;
         this.isLoading = false;
         if (this.list.length == 1) {
@@ -29,8 +31,8 @@ export class SubjectSelectComponent implements AfterContentInit {
             relativeTo: this.route,
           });
         }
-      } else this.errorCode = response;
-    });
+      })
+      .catch((error) => (this.errorCode = getErrorCode(error)));
   }
 
   getSubjectList(): [string, string, string][] {

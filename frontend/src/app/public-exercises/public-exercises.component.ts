@@ -8,6 +8,7 @@ import {
   ScreenSizes,
 } from 'src/app/helper/screen-size.service';
 import { ExerciseTreeNode, Subject } from '../exercise-service/exercise.utils';
+import { getErrorCode } from '../helper/utils';
 
 @Component({
   selector: 'app-public-exercises',
@@ -153,8 +154,9 @@ export class PublicExercisesComponent implements OnInit, OnDestroy {
   private fetchSubjectList() {
     const subjectId = this.route.snapshot.paramMap.get('subjectId');
     if (subjectId) {
-      this.exerciseService.getSubjectList().then((response) => {
-        if (Array.isArray(response)) {
+      this.exerciseService
+        .getSubjectList()
+        .then((response) => {
           const subject = this.exerciseService.findSubjectById(
             subjectId,
             response
@@ -174,8 +176,8 @@ export class PublicExercisesComponent implements OnInit, OnDestroy {
             else this.isSingleSubject = false;
             this.isLoading = false;
           } else this.throwError();
-        } else this.throwError(response);
-      });
+        })
+        .catch((error) => this.throwError(getErrorCode(error)));
     } else this.throwError();
   }
 

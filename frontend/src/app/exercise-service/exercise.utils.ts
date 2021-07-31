@@ -33,14 +33,27 @@ export class Subject {
     return list;
   }
 
-  static checkSubjectListValidity(list: any): list is ServerResponseNode[] {
+  static checkSubjectListValidity(
+    list: any,
+    root: boolean = true
+  ): list is ServerResponseNode[] {
     if (Array.isArray(list)) {
       if (list.length > 0) {
         return list.every((node) => {
-          if ('name' in node && 'children' in node) {
+          if (
+            'name' in node &&
+            typeof node.name === 'string' &&
+            'children' in node
+          ) {
+            if (
+              'done' in node &&
+              typeof node.done !== 'number' &&
+              node.done !== null
+            )
+              return false;
             if (Array.isArray(node.children))
-              return Subject.checkSubjectListValidity(node.children);
-            else return typeof node.children === 'string';
+              return Subject.checkSubjectListValidity(node.children, false);
+            else return !root && typeof node.children === 'string';
           } else return false;
         });
       } else return true;
@@ -51,7 +64,7 @@ export class Subject {
 export class ExerciseTreeNode {
   children: ExerciseTreeNode[] = [];
   constructor(
-    public value: string | null,
+    public value: string,
     public parent: ExerciseTreeNode | null,
     public url: string | null = null,
     public done?: number | null
@@ -62,12 +75,12 @@ export class ExerciseTreeNode {
       return `${this.parent.getPath()}${categorySeparator}${
         this.url ? this.url : this.value
       }`;
-    else return this.url ? this.url : this.value!;
+    else return this.url ? this.url : this.value;
   }
 
   static createExerciseTree(
     getLocal: boolean,
-    value: string | null,
+    value: string,
     children: ServerResponseNode[],
     subject: string,
     parent: ExerciseTreeNode | null = null
@@ -86,14 +99,14 @@ export class ExerciseTreeNode {
         );
       } else {
         if (child.done !== undefined && getLocal)
-          setLocalDone(child.children, child.done);
+          setLocalDone(subject, child.children, child.done);
         node.children.push(
           new ExerciseTreeNode(
-            capitalize(child.name),
+            capitalize(child.name)!,
             node,
             child.children,
             child.done === undefined && getLocal
-              ? getLocalDone(child.children)
+              ? getLocalDone(subject, child.children)
               : child.done
           )
         );
@@ -103,8 +116,8 @@ export class ExerciseTreeNode {
   }
 }
 
-function getLocalDone(url: string): number | null {
-  const localDone = localStorage.getItem(url);
+function getLocalDone(subject: string, id: string): number | null {
+  const localDone = localStorage.getItem(`${subject}/${id}`);
   switch (localDone) {
     case null:
     case 'null':
@@ -115,6 +128,6 @@ function getLocalDone(url: string): number | null {
   }
 }
 
-function setLocalDone(name: string, done: number | null) {
-  localStorage.setItem(name, done?.toString() ?? 'null');
+function setLocalDone(subject: string, id: string, done: number | null) {
+  localStorage.setItem(`${subject}/${id}`, done?.toString() ?? 'null');
 }

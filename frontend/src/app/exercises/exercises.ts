@@ -38,19 +38,24 @@ export class Exercise {
     );
   }
 
-  static getDone(exercise: Exercise) {
+  static getDone(exercise: Exercise, subject: string) {
     if (exercise.done === undefined) {
-      const localDone = localStorage.getItem(exercise.name);
+      const localDone = localStorage.getItem(`${subject}/${exercise.name}`);
       exercise.done = localDone !== null ? Number(localDone) : undefined;
     }
   }
 
-  static setDone(type: ExerciseType, name: string, answers: any) {
+  static setDone(
+    type: ExerciseType,
+    name: string,
+    subject: string,
+    answers: any
+  ) {
     switch (type) {
       case ExerciseType.EqEx:
         const correct = (answers as boolean[]).filter((val) => val);
         localStorage.setItem(
-          name,
+          `${subject}/${name}`,
           (correct.length / (answers as boolean[]).length).toFixed(2).toString()
         );
         break;

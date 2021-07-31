@@ -67,7 +67,8 @@ export function isObject<T>(
     return false;
   }
   return (
-    object &&
+    object !== undefined &&
+    object !== null &&
     typeof object === 'object' &&
     fields.every((field) => {
       switch (field[1]) {

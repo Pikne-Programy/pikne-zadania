@@ -114,7 +114,8 @@ export class EqexComponent implements ExerciseComponent, AfterViewInit {
   }
 
   setLocalDone(name: string, answers: any) {
-    Exercise.setDone(ExerciseType.EqEx, name, answers);
+    if (this.subject)
+      Exercise.setDone(ExerciseType.EqEx, name, this.subject, answers);
   }
 
   private throwError(error: any = {}) {
@@ -128,7 +129,7 @@ export class EqexComponent implements ExerciseComponent, AfterViewInit {
 
   onImageLoaded() {
     this.loadedImages.push(true);
-    if (this.loadedImages.length == this.images?.length && this.isLoading)
+    if (this.loadedImages.length === this.images?.length && this.isLoading)
       this.onLoaded();
   }
 
