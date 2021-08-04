@@ -1,4 +1,4 @@
-<app-select *ngIf="errorCode === null" [main-link]="'/subject'" [items]="createList()" [header]="'Przedmioty'" [loading]="isLoading" [text-pipe]="'titlecase'" [suffix]="suffix">
+<app-select *ngIf="errorCode === null" [main-link]="'/subject/dashboard'" [items]="createList()" [header]="'Przedmioty'" [loading]="isLoading" [text-pipe]="'titlecase'" [suffix]="suffix">
   <div class="buttons is-right">
     <a class="button is-primary is-flex is-align-items-baseline" routerLink="/subject/new">
       <span class="icon">

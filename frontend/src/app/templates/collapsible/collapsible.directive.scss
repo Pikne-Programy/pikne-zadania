@@ -1,0 +1,13 @@
+.collapsible {
+  transition: all 0.175s ease-out;
+  opacity: 1;
+  height: auto;
+
+  &.is-collapsed {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    opacity: 0;
+    height: 0;
+  }
+}

@@ -120,12 +120,12 @@ describe('Exercise', () => {
     });
 
     it('should save correctly (EqEx)', () => {
-      Exercise.setDone(ExerciseType.EqEx, 'Ex1', 'Sb1', [true, false]);
+      Exercise.setDone('EqEx', 'Ex1', 'Sb1', [true, false]);
       expect(spy).toHaveBeenCalledWith('Sb1/Ex1', '0.50');
     });
 
     it('should not execute (wrong type)', () => {
-      Exercise.setDone(-1, 'Ex2', 'Sb2', [true, false]);
+      Exercise.setDone('' as ExerciseType, 'Ex2', 'Sb2', [true, false]);
       expect(spy).not.toHaveBeenCalled();
     });
   });

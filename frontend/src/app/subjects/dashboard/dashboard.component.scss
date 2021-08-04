@@ -1,0 +1,74 @@
+@import "src/styles.variables.scss";
+$mobile: nth(
+  $list: $size_breakpoints,
+  $n: 1,
+);
+$fullhd: nth(
+  $list: $size_breakpoints,
+  $n: 5,
+);
+
+.mobile-unscrollable {
+  overflow: auto;
+
+  @media only screen and (max-width: nth($list: $mobile, $n: 3)) {
+    overflow: hidden;
+  }
+}
+
+.tile {
+  &.panel.is-root {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  @media only screen and (min-width: nth($list: $fullhd, $n: 2)) {
+    $special_sizes: 2, 10;
+    @each $size in $special_sizes {
+      &.is-#{$size}-bigscreen {
+        width: ($size / 12) * 100%;
+      }
+    }
+  }
+}
+
+a {
+  transition: background-color 0.125s ease-out;
+}
+
+.menu-list li ul {
+  margin-right: 0;
+}
+
+.panel-block.is-exercise-container {
+  display: flex;
+  padding: 1rem;
+  padding-top: 0.5rem;
+  border-bottom: 1px solid #ededed;
+
+  &:first-child {
+    padding-top: 0.75rem;
+
+    & .actions {
+      padding-top: 0.25rem;
+    }
+  }
+
+  & .main {
+    display: flex;
+    width: 95%;
+    padding-right: 0.5rem;
+  }
+
+  & .actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 0.5rem;
+  }
+}
+
+.is-hidden {
+  display: none;
+}

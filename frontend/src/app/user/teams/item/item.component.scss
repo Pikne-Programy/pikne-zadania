@@ -128,21 +128,8 @@ $widescreen: nth(
   }
 }
 
-.panel-heading .button {
-  padding: 0;
-  height: 1.5rem;
-  width: 1.5rem;
-
-  &.is-primary:focus:not(:active) {
-    box-shadow: $button-focus-box-shadow-size
-      bulmaRgba(findColorInvert(theme.$prim), 0.25);
-    @if theme.$is-dark {
-      box-shadow: $button-focus-box-shadow-size bulmaRgba(black, 0.25);
-    }
-  }
-  & i.fa-sync-alt.is-spinning {
-    animation: spinAround 1000ms infinite linear;
-  }
+.panel-heading .button i.fa-sync-alt.is-spinning {
+  animation: spinAround 1000ms infinite linear;
 }
 
 .fa-stack-1x {

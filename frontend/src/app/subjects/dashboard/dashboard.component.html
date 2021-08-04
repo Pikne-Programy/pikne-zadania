@@ -1,0 +1,70 @@
+<div *ngIf="!isLoading && errorCode === null" class="tile is-ancestor height-full width-full m-0 px-3 py-tablet-1 scrollable">
+  <!--#region Category tree -->
+  <div class="tile is-3 is-2-bigscreen is-vertical is-parent">
+    <div class="tile is-child height-full panel is-primary is-root">
+      <p class="panel-heading is-flex is-align-items-center">
+        <span class="is-flex-grow-1">{{ subject!.getName() | titlecase }}</span>
+        <a *ngIf="subject" class="button is-primary" title="Edytuj kategorie" [routerLink]="['../../categories', subject.id]">
+          <i class="fas fa-pen"></i>
+        </a>
+        <!--TODO Subject access management -->
+        <button class="button is-primary" title="Zarządzaj dostępem">
+          <i class="fas fa-user-cog"></i>
+        </button>
+      </p>
+      <div class="panel height-full scrollable">
+        <div class="panel-block">
+          <aside class="menu width-full">
+            <ng-container *ngIf="categoryTree">
+              <ng-container *ngTemplateOutlet="catList; context: { $implicit: categoryTree }"></ng-container>
+            </ng-container>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--#endregion-->
+  <!--#region Exercise list -->
+  <div class="tile is-9 is-10-bigscreen is-parent">
+    <div class="tile is-child width-full box p-0 mobile-unscrollable">
+      <ng-container *ngIf="!exerciseError">
+        <div *ngFor="let exercise of exerciseList; index as i" class="panel-block is-exercise-container pr-only-desktop-3 pr-only-widescreen-2 pr-full-hd-1" [ngClass]="{ 'is-hidden': isExerciseLoading }">
+          <div class="main">
+            <app-subject-ex-prev class="is-flex is-flex-direction-column" [exercise]="exercise" [shouldTypeset]="getTypesettingStrategy(exercise, i)" (ready)="isExerciseLoading = false"></app-subject-ex-prev>
+          </div>
+          <div class="actions">
+            <a class="button is-primary is-outlined" [routerLink]="['../../exercise-edit', exercise.id]">
+              <span class="icon is-small">
+                <i class="fas fa-pen"></i>
+              </span>
+            </a>
+          </div>
+        </div>
+      </ng-container>
+      <div *ngIf="!exerciseList && !isExerciseLoading && !exerciseError" class="height-full is-flex is-flex-direction-column is-align-items-center is-justify-content-center py-3">
+        <img class="max-width-75 max-height-75" src="assets/misc/png/exercise_placeholder.png" srcset="assets/misc/exercise_placeholder.svg" alt="">
+      </div>
+      <app-loading *ngIf="isExerciseLoading && !exerciseError"></app-loading>
+      <app-error *ngIf="exerciseError" [code]="exerciseError.code" [message]="getExerciseErrorMessage(exerciseError)"></app-error>
+    </div>
+  </div>
+  <!--#endregion-->
+</div>
+
+<app-loading *ngIf="isLoading && errorCode === null"></app-loading>
+<app-error *ngIf="errorCode !== null" [code]="errorCode" [message]="getErrorMessage(errorCode)"></app-error>
+
+<!--#region Category template -->
+<ng-template #catList let-node>
+  <ul *ngIf="checkNodeChildren(node)" class="menu-list">
+    <ng-container *ngFor="let child of node.children">
+      <li *ngIf="child.children.length > 0">
+        <a [ngClass]="{ 'is-active': child.isSelected }" (click)="onTreeNodeClick(child)">{{ child.value | titlecase }}</a>
+        <div [appCollapsible]="!child.isSelected">
+          <ng-container *ngTemplateOutlet="catList; context: { $implicit: child }"></ng-container>
+        </div>
+      </li>
+    </ng-container>
+  </ul>
+</ng-template>
+<!--#endregion-->

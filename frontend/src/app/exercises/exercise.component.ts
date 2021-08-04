@@ -17,7 +17,6 @@ import { getErrorCode } from '../helper/utils';
 import { EqexComponent } from './eqex/eqex.component';
 import {
   Exercise,
-  ExerciseType,
   ExerciseComponent as ExerciseComponentType,
   categoryRegex,
 } from './exercises';
@@ -54,7 +53,7 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
         .getExercise(this.subject, this.getExerciseId(this.exerciseUrl))
         .then((exercise) => {
           switch (exercise.type) {
-            case ExerciseType[ExerciseType.EqEx]:
+            case 'EqEx':
               this.inflateComponent(EqexComponent, exercise);
               break;
             default:

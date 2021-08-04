@@ -240,6 +240,14 @@ export function startServer() {
 
       //#region Subject
       this.get('/api/subject/list', () => subjects);
+      this.post('/api/subject/exercise/list', (schema: any, request: any) => {
+        if (!currentAccount) return new Response(500);
+        if (currentAccount.team > 1) return new Response(403);
+        const id = JSON.parse(request.requestBody).id;
+        const subject = list.find((tree) => tree.name === id);
+        if (subject) return subject.children as ExerciseTree[];
+        else return new Response(404);
+      });
       //#endregion
 
       //#region Auth

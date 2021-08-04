@@ -100,4 +100,8 @@ describe('Service: Subject', () => {
       )
     );
   });
+
+  describe('fetchExerciseTree', () => {
+    //TODO fetchExerciseTree tests
+  });
 });

@@ -7,9 +7,18 @@ import { SubjectListComponent } from './list/list.component';
 import { NavModule } from '../navigation/nav.module';
 import { SubjectService } from './subject.service/subject.service';
 import { TemplatesModule } from '../templates/templates.module';
+import { SubjectDashboardComponent } from './dashboard/dashboard.component';
+import { SubjectDashboardPreviewComponent } from './dashboard/exercise-previews/preview.component';
+import { EqexPreviewComponent } from './dashboard/exercise-previews/eqex/eqex.component';
 
 @NgModule({
-  declarations: [SubjectComponent, SubjectListComponent],
+  declarations: [
+    SubjectComponent,
+    SubjectListComponent,
+    SubjectDashboardComponent,
+    SubjectDashboardPreviewComponent,
+    EqexPreviewComponent,
+  ],
   imports: [CommonModule, SubjectRoutingModule, NavModule, TemplatesModule],
   providers: [SubjectService],
   bootstrap: [SubjectComponent],

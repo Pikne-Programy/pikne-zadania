@@ -11,7 +11,7 @@ import { Role, RoleGuardService } from 'src/app/guards/role-guard.service';
 import { serverMockEnabled } from 'src/app/helper/tests/tests.config';
 import { getErrorCode, removeMathTabIndex } from 'src/app/helper/utils';
 import { image } from 'src/app/server-routes';
-import { Exercise, ExerciseComponent, ExerciseType } from '../exercises';
+import { Exercise, ExerciseComponent } from '../exercises';
 declare var MathJax: any;
 
 class Unknown {
@@ -114,8 +114,7 @@ export class EqexComponent implements ExerciseComponent, AfterViewInit {
   }
 
   setLocalDone(name: string, answers: any) {
-    if (this.subject)
-      Exercise.setDone(ExerciseType.EqEx, name, this.subject, answers);
+    if (this.subject) Exercise.setDone('EqEx', name, this.subject, answers);
   }
 
   private throwError(error: any = {}) {

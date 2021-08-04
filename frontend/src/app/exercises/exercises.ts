@@ -1,28 +1,29 @@
 import { EventEmitter } from '@angular/core';
 import { isObject } from '../helper/utils';
 
-export enum ExerciseType {
-  EqEx,
-}
+const exerciseTypes = ['EqEx'] as const;
+export type ExerciseType = typeof exerciseTypes[number];
 
 export const categorySeparator = '~';
 export const categoryRegex = new RegExp(`([^\\${categorySeparator}]+)`, 'g');
 
 export class Exercise {
   constructor(
-    public readonly type: string,
+    public readonly type: ExerciseType,
     public readonly name: string,
     public readonly content: any,
     public done?: number | null
   ) {}
 
   static isExercise(object: any): object is Exercise {
-    return isObject<Exercise>(object, [
-      ['type', ['string']],
-      ['name', ['string']],
-      ['content', 'any'],
-      ['done', ['number', 'null', 'undefined']],
-    ]);
+    return (
+      isObject<Exercise>(object, [
+        ['type', ['string']],
+        ['name', ['string']],
+        ['content', 'any'],
+        ['done', ['number', 'null', 'undefined']],
+      ]) && exerciseTypes.findIndex((type) => object.type === type) !== -1
+    );
   }
 
   static isEqExAnswer = Exercise.isBoolArrayAnswer;
@@ -52,7 +53,7 @@ export class Exercise {
     answers: any
   ) {
     switch (type) {
-      case ExerciseType.EqEx:
+      case 'EqEx':
         const correct = (answers as boolean[]).filter((val) => val);
         localStorage.setItem(
           `${subject}/${name}`,

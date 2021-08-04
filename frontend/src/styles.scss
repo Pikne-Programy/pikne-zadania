@@ -43,6 +43,7 @@
 $dark-box-background: bulmaDarken($background, 5%);
 //#endregion
 
+@import "./app/templates/collapsible/collapsible.directive.scss";
 @import "~@angular/material/prebuilt-themes/deeppurple-amber.css";
 @import "~bulma-switch";
 /* You can add global styles to this file, and also import other style files */
@@ -123,6 +124,24 @@ $dark-box-background: bulmaDarken($background, 5%);
 .panel-tabs + .panel {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
+}
+
+.panel-heading .button {
+  padding: 0;
+  height: 1.5rem;
+  width: 1.5rem;
+
+  &:not(:last-child) {
+    margin-right: 0.5rem;
+  }
+
+  &.is-primary:focus:not(:active) {
+    box-shadow: var.$button-focus-box-shadow-size
+      bulmaRgba(findColorInvert(theme.$prim), 0.25);
+    @if theme.$is-dark {
+      box-shadow: var.$button-focus-box-shadow-size bulmaRgba(black, 0.25);
+    }
+  }
 }
 
 @if theme.$is-dark {
