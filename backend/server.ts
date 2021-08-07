@@ -9,10 +9,11 @@ import {
   ConfigService,
   Database,
   Exercises,
-  TeamStore,
+  StoreTarget,
   Teams,
-  UserStore,
+  TeamStore,
   Users,
+  UserStore,
 } from "./services/mod.ts";
 import {
   AuthController,
@@ -53,15 +54,13 @@ app.use(async (ctx: Context, next: () => unknown) => {
 
 export const cfg = new ConfigService();
 const db = new Database(cfg);
-await db.connect();
-const ts = new TeamStore(cfg, db);
-const us = new UserStore(cfg, db, ts);
-await ts.init();
-await us.init();
-const exs = new Exercises(us);
-const tms = new Teams(ts, us);
-const uss = new Users(us);
-const auth = new Auth(cfg, us);
+const target = new StoreTarget(cfg, db, TeamStore, UserStore);
+await target.us.init();
+await target.ts.init();
+const exs = new Exercises(target.us);
+const tms = new Teams(target.ts, target.us);
+const uss = new Users(target.us);
+const auth = new Auth(cfg, target.us, target.ts);
 const authc = new AuthController(cfg, auth);
 const exc = new ExercisesController(cfg, exs);
 const tmc = new TeamsController(tms);

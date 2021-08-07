@@ -2,92 +2,60 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { TeamType } from "../types/db.ts";
-import { IDatabase } from "../interfaces/mod.ts";
+import { TeamType } from "../types/mod.ts";
+import { IDatabaseService, ITeam } from "../interfaces/mod.ts";
 
-export class Team {
-  readonly _id: number;
-  _name: string;
-  _assignee: string;
-  _members: string[];
-  _invitation: string | null;
-
-  constructor(private team: TeamType, private db: IDatabase) {
-    this._id = team.id;
-    this._name = team.name;
-    this._assignee = team.assignee;
-    this._members = team.members;
-    this._invitation = team.invitation;
+export class Team implements ITeam {
+  constructor(
+    private db: IDatabaseService,
+    public readonly id: number,
+  ) {}
+  private async get<T extends keyof TeamType>(key: T): Promise<TeamType[T]> {
+    if (!this.exists()) throw new Error();
+    const team = await this.db.teams!.findOne({ id: this.id });
+    if (!team) throw new Error();
+    return team[key];
   }
-
-  get id() {
-    return this._id;
+  private async set<T extends keyof TeamType>(key: T, value: TeamType[T]) {
+    if (!this.exists()) throw new Error();
+    await this.db.teams!.updateOne({ id: this.id }, { $set: { [key]: value } });
   }
-  get name() {
-    return this._name;
+  async exists() {
+    return (await this.db.teams!.findOne({ id: this.id })) ? true : false;
   }
-  set name(value: string) {
-    this._name = value;
-    this.db.promiseQueue.push(
-      this.db.users!.updateOne({ id: this.id }, {
-        $set: { name: this.name },
-      }),
-    );
-  }
-  get assignee() {
-    return this._assignee;
-  }
-  set assignee(value: string) {
-    this._assignee = value;
-    this.db.promiseQueue.push(
-      this.db.users!.updateOne({ id: this.id }, {
-        $set: { assignee: this.assignee },
-      }),
-    );
-  }
+  readonly name = {
+    get: async () => await this.get("name"),
+    set: async (value: string) => await this.set("name", value),
+  };
+  readonly assignee = {
+    get: async () => await this.get("assignee"),
+    set: async (value: string) => await this.set("assignee", value),
+  };
   readonly members = {
-    get: () => {
-      return this._members;
-    },
-    add: (uid: string) => {
-      this._members.push(uid);
-      this.db.promiseQueue.push(
-        this.db.teams!.updateOne({ id: this.id }, { $push: { members: uid } }),
-      );
-    },
-    remove: (uid: string) => {
-      this._members.filter((x) => {
-        return x != uid;
+    get: async () => await this.get("members"),
+    add: async (uid: string) => {
+      await this.db.teams!.updateOne({ id: this.id }, {
+        $push: { members: uid },
       });
-      this.db.promiseQueue.push(
-        this.db.teams!.updateOne({ id: this.id }, { $pull: { members: uid } }),
-      );
+    },
+    remove: async (uid: string) => {
+      await this.db.teams!.updateOne({ id: this.id }, {
+        $pull: { members: uid },
+      });
     },
   };
-
   readonly invitation = {
-    get: () => {
-      return this._invitation;
-    },
-    set: (value: string | null) => {
-      if (value !== null) {
-        const tid = this.db.invitations[value];
-        if (tid !== undefined) return;
-        this.db.invitations[value] = this.id;
+    get: async () => await this.get("invitation"),
+    set: async (value?: string) => {
+      if (
+        value !== undefined &&
+        (await this.db.teams!.findOne({ invitation: value }))
+      ) {
+        return;
       }
-      this._invitation = value;
-      this.db.promiseQueue.push(
-        this.db.teams!.updateOne(
-          { id: this.id },
-          { $set: { invitation: value } },
-        ),
-      );
+      await this.db.teams!.updateOne({ id: this.id }, {
+        $set: { value },
+      });
     },
   };
-  set(part: Partial<TeamType>, _lock?: symbol) {
-    this.db.promiseQueue.push(
-      this.db.teams!.updateOne({ id: this.id }, { $set: part }),
-    );
-    return true;
-  }
 }

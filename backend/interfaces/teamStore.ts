@@ -3,18 +3,31 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Team, User } from "../models/mod.ts";
+import { TeamType } from "../types/mod.ts";
+import { IConfigService, IDatabaseService, ITeam } from "./mod.ts";
+import { StoreTarget } from "../services/mod.ts";
+
+export type ITeamStoreConstructor = new (
+  cfg: IConfigService,
+  db: IDatabaseService,
+  parent: StoreTarget,
+) => ITeamStore;
 
 export interface ITeamStore {
-  list(): Promise<Team[]>;
+  init(): Promise<void>;
+  list(): Promise<TeamType[]>;
+  /** Returns:
+   * - 1 if the team already exist,
+   * - 2 if assignee doesn't exist.
+   */
   add(
     id: number | null,
-    options: { name: string; assignee: User },
+    options: { name: string; assignee: string },
   ): Promise<0 | 1 | 2>;
-  get(id: number): Promise<Team | null>;
+  get(id: number): ITeam;
   delete(id: number): Promise<void>; // throws
   invitation: {
-    create(id: number): string;
-    get(inv: string): number | null;
+    create: (id: number) => string;
+    get: (inv: string) => Promise<number | null>;
   };
 }

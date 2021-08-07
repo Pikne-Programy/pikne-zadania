@@ -4,7 +4,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-export type Role = "student" | "teacher" | "admin";
+export type RoleType = "student" | "teacher" | "admin";
 
 export type UserType = {
   id: string;
@@ -13,9 +13,9 @@ export type UserType = {
   dhPassword: string; // double hashed password
   team: number;
   tokens: string[];
-  seed: number;
-  role: Role;
-  number?: number | null;
+  seed?: number;
+  role: RoleType;
+  number?: number;
   exercises: { [key: string]: number };
 };
 
@@ -24,7 +24,7 @@ export type TeamType = {
   name: string;
   assignee: string;
   members: string[];
-  invitation: string | null;
+  invitation?: string;
 };
 
 export type SubjectType = {

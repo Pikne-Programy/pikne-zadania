@@ -10,3 +10,5 @@ export * from "./exerciseStore.ts";
 export * from "./subjectStore.ts";
 export * from "./userStore.ts";
 export * from "./teamStore.ts";
+export * from "./user.ts";
+export * from "./team.ts";

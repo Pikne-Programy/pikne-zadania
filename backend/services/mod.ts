@@ -10,3 +10,4 @@ export * from "./teamStore.ts";
 export * from "./teams.ts";
 export * from "./userStore.ts";
 export * from "./users.ts";
+export * from "./storeTarget.ts";

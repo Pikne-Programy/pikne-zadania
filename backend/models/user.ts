@@ -2,99 +2,108 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { UserRole, UserType } from "../types/db.ts";
-import { IDatabase } from "../interfaces/mod.ts";
+import { RoleType, UserType } from "../types/mod.ts";
+import { IDatabaseService, IUser } from "../interfaces/mod.ts";
+import { StoreTarget } from "../services/mod.ts";
 
-export class User {
-  private _id: string;
-  private _email: string;
-  private _name: string;
-  private _dhpassword: string;
-  private _team: number;
-  private _tokens: string[];
-  private _seed: number;
-  private _role: UserRole;
-
+export class User implements IUser {
   constructor(
-    private user: UserType,
-    private db: IDatabase,
-  ) {
-    this._id = user.id;
-    this._email = user.email;
-    this._name = user.name;
-    this._dhpassword = user.dhpassword;
-    this._team = user.team;
-    this._tokens = user.tokens;
-    this._seed = user.seed;
-    this._role = user.role;
+    private db: IDatabaseService,
+    private target: StoreTarget,
+    public readonly id: string,
+  ) {}
+  private async get<T extends keyof UserType>(key: T): Promise<UserType[T]> {
+    if (!this.exists()) throw new Error();
+    const user = await this.db.users!.findOne({ id: this.id });
+    if (!user) throw new Error();
+    return user[key];
   }
-
-  get id() {
-    return this._id;
+  private async set<T extends keyof UserType>(key: T, value: UserType[T]) {
+    if (!this.exists()) throw new Error();
+    await this.db.users!.updateOne({ id: this.id }, { $set: { [key]: value } });
   }
-  get email() {
-    return this._email;
+  async exists() {
+    return (await this.db.users!.findOne({ id: this.id })) ? true : false;
   }
-  get name() {
-    return this._name;
-  }
-  set name(value: string) {
-    this._name = value;
-    this.db.promiseQueue.push(
-      this.db.users!.updateOne({ id: this.id }, { $set: { name: this.name } }),
-    );
-  }
-  get dhpassword() {
-    return this._dhpassword;
-  }
-  get team() {
-    return this._team;
-  }
-  set team(value: number) {
-    this._team = value;
-    this.db.promiseQueue.push(
-      this.db.users!.updateOne({ id: this.id }, { $set: { team: this.team } }),
-    );
-  }
-  readonly tokens = {
-    exists: (jwt: string) => {
-      return this._tokens.includes(jwt) ? true : false;
-    },
-    add: (jwt: string) => {
-      this._tokens.push(jwt);
-      this.db.promiseQueue.push(
-        this.db.users!.updateOne(
-          { id: this.id },
-          { $addToSet: { tokens: jwt } },
-        ),
-      );
-      return true;
-    },
-    remove: (jwt: string) => {
-      if (!this.tokens.exists(jwt)) return false;
-      this.db.promiseQueue.push(
-        this.db.users!.updateOne({ id: this.id }, { $pull: { tokens: jwt } }),
-      );
-      return true;
+  readonly login = {
+    get: async () => await this.get("login"),
+    set: async (value: string) => await this.set("login", value),
+  };
+  readonly name = {
+    get: async () => await this.get("name"),
+    set: async (value: string) => await this.set("name", value),
+  };
+  readonly dhPassword = {
+    get: async () => await this.get("dhPassword"),
+    set: async (value: string) => await this.set("dhPassword", value),
+  };
+  readonly team = {
+    get: async () => await this.get("team"),
+    set: async (value: number) => {
+      const oldTeam = this.target.ts.get(await this.team.get());
+      const newTeam = this.target.ts.get(value);
+      if (oldTeam === newTeam) return;
+      await oldTeam.members.remove(this.id);
+      await newTeam.members.add(this.id);
+      await this.set("team", value);
     },
   };
-
-  get seed() {
-    return this._seed;
-  }
-  set seed(value: number) {
-    this._seed = value;
-    this.db.promiseQueue.push(
-      this.db.users!.updateOne({ id: this.id }, { $set: { seed: this.seed } }),
-    );
-  }
-  get role() {
-    return this._role;
-  }
-  set role(value: UserRole) {
-    this._role = value;
-    this.db.promiseQueue.push(
-      this.db.users!.updateOne({ id: this.id }, { $set: { role: this.role } }),
-    );
-  }
+  readonly tokens = {
+    exists: async (value: string) => {
+      const tokens = await this.get("tokens");
+      return tokens.indexOf(value) ? true : false;
+    },
+    add: async (value: string) => {
+      await this.db.users!.updateOne(
+        { id: this.id },
+        { $addToSet: { tokens: value } },
+      );
+    },
+    remove: async (value: string) => {
+      await this.db.users!.updateOne({ id: this.id }, {
+        $pull: { tokens: value },
+      });
+    },
+  };
+  readonly seed = {
+    get: async () => await this.get("seed"),
+    set: async (value: number) => await this.set("seed", value),
+  };
+  readonly number = {
+    get: async () => await this.get("number"),
+    set: async (value?: number) => await this.set("number", value),
+  };
+  readonly role = {
+    get: async () => await this.get("role"),
+    set: async (value: RoleType) => await this.set("role", value),
+  };
+  readonly exercises = {
+    get: async (id: string) => (await this.get("exercises"))[id],
+    set: async (id: string, value: number) => {
+      const oldValue = await this.exercises.get(id);
+      if (oldValue === undefined) {
+        await this.exercises.add(id, value);
+      } else if (oldValue > value) {
+        await await this.db.users!.updateOne(
+          { id: this.id },
+          { $set: { [`exercises.${id}`]: value } },
+        );
+      }
+    },
+    add: async (id: string, value: number) => {
+      if (await this.exercises.get(id) !== undefined) {
+        throw new Error(`Exercise with id ${id} already exists`);
+      }
+      await this.db.users!.updateOne(
+        { id: this.id },
+        { $set: { [`exercises.${id}`]: value } },
+      );
+    },
+    remove: async (id: string) => {
+      await this.db.users!.updateOne(
+        { id: this.id },
+        { $unset: { [`exercises.${id}`]: "" } },
+      );
+    },
+  };
 }

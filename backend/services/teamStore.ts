@@ -2,107 +2,82 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { TeamType } from "../types/mod.ts";
 import {
   IConfigService,
   IDatabaseService,
   ITeamStore,
 } from "../interfaces/mod.ts";
 import { Team } from "../models/mod.ts";
-
-class Global {
-  // TODO: remove global
-  static defaultGlobal = { lastTid: 1 };
-
-  constructor(private db: IDatabase) {}
-
-  @lock()
-  async create(_lock?: symbol): Promise<void> {
-    await this.db.global!.insertOne(Global.defaultGlobal);
-  }
-
-  @lock()
-  async get(lock?: symbol): Promise<GlobalType> {
-    const global = await this.db.global!.findOne({});
-    if (!global) this.create(lock);
-    return global ?? Global.defaultGlobal;
-  }
-
-  @lock()
-  async nextTid(lock?: symbol): Promise<number> {
-    const global = await this.get(lock);
-    if (!global) throw new Error("no global collection");
-    await this.db.global!.updateOne({}, { $inc: { lastTid: 1 } });
-    return global.lastTid + 1;
-  }
-}
+import { StoreTarget } from "./mod.ts";
 
 export class TeamStore implements ITeamStore {
-  readonly teams: Team[] = [];
-  global: Global;
+  private lastTid?: number;
 
   constructor(
     private cfg: IConfigService,
     private db: IDatabaseService,
-  ) {
-    this.global = new Global(db);
-  }
+    private target: StoreTarget,
+  ) {}
   async init() {
     // create static teachers' team if not already created
-    if (!(await this.get(1))) {
+    if (!(await this.get(1).exists())) {
       // teachers' team
-      await this.add({
-        id: 1,
-        name: "Teachers",
-        assignee: "root",
-        members: [],
-        invitation: null,
-      });
+      await this.add(1, { name: "Teachers", assignee: this.cfg.hash("root") });
     }
   }
-
-  @lock()
-  async getAll(lock?: symbol) {
-    const dbTeams = await this.db.teams!.find().toArray();
-    const teams = await Promise.all(
-      dbTeams.map((team) => this.get(team.id, lock)),
-    );
-    return teams.filter(<(t: Team | null) => t is Team> ((t) => t !== null));
+  async nextTid(): Promise<number> {
+    this.lastTid = Math.max(...(await this.list()).map((x) => x.id)) + 1;
+    return this.lastTid;
   }
-  @lock()
-  async get(id: number, _lock?: symbol) {
-    if (this.teams[id] === undefined) {
-      const dbTeam = await this.db.teams!.findOne({ id });
-      if (!dbTeam) return null;
-      const team = new Team(dbTeam, this.db);
-      this.teams[id] = team;
-    }
-    return this.teams[id];
+  async list() {
+    return await this.db.teams!.find().toArray();
   }
-  @lock()
-  async add(_team: IdOptional<TeamType>, lock?: symbol) {
+  get(id: number) {
+    return new Team(this.db, id);
+  }
+  async add(id: number | null, options: { name: string; assignee: string }) {
+    if (await this.target.us.get(options.assignee).exists()) return 2;
+    if (id !== null && await this.get(id).exists()) return 1;
     const team = {
-      ..._team,
-      id: _team.id ?? (await this.global.nextTid(lock)),
+      id: id ?? (await this.nextTid()),
+      name: options.name,
+      assignee: options.assignee,
+      members: [],
+      invitation: null,
     };
-    this.teams[team.id] = new Team(team, this.db);
-    this.db.promiseQueue.push(this.db.teams!.insertOne(team));
-    return team.id;
+    await this.db.teams!.insertOne(team);
+    return 0;
   }
-
-  @lock()
-  async delete(id: number, lock?: symbol) {
-    const team = await this.get(id, lock);
-    if (!team) return false;
-    for (const uid of team.members.get()) await team.members.remove(uid);
-    delete this.teams[team.id];
-    this.db.promiseQueue.push(this.db.teams!.deleteOne({ id: team.id }));
-    return true;
+  async delete(id: number) {
+    const team = this.get(id);
+    if (!await team.exists()) {
+      throw new Error(`Team with id ${id} doesn't exist`);
+    }
+    for (const uid of await team.members.get()) {
+      await team.members.remove(uid);
+      await this.target.us.delete(uid);
+    }
+    await this.db.teams!.deleteOne({ id: team.id });
   }
-
-  async getInvitation(inv: string) {
-    const team = await this.db.teams!.findOne({ invitation: inv });
-    if (!team) return null;
-    return team.id;
-  }
+  readonly invitation = {
+    get: async (invitation: string) => {
+      const team = await this.db.teams!.findOne({ invitation });
+      if (!team) return null;
+      return team.id;
+    },
+    create: (id: number) => {
+      const ntob = (n: number): string => {
+        const base64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+          "abcdefghijklmnopqrstuvwxyz0123456789+/";
+        return base64[n];
+      };
+      const randomArray = new Uint8Array(4);
+      window.crypto.getRandomValues(randomArray);
+      let invitation = ntob(id);
+      for (const n of randomArray) {
+        invitation += ntob(n % 64);
+      }
+      return invitation;
+    },
+  };
 }
