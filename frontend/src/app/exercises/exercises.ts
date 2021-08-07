@@ -1,7 +1,7 @@
 import { EventEmitter } from '@angular/core';
 import { isObject } from '../helper/utils';
 
-const exerciseTypes = ['EqEx'] as const;
+export const exerciseTypes = ['EqEx'] as const;
 export type ExerciseType = typeof exerciseTypes[number];
 
 export const categorySeparator = '~';

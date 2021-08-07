@@ -1,0 +1,58 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.tabs.is-boxed.for-box {
+  margin-bottom: 0;
+  z-index: 2;
+
+  & li {
+    &:not(:first-child) a {
+      margin-left: -1px;
+    }
+
+    & a {
+      font-weight: 600;
+      border: #dbdbdb solid 1px;
+    }
+
+    &.is-active a {
+      color: inherit;
+    }
+  }
+}
+
+.tabs.is-boxed.for-box + .box {
+  border: #dbdbdb solid 1px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top-color: transparent;
+  margin-top: -1px;
+  z-index: 1;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  & .field.for-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+
+    & .control {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+
+      & .textarea:not([rows]).has-fixed-size {
+        max-height: auto;
+        flex-grow: 1;
+      }
+    }
+  }
+}

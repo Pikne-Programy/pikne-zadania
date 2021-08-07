@@ -10,6 +10,12 @@ import { TemplatesModule } from '../templates/templates.module';
 import { SubjectDashboardComponent } from './dashboard/dashboard.component';
 import { SubjectDashboardPreviewComponent } from './dashboard/exercise-previews/preview.component';
 import { EqexPreviewComponent } from './dashboard/exercise-previews/eqex/eqex.component';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ExerciseModificationService } from './exercise-modification/service/exercise-modification.service';
+import { ExerciseModificationComponent } from './exercise-modification/modification/modification.component';
+import { ExerciseModificationFormComponent } from './exercise-modification/form/form.component';
+import { ExerciseCreationComponent } from './exercise-modification/creation/creation.component';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 @NgModule({
   declarations: [
@@ -18,9 +24,20 @@ import { EqexPreviewComponent } from './dashboard/exercise-previews/eqex/eqex.co
     SubjectDashboardComponent,
     SubjectDashboardPreviewComponent,
     EqexPreviewComponent,
+    ExerciseModificationComponent,
+    ExerciseCreationComponent,
+    ExerciseModificationFormComponent,
   ],
-  imports: [CommonModule, SubjectRoutingModule, NavModule, TemplatesModule],
-  providers: [SubjectService],
+  imports: [
+    CommonModule,
+    SubjectRoutingModule,
+    FormsModule,
+    ReactiveFormsModule,
+    NavModule,
+    TemplatesModule,
+    MatAutocompleteModule,
+  ],
+  providers: [SubjectService, ExerciseModificationService],
   bootstrap: [SubjectComponent],
 })
 export class SubjectModule {}

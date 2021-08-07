@@ -231,7 +231,7 @@ describe('Utils', () => {
         optChildren?: number[];
       };
       const props: [
-        string,
+        keyof Type,
         typeof objectTypes[number][] | 'array' | 'array|undefined'
       ][] = [
         ['num', ['number']],
@@ -357,5 +357,9 @@ describe('Utils', () => {
       expect(getErrorCode({}, 500)).toBe(500);
       expect(getErrorCode({ error: 400 }, 401)).toBe(401);
     });
+  });
+
+  describe('replaceAccents', () => {
+    //TODO replaceAccents tests
   });
 });

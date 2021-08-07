@@ -13,6 +13,7 @@ export const subjectPermit = '/api/subject/permit';
 // Exercise modification
 export const subjectExerciseList = '/api/subject/exercise/list';
 export const subjectExerciseGet = '/api/subject/exercise/get';
+export const subjectExerciseAdd = '/api/subject/exercise/add';
 export const subjectExerciseUpdate = '/api/subject/exercise/update';
 export const subjectExercisePreview = '/api/subject/exercise/preview';
 //#endregion

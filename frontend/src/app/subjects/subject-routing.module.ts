@@ -2,6 +2,8 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { NavComponent } from '../navigation/nav.component';
 import { SubjectDashboardComponent } from './dashboard/dashboard.component';
+import { ExerciseCreationComponent } from './exercise-modification/creation/creation.component';
+import { ExerciseModificationComponent } from './exercise-modification/modification/modification.component';
 import { SubjectListComponent } from './list/list.component';
 
 const routes: Routes = [
@@ -23,8 +25,12 @@ const routes: Routes = [
         component: SubjectDashboardComponent,
       },
       {
-        path: 'exercise-edit/:exerciseId',
-        //TODO Exercise modification component
+        path: 'exercise-edit/:subjectId/:exerciseId',
+        component: ExerciseModificationComponent,
+      },
+      {
+        path: 'exercise-new/:subjectId',
+        component: ExerciseCreationComponent,
       },
       {
         path: 'categories/:subjectId',

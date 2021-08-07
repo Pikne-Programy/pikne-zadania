@@ -1,3 +1,4 @@
+//#region capitalize
 /**
  * Capitalizes first letter of the string
  * @param string Text to be capitalized
@@ -10,7 +11,9 @@ export function capitalize(
   if (string === null || string === undefined) return string;
   else return string.charAt(0).toLocaleUpperCase(locale) + string.slice(1);
 }
+//#endregion
 
+//#region isObject
 export const objectTypes = [
   'string',
   'number',
@@ -58,7 +61,7 @@ type ObjectType = typeof objectTypes[number];
 export function isObject<T>(
   object: any,
   fields: [
-    string,
+    keyof T,
     ObjectType[] | 'array' | 'array|null' | 'array|undefined' | 'any'
   ][]
 ): object is T {
@@ -95,7 +98,9 @@ export function isObject<T>(
     })
   );
 }
+//#endregion
 
+//#region removeMathTabIndex
 /**
  * Sets tab index of all elements with class "MathJax" to -1
  */
@@ -104,7 +109,9 @@ export function removeMathTabIndex() {
     element.setAttribute('tabindex', '-1');
   });
 }
+//#endregion
 
+//#region pbkdf2
 /**
  * Encodes provided password with login as salt using PBKDF2
  */
@@ -126,7 +133,9 @@ export async function pbkdf2(
   const hash = await crypto.subtle.deriveBits(params, key, keylen);
   return btoa(String.fromCharCode(...new Uint8Array(hash)));
 }
+//#endregion
 
+//#region getErrorCode
 /**
  * @param fallback Default fallback error is 400
  */
@@ -135,3 +144,13 @@ export function getErrorCode(error: any, fallback: number = 400): number {
     ? error.status
     : fallback;
 }
+//#endregion
+
+//#region replaceAccents
+export function replaceAccents(str: string): string {
+  return str
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/ł/g, 'l');
+}
+//#endregion

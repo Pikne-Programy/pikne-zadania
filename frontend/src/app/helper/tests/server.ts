@@ -248,6 +248,66 @@ export function startServer() {
         if (subject) return subject.children as ExerciseTree[];
         else return new Response(404);
       });
+      this.post('/api/subject/exercise/get', (schema: any, request: any) => {
+        if (!currentAccount) return new Response(500);
+        if (currentAccount.team > 1) return new Response(403);
+        const id = JSON.parse(request.requestBody).id;
+        if (typeof id === 'string' && id.includes('fizyka/no-category'))
+          return new Response(404);
+        return {
+          content:
+            '---\ntype: EqEx\nname: Pociągi dwa\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n',
+        };
+      });
+      this.post('/api/subject/exercise/add', (schema: any, request: any) => {
+        if (!currentAccount) return new Response(500);
+        if (currentAccount.team > 1) return new Response(403);
+        const content = JSON.parse(request.requestBody).content;
+        if (
+          typeof content === 'string' &&
+          content.toLowerCase().includes('name: error409')
+        )
+          return new Response(409);
+        return new Response(200);
+      });
+      this.post('/api/subject/exercise/update', (schema: any, request: any) => {
+        if (!currentAccount) return new Response(500);
+        if (currentAccount.team > 1) return new Response(403);
+        const content = JSON.parse(request.requestBody).content;
+        if (
+          typeof content === 'string' &&
+          !content.toLowerCase().includes('name: pociagi-dwa')
+        )
+          return new Response(404);
+        return new Response(200);
+      });
+      this.post(
+        '/api/subject/exercise/preview',
+        (schema: any, request: any) => {
+          if (!currentAccount) return new Response(500);
+          if (currentAccount.team > 1) return new Response(403);
+          const attrs = JSON.parse(request.requestBody);
+          if (
+            typeof attrs.content === 'string' &&
+            !attrs.content.toLowerCase().includes('name: pociagi-dwa')
+          )
+            return new Response(404);
+          let seed = (attrs.seed ?? 0) + 1;
+          return {
+            type: 'EqEx',
+            name: 'Pociągi dwa',
+            content: {
+              main: 'Z miast A i B odległych o \\(d=300\\mathrm{km}\\) wyruszają jednocześnie dwa pociągi z prędkościami \\(v_a=50\\mathrm{\\frac{m}{s}}\\) oraz \\(v_b=67\\mathrm{\\frac{m}{s}}\\).\nW jakiej odległości \\(x\\) od miasta A spotkają się te pociągi? Po jakim czasie \\(t\\) się to stanie?',
+              //img: ['https://bulma.io/images/placeholders/480x640.png'],
+              unknowns: [
+                ['x', '\\mathrm{km}'],
+                ['t', '\\mathrm{s}'],
+              ],
+              correct: [2.5 * seed, 125 * seed],
+            },
+          };
+        }
+      );
       //#endregion
 
       //#region Auth

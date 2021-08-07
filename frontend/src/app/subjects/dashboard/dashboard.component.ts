@@ -44,6 +44,7 @@ export class SubjectDashboardComponent implements OnInit, OnDestroy {
   }
   exerciseError: ExerciseError | null = null;
 
+  param$?: Subscription;
   exercise$?: Subscription;
   constructor(
     private subjectService: SubjectService,
@@ -52,7 +53,7 @@ export class SubjectDashboardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.route.paramMap.subscribe((params) => {
+    this.param$ = this.route.paramMap.subscribe((params) => {
       const subjectId = params.get('subjectId');
       if (subjectId) {
         this.subject = new Subject(subjectId);
@@ -66,6 +67,7 @@ export class SubjectDashboardComponent implements OnInit, OnDestroy {
           })
           .catch((error) => (this._errorCode = getErrorCode(error)))
           .finally(() => (this.isLoading = false));
+        this.param$?.unsubscribe();
       }
     });
   }
@@ -183,5 +185,6 @@ export class SubjectDashboardComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.exercise$?.unsubscribe();
+    this.param$?.unsubscribe();
   }
 }

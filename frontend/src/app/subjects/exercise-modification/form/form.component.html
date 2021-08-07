@@ -1,0 +1,107 @@
+<!--#region Tabs -->
+<div class="tabs is-boxed for-box">
+  <ul>
+    <li [ngClass]="{ 'is-active': !isPreview }">
+      <a (click)="isPreview = false;">Edycja</a>
+    </li>
+    <li [ngClass]="{ 'is-active': isPreview }">
+      <a (click)="getPreview()">Podgląd</a>
+    </li>
+  </ul>
+</div>
+<!--#endregion-->
+<div class="box is-flex-grow-1 mb-0">
+  <form *ngIf="!isPreview" [formGroup]="form" (ngSubmit)="type!.warnings?.type ? isUnknownTypeModalOpen = true : submit()">
+    <div class="field">
+      <div class="columns">
+        <!--#region Type -->
+        <div class="column is-one-quarter">
+          <label for="type" class="label">Typ zadania</label>
+          <div class="control has-icons-right">
+            <input id="type" class="input" [ngClass]="{
+                'is-primary': !type!.warnings?.type,
+                'is-warning': type!.warnings?.type
+              }" type="text" formControlName="type" [matAutocomplete]="types" (input)="preview = undefined">
+            <span *ngIf="type!.warnings?.type" class="icon has-text-warning is-small is-right">
+              <i class="fas fa-exclamation-triangle"></i>
+            </span>
+          </div>
+          <p *ngIf="type!.warnings?.type" class="help is-warning">Nieznany typ zadania</p>
+        </div>
+        <!--#endregion-->
+        <!--#region Name -->
+        <div class="column">
+          <label for="type" class="label">Nazwa</label>
+          <div class="control has-icons-right">
+            <input id="type" class="input" [ngClass]="{
+                'is-primary': !name!.errors?.name,
+                'is-danger': name!.errors?.name
+              }" type="text" formControlName="name" (input)="preview = undefined">
+            <span *ngIf="name!.errors?.name" class="icon has-text-danger is-small is-right">
+              <i class="fas fa-exclamation-circle"></i>
+            </span>
+          </div>
+          <p *ngIf="name!.errors?.name" class="help is-danger">Zadanie o tej nazwie już istnieje</p>
+        </div>
+        <!--#endregion-->
+      </div>
+    </div>
+    <!--#region Content -->
+    <div class="field for-content">
+      <label for="content" class="label">Treść</label>
+      <div class="control" [ngClass]="{ 'is-loading': isPreviewLoading }">
+        <textarea id="content" class="textarea is-primary has-fixed-size" formControlName="content" (input)="preview = undefined"></textarea>
+      </div>
+    </div>
+    <!--#endregion-->
+    <!--#region Submit -->
+    <div class="field is-grouped is-grouped-right is-align-items-center">
+      <div *ngIf="errorCode !== null" class="control">
+        <p class="has-text-danger">Wystąpił błąd ({{ errorCode }})</p>
+      </div>
+      <div class="control">
+        <button type="submit" class="button is-success" [ngClass]="{ 'is-loading': isSubmitted }" [disabled]="form.invalid">Zapisz</button>
+      </div>
+      <div class="control">
+        <button type="button" class="button is-danger" [disabled]="isSubmitted" (click)="cancel()">Odrzuć</button>
+      </div>
+    </div>
+    <!--#endregion-->
+  </form>
+</div>
+
+<!--#region Type autocomplete -->
+<mat-autocomplete #types="matAutocomplete" autoActiveFirstOption>
+  <mat-option *ngFor="let typeOption of filteredTypes | async" [value]="typeOption">
+    {{ typeOption }}
+  </mat-option>
+</mat-autocomplete>
+<!--#endregion-->
+
+<!--#region Modal Unknown type -->
+<app-card-modal [title]="'Nieznany typ zadania'" [open]="isUnknownTypeModalOpen" (onClose)="isUnknownTypeModalOpen = false">
+  <section>
+    <p class="has-text-justified">Podany typ zadania nie jest obsługiwany, co może to spowodować błąd przy jego wyświetlaniu. Czy na pewno chcesz kontynuować?</p>
+  </section>
+  <footer>
+    <div class="buttons">
+      <button class="button is-success" (click)="isUnknownTypeModalOpen = false; submit()">Zapisz zadanie</button>
+      <button class="button" (click)="isUnknownTypeModalOpen = false">Anuluj</button>
+    </div>
+  </footer>
+</app-card-modal>
+<!--#endregion-->
+
+<!--#region Modal Confirm cancel -->
+<app-card-modal [title]="'Odrzuć zmiany'" [open]="isConfirmCancelModalOpen" (onClose)="isConfirmCancelModalOpen = false">
+  <section>
+    <p class="has-text-justified">Czy na pewno chcesz odrzucić wszystkie zmiany?</p>
+  </section>
+  <footer>
+    <div class="buttons">
+      <button class="button is-danger" (click)="onCancel.emit()">Odrzuć</button>
+      <button class="button" (click)="isConfirmCancelModalOpen = false">Anuluj</button>
+    </div>
+  </footer>
+</app-card-modal>
+<!--#endregion-->
