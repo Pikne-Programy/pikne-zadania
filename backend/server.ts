@@ -6,12 +6,12 @@ import { Application, HttpError } from "./deps.ts";
 import { Context, handleThrown, State } from "./utils/mod.ts";
 import {
   Auth,
-  Config,
+  ConfigService,
   Database,
   Exercises,
-  TeamFactory,
+  TeamStore,
   Teams,
-  UserFactory,
+  UserStore,
   Users,
 } from "./services/mod.ts";
 import {
@@ -51,15 +51,17 @@ app.use(async (ctx: Context, next: () => unknown) => {
   }
 });
 
-export const cfg = new Config();
+export const cfg = new ConfigService();
 const db = new Database(cfg);
-const tf = new TeamFactory(db);
-const uf = new UserFactory(cfg, db, tf);
-await db.init(tf, uf);
-const exs = new Exercises(uf);
-const tms = new Teams(tf, uf);
-const uss = new Users(uf);
-const auth = new Auth(cfg, uf);
+await db.connect();
+const ts = new TeamStore(cfg, db);
+const us = new UserStore(cfg, db, ts);
+await ts.init();
+await us.init();
+const exs = new Exercises(us);
+const tms = new Teams(ts, us);
+const uss = new Users(us);
+const auth = new Auth(cfg, us);
 const authc = new AuthController(cfg, auth);
 const exc = new ExercisesController(cfg, exs);
 const tmc = new TeamsController(tms);
@@ -96,7 +98,7 @@ Promise.race([
 ]).then(() => {
   console.log("The server is closing...");
   abortController.abort();
-  db.closeDB();
+  db.close();
 }).then(() => countdown(5)).finally(Deno.exit);
 
 await app.listen({ port: 8000, signal });

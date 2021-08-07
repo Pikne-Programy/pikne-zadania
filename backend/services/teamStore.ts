@@ -2,10 +2,13 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { GlobalType, IdOptional, TeamType } from "../types/mod.ts";
-import { IDatabase, ITeamFactory } from "../interfaces/mod.ts";
+import { TeamType } from "../types/mod.ts";
+import {
+  IConfigService,
+  IDatabaseService,
+  ITeamStore,
+} from "../interfaces/mod.ts";
 import { Team } from "../models/mod.ts";
-import { lock } from "./mod.ts";
 
 class Global {
   // TODO: remove global
@@ -34,12 +37,28 @@ class Global {
   }
 }
 
-export class TeamFactory implements ITeamFactory {
+export class TeamStore implements ITeamStore {
   readonly teams: Team[] = [];
   global: Global;
 
-  constructor(private db: IDatabase) {
+  constructor(
+    private cfg: IConfigService,
+    private db: IDatabaseService,
+  ) {
     this.global = new Global(db);
+  }
+  async init() {
+    // create static teachers' team if not already created
+    if (!(await this.get(1))) {
+      // teachers' team
+      await this.add({
+        id: 1,
+        name: "Teachers",
+        assignee: "root",
+        members: [],
+        invitation: null,
+      });
+    }
   }
 
   @lock()

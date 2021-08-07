@@ -9,5 +9,6 @@ import { TeamType, UserType } from "../types/db.ts";
 export interface IDatabaseService {
   users?: Collection<UserType>;
   teams?: Collection<TeamType>;
+  connect(): Promise<void>;
   close(): void;
 }
