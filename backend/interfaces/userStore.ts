@@ -8,11 +8,14 @@ import { StoreTarget } from "../services/mod.ts";
 import { RoleType } from "../types/mod.ts";
 import { IConfigService, IDatabaseService } from "./mod.ts";
 
-export type IUserStoreConstructor = new (
-  cfg: IConfigService,
-  db: IDatabaseService,
-  parent: StoreTarget,
-) => IUserStore;
+export interface IUserStoreConstructor {
+  new (
+    cfg: IConfigService,
+    db: IDatabaseService,
+    parent: StoreTarget,
+  ): IUserStore;
+}
+
 export interface IUserStore {
   init(): Promise<void>;
   /** Returns:

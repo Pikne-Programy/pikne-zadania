@@ -3,17 +3,17 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { User } from "../models/user.ts";
+import { IUser } from "./mod.ts";
 import { JSONObject, JSONType } from "../types/mod.ts";
 
 export interface IExerciseService {
   render(
-    input: { content: string } | { id: string },
-    user: User | { seed: number },
-  ): JSONObject | null;
+    input: { content: string } | { subject: string; id: string },
+    user: IUser | { seed: number },
+  ): Promise<JSONObject | null>;
   check(
-    input: { content: string } | { id: string },
+    input: { content: string } | { subject: string; id: string },
     answer: JSONType,
-    user: User | { seed: number },
-  ): { done: number; info: JSONType; correctAnswer: JSONType };
+    user: IUser | { seed: number },
+  ): Promise<{ done: number; info: JSONType; correctAnswer: JSONType } | null>;
 }

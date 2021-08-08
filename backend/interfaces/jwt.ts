@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { User } from "../models/mod.ts";
+import { IUser } from "./mod.ts";
 
 export interface IJWTService {
   create(login: string, hashedPassword: string): Promise<string | null>;
-  resolve(jwt?: string): Promise<User | null>;
+  resolve(jwt?: string): Promise<IUser | null>;
   revoke(login: string, jwt: string): Promise<void>; // throws
 }

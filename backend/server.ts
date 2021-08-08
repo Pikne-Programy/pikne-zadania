@@ -5,22 +5,15 @@
 import { Application, HttpError } from "./deps.ts";
 import { Context, handleThrown, State } from "./utils/mod.ts";
 import {
-  Auth,
   ConfigService,
   Database,
-  Exercises,
+  ExerciseService,
+  ExerciseStore,
+  JWTService,
   StoreTarget,
-  Teams,
   TeamStore,
-  Users,
   UserStore,
 } from "./services/mod.ts";
-import {
-  AuthController,
-  ExercisesController,
-  TeamsController,
-  UsersController,
-} from "./controllers/mod.ts";
 import RouterBuilder from "./router.ts";
 
 const app = new Application<State>();
@@ -54,18 +47,27 @@ app.use(async (ctx: Context, next: () => unknown) => {
 
 export const cfg = new ConfigService();
 const db = new Database(cfg);
+await db.connect();
 const target = new StoreTarget(cfg, db, TeamStore, UserStore);
 await target.us.init();
 await target.ts.init();
-const exs = new Exercises(target.us);
-const tms = new Teams(target.ts, target.us);
-const uss = new Users(target.us);
-const auth = new Auth(cfg, target.us, target.ts);
+const exs = new ExerciseStore();
+const ex = new ExerciseService(exs);
+const jwt = new JWTService(cfg, target.us);
+console.log(
+  await jwt.create("root", "t3SDQPqrwJM6fmiQZ7w3cO7ZJTStKE+aZ5mLlckMuqE="),
+);
+console.log(
+  await ex.render({ subject: "fizyka", id: "pociagi-dwa" }, { seed: 0 }),
+);
+
+/*
 const authc = new AuthController(cfg, auth);
 const exc = new ExercisesController(cfg, exs);
 const tmc = new TeamsController(tms);
 const usc = new UsersController(uss);
-const rb = new RouterBuilder(authc, exc, tmc, usc);
+*/
+const rb = new RouterBuilder(/*authc, exc, tmc, usc*/);
 
 const router = rb.router;
 app.use(router.routes());

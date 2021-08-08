@@ -3,16 +3,13 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Subject } from "../models/mod.ts";
-
 export interface ISubjectStore {
-  list(): Promise<Subject[]>;
+  list(): Promise<string[]>;
   add(id: string, assignees: string[]): Promise<void>;
-  assignees: {
-    get(id: string): Promise<string[]>;
-    set(id: string, assignees: string[]): Promise<void>;
-    // add(id: string, uid: string): void;
-    // remove(id: string, uid: string): void;
+  assignees(id: string): {
+    get(): Promise<string[]>;
+    set(assignees: string[]): Promise<void>;
+    // add(uid: string): void;
+    // remove(uid: string): void;
   };
-  getStaticContentPath(subject: string): string; // TODO: get rid off
 }

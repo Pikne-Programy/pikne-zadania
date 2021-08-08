@@ -14,5 +14,5 @@ export abstract class Exercise {
   abstract check(
     seed: number,
     answer: JSONType,
-  ): { done: number; info: JSONType; correctAns: JSONType }; // POST
+  ): { done: number; info: JSONType; correctAnswer: JSONType }; // POST
 }

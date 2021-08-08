@@ -4,28 +4,22 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { placeholder, Router } from "./utils/mod.ts";
-import {
-  AuthController,
-  ExercisesController,
-  TeamsController,
-  UsersController,
-} from "./controllers/mod.ts";
 
 export default class RouterBuilder {
   readonly router: Router;
 
   constructor(
-    private auth: AuthController,
+    /*private auth: AuthController,
     private ex: ExercisesController,
     private tm: TeamsController,
-    private us: UsersController,
+    private us: UsersController,*/
   ) {
-    const authReq = this.auth.authReq;
-    const authNotReq = this.auth.authNotReq;
-    const seed = this.ex.seed;
+    //const authReq = this.auth.authReq;
+    //const authNotReq = this.auth.authNotReq;
+    //const seed = this.ex.seed;
 
     this.router = new Router()
-      .get("/api", placeholder(200, {}))
+      .get("/api", placeholder(200, {})); /*
       .get("/img/:subject/:file", this.ex.getStaticContent)
       .use(
         "/api",
@@ -64,6 +58,6 @@ export default class RouterBuilder {
             .post("/info", authReq, this.tm.get)
             .routes(),
         ).routes(),
-      );
+      )*/
   }
 }

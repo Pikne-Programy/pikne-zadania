@@ -7,11 +7,13 @@ import { TeamType } from "../types/mod.ts";
 import { IConfigService, IDatabaseService, ITeam } from "./mod.ts";
 import { StoreTarget } from "../services/mod.ts";
 
-export type ITeamStoreConstructor = new (
-  cfg: IConfigService,
-  db: IDatabaseService,
-  parent: StoreTarget,
-) => ITeamStore;
+export interface ITeamStoreConstructor {
+  new (
+    cfg: IConfigService,
+    db: IDatabaseService,
+    parent: StoreTarget,
+  ): ITeamStore;
+}
 
 export interface ITeamStore {
   init(): Promise<void>;

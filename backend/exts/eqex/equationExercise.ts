@@ -255,7 +255,7 @@ export default class EquationExercise extends Exercise {
       },
     };
   }
-  check(seed: number, answer: JSONType): { done: number; answer: boolean[] } {
+  check(seed: number, answer: JSONType) {
     if (!isAnswer(answer)) {
       throw new httpErrors["BadRequest"]("ERROR, INVALID ANSWER FORMAT");
     }
@@ -300,7 +300,7 @@ export default class EquationExercise extends Exercise {
       );
     }
     const done = answers.reduce((a: number, b) => a + (+b), 0) / answers.length;
-    return { answer: answers, done };
+    return { correctAnswer: answers, done, info: null };
   }
   static convertToLaTeX(unit: string): string {
     if (unit == "") return "";

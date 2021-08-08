@@ -12,11 +12,13 @@ export type Section = {
 export interface IExerciseStore {
   parse(content: string): Exercise;
   list(subject: string): string[];
-  structure: {
-    get(subject: string): Section[];
-    set(subject: string, value: Section[]): void;
+  structure(subject: string): {
+    get(): Section[];
+    set(value: Section[]): void;
   };
-  add(id: string, content: string): void;
-  get(id: string): Exercise;
-  update(id: string, content: string): void; // upsert
+  add(subject: string, id: string, content: string): void;
+  get(subject: string, id: string): Exercise | null;
+  update(subject: string, id: string, content: string): void; // upsert
+
+  getStaticContentPath(subject: string): string; // TODO: get rid off
 }

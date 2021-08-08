@@ -10,49 +10,51 @@ export class Team implements ITeam {
     private db: IDatabaseService,
     public readonly id: number,
   ) {}
+
   private async get<T extends keyof TeamType>(key: T): Promise<TeamType[T]> {
-    if (!this.exists()) throw new Error();
+    if (!this.exists()) throw new Error(); // TODO: error message
     const team = await this.db.teams!.findOne({ id: this.id });
-    if (!team) throw new Error();
+    if (!team) throw new Error(); // TODO: error message
     return team[key];
   }
   private async set<T extends keyof TeamType>(key: T, value: TeamType[T]) {
-    if (!this.exists()) throw new Error();
+    if (!this.exists()) throw new Error(); // TODO: error message
     await this.db.teams!.updateOne({ id: this.id }, { $set: { [key]: value } });
   }
+
   async exists() {
     return (await this.db.teams!.findOne({ id: this.id })) ? true : false;
   }
+
   readonly name = {
-    get: async () => await this.get("name"),
-    set: async (value: string) => await this.set("name", value),
+    get: () => this.get("name"),
+    set: (value: string) => this.set("name", value),
   };
+
   readonly assignee = {
-    get: async () => await this.get("assignee"),
-    set: async (value: string) => await this.set("assignee", value),
+    get: () => this.get("assignee"),
+    set: (value: string) => this.set("assignee", value),
   };
+
   readonly members = {
-    get: async () => await this.get("members"),
     add: async (uid: string) => {
       await this.db.teams!.updateOne({ id: this.id }, {
         $push: { members: uid },
       });
     },
+    get: () => this.get("members"),
     remove: async (uid: string) => {
       await this.db.teams!.updateOne({ id: this.id }, {
         $pull: { members: uid },
       });
     },
   };
+
   readonly invitation = {
-    get: async () => await this.get("invitation"),
+    get: () => this.get("invitation"),
     set: async (value?: string) => {
-      if (
-        value !== undefined &&
-        (await this.db.teams!.findOne({ invitation: value }))
-      ) {
-        return;
-      }
+      const existed = await this.db.teams!.findOne({ invitation: value });
+      if (value !== undefined && existed) throw new Error(); // TODO: error message
       await this.db.teams!.updateOne({ id: this.id }, {
         $set: { value },
       });

@@ -5,20 +5,17 @@
 
 import { Collection, MongoClient } from "../deps.ts";
 import { delay } from "../utils/mod.ts";
-import { IConfigService, IDatabaseService } from "../interfaces/mod.ts";
 import { TeamType, UserType } from "../types/mod.ts";
-
-type GlobalType = {
-  lastTid: number;
-};
+import { IConfigService, IDatabaseService } from "../interfaces/mod.ts";
 
 export class Database implements IDatabaseService {
   private client?: MongoClient;
   users?: Collection<UserType>;
   teams?: Collection<TeamType>;
-  global?: Collection<GlobalType>; // TODO: remove
 
-  constructor(private cfg: IConfigService) {}
+  constructor(
+    private cfg: IConfigService,
+  ) {}
 
   async connect() {
     this.client = new MongoClient();
@@ -28,7 +25,6 @@ export class Database implements IDatabaseService {
 
     this.users = _db.collection("users");
     this.teams = _db.collection("teams");
-    this.global = _db.collection("global");
   }
 
   close() {

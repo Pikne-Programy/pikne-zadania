@@ -24,7 +24,7 @@ export class UserStore implements IUserStore {
       what: string,
       why = "Please unset it or change ROOT_ENABLE.",
     ) => console.warn(`WARN: ${what} is present. ${why}`);
-    const root = await this.get(this.cfg.hash("root"));
+    const root = this.get(this.cfg.hash("root"));
     const rootType: { login: string; name: string; role: "admin" } = {
       login: "root",
       name: "root",
@@ -45,11 +45,7 @@ export class UserStore implements IUserStore {
       } else {
         await this.add(
           { team: 0 },
-          {
-            dhPassword: config.dhPassword,
-            // role: "admin",
-            ...rootType,
-          },
+          { dhPassword: config.dhPassword, ...rootType },
         );
         console.warn("ROOT was registered with ROOT_DHPASS.");
       }

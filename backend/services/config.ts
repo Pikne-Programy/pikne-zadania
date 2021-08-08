@@ -61,7 +61,11 @@ export class ConfigService implements IConfigService {
     key: string;
   };
   readonly MONGO_CONF: { db: string; url: string; time: number };
-  readonly ROOT_CONF: { enable: boolean; pass?: string; dhpass?: string };
+  readonly ROOT_CONF: {
+    enable: boolean;
+    password?: string;
+    dhPassword?: string;
+  };
 
   constructor() {
     const alg = Deno.env.get("JWT_ALG");
@@ -80,8 +84,8 @@ export class ConfigService implements IConfigService {
 
     this.ROOT_CONF = {
       enable: get("boolean", "ROOT_ENABLE", false),
-      pass: Deno.env.get("ROOT_PASS"),
-      dhpass: Deno.env.get("ROOT_DHPASS"),
+      password: Deno.env.get("ROOT_PASS"),
+      dhPassword: Deno.env.get("ROOT_DHPASS"),
     };
 
     this.SEED_AGE = get("number", "SEED_AGE", 60 * 60 * 24 * 31 * 12 * 4);
