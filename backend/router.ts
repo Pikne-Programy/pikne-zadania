@@ -3,61 +3,81 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import {
+  AuthController,
+  ExerciseController,
+  SubjectController,
+  SubjectExerciseController,
+  TeamController,
+  UserController,
+} from "./controllers/mod.ts";
 import { placeholder, Router } from "./utils/mod.ts";
 
 export default class RouterBuilder {
   readonly router: Router;
 
   constructor(
-    /*private auth: AuthController,
-    private ex: ExercisesController,
-    private tm: TeamsController,
-    private us: UsersController,*/
+    private au: AuthController,
+    private s: SubjectController,
+    private se: SubjectExerciseController,
+    private ex: ExerciseController,
+    private tm: TeamController,
+    private us: UserController,
   ) {
-    //const authReq = this.auth.authReq;
-    //const authNotReq = this.auth.authNotReq;
-    //const seed = this.ex.seed;
-
     this.router = new Router()
-      .get("/api", placeholder(200, {})); /*
-      .get("/img/:subject/:file", this.ex.getStaticContent)
+      .get("/api", placeholder(200, {}))
+      .get("/img/:subject/:file", this.ex.static)
       .use(
         "/api",
         new Router().use(
           "/exercise",
           new Router()
-            .get("/list", authNotReq, this.ex.list)
-            //.post("/get", authNotReq, this.ex.get)
-            //.post("/update", authReq, this.ex.update)
-            .post("/check", authNotReq, seed, this.ex.check)
-            .post("/render", authNotReq, seed, this.ex.render)
-            //.post("/preview", authNotReq, this.ex.preview)
+            .get("/list", this.ex.list)
+            .post("/check", this.ex.check)
+            .post("/render", this.ex.render)
+            .routes(),
+        ).use(
+          "/subject",
+          new Router()
+            .get("/list", this.s.list)
+            .post("/create", this.s.create)
+            .post("/info", this.s.info)
+            .post("/permit", this.s.permit)
+            .use(
+              "/exercise",
+              new Router()
+                .post("/get", this.se.get)
+                .post("/add", this.se.add)
+                .post("/update", this.se.update)
+                .post("/preview", this.se.preview)
+                .routes(),
+            )
             .routes(),
         ).use(
           "/auth",
           new Router()
-            .post("/register", this.auth.register)
-            .post("/login", this.auth.login)
-            .post("/logout", authReq, this.auth.logout)
+            .post("/register", this.au.register)
+            .post("/login", this.au.login)
+            .post("/logout", this.au.logout)
             .routes(),
         ).use(
           "/user",
           new Router()
-            .get("/current", authReq, this.us.current)
-            .post("/delete", authReq, this.us.deleteUser)
-            .post("/update", authReq, this.us.updateUser)
-            .post("/info", authReq, this.us.userInfo)
+            .get("/current", this.us.current)
+            .post("/delete", this.us.delete)
+            .post("/update", this.us.update)
+            .post("/info", this.us.info)
             .routes(),
         ).use(
           "/team",
           new Router()
-            .post("/create", authReq, this.tm.add)
-            .post("/delete", authReq, this.tm.delete)
-            .post("/update", authReq, this.tm.update)
-            .get("/list", authReq, this.tm.getAll)
-            .post("/info", authReq, this.tm.get)
+            .post("/create", this.tm.create)
+            .post("/delete", this.tm.delete)
+            .post("/update", this.tm.update)
+            .get("/list", this.tm.list)
+            .post("/info", this.tm.info)
             .routes(),
         ).routes(),
-      )*/
+      );
   }
 }

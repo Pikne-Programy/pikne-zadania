@@ -3,8 +3,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { basename, existsSync, join, parse, walkSync } from "../deps.ts";
-import { IExerciseStore, Section } from "../interfaces/mod.ts";
-import { Exercise, isArrayOf, isJSONType, isObjectOf } from "../types/mod.ts";
+import { IExerciseStore } from "../interfaces/mod.ts";
+import {
+  Exercise,
+  isArrayOf,
+  isJSONType,
+  isObjectOf,
+  Section,
+} from "../types/mod.ts";
 import { handleThrown } from "../utils/utils.ts";
 import exts from "../exts/mod.ts";
 import { joinThrowable } from "../utils/mod.ts";
@@ -14,15 +20,15 @@ interface YAMLSection {
   [key: string]: (YAMLSection | string)[];
 }
 function isYAMLSection(what: unknown): what is YAMLSection {
-  const isYAMLSectionOrString = (x: unknown): x is YAMLSection | string =>
-    typeof x === "string" || isYAMLSection(x);
-  const isArrayOfYAMLSectionOrString = (
-    e: unknown
-  ): e is (YAMLSection | string)[] => isArrayOf(isYAMLSectionOrString, e);
-  return (
-    isObjectOf(isArrayOfYAMLSectionOrString, what) &&
-    Object.keys(what).length == 1
-  );
+  return isObjectOf(
+    (x): x is (YAMLSection | string)[] =>
+      isArrayOf(
+        (y: unknown): y is YAMLSection | string =>
+          typeof y === "string" || isYAMLSection(y),
+        x,
+      ),
+    what,
+  ) && Object.keys(what).length == 1;
 }
 
 export class ExerciseStore implements IExerciseStore {
@@ -34,9 +40,11 @@ export class ExerciseStore implements IExerciseStore {
   private readonly uid = (subject: string, id: string) => `${subject}/${id}`;
 
   constructor() {
-    for (const { path } of [
-      ...walkSync(this.exercisesPath, { includeFiles: false, maxDepth: 1 }),
-    ].slice(1)) {
+    for (
+      const { path } of [
+        ...walkSync(this.exercisesPath, { includeFiles: false, maxDepth: 1 }),
+      ].slice(1)
+    ) {
       const subject = basename(path);
       try {
         const index = join(path, "index.yml");
@@ -86,7 +94,7 @@ export class ExerciseStore implements IExerciseStore {
 
   private _buildSectionList(
     subject: string,
-    elements: (YAMLSection | string)[]
+    elements: (YAMLSection | string)[],
   ) {
     const r: Section[] = [];
     for (const el of elements) {

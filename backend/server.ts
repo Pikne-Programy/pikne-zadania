@@ -14,7 +14,7 @@ import {
   TeamStore,
   UserStore,
 } from "./services/mod.ts";
-import RouterBuilder from "./router.ts";
+//import RouterBuilder from "./router.ts";
 
 const app = new Application<State>();
 
@@ -60,18 +60,18 @@ console.log(
 console.log(
   await ex.render({ subject: "fizyka", id: "pociagi-dwa" }, { seed: 0 }),
 );
-
 /*
 const authc = new AuthController(cfg, auth);
 const exc = new ExercisesController(cfg, exs);
 const tmc = new TeamsController(tms);
 const usc = new UsersController(uss);
-*/
-const rb = new RouterBuilder(/*authc, exc, tmc, usc*/);
+
+const rb = new RouterBuilder(authc, exc, tmc, usc);
 
 const router = rb.router;
 app.use(router.routes());
 app.use(router.allowedMethods());
+*/
 
 app.addEventListener("listen", () => console.log("Server started"));
 

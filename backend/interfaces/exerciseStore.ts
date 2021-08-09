@@ -2,12 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Exercise } from "../types/mod.ts";
-
-export type Section = {
-  name: string;
-  children: Section[] | string; // id
-};
+import { Exercise, Section } from "../types/mod.ts";
 
 export interface IExerciseStore {
   parse(content: string): Exercise;

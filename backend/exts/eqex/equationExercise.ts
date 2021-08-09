@@ -256,6 +256,7 @@ export default class EquationExercise extends Exercise {
     };
   }
   check(seed: number, answer: JSONType) {
+    // TODO: use value-schema
     if (!isAnswer(answer)) {
       throw new httpErrors["BadRequest"]("ERROR, INVALID ANSWER FORMAT");
     }

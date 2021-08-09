@@ -2,7 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { JSONObject, JSONType } from "./primitives.ts";
+import { isArrayOf, JSONObject, JSONType } from "./mod.ts";
+
 export abstract class Exercise {
   public abstract readonly type: string; // EqEx
   constructor(
@@ -15,4 +16,21 @@ export abstract class Exercise {
     seed: number,
     answer: JSONType,
   ): { done: number; info: JSONType; correctAnswer: JSONType }; // POST
+}
+
+export type Section = {
+  name: string;
+  children: Section[] | string; // id
+};
+function isNameChildrenObject(
+  what: unknown,
+): what is { name: unknown; children: unknown } {
+  return typeof what === "object" && what !== null &&
+    Object.keys(what).sort().toString() === "children,name";
+}
+export function isSection(what: unknown): what is Section {
+  if (!isNameChildrenObject(what)) return false;
+  if (typeof what.name !== "string") return false;
+  if (typeof what.children === "string") return true;
+  return isArrayOf(isSection, what.children);
 }
