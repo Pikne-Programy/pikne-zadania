@@ -4,6 +4,9 @@
     <div class="tile is-child height-full panel is-primary is-root">
       <p class="panel-heading is-flex is-align-items-center">
         <span class="is-flex-grow-1">{{ subject!.getName() | titlecase }}</span>
+        <a *ngIf="subject" class="button is-primary" title="Stwórz zadanie" [routerLink]="['/subject/exercise-new', subject.id]">
+          <i class="fas fa-plus"></i>
+        </a>
         <a *ngIf="subject" class="button is-primary" title="Edytuj kategorie" [routerLink]="['/subject/categories', subject.id]">
           <i class="fas fa-pen"></i>
         </a>
@@ -28,22 +31,10 @@
   <div class="tile is-9 is-10-bigscreen is-parent">
     <div class="tile is-child width-full box p-0 mobile-unscrollable">
       <ng-container *ngIf="!exerciseError && subject">
-        <div *ngFor="let exercise of exerciseList; index as i" class="panel-block is-exercise-container pr-only-desktop-3 pr-only-widescreen-2 pr-full-hd-1" [ngClass]="{ 'is-hidden': isExerciseLoading }">
-          <div class="main">
-            <app-subject-ex-prev class="is-flex is-flex-direction-column" [exercise]="exercise" [shouldTypeset]="getTypesettingStrategy(exercise, i)" (ready)="isExerciseLoading = false"></app-subject-ex-prev>
-          </div>
-          <div class="actions">
-            <a class="button is-primary is-outlined" [routerLink]="['/subject/exercise-edit', subject.id, exercise.id]">
-              <span class="icon is-small">
-                <i class="fas fa-pen"></i>
-              </span>
-            </a>
-          </div>
-        </div>
+        <app-subject-ex-prev *ngFor="let exercise of exerciseList; index as i" class="panel-block" [ngClass]="{ 'is-hidden': isExerciseLoading }" [exercise]="exercise" [subjectId]="subject.id" [isLast]="isLast(i)" (ready)="isExerciseLoading = false">
+        </app-subject-ex-prev>
       </ng-container>
-      <div *ngIf="!exerciseList && !isExerciseLoading && !exerciseError" class="height-full is-flex is-flex-direction-column is-align-items-center is-justify-content-center py-3">
-        <img class="max-width-75 max-height-75" src="assets/misc/png/exercise_placeholder.png" srcset="assets/misc/exercise_placeholder.svg" alt="">
-      </div>
+      <app-image-placeholder *ngIf="!exerciseList && !isExerciseLoading && !exerciseError"></app-image-placeholder>
       <app-loading *ngIf="isExerciseLoading && !exerciseError"></app-loading>
       <app-error *ngIf="exerciseError" [code]="exerciseError.code" [message]="getExerciseErrorMessage(exerciseError)"></app-error>
     </div>

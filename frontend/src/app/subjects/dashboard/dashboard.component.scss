@@ -1,17 +1,11 @@
-@import "src/styles.variables.scss";
-$mobile: nth(
-  $list: $size_breakpoints,
-  $n: 1,
-);
-$fullhd: nth(
-  $list: $size_breakpoints,
-  $n: 5,
-);
+@use "src/styles.variables.scss" as *;
+$mobile: nth($size_breakpoints, 1);
+$fullhd: nth($size_breakpoints, 5);
 
 .mobile-unscrollable {
   overflow: auto;
 
-  @media only screen and (max-width: nth($list: $mobile, $n: 3)) {
+  @media only screen and (max-width: nth($mobile, 3)) {
     overflow: hidden;
   }
 }
@@ -23,7 +17,7 @@ $fullhd: nth(
     overflow: hidden;
   }
 
-  @media only screen and (min-width: nth($list: $fullhd, $n: 2)) {
+  @media only screen and (min-width: nth($fullhd, 2)) {
     $special_sizes: 2, 10;
     @each $size in $special_sizes {
       &.is-#{$size}-bigscreen {
@@ -41,34 +35,22 @@ a {
   margin-right: 0;
 }
 
-.panel-block.is-exercise-container {
+.is-hidden {
+  display: none;
+}
+
+app-subject-ex-prev {
   display: flex;
+  flex-direction: column;
   padding: 1rem;
   padding-top: 0.5rem;
   border-bottom: 1px solid #ededed;
 
   &:first-child {
     padding-top: 0.75rem;
-
-    & .actions {
-      padding-top: 0.25rem;
-    }
   }
 
-  & .main {
-    display: flex;
-    width: 95%;
-    padding-right: 0.5rem;
+  &.panel-block:last-child {
+    border-radius: 0;
   }
-
-  & .actions {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding-top: 0.5rem;
-  }
-}
-
-.is-hidden {
-  display: none;
 }

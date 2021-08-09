@@ -5,11 +5,9 @@ import { SubjectRoutingModule } from './subject-routing.module';
 import { SubjectComponent } from './subject.component';
 import { SubjectListComponent } from './list/list.component';
 import { NavModule } from '../navigation/nav.module';
-import { SubjectService } from './subject.service/subject.service';
 import { TemplatesModule } from '../templates/templates.module';
 import { SubjectDashboardComponent } from './dashboard/dashboard.component';
 import { SubjectDashboardPreviewComponent } from './dashboard/exercise-previews/preview.component';
-import { EqexPreviewComponent } from './dashboard/exercise-previews/eqex/eqex.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ExerciseModificationService } from './exercise-modification/service/exercise-modification.service';
 import { ExerciseModificationComponent } from './exercise-modification/modification/modification.component';
@@ -23,7 +21,6 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
     SubjectListComponent,
     SubjectDashboardComponent,
     SubjectDashboardPreviewComponent,
-    EqexPreviewComponent,
     ExerciseModificationComponent,
     ExerciseCreationComponent,
     ExerciseModificationFormComponent,
@@ -37,7 +34,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
     TemplatesModule,
     MatAutocompleteModule,
   ],
-  providers: [SubjectService, ExerciseModificationService],
+  providers: [ExerciseModificationService],
   bootstrap: [SubjectComponent],
 })
 export class SubjectModule {}

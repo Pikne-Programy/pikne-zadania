@@ -6,6 +6,7 @@ import { NavModule } from '../navigation/nav.module';
 import { SelectComponent } from './select/select.component';
 import { CardModalComponent } from './card-modal/card-modal.component';
 import { CollapsibleDirective } from './collapsible/collapsible.directive';
+import { ImagePlaceholderComponent } from './image-placeholder/image-placeholder.component';
 
 @NgModule({
   imports: [CommonModule, RouterModule, NavModule],
@@ -13,12 +14,14 @@ import { CollapsibleDirective } from './collapsible/collapsible.directive';
     PanelComponent,
     SelectComponent,
     CardModalComponent,
+    ImagePlaceholderComponent,
     CollapsibleDirective,
   ],
   exports: [
     PanelComponent,
     SelectComponent,
     CardModalComponent,
+    ImagePlaceholderComponent,
     CollapsibleDirective,
   ],
 })

@@ -3,20 +3,21 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { DebugElement } from '@angular/core';
 
-import { EqexPreviewComponent } from './eqex.component';
+import { ImagePlaceholderComponent } from './image-placeholder.component';
 
-describe('EqexComponent', () => {
-  let component: EqexPreviewComponent;
-  let fixture: ComponentFixture<EqexPreviewComponent>;
+describe('ImagePlaceholderComponent', () => {
+  let component: ImagePlaceholderComponent;
+  let fixture: ComponentFixture<ImagePlaceholderComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [EqexPreviewComponent],
-    }).compileComponents();
+      declarations: [ ImagePlaceholderComponent ]
+    })
+    .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(EqexPreviewComponent);
+    fixture = TestBed.createComponent(ImagePlaceholderComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

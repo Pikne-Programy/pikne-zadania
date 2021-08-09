@@ -1,17 +1,17 @@
-import {
-  AfterViewInit,
-  Component,
-  EventEmitter,
-  Input,
-  Output,
-} from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Output } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 import { AccountService } from 'src/app/account/account.service';
 import { ExerciseService } from 'src/app/exercise-service/exercise.service';
+import { EqEx, Exercise } from 'src/app/exercise-service/exercises';
 import { Role, RoleGuardService } from 'src/app/guards/role-guard.service';
 import { serverMockEnabled } from 'src/app/helper/tests/tests.config';
-import { getErrorCode, removeMathTabIndex } from 'src/app/helper/utils';
+import { removeMathTabIndex } from 'src/app/helper/utils';
 import { image } from 'src/app/server-routes';
-import { Exercise, ExerciseComponent } from '../exercises';
+import {
+  ExerciseComponentType,
+  ExerciseInflationService as InflationService,
+  SubmitButtonState,
+} from '../inflation.service/inflation.service';
 declare var MathJax: any;
 
 class Unknown {
@@ -20,8 +20,13 @@ class Unknown {
   isCorrect = false;
   isWrong = false;
 
+  name: string;
+  unit: string;
   input: string = '';
-  constructor(public name: string, public unit: string) {}
+  constructor(unknown: [string, string]) {
+    this.name = unknown[0];
+    this.unit = unknown[1];
+  }
 
   checkFormat() {
     this.isCorrect = false;
@@ -43,39 +48,22 @@ class Unknown {
   templateUrl: './eqex.component.html',
   styleUrls: ['./eqex.component.scss'],
 })
-export class EqexComponent implements ExerciseComponent, AfterViewInit {
-  private loadedImages: boolean[] = [];
-  @Output() loaded = new EventEmitter<string>();
-  isSubmitted = false;
-  isLoading = true;
-  @Output() onAnswers = new EventEmitter<number | null>();
+export class EqExComponent implements ExerciseComponentType, AfterViewInit {
+  @Output() loaded = new BehaviorSubject<number | null>(null);
+  @Output() submitButtonState = new EventEmitter<SubmitButtonState>();
 
-  @Input() subject?: string;
-  @Input() exerciseId?: string;
-  @Input() set data(value: Exercise) {
-    this.title = value.name;
-    this.subtitle = value.content.main;
-    this.imgAlts = value.content.img;
-    this.images = serverMockEnabled
-      ? value.content.img
-      : this.getImages(value.content.img);
-    if (value.content.unknowns) {
-      const tempList: Unknown[] = [];
-      value.content.unknowns.forEach((unknown: string[]) => {
-        tempList.push(new Unknown(unknown[0], unknown[1]));
-      });
-      this.unknowns = tempList;
-    }
-    if (!this.images || this.images.length == 0) this.onLoaded();
-  }
-  title?: string;
-  subtitle?: string;
+  private loadedImages: boolean[] = [];
+  isLoading = true;
+  isSubmitted = false;
+
+  exercise: EqEx | null;
   images?: string[];
   private imgAlts?: string[];
   unknowns: Unknown[] = [];
 
   private isUser: boolean;
   constructor(
+    inflationService: InflationService,
     private exerciseService: ExerciseService,
     accountService: AccountService
   ) {
@@ -83,6 +71,20 @@ export class EqexComponent implements ExerciseComponent, AfterViewInit {
     this.isUser = account
       ? RoleGuardService.getRole(account) === Role.USER
       : true;
+
+    this.exercise = inflationService.getExercise<EqEx>();
+    if (!this.exercise) this.onLoaded(InflationService.InflationError);
+    else {
+      this.imgAlts = this.exercise.content.img;
+      this.images = serverMockEnabled
+        ? this.exercise.content.img
+        : this.getImages(this.exercise.content.img);
+      this.unknowns = this.exercise.content.unknowns.map(
+        (unknown) => new Unknown(unknown)
+      );
+
+      if (!this.images || this.images.length === 0) this.onLoaded();
+    }
   }
 
   getTextAsMath(text: string): string {
@@ -90,35 +92,38 @@ export class EqexComponent implements ExerciseComponent, AfterViewInit {
   }
 
   submitAnswers() {
-    if (this.subject && this.exerciseId) {
+    if (this.exercise) {
       this.isSubmitted = true;
-      const list: (number | null)[] = [];
-      this.unknowns.forEach((unknown) => {
-        const text = unknown.input;
-        list.push(text !== '' ? Number(text.replace(',', '.')) : null);
-      });
-      this.exerciseService
-        .submitAnswers(this.subject, this.exerciseId, list)
-        .then((response) => {
-          if (Exercise.isEqExAnswer(response, this.unknowns.length)) {
-            if (this.exerciseId && this.isUser)
-              this.setLocalDone(this.exerciseId, response);
-            this.onAnswers.emit(null);
-            for (let i = 0; i < response.length; i++)
-              this.unknowns[i].setAnswerCorrectness(response[i]);
-          } else this.throwError();
+      this.submitButtonState.emit('loading');
+      const answers = this.unknowns.map((unknown) =>
+        unknown.input.length > 0
+          ? Number(unknown.input.replace(',', '.'))
+          : null
+      );
+      return this.exerciseService
+        .submitAnswers(
+          this.exercise.subjectId,
+          this.exercise.id,
+          answers,
+          EqEx.isEqExAnswer,
+          this.unknowns.length
+        )
+        .then((results) => {
+          if (this.exercise && this.isUser)
+            return this.setLocalDone(this.exercise.id, results);
+          for (let i = 0; i < results.length; i++)
+            this.unknowns[i].setAnswerCorrectness(results[i]);
         })
-        .catch((error) => this.throwError(error))
-        .finally(() => (this.isSubmitted = false));
-    }
+        .finally(() => {
+          this.isSubmitted = false;
+          this.submitButtonState.emit('active');
+        });
+    } else return Promise.reject({ status: InflationService.InflationError });
   }
 
-  setLocalDone(name: string, answers: any) {
-    if (this.subject) Exercise.setDone('EqEx', name, this.subject, answers);
-  }
-
-  private throwError(error: any = {}) {
-    this.onAnswers.emit(getErrorCode(error));
+  setLocalDone(name: string, answers: boolean[]) {
+    if (this.exercise)
+      Exercise.setDone('EqEx', name, this.exercise.subjectId, answers);
   }
 
   ngAfterViewInit() {
@@ -132,25 +137,26 @@ export class EqexComponent implements ExerciseComponent, AfterViewInit {
       this.onLoaded();
   }
 
-  private onLoaded() {
-    this.loaded.emit('loaded');
+  private onLoaded(error: number | null = null) {
+    this.loaded.next(error);
     this.isLoading = false;
   }
 
-  checkIfSubmitDisabled(): boolean {
-    return this.unknowns?.some((unknown) => unknown.isWrongFormat) ?? false;
+  checkIfSubmitDisabled() {
+    this.submitButtonState.emit(
+      this.unknowns.some(
+        (unknown) => unknown.isWrongFormat || unknown.input.trim().length === 0
+      )
+        ? 'disabled'
+        : 'active'
+    );
   }
 
-  private getImages(paths: any): string[] | undefined {
-    if (this.subject && paths && Array.isArray(paths)) {
-      const res: string[] = [];
-      for (let i = 0; i < paths.length; i++) {
-        const path = paths[i];
-        if (typeof path !== 'string') return undefined;
-        res.push(image(this.subject, path));
-      }
-      return res;
-    } else return undefined;
+  private getImages(paths: string[] | undefined): string[] | undefined {
+    if (!this.exercise || !paths) return undefined;
+    const img: string[] = [];
+    for (const path of paths) img.push(image(this.exercise.subjectId, path));
+    return img;
   }
 
   getImageAlt(i: number): string {

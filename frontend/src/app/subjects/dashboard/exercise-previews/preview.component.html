@@ -1,1 +1,9 @@
-<div #exContainer></div>
+<p class="title is-spaced is-flex is-align-items-center width-full mb-3">
+  {{ exercise.name }}
+  <span class="icon-text ml-3">
+    <a class="icon is-size-4" title="Edytuj zadanie" [routerLink]="['/subject/exercise-edit', subjectId, exercise.id]">
+      <i class="fas fa-pen is-hiding"></i>
+    </a>
+  </span>
+</p>
+<p *ngIf="exercise.desc" class="subtitle is-6 width-full ellipsis">{{ exercise.desc }}</p>

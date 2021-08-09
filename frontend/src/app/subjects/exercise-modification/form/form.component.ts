@@ -14,7 +14,7 @@ import {
 import {
   Exercise as PreviewExercise,
   exerciseTypes,
-} from 'src/app/exercises/exercises';
+} from 'src/app/exercise-service/exercises';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { getErrorCode } from 'src/app/helper/utils';

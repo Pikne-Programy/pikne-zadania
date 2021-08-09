@@ -13,11 +13,19 @@ export class Subject {
   readonly isPrivate: boolean;
 
   constructor(public id: string) {
-    this.isPrivate = id.charAt(0) == '_';
+    this.isPrivate = Subject.checkIfPrivate(id);
   }
 
   getName() {
     return this.isPrivate ? this.id.substr(1) : this.id;
+  }
+
+  static checkIfPrivate(name: string): boolean {
+    return name.charAt(0) === '_';
+  }
+
+  static getSubjectName(name: string): string {
+    return Subject.checkIfPrivate(name) ? name.substr(1) : name;
   }
 }
 
@@ -30,7 +38,14 @@ export class ViewExerciseTreeNode extends ExerciseTreeNode {
     node: ExerciseTreeNode,
     parent: ViewExerciseTreeNode | null = null
   ) {
-    super(node.value, node.parent, node.url, node.done);
+    super(
+      node.value,
+      node.parent,
+      node.type,
+      node.description,
+      node.url,
+      node.done
+    );
     this.children = node.children.map(
       (child) => new ViewExerciseTreeNode(child, this)
     );
@@ -63,7 +78,7 @@ export class SubjectService {
     return res;
   }
 
-  fetchSubjects(): Promise<Subject[]> {
+  getSubjects(): Promise<Subject[]> {
     return this.http
       .get(ServerRoutes.subjectList)
       .pipe(
@@ -78,25 +93,26 @@ export class SubjectService {
   }
 
   private createExerciseTree(
-    serverResponse: ServerResponseNode[]
+    serverResponse: ServerResponseNode
   ): ViewExerciseTreeNode | null {
-    const result = TreeSubject.createSubjectList(serverResponse, false);
-    if (!result || result.length !== 1) return null;
-    return new ViewExerciseTreeNode(result[0].exerciseTree);
+    const result = TreeSubject.createSubject(serverResponse, false);
+    if (!result) return null;
+    return new ViewExerciseTreeNode(result);
   }
 
-  fetchExerciseTree(subjectId: string): Promise<ViewExerciseTreeNode> {
+  getExerciseTree(
+    subjectId: string,
+    shouldHaveType: boolean = false
+  ): Promise<ViewExerciseTreeNode> {
     return this.http
       .post(ServerRoutes.subjectExerciseList, { id: subjectId })
       .pipe(
         switchMap((response) => {
-          const subject = [
-            {
-              name: subjectId,
-              children: response,
-            },
-          ];
-          if (TreeSubject.checkSubjectListValidity(subject)) {
+          const subject = {
+            name: subjectId,
+            children: response,
+          };
+          if (TreeSubject.checkSubjectValidity(subject, shouldHaveType)) {
             const tree = this.createExerciseTree(subject);
             return tree ? of(tree) : throwError({ status: this.TypeError });
           } else return throwError({ status: this.TypeError });

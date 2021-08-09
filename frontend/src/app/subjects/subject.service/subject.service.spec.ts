@@ -64,7 +64,7 @@ describe('Service: Subject', () => {
           expect(service).toBeTruthy();
 
           service
-            .fetchSubjects()
+            .getSubjects()
             .then(() => fail('should be rejected'))
             .catch((error) => expect(error.status).toBe(errorCode));
           const req = httpController.expectOne(ServerRoutes.subjectList);
@@ -85,7 +85,7 @@ describe('Service: Subject', () => {
           const expectedList = ['Sb1', 'Sb2', '_Sb2', 'Sb3', '_Sb3', 'Sb4'];
 
           service
-            .fetchSubjects()
+            .getSubjects()
             .then((subjects) => {
               expect(subjects.length).toBe(expectedList.length);
               const ids = subjects.map((subject) => subject.id);

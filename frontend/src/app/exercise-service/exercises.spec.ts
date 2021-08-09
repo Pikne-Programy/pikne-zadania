@@ -1,4 +1,4 @@
-import { Exercise, ExerciseType } from './exercises';
+import { EqEx, Exercise, ExerciseType } from './exercises';
 
 describe('Exercise', () => {
   describe('isExercise', () => {
@@ -54,7 +54,7 @@ describe('Exercise', () => {
 
     for (const [obj, result] of list) {
       it(`should return ${result} (${obj?.name ?? obj})`, () => {
-        expect(Exercise.isExercise(obj)).toBe(result);
+        expect(Exercise.isExercise(obj, 'test-id', 'test-sb-id')).toBe(result);
       });
     }
   });
@@ -70,12 +70,12 @@ describe('Exercise', () => {
     ];
     for (const [obj, length, result, testMess] of list) {
       it(`should return ${result} (${testMess})`, () => {
-        expect(Exercise.isEqExAnswer(obj, length)).toBe(result);
+        expect(EqEx.isEqExAnswer(obj, length)).toBe(result);
       });
     }
     it('should return false (null & undefined)', () => {
-      expect(Exercise.isEqExAnswer(null, 1)).toBe(false);
-      expect(Exercise.isEqExAnswer(undefined, 1)).toBe(false);
+      expect(EqEx.isEqExAnswer(null, 1)).toBe(false);
+      expect(EqEx.isEqExAnswer(undefined, 1)).toBe(false);
     });
   });
 

@@ -1,14 +1,11 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, Subscription } from 'rxjs';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute, ParamMap, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { ExerciseService } from 'src/app/exercise-service/exercise.service';
-import { categoryRegex, categorySeparator } from 'src/app/exercises/exercises';
-import {
-  ScreenSizeService,
-  ScreenSizes,
-} from 'src/app/helper/screen-size.service';
-import { ExerciseTreeNode, Subject } from '../exercise-service/exercise.utils';
+import { ExerciseTreeNode } from '../exercise-service/exercise.utils';
+import { categorySeparator, Exercise } from '../exercise-service/exercises';
 import { getErrorCode } from '../helper/utils';
+import { Subject } from '../subjects/subject.service/subject.service';
 
 @Component({
   selector: 'app-public-exercises',
@@ -16,124 +13,156 @@ import { getErrorCode } from '../helper/utils';
   styleUrls: ['./public-exercises.component.scss'],
 })
 export class PublicExercisesComponent implements OnInit, OnDestroy {
-  readonly NotFoundError = 404;
+  private readonly SubjectError = 420;
+  private readonly TreeError = 421;
 
-  isSingleSubject = false;
+  @Input() isSingleSubject = false;
   isLoading = true;
   errorCode: number | null = null;
+  isExerciseLoading = false;
+  exerciseErrorCode: number | null = null;
 
-  list?: ExerciseTreeNode[];
+  subjectId?: string;
+  tree?: ExerciseTreeNode;
+  currentNode?: ExerciseTreeNode;
   breadcrumbs: ExerciseTreeNode[] = [];
-  exercise: string | null = null;
-  subject?: Subject;
-  categories = new BehaviorSubject<string>('');
-  currentCategory: string | null = null;
+  exerciseId: string | null = null;
+  exercise: Exercise | null = null;
 
-  readonly mobileSize = ScreenSizes.MOBILE;
-  screenSize: number = ScreenSizes.FULL_HD;
-  private screenSize$?: Subscription;
-  private categories$?: Subscription;
+  private params$?: Subscription;
   private queryParams$?: Subscription;
   constructor(
     private exerciseService: ExerciseService,
-    private screenSizeService: ScreenSizeService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
-    this.fetchSubjectList();
+    this.isSingleSubject =
+      this.route.snapshot.queryParamMap.get('isSingleSubject') !== null;
+    this.router.navigate(['./'], {
+      relativeTo: this.route,
+      queryParams: { isSingleSubject: null },
+      queryParamsHandling: 'merge',
+    });
 
-    this.categories$ = this.categories.subscribe((categories) => {
-      this.navigateToCategory(categories);
+    this.params$ = this.route.paramMap.subscribe((params) => {
+      const subjectId = params.get('subjectId');
+      if (subjectId) {
+        this.subjectId = subjectId;
+        this.getExerciseTree();
+      } else this.throwError();
     });
 
     this.queryParams$ = this.route.queryParamMap.subscribe((params) => {
-      this.exercise = params.get('exercise');
-    });
-
-    this.screenSize$ = this.screenSizeService.currentSize.subscribe((value) => {
-      this.screenSize = value;
+      this.getExercise(params);
     });
   }
 
   ngOnDestroy() {
-    this.categories.complete();
-    this.categories$?.unsubscribe();
+    this.params$?.unsubscribe();
     this.queryParams$?.unsubscribe();
-    this.screenSize$?.unsubscribe();
   }
 
-  private throwError(error: number = this.NotFoundError) {
-    this.errorCode = error;
+  getBreadcrumb(node: ExerciseTreeNode, index: number) {
+    if (index > 0) return node.value;
+    return Subject.getSubjectName(node.value);
   }
 
-  navigateToCategory(newCategory: string) {
-    if (this.subject) {
-      let current = this.subject.exerciseTree;
-      this.breadcrumbs = [current];
-      const categories = newCategory.match(categoryRegex) ?? [];
-      for (let i = 0; i < categories.length; i++) {
-        const index = this.getCategoryIndex(current.children, categories[i]);
-        if (index !== null) {
-          current = current.children[index];
-          this.breadcrumbs.push(current);
-        } else {
-          this.categories.next('');
-          current = this.subject.exerciseTree;
-          this.breadcrumbs = [current];
-          break;
-        }
-      }
-      this.list = current.children;
-    }
+  isSubjectPrivate(node: ExerciseTreeNode, index: number) {
+    return index === 0 && Subject.checkIfPrivate(node.value);
   }
 
   navigate(node: ExerciseTreeNode) {
-    if (node.url !== null)
+    if (node.url !== null) {
       this.router.navigate(['./'], {
         relativeTo: this.route,
-        queryParams: { exercise: node.getPath() },
+        queryParams: { exercise: node.url },
         queryParamsHandling: 'merge',
-        skipLocationChange: node.url === null,
       });
-    else {
-      const parent = this.categories.getValue();
-      this.categories.next(
-        `${parent !== '' ? parent + categorySeparator : ''}${node.value}`
-      );
+    } else {
+      this.currentNode = node;
+      this.breadcrumbs.push(node);
+      this.router.navigate(['./'], {
+        relativeTo: this.route,
+        queryParams: { categories: this.getCategories() },
+        queryParamsHandling: 'merge',
+      });
     }
   }
 
-  navigateToBreadcrumb(node: ExerciseTreeNode) {
-    this.categories.next(node.getPath());
+  navigateToBreadcrumb(node: ExerciseTreeNode, index: number) {
+    this.currentNode = node;
+    this.breadcrumbs.splice(index + 1);
+    this.router.navigate(['./'], {
+      relativeTo: this.route,
+      queryParams: { categories: this.getCategories() },
+      queryParamsHandling: 'merge',
+    });
   }
 
-  getCategoryIndex(list: ExerciseTreeNode[], name: string): number | null {
-    const index = list.findIndex((node) => node.value === name);
-    if (index == -1) return null;
-    else return index;
-  }
-
-  getExerciseUrl(): string | undefined {
-    return this.exercise ?? undefined;
-  }
-
-  getExercisePath(exercise: string | null = this.exercise): string {
-    if (exercise === null) return '';
-    const matches = exercise.match(categoryRegex);
-    if (matches !== null && matches.length > 1) {
-      let result = '';
-      for (let i = 0; i < matches.length - 2; i++) {
-        result += `${matches[i]}${categorySeparator}`;
+  private navigateToCategories(categories: string) {
+    const catList = categories.split(categorySeparator);
+    if (this.tree) {
+      let current = this.tree;
+      for (const category of catList) {
+        const newNode = current.children.find(
+          (child) => child.value === category
+        );
+        if (!newNode) break;
+        current = newNode;
+        this.breadcrumbs.push(newNode);
       }
-      result += matches[matches.length - 2];
-      return result;
-    } else return '';
+      this.currentNode = current;
+    } else this.throwError(this.TreeError);
+  }
+
+  private getCategories(): string | null {
+    const catList = this.breadcrumbs.slice(1);
+    return catList.length > 0
+      ? catList.map((node) => node.value).join(categorySeparator)
+      : null;
+  }
+
+  private getExerciseTree() {
+    if (this.subjectId) {
+      this.exerciseService
+        .getExerciseTree(this.subjectId)
+        .then((response) => {
+          this.tree = response;
+          this.currentNode = response;
+          this.breadcrumbs = [response];
+          const cat = this.route.snapshot.queryParamMap.get('categories');
+          if (cat) this.navigateToCategories(cat);
+        })
+        .catch((error) => this.throwError(getErrorCode(error)))
+        .finally(() => (this.isLoading = false));
+    } else this.throwError();
+  }
+
+  refreshExerciseTree() {
+    this.getExerciseTree();
+  }
+
+  private getExercise(params: ParamMap) {
+    const exerciseId = params.get('exercise');
+    if (this.exercise?.id !== exerciseId) {
+      this.exerciseId = exerciseId;
+      if (!exerciseId) this.exercise = null;
+      else if (!this.subjectId) this.throwError();
+      else {
+        this.isExerciseLoading = true;
+        this.exerciseService
+          .getExercise(this.subjectId, exerciseId)
+          .then((exercise) => (this.exercise = exercise))
+          .catch((error) => (this.exerciseErrorCode = getErrorCode(error)))
+          .finally(() => (this.isExerciseLoading = false));
+      }
+    }
   }
 
   isExerciseSelected(node: ExerciseTreeNode): boolean {
-    return node.url !== null && node.getPath() === this.exercise;
+    return this.exerciseId !== null && node.url === this.exerciseId;
   }
 
   resetExercise() {
@@ -144,58 +173,21 @@ export class PublicExercisesComponent implements OnInit, OnDestroy {
     });
   }
 
-  updateExerciseTree() {
-    if (this.breadcrumbs.length > 0)
-      this.currentCategory =
-        this.breadcrumbs[this.breadcrumbs.length - 1].getPath();
-    this.fetchSubjectList();
-  }
-
-  private fetchSubjectList() {
-    const subjectId = this.route.snapshot.paramMap.get('subjectId');
-    if (subjectId) {
-      this.exerciseService
-        .getSubjectList()
-        .then((response) => {
-          const subject = this.exerciseService.findSubjectById(
-            subjectId,
-            response
-          );
-          if (subject) {
-            this.subject = subject;
-            this.exercise = this.route.snapshot.queryParamMap.get('exercise');
-            const current = this.currentCategory
-              ? this.currentCategory
-              : this.exercise
-              ? this.getExercisePath()
-              : '';
-            this.categories.next(current);
-            this.currentCategory = null;
-
-            if (response.length == 1) this.isSingleSubject = true;
-            else this.isSingleSubject = false;
-            this.isLoading = false;
-          } else this.throwError();
-        })
-        .catch((error) => this.throwError(getErrorCode(error)));
-    } else this.throwError();
-  }
-
-  getSpecialErrorCode(errorCode: number) {
+  getErrorMessage(errorCode: number, fromExercise?: boolean) {
     switch (errorCode) {
-      case this.NotFoundError:
-        return undefined;
-      default:
-        return errorCode;
-    }
-  }
-
-  getErrorMessage(errorCode: number) {
-    switch (errorCode) {
-      case this.NotFoundError:
-        return 'Ups, przedmiot, którego szukasz, nie istnieje!';
+      case 404:
+        return fromExercise
+          ? 'Ups, zadanie, którego szukasz, nie istnieje!'
+          : 'Ups, przedmiot, którego szukasz, nie istnieje!';
+      case 500:
+        return 'Błąd serwera';
       default:
         return undefined;
     }
+  }
+
+  private throwError(error: number = this.SubjectError) {
+    this.errorCode = error;
+    this.isLoading = false;
   }
 }

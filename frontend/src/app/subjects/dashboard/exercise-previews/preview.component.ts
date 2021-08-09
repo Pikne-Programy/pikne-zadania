@@ -1,88 +1,54 @@
 import {
   AfterViewInit,
   Component,
-  ComponentFactoryResolver,
-  ComponentRef,
   EventEmitter,
   Input,
-  OnDestroy,
   Output,
-  QueryList,
-  Type,
-  ViewChildren,
-  ViewContainerRef,
 } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { Exercise } from 'src/app/exercises/exercises';
-import { EqexPreviewComponent } from './eqex/eqex.component';
+import { ExerciseType } from 'src/app/exercise-service/exercises';
+import { setAsyncTimeout } from 'src/app/helper/tests/tests.utils';
+import { removeMathTabIndex } from 'src/app/helper/utils';
+declare var MathJax: any;
 
-export interface PreviewComponentType {
-  exercise?: Exercise;
+export interface ViewExercise {
+  id: string;
+  type: ExerciseType;
+  name: string;
+  desc?: string;
 }
 
 @Component({
   selector: 'app-subject-ex-prev',
   templateUrl: './preview.component.html',
-  styleUrls: ['./preview.component.scss'],
+  styleUrls: ['./preview.component.scss', '../dashboard.component.scss'],
 })
-export class SubjectDashboardPreviewComponent
-  implements AfterViewInit, OnDestroy
-{
-  @ViewChildren('exContainer', { read: ViewContainerRef })
-  containers!: QueryList<ViewContainerRef>;
-  componentRef?: ComponentRef<PreviewComponentType>;
-  container$?: Subscription;
-
-  @Input() exercise!: Exercise;
-  @Input() shouldTypeset?: boolean;
+export class SubjectDashboardPreviewComponent implements AfterViewInit {
+  @Input() exercise!: ViewExercise;
+  @Input() subjectId!: string;
+  @Input() isLast?: boolean;
   @Output() ready = new EventEmitter();
-  constructor(private factoryResolver: ComponentFactoryResolver) {}
+
+  constructor() {}
 
   ngAfterViewInit() {
-    if (this.containers.length > 0) this.addComponent(this.containers.first);
+    setTimeout(() => {
+      if (this.isLast) {
+        switch (this.exercise.type) {
+          case 'EqEx':
+            this.setMath().finally(() => this.ready.emit());
+            break;
+          default:
+            this.ready.emit();
+            break;
+        }
+      }
+    }, 10);
+  }
 
-    this.container$ = this.containers.changes.subscribe((container) => {
-      this.addComponent(container);
-      this.container$?.unsubscribe();
+  async setMath() {
+    await setAsyncTimeout(50);
+    return MathJax.typesetPromise().then(() => {
+      removeMathTabIndex();
     });
-  }
-
-  private addComponent(container: ViewContainerRef) {
-    this.componentRef?.destroy();
-    switch (this.exercise.type) {
-      case 'EqEx':
-        this.inflateEqExComponent(container);
-        break;
-      default:
-        this.inflateComponent(null, container);
-    }
-  }
-
-  ngOnDestroy() {
-    this.componentRef?.destroy();
-    this.container$?.unsubscribe();
-  }
-
-  private inflateComponent<T extends PreviewComponentType>(
-    type: Type<T> | null,
-    container: ViewContainerRef
-  ) {
-    container.clear();
-    if (type !== null) {
-      const factory = this.factoryResolver.resolveComponentFactory(type);
-      const component = container.createComponent(factory);
-      this.componentRef = component;
-      setTimeout(() => {
-        component.instance.exercise = this.exercise;
-      }, 10);
-      return component;
-    }
-    return null;
-  }
-
-  inflateEqExComponent(container: ViewContainerRef) {
-    const component = this.inflateComponent(EqexPreviewComponent, container)!;
-    if (this.shouldTypeset)
-      component.instance.setMath().finally(() => this.ready.emit());
   }
 }

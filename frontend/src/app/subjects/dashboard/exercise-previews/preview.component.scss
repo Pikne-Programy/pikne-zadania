@@ -1,6 +1,15 @@
+@use "src/styles.variables.scss" as *;
+$widescreen: nth($size_breakpoints, 4);
+
 :host {
   display: block;
   width: 100%;
+
+  &:not(:hover):not(:focus) a:not(:focus) i.is-hiding {
+    @media only screen and (min-width: nth($widescreen, 2)) {
+      display: none;
+    }
+  }
 }
 
 .ellipsis {
@@ -8,4 +17,8 @@
   white-space: nowrap;
   overflow: hidden;
   line-height: 1.3;
+}
+
+a {
+  color: inherit;
 }

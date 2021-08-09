@@ -2,8 +2,11 @@ import { createServer, Response } from 'miragejs';
 import { Account } from '../../account/account.service';
 
 interface ExerciseTree {
+  type?: string;
   name: string;
   children: ExerciseTree[] | string;
+  done?: number | null;
+  desc?: string;
 }
 
 interface Team {
@@ -37,12 +40,16 @@ export function startServer() {
                   name: 'kinematyka',
                   children: [
                     {
+                      type: 'EqEx',
                       name: 'Pociągi dwa',
                       children: 'pociagi-dwa',
+                      desc: 'Z miast A i B odległych o \\(d=300\\mathrm{km}\\) wyruszają jednocześnie dwa pociągi z prędkościami \\(v_a=50\\mathrm{\\frac{m}{s}}\\) oraz \\(v_b=67\\mathrm{\\frac{m}{s}}\\).\nW jakiej odległości \\(x\\) od miasta A spotkają się te pociągi? Po jakim czasie \\(t\\) się to stanie?',
                     },
                     {
+                      type: 'EqEx',
                       name: 'Pociągi dwa 2',
                       children: 'pociagi-dwa-2',
+                      desc: 'Z miast A i B odległych o \\(d=300\\mathrm{km}\\) wyruszają jednocześnie dwa pociągi z prędkościami \\(v_a=50\\mathrm{\\frac{m}{s}}\\) oraz \\(v_b=67\\mathrm{\\frac{m}{s}}\\).\nW jakiej odległości \\(x\\) od miasta A spotkają się te pociągi? Po jakim czasie \\(t\\) się to stanie?',
                     },
                   ],
                 },
@@ -50,12 +57,16 @@ export function startServer() {
                   name: 'grawitacja',
                   children: [
                     {
+                      type: 'EqEx',
                       name: 'Pociągi dwa',
                       children: 'pociagi-dwa',
+                      desc: 'Z miast A i B odległych o \\(d=300\\mathrm{km}\\) wyruszają jednocześnie dwa pociągi z prędkościami \\(v_a=50\\mathrm{\\frac{m}{s}}\\) oraz \\(v_b=67\\mathrm{\\frac{m}{s}}\\).\nW jakiej odległości \\(x\\) od miasta A spotkają się te pociągi? Po jakim czasie \\(t\\) się to stanie?',
                     },
                     {
+                      type: 'EqEx',
                       name: 'Pociągi dwa 2',
                       children: 'pociagi-dwa-2',
+                      desc: 'Z miast A i B odległych o \\(d=300\\mathrm{km}\\) wyruszają jednocześnie dwa pociągi z prędkościami \\(v_a=50\\mathrm{\\frac{m}{s}}\\) oraz \\(v_b=67\\mathrm{\\frac{m}{s}}\\).\nW jakiej odległości \\(x\\) od miasta A spotkają się te pociągi? Po jakim czasie \\(t\\) się to stanie?',
                     },
                   ],
                 },
@@ -68,16 +79,22 @@ export function startServer() {
                   name: 'rozpad',
                   children: [
                     {
+                      type: 'EqEx',
                       name: 'atom',
                       children: 'atom',
+                      desc: 'Atom ma bardzo krótkie polecenie. Podaj \\(T\\).',
                     },
                     {
+                      type: 'EqEx',
                       name: 'error 404',
                       children: 'error-404',
+                      desc: 'Error 404',
                     },
                     {
+                      type: 'EqEx',
                       name: 'error 400',
                       children: 'error-400',
+                      desc: 'Error 400',
                     },
                   ],
                 },
@@ -85,24 +102,26 @@ export function startServer() {
             },
           ],
         },
+        {
+          name: 'astronomia',
+          children: [
+            {
+              type: 'EqEx',
+              name: 'Kąt',
+              children: 'angle',
+              desc: 'Człowiek pracujący w polu w punkcie \\(A\\) zobaczył idącego szosą sąsiada w punkcie \\(B\\).\nRuszył mu na spotkanie idąc do punktu \\(C\\) szosy z prędkością \\(v_1=5.4\\mathrm{\\frac{m}{s}}\\).\nZ jaką prędkością szedł sąsiad, jeżeli obydwaj doszli do punktu \\(C\\) jednocześnie?\nKąt \\(\\alpha=36°\\), a \\(\\beta=59°\\).',
+            },
+          ],
+        },
       ];
       for (let i = 0; i < noCategoryAmount; i++) {
         if (typeof list[0].children !== 'string')
           list[0].children.push({
+            type: 'EqEx',
             name: 'no category',
             children: `no-category-${i}`,
+            desc: 'Z miast A i B odległych o \\(d=300\\mathrm{km}\\) wyruszają jednocześnie dwa pociągi z prędkościami \\(v_a=50\\mathrm{\\frac{m}{s}}\\) oraz \\(v_b=67\\mathrm{\\frac{m}{s}}\\).\nW jakiej odległości \\(x\\) od miasta A spotkają się te pociągi? Po jakim czasie \\(t\\) się to stanie?',
           });
-      }
-      for (let i = 0; i < noCategoryAmount; i++) {
-        list.push({
-          name: 'subject',
-          children: [
-            {
-              name: 'Kąt',
-              children: 'angle',
-            },
-          ],
-        });
       }
 
       const subjects = ['fizyka', '_fizyka', 'astronomia', '_zzz', 'zz', 'zzz'];
@@ -137,7 +156,22 @@ export function startServer() {
       //#endregion
 
       //#region Exercises
-      this.get('/api/exercise/list', () => list);
+      this.post('/api/exercise/list', (schema: any, request: any) => {
+        const id = JSON.parse(request.requestBody).id;
+        if (typeof id !== 'string' || id.includes('zz'))
+          return new Response(404);
+        return (
+          (id.includes('fizyka')
+            ? list[0].children
+            : list[1].children) as ExerciseTree[]
+        ).map((node) => {
+          return {
+            name: node.name,
+            children: node.children,
+            done: node.done,
+          };
+        });
+      });
       this.post('/api/exercise/render', (schema: any, request: any) => {
         const attrs = JSON.parse(request.requestBody);
         const subject = /([^/]+)\//g.exec(attrs.id)?.[1];
@@ -204,7 +238,7 @@ export function startServer() {
                 ],
               },
             };
-          case 'subject':
+          case 'astronomia':
             if (exercise === 'angle')
               return {
                 type: 'EqEx',

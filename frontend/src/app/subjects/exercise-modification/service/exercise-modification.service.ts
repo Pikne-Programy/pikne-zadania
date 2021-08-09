@@ -8,7 +8,7 @@ import {
 } from 'src/app/exercise-service/exercise.utils';
 import * as ServerRoutes from 'src/app/server-routes';
 import { replaceAccents } from 'src/app/helper/utils';
-import { exerciseTypes } from 'src/app/exercises/exercises';
+import { exerciseTypes } from 'src/app/exercise-service/exercises';
 
 export class Exercise {
   constructor(
@@ -93,9 +93,9 @@ export class ExerciseModificationService {
       .post(ServerRoutes.subjectExerciseList, { id: subjectId })
       .pipe(
         switchMap((response) => {
-          const subject = [{ name: subjectId, children: response }];
-          if (Subject.checkSubjectListValidity(subject))
-            return of(new Set<string>(this.extractExercises(subject[0])));
+          const subject = { name: subjectId, children: response };
+          if (Subject.checkSubjectValidity(subject))
+            return of(new Set<string>(this.extractExercises(subject)));
           else return throwError({ status: this.TypeError });
         })
       )

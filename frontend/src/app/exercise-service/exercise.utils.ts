@@ -1,63 +1,50 @@
-import { categorySeparator } from '../exercises/exercises';
-import { capitalize } from '../helper/utils';
+import { capitalize, isObject } from '../helper/utils';
+import { ExerciseType, exerciseTypes } from './exercises';
 
 export interface ServerResponseNode {
+  type?: ExerciseType;
   name: string;
   children: ServerResponseNode[] | string;
   done?: number | null;
+  desc?: string;
 }
 
 export class Subject {
-  constructor(public name: string, public exerciseTree: ExerciseTreeNode) {}
-
-  static createSubjectList(
-    serverResponse: ServerResponseNode[],
+  static createSubject(
+    serverResponse: ServerResponseNode,
     getLocalDone: boolean
-  ): Subject[] | null {
-    const list: Subject[] = [];
-    for (let node of serverResponse) {
-      if (Array.isArray(node.children)) {
-        list.push(
-          new Subject(
-            node.name,
-            ExerciseTreeNode.createExerciseTree(
-              getLocalDone,
-              node.name,
-              node.children,
-              node.name
-            )
-          )
-        );
-      } else return null;
-    }
-    return list;
+  ): ExerciseTreeNode | null {
+    if (!Array.isArray(serverResponse.children)) return null;
+    return ExerciseTreeNode.createExerciseTree(
+      getLocalDone,
+      serverResponse.name,
+      serverResponse.children,
+      serverResponse.name
+    );
   }
 
-  static checkSubjectListValidity(
-    list: any,
+  static checkSubjectValidity(
+    object: any,
+    shouldHaveType: boolean = false,
     root: boolean = true
-  ): list is ServerResponseNode[] {
-    if (Array.isArray(list)) {
-      if (list.length > 0) {
-        return list.every((node) => {
-          if (
-            'name' in node &&
-            typeof node.name === 'string' &&
-            'children' in node
-          ) {
-            if (
-              'done' in node &&
-              typeof node.done !== 'number' &&
-              node.done !== null
-            )
-              return false;
-            if (Array.isArray(node.children))
-              return Subject.checkSubjectListValidity(node.children, false);
-            else return !root && typeof node.children === 'string';
-          } else return false;
-        });
-      } else return true;
-    } else return false;
+  ): object is ServerResponseNode {
+    return (
+      isObject<ServerResponseNode>(object, [
+        ['type', ['string', 'undefined']],
+        ['name', ['string']],
+        ['children', 'any'],
+        ['done', ['number', 'null', 'undefined']],
+        ['desc', ['string', 'undefined']],
+      ]) &&
+      (Array.isArray(object.children)
+        ? object.children.every((child) =>
+            Subject.checkSubjectValidity(child, shouldHaveType, false)
+          )
+        : !root && typeof object.children === 'string') &&
+      (shouldHaveType && typeof object.children === 'string'
+        ? object.type !== undefined && exerciseTypes.includes(object.type)
+        : true)
+    );
   }
 }
 
@@ -66,17 +53,11 @@ export class ExerciseTreeNode {
   constructor(
     public value: string,
     public parent: ExerciseTreeNode | null,
+    public type?: ExerciseType,
+    public description?: string,
     public url: string | null = null,
     public done?: number | null
   ) {}
-
-  getPath(): string {
-    if (this.parent && this.parent.parent)
-      return `${this.parent.getPath()}${categorySeparator}${
-        this.url ? this.url : this.value
-      }`;
-    else return this.url ? this.url : this.value;
-  }
 
   static createExerciseTree(
     getLocal: boolean,
@@ -104,6 +85,8 @@ export class ExerciseTreeNode {
           new ExerciseTreeNode(
             capitalize(child.name)!,
             node,
+            child.type,
+            child.desc,
             child.children,
             child.done === undefined && getLocal
               ? getLocalDone(subject, child.children)

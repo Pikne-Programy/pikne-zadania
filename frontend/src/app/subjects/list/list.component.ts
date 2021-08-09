@@ -18,7 +18,7 @@ export class SubjectListComponent implements OnInit {
 
   ngOnInit() {
     this.subjectService
-      .fetchSubjects()
+      .getSubjects()
       .then((list) => (this.subjectList = list))
       .catch((error) => (this.errorCode = getErrorCode(error)))
       .finally(() => (this.isLoading = false));

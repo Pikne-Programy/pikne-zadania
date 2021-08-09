@@ -1,24 +1,17 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { BehaviorSubject, Subscription } from 'rxjs';
-import { ExerciseService } from 'src/app/exercise-service/exercise.service';
-import { Exercise } from 'src/app/exercises/exercises';
+import { Subscription } from 'rxjs';
 import { getErrorCode } from 'src/app/helper/utils';
 import {
   Subject,
   SubjectService,
   ViewExerciseTreeNode,
 } from '../subject.service/subject.service';
+import { ViewExercise } from './exercise-previews/preview.component';
 
 interface ExerciseError {
   code: number;
   id: string;
-}
-
-class ExerciseWithId extends Exercise {
-  constructor(ex: Exercise, public id: string) {
-    super(ex.type, ex.name, ex.content, ex.done);
-  }
 }
 
 @Component({
@@ -27,12 +20,13 @@ class ExerciseWithId extends Exercise {
   styleUrls: ['./dashboard.component.scss'],
 })
 export class SubjectDashboardComponent implements OnInit, OnDestroy {
+  private readonly TypeError = 400;
   private readonly SubjectError = 420;
 
   subject?: Subject;
   categoryTree?: ViewExerciseTreeNode;
   currentNode?: ViewExerciseTreeNode;
-  exerciseList: ExerciseWithId[] | null = null;
+  exerciseList: ViewExercise[] | null = null;
 
   isLoading = true;
   isExerciseLoading = false;
@@ -45,10 +39,8 @@ export class SubjectDashboardComponent implements OnInit, OnDestroy {
   exerciseError: ExerciseError | null = null;
 
   param$?: Subscription;
-  exercise$?: Subscription;
   constructor(
     private subjectService: SubjectService,
-    private exerciseService: ExerciseService,
     private route: ActivatedRoute
   ) {}
 
@@ -58,7 +50,7 @@ export class SubjectDashboardComponent implements OnInit, OnDestroy {
       if (subjectId) {
         this.subject = new Subject(subjectId);
         this.subjectService
-          .fetchExerciseTree(subjectId)
+          .getExerciseTree(subjectId, true)
           .then((tree) => {
             tree.isSelected = true;
             this.categoryTree = tree;
@@ -116,58 +108,34 @@ export class SubjectDashboardComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const exerciseIds: string[] = [];
-    this.currentNode.children.forEach((node) => {
-      if (node.url) exerciseIds.push(node.url);
-    });
-    if (exerciseIds.length === 0) {
+    const exercises: ViewExerciseTreeNode[] = this.currentNode.children.filter(
+      (node) => node.url
+    );
+
+    if (exercises.length === 0) {
       this.exerciseList = null;
       return;
     }
-    this.isExerciseLoading = true;
-
-    const result: ExerciseWithId[] = [];
-    const obs = new BehaviorSubject<number>(0);
-    this.exercise$?.unsubscribe();
-    this.exercise$ = obs.subscribe((val) => {
-      if (val === exerciseIds.length) {
-        this.exerciseList = result;
-        setTimeout(() => {
-          this.isExerciseLoading = false;
-        }, 5000);
-
-        this.exercise$?.unsubscribe();
-        obs.complete();
+    for (const node of exercises) {
+      if (!node.type) {
+        this.exerciseError = { code: this.TypeError, id: node.url! };
+        return;
       }
-    });
-    for (const url of exerciseIds) {
-      this.exerciseService
-        .getExercise(this.subject.id, url)
-        .then((exercise) => {
-          result.push(new ExerciseWithId(exercise, url));
-          obs.next(result.length);
-        })
-        .catch((error) => {
-          const code = getErrorCode(error);
-          this.exerciseError = { code, id: url };
-          this.isExerciseLoading = false;
-          this.exercise$?.unsubscribe();
-          obs.complete();
-        });
     }
+
+    this.isExerciseLoading = true;
+    this.exerciseList = exercises.map((node) => {
+      return {
+        id: node.url!,
+        type: node.type!,
+        name: node.value,
+        desc: node.description,
+      };
+    });
   }
 
-  getTypesettingStrategy(
-    exercise: Exercise,
-    index: number
-  ): boolean | undefined {
-    switch (exercise.type) {
-      case 'EqEx':
-        if (!this.exerciseList) return undefined;
-        return index === this.exerciseList.length - 1;
-      default:
-        return undefined;
-    }
+  isLast(index: number): boolean {
+    return !this.exerciseList || index === this.exerciseList.length - 1;
   }
 
   getErrorMessage(errorCode: number): string | undefined {
@@ -184,7 +152,6 @@ export class SubjectDashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.exercise$?.unsubscribe();
     this.param$?.unsubscribe();
   }
 }

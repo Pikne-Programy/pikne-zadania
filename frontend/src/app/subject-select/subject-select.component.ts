@@ -1,8 +1,11 @@
 import { AfterContentInit, Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ExerciseService } from '../exercise-service/exercise.service';
-import { Subject } from '../exercise-service/exercise.utils';
 import { getErrorCode } from '../helper/utils';
+import {
+  Subject,
+  SubjectService,
+} from '../subjects/subject.service/subject.service';
+import { SpecialPanelItem } from '../templates/panel/panel.component';
 
 @Component({
   selector: 'app-subject-select',
@@ -15,27 +18,35 @@ export class SubjectSelectComponent implements AfterContentInit {
   errorCode: number | null = null;
 
   constructor(
-    private exerciseService: ExerciseService,
+    private subjectService: SubjectService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
 
   ngAfterContentInit() {
-    this.exerciseService
-      .getSubjectList()
+    this.subjectService
+      .getSubjects()
       .then((response) => {
         this.list = response;
         this.isLoading = false;
         if (this.list.length == 1) {
-          this.router.navigate(['subjects', this.list[0].name], {
+          this.router.navigate(['subjects', this.list[0].id], {
             relativeTo: this.route,
+            queryParams: { isSingleSubject: this.list.length === 1 },
+            skipLocationChange: true,
           });
         }
       })
       .catch((error) => (this.errorCode = getErrorCode(error)));
   }
 
-  getSubjectList(): [string, string, string][] {
-    return this.list.map((val) => [val.name, val.name, 'fa-book']);
+  getSubjectList(): SpecialPanelItem[] {
+    return this.list.map((val) => [
+      val.getName(),
+      val.id,
+      'fa-book',
+      false,
+      val.isPrivate,
+    ]);
   }
 }

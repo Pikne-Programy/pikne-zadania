@@ -1,23 +1,24 @@
 /* tslint:disable:no-unused-variable */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { DebugElement } from '@angular/core';
 
-import { EqexComponent } from './eqex.component';
+import { EqExComponent } from './eqex.component';
 
 describe('EqexComponent', () => {
-  let component: EqexComponent;
-  let fixture: ComponentFixture<EqexComponent>;
+  let component: EqExComponent;
+  let fixture: ComponentFixture<EqExComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ EqexComponent ]
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [EqExComponent],
+      }).compileComponents();
     })
-    .compileComponents();
-  }));
+  );
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(EqexComponent);
+    fixture = TestBed.createComponent(EqExComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

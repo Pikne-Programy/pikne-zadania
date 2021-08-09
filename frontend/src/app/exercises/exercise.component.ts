@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   Component,
   ComponentFactoryResolver,
   ComponentRef,
@@ -7,94 +8,110 @@ import {
   OnChanges,
   OnDestroy,
   Output,
+  QueryList,
   Type,
-  ViewChild,
+  ViewChildren,
   ViewContainerRef,
 } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { ExerciseService } from '../exercise-service/exercise.service';
 import { getErrorCode } from '../helper/utils';
-import { EqexComponent } from './eqex/eqex.component';
+import { EqExComponent } from './eqex/eqex.component';
+import { Exercise, EqEx } from '../exercise-service/exercises';
 import {
-  Exercise,
-  ExerciseComponent as ExerciseComponentType,
-  categoryRegex,
-} from './exercises';
+  ExerciseComponentType,
+  ExerciseInflationService,
+  SubmitButtonState,
+} from './inflation.service/inflation.service';
 
 @Component({
   selector: 'app-exercise',
   templateUrl: './exercise.component.html',
   styleUrls: ['./exercise.component.scss'],
 })
-export class ExerciseComponent implements OnChanges, OnDestroy {
-  isLoading = true;
-  errorCode: number | null = null;
-  @ViewChild('exContainer', { read: ViewContainerRef })
-  container!: ViewContainerRef;
+export class ExerciseComponent implements AfterViewInit, OnChanges, OnDestroy {
+  @ViewChildren('exContainer', { read: ViewContainerRef })
+  containers!: QueryList<ViewContainerRef>;
   componentRef?: ComponentRef<ExerciseComponentType>;
+  container$?: Subscription;
   loading$?: Subscription;
-  answer$?: Subscription;
+  submitState$?: Subscription;
 
-  @Input() subject?: string;
-  @Input() exerciseUrl?: string;
-  @Output() onAnswerSubmit = new EventEmitter();
+  @Input() exercise!: Exercise;
+  @Output() onAnswers = new EventEmitter();
+  @Input() hasSubmitButton?: boolean = true;
+  @Input() specialErrorMessage?: string;
+
+  errorCode: number | null = null;
+  isLoading = true;
+  submitState: SubmitButtonState = 'disabled';
   constructor(
-    private exerciseService: ExerciseService,
-    private factoryResolver: ComponentFactoryResolver
+    private factoryResolver: ComponentFactoryResolver,
+    private inflationService: ExerciseInflationService
   ) {}
 
-  ngOnChanges() {
-    this.componentRef?.destroy();
-    this.isLoading = true;
-    this.errorCode = null;
-
-    if (this.exerciseUrl && this.subject) {
-      this.exerciseService
-        .getExercise(this.subject, this.getExerciseId(this.exerciseUrl))
-        .then((exercise) => {
-          switch (exercise.type) {
-            case 'EqEx':
-              this.inflateComponent(EqexComponent, exercise);
-              break;
-            default:
-              this.throwError();
-          }
-        })
-        .catch((error) => this.throwError(error));
+  ngAfterViewInit() {
+    if (this.containers.length > 0) this.addComponent(this.containers.first);
+    else {
+      this.container$ = this.containers.changes.subscribe((container) => {
+        this.addComponent(container);
+        this.container$?.unsubscribe();
+      });
     }
+  }
+
+  ngOnChanges() {
+    if (this.containers?.first) this.addComponent(this.containers.first);
   }
 
   ngOnDestroy() {
-    this.componentRef?.destroy();
-    this.loading$?.unsubscribe();
-    this.answer$?.unsubscribe();
+    this.container$?.unsubscribe();
+    this.onDestroy();
   }
 
-  private inflateComponent<T extends ExerciseComponentType>(
+  private addComponent(container: ViewContainerRef) {
+    this.isLoading = true;
+    setTimeout(() => {
+      this.onDestroy();
+      this.errorCode = null;
+      switch (this.exercise.type) {
+        case 'EqEx':
+          if (EqEx.isEqEx(this.exercise))
+            this.inflateComponent(EqExComponent, this.exercise, container);
+          else this.throwError();
+          break;
+        default:
+          this.throwError();
+      }
+    }, 20);
+  }
+
+  private inflateComponent<T extends ExerciseComponentType, E extends Exercise>(
     type: Type<T>,
-    exercise: Exercise
+    exercise: E,
+    container: ViewContainerRef
   ) {
-    this.loading$?.unsubscribe();
-    this.answer$?.unsubscribe();
-    if (this.exerciseUrl) {
-      const factory = this.factoryResolver.resolveComponentFactory(type);
-      this.container.clear();
-      const component = this.container.createComponent(factory);
-      this.componentRef = component;
-      this.loading$ = component.instance.loaded.subscribe(() => {
-        this.isLoading = false;
-        this.loading$?.unsubscribe();
-        this.answer$ = component.instance.onAnswers.subscribe(
-          (error: number | null) => {
-            this.errorCode = error;
-            this.onAnswerSubmit.emit();
-          }
-        );
-      });
-      component.instance.subject = this.subject;
-      component.instance.exerciseId = this.getExerciseId(this.exerciseUrl);
-      component.instance.data = exercise;
-    }
+    this.inflationService.setExercise(exercise);
+    const factory = this.factoryResolver.resolveComponentFactory(type);
+    container.clear();
+    const component = container.createComponent(factory);
+    this.componentRef = component;
+    this.loading$ = component.instance.loaded.subscribe((error) => {
+      if (this.errorCode === null) this.errorCode = error;
+      this.isLoading = false;
+      this.loading$?.unsubscribe();
+    });
+    this.submitState$ = component.instance.submitButtonState.subscribe(
+      (state) => {
+        this.submitState = state;
+      }
+    );
+  }
+
+  submitAnswers(component: ComponentRef<ExerciseComponentType>) {
+    component.instance
+      .submitAnswers()
+      .then(() => this.onAnswers.emit())
+      .catch((error) => this.throwError(error));
   }
 
   private throwError(error: any = {}) {
@@ -103,6 +120,7 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
   }
 
   getErrorMessage(errorCode: number): string | undefined {
+    if (this.specialErrorMessage) return this.specialErrorMessage;
     switch (errorCode) {
       case 404:
         return 'Ups! Zadanie, którego szukasz, nie istnieje!';
@@ -113,19 +131,10 @@ export class ExerciseComponent implements OnChanges, OnDestroy {
     }
   }
 
-  getErrorCode(errorCode: number): number | undefined {
-    switch (errorCode) {
-      case 404:
-      case 500:
-        return undefined;
-      default:
-        return errorCode;
-    }
-  }
-
-  private getExerciseId(exercisePath: string) {
-    const matches = exercisePath.match(categoryRegex);
-    if (matches && matches.length > 0) return matches[matches.length - 1];
-    else return '';
+  private onDestroy() {
+    this.componentRef?.destroy();
+    this.inflationService.resetExercise();
+    this.loading$?.unsubscribe();
+    this.submitState$?.unsubscribe();
   }
 }
