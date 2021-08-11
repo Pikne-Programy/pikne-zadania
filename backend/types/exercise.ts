@@ -2,11 +2,13 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { IConfigService } from "../interfaces/mod.ts";
 import { isArrayOf, JSONObject, JSONType } from "./mod.ts";
 
 export abstract class Exercise {
   public abstract readonly type: string; // EqEx
   constructor(
+    protected cfg: IConfigService,
     readonly name: string, // Pociągi dwa 2
     _content: string, // pociągi-dwa
     readonly properties: JSONObject, // tags: kinematyka

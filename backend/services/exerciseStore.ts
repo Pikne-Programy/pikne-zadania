@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { basename, existsSync, join, parse, walkSync } from "../deps.ts";
-import { IExerciseStore } from "../interfaces/mod.ts";
+import { IConfigService, IExerciseStore } from "../interfaces/mod.ts";
 import {
   Exercise,
   isArrayOf,
@@ -39,7 +39,9 @@ export class ExerciseStore implements IExerciseStore {
 
   private readonly uid = (subject: string, id: string) => `${subject}/${id}`;
 
-  constructor() {
+  constructor(
+    private cfg: IConfigService,
+  ) {
     for (
       const { path } of [
         ...walkSync(this.exercisesPath, { includeFiles: false, maxDepth: 1 }),
@@ -77,7 +79,7 @@ export class ExerciseStore implements IExerciseStore {
       throw new Error("type and name are necessary");
     }
     if (!(type in exts)) throw new Error("unknown type");
-    return new exts[type](name, exercise, properties); // it can throw an error
+    return new exts[type](this.cfg, name, exercise, properties); // it can throw an error
   }
 
   private appendExerciseFile(subject: string, id: string) {

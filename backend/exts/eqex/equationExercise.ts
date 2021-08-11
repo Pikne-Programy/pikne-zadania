@@ -4,10 +4,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { httpErrors, vs } from "../../deps.ts";
+import { IConfigService } from "../../interfaces/mod.ts";
 import { Exercise, JSONObject, JSONType } from "../../types/mod.ts";
 import { Range, RNG } from "../../utils/mod.ts";
 import RPN from "./RPN-parser/parser.ts";
-import { cfg } from "../../server.ts";
 
 const greekAlphabet: { [key: string]: string } = {
   alpha: "\\alpha",
@@ -103,17 +103,22 @@ export default class EquationExercise extends Exercise {
   readonly unknowns: string[] = []; // name
   readonly formattedUnknowns: [string, string][] = []; // [formatted name, unit]
   readonly order: number[] = []; // order of equations
-  readonly answerPrecision: number = cfg.ANSWER_PREC; // such number x that: ans*(100-x)% <= user ans <= ans*(100-x)% returns correct answer
-  readonly pointDecimalSeparator: boolean = cfg.DECIMAL_POINT; //true: '.', false: ','
+  readonly answerPrecision: number; // such number x that: ans*(100-x)% <= user ans <= ans*(100-x)% returns correct answer
+  readonly pointDecimalSeparator: boolean; //true: '.', false: ','
+  readonly rngPrec: number;
   readonly img: string[];
 
   // content -> parse to latex, extract RPN, Range and number -> return parsed text
   constructor(
+    protected cfg: IConfigService,
     readonly name: string,
     content: string,
     readonly properties: JSONObject,
   ) {
-    super(name, content, properties);
+    super(cfg, name, content, properties);
+    this.answerPrecision = this.cfg.ANSWER_PREC;
+    this.pointDecimalSeparator = this.cfg.DECIMAL_POINT;
+    this.rngPrec = this.cfg.RNG_PREC;
     try {
       this.img = vs.applySchemaObject(imgSchema, { t: this.properties.img }).t;
     } catch (_) {
@@ -233,7 +238,7 @@ export default class EquationExercise extends Exercise {
       img: string[];
     };
   } {
-    const rng = new RNG(seed, cfg.RNG_PREC);
+    const rng = new RNG(seed, this.rngPrec);
     let parsingContent = this.parsedContent;
     for (const [index, textIndex] of this.ranges) {
       const range = this.variables[index][1];
@@ -270,7 +275,7 @@ export default class EquationExercise extends Exercise {
       },
       {},
     );
-    const rng = new RNG(seed, cfg.RNG_PREC);
+    const rng = new RNG(seed, this.rngPrec);
     const calculated: { [key: string]: number } = {};
     // add already calculated numbers to calculated variables
     for (const [name, val] of this.variables) {

@@ -51,7 +51,7 @@ await db.connect();
 const target = new StoreTarget(cfg, db, TeamStore, UserStore);
 await target.us.init();
 await target.ts.init();
-const exs = new ExerciseStore();
+const exs = new ExerciseStore(cfg);
 const ex = new ExerciseService(exs);
 const jwt = new JWTService(cfg, target.us);
 console.log(

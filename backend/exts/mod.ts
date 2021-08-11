@@ -4,8 +4,10 @@
 
 import EquationExercise from "./eqex/equationExercise.ts";
 import { Exercise } from "../types/mod.ts";
+import { IConfigService } from "../interfaces/mod.ts";
 export default <{
   [key: string]: new (
+    cfg: IConfigService,
     name: typeof Exercise.prototype.name,
     context: string,
     properties: typeof Exercise.prototype.properties,
