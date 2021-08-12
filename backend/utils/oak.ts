@@ -39,18 +39,14 @@ export function placeholder(first: number | JSONType, body?: JSONType) {
   else return _placeholder(200, first);
 }
 
-export function followSchema<T extends SchemaObject>(
+export async function followSchema<T extends SchemaObject>(
+  ctx: RouterContext,
   schema: T,
-  cb: (ctx: RouterContext, req: ObjectTypeOf<T>) => Promise<void> | void,
-) {
-  return async (ctx: RouterContext) => {
-    let req;
-    try {
-      const body = await ctx.request.body({ type: "json" }).value;
-      req = vs.applySchemaObject(schema, body);
-    } catch (_) {
-      throw new httpErrors["BadRequest"]();
-    }
-    await cb(ctx, req);
-  };
+): Promise<ObjectTypeOf<T>> {
+  try {
+    const body = await ctx.request.body({ type: "json" }).value;
+    return vs.applySchemaObject(schema, body);
+  } catch (e) {
+    throw new httpErrors["BadRequest"]();
+  }
 }

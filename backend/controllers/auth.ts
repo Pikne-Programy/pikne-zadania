@@ -3,16 +3,27 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { IConfigService } from "../interfaces/config.ts";
-import { followSchema } from "../utils/oak.ts";
+import { followSchema, Router, RouterContext as RC } from "../utils/oak.ts";
 
 export class AuthController {
   constructor(
     private cfg: IConfigService,
   ) {}
 
-  readonly register = followSchema({}, async (ctx, req) => {});
+  async register(ctx: RC) {
+    const req = await followSchema(ctx, {});
+  }
 
-  readonly login = followSchema({}, async (ctx, req) => {});
+  async login(ctx: RC) {
+    const req = await followSchema(ctx, {});
+  }
 
-  readonly logout = followSchema({}, async (ctx, req) => {});
+  async logout(ctx: RC) {
+    const req = await followSchema(ctx, {});
+  }
+
+  readonly router = new Router()
+    .post("/register", (ctx: RC) => this.register(ctx))
+    .post("/login", (ctx: RC) => this.login(ctx))
+    .post("/logout", (ctx: RC) => this.logout(ctx));
 }

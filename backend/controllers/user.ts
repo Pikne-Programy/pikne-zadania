@@ -3,18 +3,27 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { IConfigService } from "../interfaces/config.ts";
-import { followSchema } from "../utils/oak.ts";
+import { followSchema, Router, RouterContext as RC } from "../utils/oak.ts";
 
 export class UserController {
   constructor(
     private cfg: IConfigService,
   ) {}
 
-  readonly current = followSchema({}, async (ctx, req) => {});
+  async info(ctx: RC) {
+    const req = await followSchema(ctx, {});
+  }
 
-  readonly delete = followSchema({}, async (ctx, req) => {});
+  async update(ctx: RC) {
+    const req = await followSchema(ctx, {});
+  }
 
-  readonly update = followSchema({}, async (ctx, req) => {});
+  async delete(ctx: RC) {
+    const req = await followSchema(ctx, {});
+  }
 
-  readonly info = followSchema({}, async (ctx, req) => {});
+  readonly router = new Router()
+    .post("/info", (ctx: RC) => this.info(ctx))
+    .post("/update", (ctx: RC) => this.update(ctx))
+    .post("/delete", (ctx: RC) => this.delete(ctx));
 }

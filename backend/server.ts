@@ -14,7 +14,7 @@ import {
   TeamStore,
   UserStore,
 } from "./services/mod.ts";
-//import RouterBuilder from "./router.ts";
+import { ApiRouterBuilder } from "./router.ts";
 
 const app = new Application<State>();
 
