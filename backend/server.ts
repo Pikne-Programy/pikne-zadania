@@ -15,14 +15,15 @@ import {
   UserStore,
 } from "./services/mod.ts";
 import { ApiRouterBuilder } from "./router.ts";
+import { AuthController, SubjectController, TeamController, UserController } from "./controllers/mod.ts";
 
 const app = new Application<State>();
 
 app.addEventListener("error", handleThrown);
 
-function die(ctx: Context, status = 500, msg = "") {
+function die(ctx: Context, status = 500, message = "") {
   ctx.response.status = status;
-  ctx.response.body = { status, msg };
+  ctx.response.body = { status, message };
 }
 
 app.use(async (ctx: Context, next: () => unknown) => {
@@ -54,24 +55,17 @@ await target.ts.init();
 const exs = new ExerciseStore(cfg);
 const ex = new ExerciseService(exs);
 const jwt = new JWTService(cfg, target.us);
-console.log(
-  await jwt.create("root", "t3SDQPqrwJM6fmiQZ7w3cO7ZJTStKE+aZ5mLlckMuqE="),
-);
-console.log(
-  await ex.render({ subject: "fizyka", id: "pociagi-dwa" }, { seed: 0 }),
-);
-/*
-const authc = new AuthController(cfg, auth);
-const exc = new ExercisesController(cfg, exs);
-const tmc = new TeamsController(tms);
-const usc = new UsersController(uss);
 
-const rb = new RouterBuilder(authc, exc, tmc, usc);
+const ac = new AuthController(cfg);
+const sc = new SubjectController(cfg);
+const tc = new TeamController(cfg);
+const uc = new UserController(cfg);
+
+const rb = new ApiRouterBuilder(ac, sc, tc, uc);
 
 const router = rb.router;
 app.use(router.routes());
 app.use(router.allowedMethods());
-*/
 
 app.addEventListener("listen", () => console.log("Server started"));
 

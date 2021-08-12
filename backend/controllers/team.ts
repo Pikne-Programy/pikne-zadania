@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { IConfigService } from "../interfaces/config.ts";
+import { schemas } from "../types/mod.ts";
 import { followSchema, Router, RouterContext as RC } from "../utils/oak.ts";
 
 export class TeamController {
@@ -11,23 +12,33 @@ export class TeamController {
   ) {}
 
   async list(ctx: RC) {
-    const req = await followSchema(ctx, {});
   }
 
   async create(ctx: RC) {
-    const req = await followSchema(ctx, {});
+    const req = await followSchema(ctx, {
+      name: schemas.team.name,
+    });
   }
 
   async info(ctx: RC) {
-    const req = await followSchema(ctx, {});
+    const req = await followSchema(ctx, {
+      teamId: schemas.team.id,
+    });
   }
 
   async update(ctx: RC) {
-    const req = await followSchema(ctx, {});
+    const req = await followSchema(ctx, {
+      teamId: schemas.team.id,
+      invitation: schemas.team.invitationGenerateOptional,
+      assignee: schemas.user.idOptional,
+      name: schemas.team.nameOptional
+    });
   }
 
   async delete(ctx: RC) {
-    const req = await followSchema(ctx, {});
+    const req = await followSchema(ctx, {
+      teamId: schemas.team.id,
+    });
   }
 
   readonly router = new Router()

@@ -46,7 +46,7 @@ export async function followSchema<T extends SchemaObject>(
   try {
     const body = await ctx.request.body({ type: "json" }).value;
     return vs.applySchemaObject(schema, body);
-  } catch (e) {
+  } catch (_) {
     throw new httpErrors["BadRequest"]();
   }
 }

@@ -73,10 +73,8 @@ if (notControlRegex.test(reservedTeamInvitation)) throw new Error("never");
 const teamInvitationOptions = {
   strictType: true,
   pattern: notControlRegex,
-  ifNull: "", // please update docs below
   maxLength: 1e3,
 };
-
 export const schemas = {
   exercise: {
     subject: vs.string({ strictType: true, pattern: comb(/_?/, kebabCase) }),
@@ -92,13 +90,15 @@ export const schemas = {
       },
     }),
     content: vs.string({ strictType: true }),
+    answer: vs.object(),
   },
 
   user: {
-    id: vs.string(userIdOptions),
+    id: vs.string(userIdOptions), // please update subject.assignees below
     /** `undefined` -> `null` */
     idOptional: vs.string({ ...userIdOptions, ifUndefined: null }),
     login: vs.string({ strictType: true, pattern: comb(emailRegex, /|root/) }),
+    loginEmail: vs.string({ strictType: true, pattern: emailRegex }),
     name: vs.string(userNameOptions),
     /** `undefined` -> `null` */
     nameOptional: vs.string({ ...userNameOptions, ifUndefined: null }),
@@ -121,17 +121,27 @@ export const schemas = {
     /** `undefined` -> `null` */
     nameOptional: vs.string({ ...teamNameOptions, ifUndefined: null }),
     /** `null` -> `""` */
-    invitation: vs.string(teamInvitationOptions),
+    invitation: vs.string({ ...teamInvitationOptions, ifNull: "" }),
+    invitationRequired: vs.string(teamInvitationOptions),
     /** `null` -> `""`, `undefined` -> `null` */
-    ivitationOptional: vs.string({
+    invitationOptional: vs.string({
       ...teamInvitationOptions,
       ifUndefined: null,
+      ifNull: "",
     }),
-    /** `null` -> `""`, `undefined` -> `null`, `""` -> `"\u0011"` */
-    ivitationGenerateOptional: vs.string({
+    /** `null` -> `""`, `undefined` -> `null`, `""` -> `"\u0011"` (`reservedTeamInvitation`) */
+    invitationGenerateOptional: vs.string({
       ...teamInvitationOptions,
       ifUndefined: null,
+      ifNull: "",
       ifEmptyString: reservedTeamInvitation,
+    }),
+  },
+  /** id in `schemas.user.subject` */
+  subject: {
+    assignees: vs.array({
+      each: vs.string({ ...userIdOptions }),
+      ifNull: null,
     }),
   },
 };
