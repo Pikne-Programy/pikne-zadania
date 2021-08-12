@@ -118,8 +118,12 @@ export class ExerciseStore implements IExerciseStore {
     return this._buildSectionList(subject, elements);
   }
 
-  list(_subject: string) {
+  listExercises(_subject: string) {
     return ["pociagi-dwa", "czerpak"]; // TODO
+  }
+
+  listSubjects() {
+    return ["fizyka", "_fizyka"]; // TODO
   }
 
   readonly structure = (subject: string) => ({

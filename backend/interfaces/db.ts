@@ -4,11 +4,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { Collection } from "../deps.ts";
-import { TeamType, UserType } from "../types/db.ts";
+import { SubjectType, TeamType, UserType } from "../types/mod.ts";
 
 export interface IDatabaseService {
   users?: Collection<UserType>;
   teams?: Collection<TeamType>;
+  subjects?: Collection<SubjectType>;
   connect(): Promise<void>;
   close(): void;
 }

@@ -4,3 +4,4 @@
 
 export * from "./user.ts";
 export * from "./team.ts";
+export * from "./subject.ts";

@@ -40,7 +40,9 @@ export class UserStore implements IUserStore {
     warn("ROOT_ENABLE", "It can be a security issue.");
     if (config.dhPassword) {
       if (config.password) warn("ROOT_PASS");
-      if (root && await root.dhPassword.get() == config.dhPassword) {
+      if (
+        await root.exists() && await root.dhPassword.get() == config.dhPassword
+      ) {
         console.log("ROOT was not changed.");
       } else {
         await this.add(
@@ -64,9 +66,11 @@ export class UserStore implements IUserStore {
       }
     }
   }
+
   get(id: string) {
     return new User(this.db, this.target!, id);
   }
+
   async add(
     where: { invitation: string } | { team: number },
     options:
@@ -110,6 +114,7 @@ export class UserStore implements IUserStore {
     }
     return 0;
   }
+
   async delete(id: string): Promise<void> {
     const user = this.get(id);
     if (!await user.exists()) {

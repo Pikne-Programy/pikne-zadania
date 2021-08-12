@@ -15,13 +15,15 @@ export class User implements IUser {
   ) {}
 
   private async get<T extends keyof UserType>(key: T): Promise<UserType[T]> {
-    if (!this.exists()) throw new Error(); // TODO: error message
+    if (!await this.exists()) {
+      throw new Error(`User with id ${this.id} doesn't exist`); // TODO: error message
+    }
     const user = await this.db.users!.findOne({ id: this.id });
-    if (!user) throw new Error(); // TODO: error message
+    if (!user) throw new Error(`User with id ${this.id} doesn't exist`); // TODO: error message
     return user[key];
   }
   private async set<T extends keyof UserType>(key: T, value: UserType[T]) {
-    if (!this.exists()) throw new Error(); // TODO: error message
+    if (await !this.exists()) throw new Error(); // TODO: error message
     await this.db.users!.updateOne({ id: this.id }, { $set: { [key]: value } });
   }
 
@@ -30,22 +32,22 @@ export class User implements IUser {
   }
 
   readonly login = {
-    get: () => this.get("login"),
-    set: (value: string) => this.set("login", value),
+    get: async () => await this.get("login"),
+    set: async (value: string) => await this.set("login", value),
   };
 
   readonly name = {
-    get: () => this.get("name"),
-    set: (value: string) => this.set("name", value),
+    get: async () => await this.get("name"),
+    set: async (value: string) => await this.set("name", value),
   };
 
   readonly dhPassword = {
-    get: () => this.get("dhPassword"),
-    set: (value: string) => this.set("dhPassword", value),
+    get: async () => await this.get("dhPassword"),
+    set: async (value: string) => await this.set("dhPassword", value),
   };
 
   readonly team = {
-    get: () => this.get("team"),
+    get: async () => await this.get("team"),
     set: async (value: number) => {
       const oldTeam = this.target.ts.get(await this.team.get());
       const newTeam = this.target.ts.get(value);
@@ -75,18 +77,18 @@ export class User implements IUser {
   };
 
   readonly seed = {
-    get: () => this.get("seed"),
-    set: (value: number) => this.set("seed", value),
+    get: async () => await this.get("seed"),
+    set: async (value: number) => await this.set("seed", value),
   };
 
   readonly number = {
-    get: () => this.get("number"),
-    set: (value?: number) => this.set("number", value),
+    get: async () => await this.get("number"),
+    set: async (value?: number) => await this.set("number", value),
   };
 
   readonly role = {
-    get: () => this.get("role"),
-    set: (value: RoleType) => this.set("role", value),
+    get: async () => await this.get("role"),
+    set: async (value: RoleType) => await this.set("role", value),
   };
 
   readonly exercises = {

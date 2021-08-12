@@ -6,7 +6,8 @@ import { Exercise, Section } from "../types/mod.ts";
 
 export interface IExerciseStore {
   parse(content: string): Exercise;
-  list(subject: string): string[];
+  listExercises(subject: string): string[];
+  listSubjects(): string[];
   structure(subject: string): {
     get(): Section[];
     set(value: Section[]): void;

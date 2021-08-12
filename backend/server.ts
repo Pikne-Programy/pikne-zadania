@@ -15,7 +15,13 @@ import {
   UserStore,
 } from "./services/mod.ts";
 import { ApiRouterBuilder } from "./router.ts";
-import { AuthController, SubjectController, TeamController, UserController } from "./controllers/mod.ts";
+import {
+  AuthController,
+  SubjectController,
+  TeamController,
+  UserController,
+} from "./controllers/mod.ts";
+import { SubjectStore } from "./services/subjectStore.ts";
 
 const app = new Application<State>();
 
@@ -53,6 +59,8 @@ const target = new StoreTarget(cfg, db, TeamStore, UserStore);
 await target.us.init();
 await target.ts.init();
 const exs = new ExerciseStore(cfg);
+const sbs = new SubjectStore(db, exs);
+await sbs.init();
 const ex = new ExerciseService(exs);
 const jwt = new JWTService(cfg, target.us);
 

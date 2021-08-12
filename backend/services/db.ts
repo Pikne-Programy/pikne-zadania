@@ -5,13 +5,14 @@
 
 import { Collection, MongoClient } from "../deps.ts";
 import { delay } from "../utils/mod.ts";
-import { TeamType, UserType } from "../types/mod.ts";
+import { SubjectType, TeamType, UserType } from "../types/mod.ts";
 import { IConfigService, IDatabaseService } from "../interfaces/mod.ts";
 
 export class Database implements IDatabaseService {
   private client?: MongoClient;
   users?: Collection<UserType>;
   teams?: Collection<TeamType>;
+  subjects?: Collection<SubjectType>;
 
   constructor(
     private cfg: IConfigService,
@@ -21,10 +22,11 @@ export class Database implements IDatabaseService {
     this.client = new MongoClient();
     await delay(this.cfg.MONGO_CONF.time); // wait for database
     await this.client.connect(this.cfg.MONGO_CONF.url); // throwable
-    const _db = this.client.database(this.cfg.MONGO_CONF.db);
+    const db = this.client.database(this.cfg.MONGO_CONF.db);
 
-    this.users = _db.collection("users");
-    this.teams = _db.collection("teams");
+    this.users = db.collection("users");
+    this.teams = db.collection("teams");
+    this.subjects = db.collection("subjects");
   }
 
   close() {
