@@ -14,6 +14,7 @@ import { ExerciseModificationComponent } from './exercise-modification/modificat
 import { ExerciseModificationFormComponent } from './exercise-modification/form/form.component';
 import { ExerciseCreationComponent } from './exercise-modification/creation/creation.component';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { ExerciseModule } from '../exercises/exercise.module';
 
 @NgModule({
   declarations: [
@@ -32,6 +33,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
     ReactiveFormsModule,
     NavModule,
     TemplatesModule,
+    ExerciseModule,
     MatAutocompleteModule,
   ],
   providers: [ExerciseModificationService],

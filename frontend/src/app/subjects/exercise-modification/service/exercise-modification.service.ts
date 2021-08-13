@@ -8,7 +8,10 @@ import {
 } from 'src/app/exercise-service/exercise.utils';
 import * as ServerRoutes from 'src/app/server-routes';
 import { replaceAccents, TypeError } from 'src/app/helper/utils';
-import { exerciseTypes } from 'src/app/exercise-service/exercises';
+import {
+  Exercise as PreviewExercise,
+  exerciseTypes,
+} from 'src/app/exercise-service/exercises';
 
 export class Exercise {
   constructor(
@@ -146,6 +149,22 @@ export class ExerciseModificationService {
           id: `${subjectId}/${exerciseId}`,
           content: content.toString(),
         }
+      )
+      .toPromise();
+  }
+
+  getExercisePreview(content: Exercise, seed?: number) {
+    return this.http
+      .post(ServerRoutes.subjectExercisePreview, {
+        content: content.toString(),
+        seed,
+      })
+      .pipe(
+        switchMap((response) =>
+          PreviewExercise.isExercise(response, '', '')
+            ? of(response)
+            : throwError({ status: TypeError })
+        )
       )
       .toPromise();
   }

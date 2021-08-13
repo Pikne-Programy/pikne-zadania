@@ -38,14 +38,16 @@ describe('AboutComponent', () => {
   }));
 
   it('should navigate back on button click', inject([UpNavService], () => {
+    const clickSpy = spyOn(component, 'back').and.callThrough();
     let button = (
       fixture.debugElement.nativeElement as HTMLElement
     ).querySelector<HTMLElement>('.is-back-button');
+
     expect(button).withContext(`can't find button`).toBeTruthy();
     button?.click();
 
     fixture.whenStable().then(() => {
-      expect(component.back).toHaveBeenCalled();
+      expect(clickSpy).toHaveBeenCalled();
       expect(upNavService.back).toHaveBeenCalled();
     });
   }));

@@ -11,8 +11,6 @@ import { AppComponent } from './app.component';
 import { AboutComponent } from './about/about.component';
 import { PublicExercisesComponent } from './public-exercises/public-exercises.component';
 import { SubjectSelectComponent } from './subject-select/subject-select.component';
-import { ExerciseComponent } from './exercises/exercise.component';
-import { EqExComponent } from './exercises/eqex/eqex.component';
 import { RegisterComponent } from './account/register/register.component';
 import { LoginComponent } from './account/login/login.component';
 import { environment } from '../environments/environment';
@@ -26,15 +24,13 @@ import { ExerciseService } from './exercise-service/exercise.service';
 import { ScreenSizeService } from './helper/screen-size.service';
 import { RoleGuardService } from './guards/role-guard.service';
 import { SubjectService } from './subjects/subject.service/subject.service';
-import { ExerciseInflationService } from './exercises/inflation.service/inflation.service';
+import { ExerciseModule } from './exercises/exercise.module';
 
 @NgModule({
   declarations: [
     AppComponent,
     PublicExercisesComponent,
     SubjectSelectComponent,
-    ExerciseComponent,
-    EqExComponent,
     RegisterComponent,
     LoginComponent,
     AboutComponent,
@@ -47,6 +43,7 @@ import { ExerciseInflationService } from './exercises/inflation.service/inflatio
     BrowserAnimationsModule,
     FormsModule,
     ReactiveFormsModule,
+    ExerciseModule,
     TemplatesModule,
     ServiceWorkerModule.register('ngsw-worker.js', {
       enabled: environment.production,
@@ -56,7 +53,6 @@ import { ExerciseInflationService } from './exercises/inflation.service/inflatio
     AccountService,
     SubjectService,
     ExerciseService,
-    ExerciseInflationService,
     NavService,
     UpNavService,
     AuthGuardService,

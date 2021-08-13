@@ -29,7 +29,9 @@ interface AbstractControlWarn extends AbstractControl {
   styleUrls: ['./form.component.scss'],
 })
 export class ExerciseModificationFormComponent implements OnInit {
+  private readonly InternalError = 480;
   private readonly IdError = 409;
+  readonly previewErrorMessage = 'Błąd podglądu';
 
   @Input() exercise!: Exercise;
   @Input() subjectId!: string;
@@ -61,6 +63,7 @@ export class ExerciseModificationFormComponent implements OnInit {
   preview?: PreviewExercise;
   isPreview = false;
   isPreviewLoading = false;
+  previewErrorCode: number | null = null;
 
   isSubmitted = false;
   errorCode: number | null = null;
@@ -100,9 +103,18 @@ export class ExerciseModificationFormComponent implements OnInit {
     );
   }
 
-  getPreview() {
-    this.isPreview = true;
-    //TODO Preview
+  getPreview(fromTab: boolean = true) {
+    if (!this.preview) {
+      if (fromTab) this.isPreviewLoading = true;
+      this.exerciseService
+        .getExercisePreview(this.createExercise())
+        .then((preview) => (this.preview = preview))
+        .catch((error) => {
+          this.isPreview = true;
+          this.previewErrorCode = getErrorCode(error, this.InternalError);
+          this.isPreviewLoading = false;
+        });
+    } else this.isPreview = true;
   }
 
   submit() {

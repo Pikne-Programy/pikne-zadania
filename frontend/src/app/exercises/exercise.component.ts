@@ -37,9 +37,10 @@ export class ExerciseComponent implements AfterViewInit, OnChanges, OnDestroy {
   submitState$?: Subscription;
 
   @Input() exercise!: Exercise;
-  @Output() onAnswers = new EventEmitter();
   @Input() hasSubmitButton?: boolean = true;
   @Input() specialErrorMessage?: string;
+  @Output() onAnswers = new EventEmitter();
+  @Output() onLoaded = new EventEmitter();
 
   errorCode: number | null = null;
   isLoading = true;
@@ -98,6 +99,7 @@ export class ExerciseComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.loading$ = component.instance.loaded.subscribe((error) => {
       if (this.errorCode === null) this.errorCode = error;
       this.isLoading = false;
+      this.onLoaded.emit();
       this.loading$?.unsubscribe();
     });
     this.submitState$ = component.instance.submitButtonState.subscribe(
@@ -116,6 +118,7 @@ export class ExerciseComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   private throwError(error: any = {}) {
     this.isLoading = false;
+    this.onLoaded.emit();
     this.errorCode = getErrorCode(error);
   }
 

@@ -6,7 +6,10 @@ import {
   HttpTestingController,
 } from '@angular/common/http/testing';
 import { TestBed, inject, waitForAsync } from '@angular/core/testing';
-import { exerciseTypes } from 'src/app/exercise-service/exercises';
+import {
+  Exercise as PreviewExercise,
+  exerciseTypes,
+} from 'src/app/exercise-service/exercises';
 import { TypeError } from 'src/app/helper/utils';
 import {
   Exercise,
@@ -309,6 +312,90 @@ describe('Service: ExerciseModification', () => {
       'Ex2',
       [['throw error (not found)', 404]]
     );
+  });
+
+  describe('getExercisePreview', () => {
+    const exercise = new Exercise('EqEx', 'Ex1', 'Test content');
+    const stringifiedExercise = {
+      content: getToStringResult(
+        exercise.type,
+        exercise.name,
+        exercise.content
+      ),
+      seed: undefined,
+    };
+
+    //TODO Tests w/ seed
+    it(
+      'should throw server error',
+      waitForAsync(
+        inject(
+          [ModificationService, HttpClient],
+          (service: ModificationService) => {
+            expect(service).toBeTruthy();
+            const errorCode = 500;
+
+            service
+              .getExercisePreview(exercise)
+              .then(() => fail('should be rejected'))
+              .catch((error) => expect(error.status).toBe(errorCode));
+            const req = httpController.expectOne(
+              ServerRoutes.subjectExercisePreview
+            );
+            expect(req.request.method).toEqual('POST');
+            req.error(new ErrorEvent('Server error'), { status: errorCode });
+          }
+        )
+      )
+    );
+
+    it(
+      'should throw Type error',
+      waitForAsync(
+        inject(
+          [ModificationService, HttpClient],
+          (service: ModificationService) => {
+            expect(service).toBeTruthy();
+
+            service
+              .getExercisePreview(exercise)
+              .then(() => fail('should be rejected'))
+              .catch((error) => expect(error.status).toBe(TypeError));
+            const req = httpController.expectOne(
+              ServerRoutes.subjectExercisePreview
+            );
+            expect(req.request.method).toEqual('POST');
+            expect(req.request.body).toEqual(stringifiedExercise);
+            req.flush({ abc: 'I am trash :P' });
+          }
+        )
+      )
+    );
+
+    it('should return preview', inject(
+      [ModificationService, HttpClient],
+      (service: ModificationService) => {
+        expect(service).toBeTruthy();
+        const result: PreviewExercise = {
+          id: '',
+          subjectId: '',
+          type: 'EqEx',
+          name: 'Ex1',
+          content: {},
+        };
+
+        service
+          .getExercisePreview(exercise)
+          .then((response) => expect(response).toEqual(result))
+          .catch(() => fail('should resolve'));
+        const req = httpController.expectOne(
+          ServerRoutes.subjectExercisePreview
+        );
+        expect(req.request.method).toEqual('POST');
+        expect(req.request.body).toEqual(stringifiedExercise);
+        req.flush(result);
+      }
+    ));
   });
 
   function expectSendExerciseRequest(

@@ -25,7 +25,7 @@
                   'is-warning': unknown.isWrongFormat,
                   'is-success': unknown.isCorrect,
                   'is-danger': unknown.isWrong
-                }" [(ngModel)]="unknown.input" (input)="unknown.checkFormat(); checkIfSubmitDisabled()" [disabled]="isSubmitted">
+                }" [(ngModel)]="unknown.input" (input)="unknown.checkFormat(); checkIfSubmitDisabled()" [disabled]="isSubmitted" [readonly]="exercise.content.correct">
                 <span *ngIf="unknown.isWrongFormat" class="icon is-small is-right has-text-warning">
                   <i class="fas fa-exclamation-triangle"></i>
                 </span>

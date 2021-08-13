@@ -82,6 +82,16 @@ export class EqExComponent implements ExerciseComponentType, AfterViewInit {
       this.unknowns = this.exercise.content.unknowns.map(
         (unknown) => new Unknown(unknown)
       );
+      if (this.exercise.content.correct) {
+        for (
+          let i = 0;
+          i < this.exercise.content.correct.length && i < this.unknowns.length;
+          i++
+        ) {
+          this.unknowns[i].input = this.exercise.content.correct[i].toString();
+          this.unknowns[i].isCorrect = true;
+        }
+      }
 
       if (!this.images || this.images.length === 0) this.onLoaded();
     }

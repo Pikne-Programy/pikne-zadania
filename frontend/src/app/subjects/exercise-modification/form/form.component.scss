@@ -5,6 +5,10 @@
   height: 100%;
 }
 
+.is-hidden {
+  display: none;
+}
+
 .tabs.is-boxed.for-box {
   margin-bottom: 0;
   z-index: 2;
@@ -26,12 +30,18 @@
 }
 
 .tabs.is-boxed.for-box + .box {
+  max-height: calc(100% - 2.75em);
   border: #dbdbdb solid 1px;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
   border-top-color: transparent;
   margin-top: -1px;
   z-index: 1;
+
+  & app-exercise {
+    display: block;
+    margin: -1.25rem;
+  }
 }
 
 form {

@@ -10,12 +10,13 @@
   </ul>
 </div>
 <!--#endregion-->
-<div class="box is-flex-grow-1 mb-0">
+<div class="box is-flex-grow-1 mb-0 scrollable">
+  <!--#region Edit form -->
   <form *ngIf="!isPreview" [formGroup]="form" (ngSubmit)="type!.warnings?.type ? isUnknownTypeModalOpen = true : submit()">
     <div class="field">
       <div class="columns">
         <!--#region Type -->
-        <div class="column is-one-quarter">
+        <div class="column is-one-quarter py-only-mobile-0">
           <label for="type" class="label">Typ zadania</label>
           <div class="control has-icons-right">
             <input id="type" class="input" [ngClass]="{
@@ -30,7 +31,7 @@
         </div>
         <!--#endregion-->
         <!--#region Name -->
-        <div class="column">
+        <div class="column py-only-mobile-2">
           <label for="type" class="label">Nazwa</label>
           <div class="control has-icons-right">
             <input id="type" class="input" [ngClass]="{
@@ -55,7 +56,7 @@
     </div>
     <!--#endregion-->
     <!--#region Submit -->
-    <div class="field is-grouped is-grouped-right is-align-items-center">
+    <div class="field is-grouped is-grouped-right is-align-items-center pb-only-mobile-3">
       <div *ngIf="errorCode !== null" class="control">
         <p class="has-text-danger">Wystąpił błąd ({{ errorCode }})</p>
       </div>
@@ -68,6 +69,12 @@
     </div>
     <!--#endregion-->
   </form>
+  <!--#endregion-->
+  <!--#region Preview -->
+  <!--TODO Seed -->
+  <app-exercise *ngIf="preview && previewErrorCode === null" [ngClass]="{ 'is-hidden': !isPreview || isPreviewLoading }" [exercise]="preview" [hasSubmitButton]="false" [specialErrorMessage]="previewErrorMessage" (onLoaded)="isPreview = true; isPreviewLoading = false"></app-exercise>
+  <app-error *ngIf="isPreview && previewErrorCode !== null" [code]="previewErrorCode" [message]="previewErrorMessage"></app-error>
+  <!--#endregion-->
 </div>
 
 <!--#region Type autocomplete -->

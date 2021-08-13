@@ -285,12 +285,17 @@ export function startServer() {
       this.post('/api/subject/exercise/get', (schema: any, request: any) => {
         if (!currentAccount) return new Response(500);
         if (currentAccount.team > 1) return new Response(403);
-        const id = JSON.parse(request.requestBody).id;
-        if (typeof id === 'string' && id.includes('fizyka/no-category'))
-          return new Response(404);
+        const id = /\/(.+)/.exec(JSON.parse(request.requestBody).id);
+        if (!id || id.length < 2) return new Response(404);
+        const name =
+          id[1] === 'pociagi-dwa'
+            ? 'Pociągi dwa'
+            : (id[1].charAt(0).toUpperCase() + id[1].substring(1)).replace(
+                '-',
+                ' '
+              );
         return {
-          content:
-            '---\ntype: EqEx\nname: Pociągi dwa\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n',
+          content: `---\ntype: EqEx\nname: ${name}\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n`,
         };
       });
       this.post('/api/subject/exercise/add', (schema: any, request: any) => {
@@ -321,15 +326,18 @@ export function startServer() {
           if (!currentAccount) return new Response(500);
           if (currentAccount.team > 1) return new Response(403);
           const attrs = JSON.parse(request.requestBody);
+          const regex = /name: (.+)\n---/i;
+          const nameArray = regex.exec(attrs.content as string);
           if (
-            typeof attrs.content === 'string' &&
-            !attrs.content.toLowerCase().includes('name: pociagi-dwa')
+            typeof attrs.content !== 'string' ||
+            !nameArray ||
+            nameArray.length < 2
           )
             return new Response(404);
           let seed = (attrs.seed ?? 0) + 1;
           return {
             type: 'EqEx',
-            name: 'Pociągi dwa',
+            name: nameArray[1],
             content: {
               main: 'Z miast A i B odległych o \\(d=300\\mathrm{km}\\) wyruszają jednocześnie dwa pociągi z prędkościami \\(v_a=50\\mathrm{\\frac{m}{s}}\\) oraz \\(v_b=67\\mathrm{\\frac{m}{s}}\\).\nW jakiej odległości \\(x\\) od miasta A spotkają się te pociągi? Po jakim czasie \\(t\\) się to stanie?',
               //img: ['https://bulma.io/images/placeholders/480x640.png'],
