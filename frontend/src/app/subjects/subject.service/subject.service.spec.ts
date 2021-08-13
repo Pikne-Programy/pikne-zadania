@@ -6,8 +6,17 @@ import {
   HttpTestingController,
 } from '@angular/common/http/testing';
 import { TestBed, inject, waitForAsync } from '@angular/core/testing';
-import { Subject, SubjectService } from './subject.service';
+import {
+  Subject,
+  SubjectService,
+  ViewExerciseTreeNode,
+} from './subject.service';
 import * as ServerRoutes from 'src/app/server-routes';
+import { TypeError } from 'src/app/helper/utils';
+import {
+  ExerciseTreeNode,
+  Subject as TreeSubject,
+} from 'src/app/exercise-service/exercise.utils';
 
 describe('Service: Subject', () => {
   let httpController: HttpTestingController;
@@ -49,31 +58,55 @@ describe('Service: Subject', () => {
         expect(sb.getName()).toBe('Sb1');
       });
     });
+
+    describe('static', () => {
+      describe('checkIfPrivate', () => {
+        it('should be public Subject', () => {
+          expect(Subject.checkIfPrivate('Sb1')).toBeFalse();
+        });
+
+        it('should be private Subject', () => {
+          expect(Subject.checkIfPrivate('_Sb1')).toBeTrue();
+        });
+      });
+
+      describe('getSubjectName', () => {
+        it('should get name of public Subject', () => {
+          expect(Subject.getSubjectName('Sb1')).toBe('Sb1');
+        });
+
+        it('should get name of private Subject', () => {
+          expect(Subject.getSubjectName('_Sb1')).toBe('Sb1');
+        });
+      });
+    });
   });
 
-  describe('fetchSubjects', () => {
+  describe('getSubjects', () => {
     const list: [string, number, any][] = [
       ['server error', 500, {}],
-      ['Type error - not an array', 400, 'I am a trash response :P'],
-      ['Type error - mixed type array', 400, ['abc', 123, false]],
+      ['Type error - not an array', TypeError, 'I am a trash response :P'],
+      ['Type error - mixed type array', TypeError, ['abc', 123, false]],
     ];
     for (const [testMess, errorCode, serverResponse] of list) {
-      it(`should throw error (${testMess})`, inject(
-        [SubjectService, HttpClient],
-        (service: SubjectService) => {
-          expect(service).toBeTruthy();
+      it(
+        `should throw error (${testMess})`,
+        waitForAsync(
+          inject([SubjectService, HttpClient], (service: SubjectService) => {
+            expect(service).toBeTruthy();
 
-          service
-            .getSubjects()
-            .then(() => fail('should be rejected'))
-            .catch((error) => expect(error.status).toBe(errorCode));
-          const req = httpController.expectOne(ServerRoutes.subjectList);
-          expect(req.request.method).toEqual('GET');
-          if (errorCode === 500)
-            req.error(new ErrorEvent('Server error'), { status: errorCode });
-          else req.flush(serverResponse);
-        }
-      ));
+            service
+              .getSubjects()
+              .then(() => fail('should be rejected'))
+              .catch((error) => expect(error.status).toBe(errorCode));
+            const req = httpController.expectOne(ServerRoutes.subjectList);
+            expect(req.request.method).toEqual('GET');
+            if (errorCode === 500)
+              req.error(new ErrorEvent('Server error'), { status: errorCode });
+            else req.flush(serverResponse);
+          })
+        )
+      );
     }
 
     it(
@@ -101,7 +134,98 @@ describe('Service: Subject', () => {
     );
   });
 
-  describe('fetchExerciseTree', () => {
-    //TODO fetchExerciseTree tests
+  describe('getExerciseTree', () => {
+    it(
+      'should throw server error',
+      waitForAsync(
+        inject([SubjectService, HttpClient], (service: SubjectService) => {
+          expect(service).toBeTruthy();
+          const subjectId = 'Sb1';
+          const errorCode = 500;
+
+          service
+            .getExerciseTree(subjectId)
+            .then(() => fail('should be rejected'))
+            .catch((error) => expect(error.status).toBe(errorCode));
+          const req = httpController.expectOne(
+            ServerRoutes.subjectExerciseList
+          );
+          expect(req.request.method).toEqual('POST');
+          expect(req.request.body).toEqual({ id: subjectId });
+          req.error(new ErrorEvent('Server error'), { status: errorCode });
+        })
+      )
+    );
+
+    it(
+      'should throw Type error (invalid Subject)',
+      waitForAsync(
+        inject([SubjectService, HttpClient], (service: SubjectService) => {
+          expect(service).toBeTruthy();
+          const subjectId = 'Sb2';
+          spyOn(TreeSubject, 'checkSubjectValidity').and.returnValue(false);
+
+          service
+            .getExerciseTree(subjectId)
+            .then(() => fail('should be rejected'))
+            .catch((error) => expect(error.status).toBe(TypeError));
+          const req = httpController.expectOne(
+            ServerRoutes.subjectExerciseList
+          );
+          expect(req.request.method).toEqual('POST');
+          expect(req.request.body).toEqual({ id: subjectId });
+          req.flush({ name: 'Mock result' });
+        })
+      )
+    );
+
+    it(
+      'should throw Type error (tree creation failure)',
+      waitForAsync(
+        inject([SubjectService, HttpClient], (service: SubjectService) => {
+          expect(service).toBeTruthy();
+          const subjectId = 'Sb3';
+          spyOn(TreeSubject, 'checkSubjectValidity').and.returnValue(true);
+          spyOn(TreeSubject, 'createSubject').and.returnValue(null);
+
+          service
+            .getExerciseTree(subjectId)
+            .then(() => fail('should be rejected'))
+            .catch((error) => expect(error.status).toBe(TypeError));
+          const req = httpController.expectOne(
+            ServerRoutes.subjectExerciseList
+          );
+          expect(req.request.method).toEqual('POST');
+          expect(req.request.body).toEqual({ id: subjectId });
+          req.flush({ name: 'Mock result' });
+        })
+      )
+    );
+
+    it(
+      'should return Exercise tree',
+      waitForAsync(
+        inject([SubjectService, HttpClient], (service: SubjectService) => {
+          expect(service).toBeTruthy();
+          const subjectId = 'Sb4';
+          const result = new ExerciseTreeNode('mock', null);
+          spyOn(TreeSubject, 'checkSubjectValidity').and.returnValue(true);
+          spyOn(TreeSubject, 'createSubject').and.returnValue(result);
+
+          service
+            .getExerciseTree(subjectId)
+            .then((response) =>
+              expect(response).toEqual(new ViewExerciseTreeNode(result as any))
+            )
+            .catch(() => fail('should be resolved'));
+          const req = httpController.expectOne(
+            ServerRoutes.subjectExerciseList
+          );
+          expect(req.request.method).toEqual('POST');
+          expect(req.request.body).toEqual({ id: subjectId });
+          req.flush(result);
+        })
+      )
+    );
   });
 });

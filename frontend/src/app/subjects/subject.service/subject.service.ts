@@ -7,6 +7,7 @@ import {
   ServerResponseNode,
   Subject as TreeSubject,
 } from 'src/app/exercise-service/exercise.utils';
+import { TypeError } from 'src/app/helper/utils';
 import * as ServerRoutes from 'src/app/server-routes';
 
 export class Subject {
@@ -57,8 +58,6 @@ export class ViewExerciseTreeNode extends ExerciseTreeNode {
   providedIn: 'root',
 })
 export class SubjectService {
-  private readonly TypeError = 400;
-
   constructor(private http: HttpClient) {}
 
   private createSubjectList(serverResponse: string[]): Subject[] {
@@ -86,7 +85,7 @@ export class SubjectService {
           Array.isArray(response) &&
           response.every((val) => typeof val === 'string')
             ? of(this.createSubjectList(response))
-            : throwError({ status: this.TypeError })
+            : throwError({ status: TypeError })
         )
       )
       .toPromise();
@@ -114,8 +113,8 @@ export class SubjectService {
           };
           if (TreeSubject.checkSubjectValidity(subject, shouldHaveType)) {
             const tree = this.createExerciseTree(subject);
-            return tree ? of(tree) : throwError({ status: this.TypeError });
-          } else return throwError({ status: this.TypeError });
+            return tree ? of(tree) : throwError({ status: TypeError });
+          } else return throwError({ status: TypeError });
         })
       )
       .toPromise();

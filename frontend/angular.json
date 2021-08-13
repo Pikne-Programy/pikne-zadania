@@ -119,7 +119,10 @@
               "./node_modules/@angular/material/prebuilt-themes/deeppurple-amber.css",
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "codeCoverageExclude": [
+              "src/app/helper/tests/*.ts"
+            ]
           }
         },
         "lint": {

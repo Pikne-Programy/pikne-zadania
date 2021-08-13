@@ -3,6 +3,9 @@ import {
   ServerResponseNode,
   Subject,
 } from './exercise.utils';
+import { ExerciseType } from './exercises';
+
+const desc = 'Test description';
 
 describe('Exercise Utils', () => {
   describe('Subject', () => {
@@ -31,19 +34,6 @@ describe('Exercise Utils', () => {
     });
 
     describe('checkSubjectValidity', () => {
-      it('should return false (not an array)', () => {
-        const obj = {
-          name: 'Sb1',
-          children: [
-            {
-              name: 'Ex1',
-              children: 'ex1',
-            },
-          ],
-        };
-        expect(Subject.checkSubjectValidity(obj)).toBe(false);
-      });
-
       it('should return false (root element is not a Subject)', () => {
         const obj = {
           name: 'Ex1',
@@ -120,6 +110,72 @@ describe('Exercise Utils', () => {
         };
         expect(Subject.checkSubjectValidity(obj)).toBe(false);
       });
+
+      it(`should return true (valid Subject w/ 'type' & 'desc')`, () => {
+        const obj: ServerResponseNode = {
+          name: 'Sb1',
+          children: [
+            {
+              name: 'Cat1',
+              children: [
+                {
+                  name: 'SubCat1',
+                  children: [
+                    {
+                      type: 'EqEx',
+                      name: 'Ex1',
+                      children: 'ex1',
+                      desc,
+                    },
+                  ],
+                },
+                {
+                  type: 'EqEx',
+                  name: 'Ex2',
+                  children: 'ex2',
+                  desc,
+                },
+              ],
+            },
+            {
+              type: 'EqEx',
+              name: 'Ex3',
+              children: 'ex3',
+              desc,
+            },
+          ],
+        };
+        expect(Subject.checkSubjectValidity(obj, true)).toBe(true);
+      });
+
+      it(`should return false (missing type)`, () => {
+        const obj = {
+          name: 'Sb1',
+          children: [
+            {
+              name: 'Ex1',
+              children: 'ex1',
+              desc,
+            },
+          ],
+        };
+        expect(Subject.checkSubjectValidity(obj, true)).toBe(false);
+      });
+
+      it(`should return false (wrong 'type')`, () => {
+        const obj = {
+          name: 'Sb1',
+          children: [
+            {
+              type: 'Abc',
+              name: 'Ex1',
+              children: 'ex1',
+              desc,
+            },
+          ],
+        };
+        expect(Subject.checkSubjectValidity(obj, true)).toBe(false);
+      });
     });
   });
 
@@ -131,6 +187,17 @@ describe('Exercise Utils', () => {
         {
           name: 'Ex1',
           children: 'ex1',
+        },
+      ],
+    };
+    const objWithType1 = {
+      name: 'Sb1',
+      children: [
+        {
+          type: 'EqEx',
+          name: 'Ex1',
+          children: 'ex1',
+          desc,
         },
       ],
     };
@@ -146,6 +213,27 @@ describe('Exercise Utils', () => {
                 {
                   name: 'Ex1',
                   children: 'ex1',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const objWithType3 = {
+      name: 'Sb1',
+      children: [
+        {
+          name: 'Cat1',
+          children: [
+            {
+              name: 'SubCat1',
+              children: [
+                {
+                  type: 'EqEx',
+                  name: 'Ex1',
+                  children: 'ex1',
+                  desc,
                 },
               ],
             },
@@ -195,6 +283,7 @@ function expectToBeExerciseTreeNode(
   childrenSize: number,
   parent: ExerciseTreeNode | null,
   url: string | null = null,
+  type?: ExerciseType,
   done?: number | null
 ) {
   expect(obj).toBeInstanceOf(ExerciseTreeNode);
@@ -212,6 +301,11 @@ function expectToBeExerciseTreeNode(
   }
 
   expect(obj.parent).toBe(parent);
+
+  if (type) {
+    expect(obj.type).toBe(type);
+    expect(obj.description).toBe(desc);
+  }
 
   if (url) {
     expect(obj.url).toBe(url);

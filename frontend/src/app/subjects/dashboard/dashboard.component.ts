@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { getErrorCode } from 'src/app/helper/utils';
+import { getErrorCode, TypeError } from 'src/app/helper/utils';
 import {
   Subject,
   SubjectService,
@@ -20,7 +20,6 @@ interface ExerciseError {
   styleUrls: ['./dashboard.component.scss'],
 })
 export class SubjectDashboardComponent implements OnInit, OnDestroy {
-  private readonly TypeError = 400;
   private readonly SubjectError = 420;
 
   subject?: Subject;
@@ -118,7 +117,7 @@ export class SubjectDashboardComponent implements OnInit, OnDestroy {
     }
     for (const node of exercises) {
       if (!node.type) {
-        this.exerciseError = { code: this.TypeError, id: node.url! };
+        this.exerciseError = { code: TypeError, id: node.url! };
         return;
       }
     }

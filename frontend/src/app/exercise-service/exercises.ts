@@ -20,6 +20,8 @@ export class Exercise {
     id: string,
     subjectId: string
   ): object is Exercise {
+    if (object === null || typeof object !== 'object') return false;
+
     object.id = id;
     object.subjectId = subjectId;
     return (

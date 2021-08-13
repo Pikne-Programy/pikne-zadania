@@ -1,3 +1,5 @@
+export const TypeError = 489;
+
 //#region capitalize
 /**
  * Capitalizes first letter of the string
@@ -137,9 +139,9 @@ export async function pbkdf2(
 
 //#region getErrorCode
 /**
- * @param fallback Default fallback error is 400
+ * @param fallback Default fallback error is 489 ({@link TypeError})
  */
-export function getErrorCode(error: any, fallback: number = 400): number {
+export function getErrorCode(error: any, fallback: number = TypeError): number {
   return error.status && typeof error.status === 'number'
     ? error.status
     : fallback;

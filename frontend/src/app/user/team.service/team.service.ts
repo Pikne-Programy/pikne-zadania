@@ -4,12 +4,12 @@ import * as Utils from './types';
 import * as ServerRoutes from '../../server-routes';
 import { switchMap } from 'rxjs/operators';
 import { of, throwError } from 'rxjs';
+import { TypeError } from 'src/app/helper/utils';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TeamService {
-  private readonly TypeError = 400;
   private readonly PermissionError = 403;
 
   constructor(private http: HttpClient) {}
@@ -22,7 +22,7 @@ export class TeamService {
         switchMap((response) =>
           response && Utils.isTeamItemList(response)
             ? of(response)
-            : throwError({ status: this.TypeError })
+            : throwError({ status: TypeError })
         )
       )
       .toPromise();
@@ -42,7 +42,7 @@ export class TeamService {
               return a.name.localeCompare(b.name);
             });
             return of(response);
-          } else return throwError({ status: this.TypeError });
+          } else return throwError({ status: TypeError });
         })
       )
       .toPromise();
@@ -58,7 +58,7 @@ export class TeamService {
             ? response.members
               ? of(response.members)
               : throwError({ status: this.PermissionError })
-            : throwError({ status: this.TypeError })
+            : throwError({ status: TypeError })
         )
       )
       .toPromise();
@@ -73,7 +73,7 @@ export class TeamService {
         switchMap((response) =>
           typeof response === 'number'
             ? of(response)
-            : throwError({ status: this.TypeError })
+            : throwError({ status: TypeError })
         )
       )
       .toPromise();

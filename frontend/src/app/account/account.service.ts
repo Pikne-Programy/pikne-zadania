@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import * as ServerRoutes from '../server-routes';
-import { getErrorCode, isObject, pbkdf2 } from '../helper/utils';
+import { getErrorCode, isObject, pbkdf2, TypeError } from '../helper/utils';
 import { BehaviorSubject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs/operators';
@@ -29,8 +29,6 @@ export function isAccount(object: any): object is Account {
   providedIn: 'root',
 })
 export class AccountService {
-  private readonly AccountTypeError = 400;
-
   currentAccount = new BehaviorSubject<Account | null>(null);
   constructor(
     private http: HttpClient,
@@ -78,11 +76,11 @@ export class AccountService {
       .pipe(
         map((response) => {
           if (response && isAccount(response)) return response;
-          else return this.AccountTypeError;
+          else return TypeError;
         })
       )
       .toPromise()
-      .catch((error) => getErrorCode(error, this.AccountTypeError));
+      .catch((error) => getErrorCode(error, TypeError));
     this.currentAccount.next(typeof account !== 'number' ? account : null);
 
     if (typeof account !== 'number')

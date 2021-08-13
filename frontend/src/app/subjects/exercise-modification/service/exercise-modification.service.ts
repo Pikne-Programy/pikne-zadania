@@ -7,7 +7,7 @@ import {
   Subject,
 } from 'src/app/exercise-service/exercise.utils';
 import * as ServerRoutes from 'src/app/server-routes';
-import { replaceAccents } from 'src/app/helper/utils';
+import { replaceAccents, TypeError } from 'src/app/helper/utils';
 import { exerciseTypes } from 'src/app/exercise-service/exercises';
 
 export class Exercise {
@@ -63,7 +63,7 @@ export class Exercise {
     return Exercise.generateId(this.name);
   }
 
-  static generateId(str: string) {
+  static generateId(str: string): string {
     return encodeURIComponent(
       replaceAccents(str.toLocaleLowerCase()).replace(/\s/g, '-')
     );
@@ -74,8 +74,6 @@ export class Exercise {
   providedIn: 'root',
 })
 export class ExerciseModificationService {
-  private readonly TypeError = 400;
-
   constructor(private http: HttpClient) {}
 
   private extractExercises(tree: ServerResponseNode): string[] {
@@ -96,7 +94,7 @@ export class ExerciseModificationService {
           const subject = { name: subjectId, children: response };
           if (Subject.checkSubjectValidity(subject))
             return of(new Set<string>(this.extractExercises(subject)));
-          else return throwError({ status: this.TypeError });
+          else return throwError({ status: TypeError });
         })
       )
       .toPromise();
@@ -116,9 +114,9 @@ export class ExerciseModificationService {
               return of(exercise);
             } catch (error) {
               console.error(error);
-              return throwError({ status: this.TypeError });
+              return throwError({ status: TypeError });
             }
-          } else return throwError({ status: this.TypeError });
+          } else return throwError({ status: TypeError });
         })
       )
       .toPromise();

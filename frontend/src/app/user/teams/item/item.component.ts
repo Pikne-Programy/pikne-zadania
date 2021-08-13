@@ -24,9 +24,9 @@ enum ModalType {
   styleUrls: ['./item.component.scss'],
 })
 export class TeamItemComponent implements OnInit {
-  private readonly IdError = 400;
+  private readonly IdError = 420;
+  private readonly AccountError = 421;
   readonly InvitationTakenError = 409;
-  private readonly AccountError = 420;
   readonly InternalError = InternalError;
 
   teamId?: number;
@@ -67,7 +67,7 @@ export class TeamItemComponent implements OnInit {
         .then(() => this.teamService.getTeam(teamId))
         .then((team) => {
           if (team.invitation !== undefined && team.members) this.team = team;
-          else this.errorCode = getErrorCode({}, this.AccountError);
+          else this.errorCode = this.AccountError;
         })
         .catch((error) => (this.errorCode = getErrorCode(error, this.IdError)))
         .finally(() => (this.isLoading = false));

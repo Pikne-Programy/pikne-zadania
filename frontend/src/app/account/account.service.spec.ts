@@ -11,6 +11,7 @@ import { ThemeService } from '../helper/theme.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as ServerRoutes from '../server-routes';
 import { setAsyncTimeout } from '../helper/tests/tests.utils';
+import { TypeError } from '../helper/utils';
 
 describe('Service: Account', () => {
   let httpController: HttpTestingController;
@@ -146,14 +147,14 @@ describe('Service: Account', () => {
         },
         null,
       ],
-      [{}, 400],
+      [{}, TypeError],
       [
         {
           name: 1,
           number: null,
           team: 'abc',
         },
-        400,
+        TypeError,
       ],
     ];
     for (const [account, error] of list) {

@@ -5,6 +5,8 @@ import {
   isObject,
   objectTypes,
   pbkdf2,
+  replaceAccents,
+  TypeError,
 } from './utils';
 
 describe('Utils', () => {
@@ -347,7 +349,7 @@ describe('Utils', () => {
     });
 
     it('should return default fallback', () => {
-      const defCode = 400;
+      const defCode = TypeError;
       expect(getErrorCode({})).toBe(defCode);
       expect(getErrorCode({}, undefined)).toBe(defCode);
       expect(getErrorCode({ abc: 404 })).toBe(defCode);
@@ -360,6 +362,23 @@ describe('Utils', () => {
   });
 
   describe('replaceAccents', () => {
-    //TODO replaceAccents tests
+    it(`should replace diacritics`, () => {
+      const list: [string, string][] = [
+        ['pociągi dwa', 'pociagi dwa'],
+        ['pociagi-dwa', 'pociagi-dwa'],
+        [`póĆíägî\u00a0\u00a0ĐwÃ`, 'poCiagi  ĐwA'],
+        ['zażółć gęślą jaźń', 'zazolc gesla jazn'],
+      ];
+      for (const [input, result] of list) {
+        const replaced = replaceAccents(input);
+        expect(replaced)
+          .withContext(
+            `Expected '${encodeURIComponent(
+              replaced
+            )}' to be '${encodeURIComponent(result)}'`
+          )
+          .toBe(result);
+      }
+    });
   });
 });

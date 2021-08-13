@@ -7,13 +7,12 @@ import { Exercise } from './exercises';
 import { Role, RoleGuardService } from '../guards/role-guard.service';
 import * as ServerRoutes from '../server-routes';
 import { ServerResponseNode, Subject } from './exercise.utils';
+import { TypeError } from '../helper/utils';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ExerciseService {
-  private readonly TypeError = 400;
-
   constructor(
     private http: HttpClient,
     private accountService: AccountService
@@ -35,8 +34,8 @@ export class ExerciseService {
           const subject = { name: subjectId, children: response };
           if (Subject.checkSubjectValidity(subject)) {
             const tree = this.createExerciseTree(subject);
-            return tree ? of(tree) : throwError({ status: this.TypeError });
-          } else return throwError({ status: this.TypeError });
+            return tree ? of(tree) : throwError({ status: TypeError });
+          } else return throwError({ status: TypeError });
         })
       )
       .toPromise();
@@ -53,7 +52,7 @@ export class ExerciseService {
           if (Exercise.isExercise(response, id, subjectId)) {
             Exercise.getDone(response, subjectId);
             return of(response);
-          } else return throwError({ status: this.TypeError });
+          } else return throwError({ status: TypeError });
         })
       )
       .toPromise();
@@ -73,9 +72,9 @@ export class ExerciseService {
       })
       .pipe(
         switchMap((response) =>
-          typeChecker(response, typeCheckerArgs)
+          typeChecker(response, ...typeCheckerArgs)
             ? of(response)
-            : throwError({ status: this.TypeError })
+            : throwError({ status: TypeError })
         )
       )
       .toPromise();
