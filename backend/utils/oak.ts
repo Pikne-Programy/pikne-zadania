@@ -4,28 +4,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {
-  _Context,
-  _Router,
-  _RouterContext,
   httpErrors,
   ObjectTypeOf,
-  RouteParams,
+  RouterContext,
   SchemaObject,
   vs,
 } from "../deps.ts";
-import { JSONType } from "../types/mod.ts";
-import { User } from "../models/mod.ts";
-
-export interface State {
-  seed: number;
-  user: User | null;
-}
-export type Context = _Context<State>;
-export type RouterContext<P extends RouteParams = RouteParams> = _RouterContext<
-  P,
-  State
->;
-export class Router extends _Router<RouteParams, State> {}
+import { assertUnreachable } from "./mod.ts";
+import { CustomDictError, JSONType } from "../types/mod.ts";
 
 function _placeholder(status: number, body?: JSONType) {
   return (ctx: RouterContext): unknown => {
@@ -48,5 +34,28 @@ export async function followSchema<T extends SchemaObject>(
     return vs.applySchemaObject(schema, body);
   } catch (_) {
     throw new httpErrors["BadRequest"]();
+  }
+}
+
+export function translateErrors<T>(err: T | CustomDictError): T {
+  if (!(err instanceof CustomDictError)) return err;
+  switch (err.type) {
+    case "UserCredentialsInvalid":
+    case "JWTNotFound":
+      throw new httpErrors["Unauthorized"]();
+    case "UserAlreadyExists":
+    case "TeamAlreadyExists":
+    case "SubjectAlreadyExists":
+    case "ExerciseAlreadyExists":
+      throw new httpErrors["Conflict"]();
+    case "UserNotFound":
+    case "TeamNotFound":
+    case "ExerciseNotFound":
+      throw new httpErrors["NotFound"]();
+    case "ExerciseBadAnswerFormat":
+    case "ExerciseBadFormat":
+      throw new httpErrors["BadRequest"]();
+    default:
+      assertUnreachable(err.type);
   }
 }

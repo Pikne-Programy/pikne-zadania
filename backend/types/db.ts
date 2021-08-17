@@ -29,5 +29,5 @@ export type TeamType = {
 
 export type SubjectType = {
   id: string;
-  assignees: string[];
+  assignees: string[] | null;
 };

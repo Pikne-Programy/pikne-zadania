@@ -3,17 +3,17 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { basename, existsSync, join, parse, walkSync } from "../deps.ts";
-import { IConfigService, IExerciseStore } from "../interfaces/mod.ts";
+import { handleThrown, joinThrowable } from "../utils/mod.ts";
 import {
+  CustomDictError,
   Exercise,
   isArrayOf,
   isJSONType,
   isObjectOf,
   Section,
 } from "../types/mod.ts";
-import { handleThrown } from "../utils/utils.ts";
+import { IConfigService, IExerciseStore } from "../interfaces/mod.ts";
 import exts from "../exts/mod.ts";
-import { joinThrowable } from "../utils/mod.ts";
 
 interface YAMLSection {
   // we assume that there is only one key, feel free to tell TypeScript that
@@ -33,11 +33,12 @@ function isYAMLSection(what: unknown): what is YAMLSection {
 
 export class ExerciseStore implements IExerciseStore {
   // TODO: rework
-  private readonly dict: { [key: string]: Exercise } = {}; // subject/id
+  private readonly dict: { [key: string]: Exercise | undefined } = {}; // subject/exerciseId
   private readonly _structure: { [key: string]: Section[] } = {};
   private readonly exercisesPath = "./exercises/";
 
-  private readonly uid = (subject: string, id: string) => `${subject}/${id}`;
+  private readonly uid = (subject: string, exerciseId: string) =>
+    `${subject}/${exerciseId}`;
 
   constructor(
     private cfg: IConfigService,
@@ -64,34 +65,41 @@ export class ExerciseStore implements IExerciseStore {
   }
 
   parse(content: string) {
-    const re = /^---$/gm;
-    let occur;
-    // find 2nd occurrence of `---`
-    if (!re.exec(content) || !(occur = re.exec(content))) {
-      throw new Error("the header is necessary");
+    try {
+      const re = /^---$/gm;
+      let occur;
+      // find 2nd occurrence of `---`
+      if (!re.exec(content) || !(occur = re.exec(content))) {
+        throw new Error("the header is necessary");
+      }
+      const properties = parse(content.substring(0, occur.index));
+      if (!isObjectOf(isJSONType, properties)) throw new Error("never");
+      const { type, name } = properties;
+      delete properties.name, properties.type;
+      const exercise = content.substring(re.lastIndex);
+      if (typeof type !== "string" || typeof name !== "string") {
+        throw new Error("type and name are necessary");
+      }
+      if (!(type in exts)) throw new Error("unknown type");
+      return new exts[type](this.cfg, name, exercise, properties); // it can throw an error
+    } catch (e) {
+      return new CustomDictError("ExerciseBadFormat", {
+        description: `${e instanceof Error ? e.message : e}`,
+      });
     }
-    const properties = parse(content.substring(0, occur.index));
-    if (!isObjectOf(isJSONType, properties)) throw new Error("never");
-    const { type, name } = properties;
-    delete properties.name, properties.type;
-    const exercise = content.substring(re.lastIndex);
-    if (typeof type !== "string" || typeof name !== "string") {
-      throw new Error("type and name are necessary");
-    }
-    if (!(type in exts)) throw new Error("unknown type");
-    return new exts[type](this.cfg, name, exercise, properties); // it can throw an error
   }
 
-  private appendExerciseFile(subject: string, id: string) {
-    const uid = this.uid(subject, id);
+  private appendExerciseFile(subject: string, exerciseId: string) {
+    const uid = this.uid(subject, exerciseId);
     const path = join(this.exercisesPath, `${uid}.txt`);
-    const content = Deno.readTextFileSync(path);
     try {
-      return this.add(subject, id, content);
+      const content = Deno.readTextFileSync(path);
+      const ex = this.update(subject, exerciseId, content);
+      if (ex instanceof Error) throw ex;
+      return ex;
     } catch (e) {
       handleThrown(e, `exercise ${uid}`);
     }
-    return null;
   }
 
   private _buildSectionList(
@@ -102,8 +110,10 @@ export class ExerciseStore implements IExerciseStore {
     for (const el of elements) {
       if (typeof el === "string") {
         let ex = this.get(subject, el);
-        if (ex === null) ex = this.appendExerciseFile(subject, el);
-        if (!ex) continue; // error thrown above
+        if (ex?.type === "ExerciseNotFound") {
+          ex = this.appendExerciseFile(subject, el) ?? ex;
+        }
+        if (ex instanceof Error) continue; // error reported above
         r.push({ name: ex.name, children: el });
       } else {
         const name = Object.keys(el)[0];
@@ -133,19 +143,27 @@ export class ExerciseStore implements IExerciseStore {
     },
   });
 
-  add(subject: string, id: string, content: string) {
-    const uid = this.uid(subject, id);
-    if (uid in this.dict) throw new Error(); // TODO: error message
-    return this.update(subject, id, content);
+  add(subject: string, exerciseId: string, content: string) {
+    const uid = this.uid(subject, exerciseId);
+    if (uid in this.dict) {
+      return new CustomDictError("ExerciseAlreadyExists", {
+        subject,
+        exerciseId,
+      });
+    }
+    return this.update(subject, exerciseId, content);
   }
 
-  get(subject: string, id: string): Exercise | null {
-    return this.dict[this.uid(subject, id)] ?? null;
+  get(subject: string, exerciseId: string) {
+    return this.dict[this.uid(subject, exerciseId)] ??
+      new CustomDictError("ExerciseNotFound", { subject, exerciseId });
   }
 
-  update(subject: string, id: string, content: string) {
-    const uid = this.uid(subject, id);
-    return (this.dict[uid] = this.parse(content));
+  update(subject: string, exerciseId: string, content: string) {
+    const uid = this.uid(subject, exerciseId);
+    const ex = this.parse(content);
+    if (ex instanceof Exercise) this.dict[uid] = ex;
+    return ex;
   }
 
   getStaticContentPath(subject: string) {

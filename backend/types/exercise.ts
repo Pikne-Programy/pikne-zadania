@@ -2,22 +2,30 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { CustomDictError, isArrayOf, JSONObject, JSONType } from "./mod.ts";
 import { IConfigService } from "../interfaces/mod.ts";
-import { isArrayOf, JSONObject, JSONType } from "./mod.ts";
 
 export abstract class Exercise {
-  public abstract readonly type: string; // EqEx
+  public abstract readonly type: string;
+  public abstract readonly description: string;
   constructor(
     protected cfg: IConfigService,
-    readonly name: string, // Pociągi dwa 2
-    _content: string, // pociągi-dwa
-    readonly properties: JSONObject, // tags: kinematyka
+    readonly name: string,
+    _content: string,
+    readonly properties: JSONObject,
   ) {}
-  abstract render(seed: number): JSONObject; // GET
+  abstract render(seed: number): {
+    type: string;
+    name: string;
+    problem: JSONObject;
+  };
+  abstract getCorrectAnswer(seed: number): JSONObject;
   abstract check(
     seed: number,
     answer: JSONType,
-  ): { done: number; info: JSONType; correctAnswer: JSONType }; // POST
+  ):
+    | { done: number; info: JSONType }
+    | CustomDictError<"ExerciseBadAnswerFormat">;
 }
 
 export type Section = {

@@ -8,5 +8,6 @@ export * from "./db.ts";
 export * from "./exerciseStore.ts";
 export * from "./teamStore.ts";
 export * from "./userStore.ts";
+export * from "./subjectStore.ts";
 export * from "./exercise.ts";
 export * from "./storeTarget.ts";

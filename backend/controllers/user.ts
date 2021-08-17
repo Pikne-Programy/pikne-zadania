@@ -2,22 +2,33 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { IConfigService } from "../interfaces/config.ts";
+import { httpErrors, Router, RouterContext } from "../deps.ts";
+import { followSchema, translateErrors } from "../utils/mod.ts";
 import { schemas } from "../types/mod.ts";
-import { followSchema, Router, RouterContext as RC } from "../utils/oak.ts";
+import {
+  IJWTService,
+  ITeamStore,
+  IUser,
+  IUserStore,
+} from "../interfaces/mod.ts";
+import { Authorizer } from "./mod.ts";
 
-export class UserController {
+export class UserController extends Authorizer {
   constructor(
-    private cfg: IConfigService,
-  ) {}
+    protected jwt: IJWTService,
+    protected us: IUserStore,
+    protected ts: ITeamStore,
+  ) {
+    super(jwt, us);
+  }
 
-  async info(ctx: RC) {
+  async info(ctx: RouterContext) {
     const req = await followSchema(ctx, {
       userId: schemas.user.idOptional,
     });
   }
 
-  async update(ctx: RC) {
+  async update(ctx: RouterContext) {
     const req = await followSchema(ctx, {
       userId: schemas.user.id,
       number: schemas.user.numberOptional,
@@ -25,14 +36,14 @@ export class UserController {
     });
   }
 
-  async delete(ctx: RC) {
+  async delete(ctx: RouterContext) {
     const req = await followSchema(ctx, {
       userId: schemas.user.id,
     });
   }
 
   readonly router = new Router()
-    .post("/info", (ctx: RC) => this.info(ctx))
-    .post("/update", (ctx: RC) => this.update(ctx))
-    .post("/delete", (ctx: RC) => this.delete(ctx));
+    .post("/info", (ctx: RouterContext) => this.info(ctx))
+    .post("/update", (ctx: RouterContext) => this.update(ctx))
+    .post("/delete", (ctx: RouterContext) => this.delete(ctx));
 }

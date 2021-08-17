@@ -2,13 +2,14 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { Router } from "./deps.ts";
+import { placeholder } from "./utils/mod.ts";
 import {
   AuthController,
   SubjectController,
   TeamController,
   UserController,
 } from "./controllers/mod.ts";
-import { placeholder, Router } from "./utils/mod.ts";
 
 export class ApiRouterBuilder {
   readonly router: Router;

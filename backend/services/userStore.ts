@@ -1,16 +1,17 @@
 // Copyright 2021 Marcin Wykpis <marwyk2003@gmail.com>
+// Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { RoleType, UserType } from "../types/mod.ts";
+import { firsthash, generateSeed, secondhashSync } from "../utils/mod.ts";
+import { CustomDictError, RoleType, UserType } from "../types/mod.ts";
 import {
   IConfigService,
   IDatabaseService,
   IUserStore,
 } from "../interfaces/mod.ts";
 import { StoreTarget } from "./mod.ts";
-import { User } from "../models/mod.ts";
-import { firsthash, secondhashSync } from "../utils/mod.ts";
+import { User } from "../models/mod.ts"; // TODO: get rid off
 
 export class UserStore implements IUserStore {
   constructor(
@@ -46,7 +47,7 @@ export class UserStore implements IUserStore {
         console.log("ROOT was not changed.");
       } else {
         await this.add(
-          { team: 0 },
+          { teamId: 0 },
           { dhPassword: config.dhPassword, ...rootType },
         );
         console.warn("ROOT was registered with ROOT_DHPASS.");
@@ -72,56 +73,57 @@ export class UserStore implements IUserStore {
   }
 
   async add(
-    where: { invitation: string } | { team: number },
+    where: { invitation: string } | { teamId: number },
     options:
       & {
         login: string;
         name: string;
         number?: number;
-        role: RoleType;
+        role?: RoleType;
         seed?: number;
       }
       & ({ hashedPassword: string } | { dhPassword: string }),
-  ): Promise<0 | 1 | 2> {
-    const team = ("team" in where)
-      ? where.team
-      : await this.target.ts.invitation.get(where.invitation) ?? null;
-    if (team === null || !this.target.ts.get(team).exists()) {
-      return 1;
+  ) {
+    const teamId = ("teamId" in where)
+      ? where.teamId
+      : await this.target.ts.invitation.get(where.invitation) ?? NaN;
+    const team = this.target.ts.get(teamId); // teamId checked below
+    if (isNaN(teamId) || !(await team.exists())) {
+      return new CustomDictError("TeamNotFound", { teamId });
     }
+    const special: { [key: number]: RoleType } = { 0: "admin", 1: "teacher" };
     const user: UserType = {
       id: this.cfg.hash(options.login),
       login: options.login,
       name: options.name,
       number: options.number,
-      team,
+      team: teamId,
       dhPassword: ("dhPassword" in options)
         ? options.dhPassword
         : this.cfg.hash(options.hashedPassword),
-      role: options.role,
+      role: options.role ?? special[teamId] ?? "student",
       tokens: [],
-      seed: options.seed,
+      seed: options.seed ?? generateSeed(),
       exercises: {},
     };
     if (options.role === "admin") {
       await this.db.users!.updateOne({ id: user.id }, user, { upsert: true });
     } else {
-      if (await this.get(user.id).exists()) return 2; // user must not exist
-      const team = this.target.ts.get(user.team);
-      if (!await team.exists()) return 1; // team must exist
+      if (await this.get(user.id).exists()) {
+        return new CustomDictError("UserAlreadyExists", { userId: user.id });
+      }
       await this.db.users!.insertOne(user);
       await team.members.add(user.id);
     }
-    return 0;
   }
 
-  async delete(id: string): Promise<void> {
-    const user = this.get(id);
+  async delete(userId: string) {
+    const user = this.get(userId);
     if (!await user.exists()) {
-      throw new Error(`User with id ${id} doesn't exists`);
+      return new CustomDictError("UserNotFound", { userId });
     }
     await this.db.users!.deleteOne({ id: user.id });
     const team = this.target.ts.get(await user.team.get());
-    if (team) team.members.remove(user.id);
+    if (await team.exists()) await team.members.remove(user.id);
   }
 }

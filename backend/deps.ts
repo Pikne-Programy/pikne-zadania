@@ -17,16 +17,14 @@ export { pbkdf2Sync } from "https://deno.land/std@0.100.0/node/crypto.ts";
 export { createHash } from "https://deno.land/std@0.100.0/hash/mod.ts";
 
 export type {
-  Context as _Context,
-  RouteParams,
-  RouterContext as _RouterContext,
-  FormDataBody
+  Context,
+  RouterContext,
 } from "https://deno.land/x/oak@v7.7.0/mod.ts";
 export {
   Application,
   HttpError,
   httpErrors,
-  Router as _Router,
+  Router,
   send,
 } from "https://deno.land/x/oak@v7.7.0/mod.ts";
 export {

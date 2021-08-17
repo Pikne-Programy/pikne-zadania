@@ -3,13 +3,13 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { CustomDictError, SubjectType } from "../types/mod.ts";
 import {
   IDatabaseService,
   IExerciseStore,
   ISubjectStore,
 } from "../interfaces/mod.ts";
-import { Subject } from "../models/mod.ts";
-import { SubjectType } from "../types/mod.ts";
+import { Subject } from "../models/mod.ts"; // TODO: get rid off
 
 export class SubjectStore implements ISubjectStore {
   constructor(
@@ -21,6 +21,7 @@ export class SubjectStore implements ISubjectStore {
   }
 
   async list() {
+    // TODO
     return await [];
   }
 
@@ -40,9 +41,14 @@ export class SubjectStore implements ISubjectStore {
     }
   }
 
-  async add(_id: string, _assignees: string[]) {}
-  assignees = (_id: string) => ({
+  async add(subject: string, _assignees: string[] | null) {
+    // TODO
+    return await new CustomDictError("SubjectAlreadyExists", { subject });
+  }
+
+  assignees = (id: string) => ({
+    // TODO
     get: async () => await [],
-    set: async (_: string[]) => {},
+    set: async (v: string[]) => {},
   });
 }

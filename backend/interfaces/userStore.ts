@@ -3,10 +3,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { User } from "../models/mod.ts";
+import { CustomDictError, RoleType } from "../types/mod.ts";
+import { IConfigService, IDatabaseService, IUser } from "./mod.ts";
 import { StoreTarget } from "../services/mod.ts";
-import { RoleType } from "../types/mod.ts";
-import { IConfigService, IDatabaseService } from "./mod.ts";
 
 export interface IUserStoreConstructor {
   new (
@@ -18,22 +17,18 @@ export interface IUserStoreConstructor {
 
 export interface IUserStore {
   init(): Promise<void>;
-  /** Returns:
-   * - 1 if invitation is invalid or team doesn't exist,
-   * - 2 if user already exists.
-   */
   add(
-    where: { invitation: string } | { team: number },
+    where: { invitation: string } | { teamId: number },
     options:
       & {
         login: string;
         name: string;
         number?: number;
-        role: RoleType;
+        role?: RoleType;
         seed?: number;
       }
       & ({ hashedPassword: string } | { dhPassword: string }),
-  ): Promise<0 | 1 | 2>; // TODO: from auth.ts
-  get(id: string): User; // returns placeholder
-  delete(id: string): Promise<void>; // throws
+  ): Promise<void | CustomDictError<"UserAlreadyExists" | "TeamNotFound">>;
+  get(id: string): IUser; // returns placeholder
+  delete(id: string): Promise<void | CustomDictError<"UserNotFound">>;
 }

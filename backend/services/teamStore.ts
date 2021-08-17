@@ -1,57 +1,70 @@
 // Copyright 2021 Marcin Wykpis <marwyk2003@gmail.com>
+// Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { CustomDictError } from "../types/mod.ts";
 import {
   IConfigService,
   IDatabaseService,
   ITeamStore,
 } from "../interfaces/mod.ts";
-import { Team } from "../models/mod.ts";
 import { StoreTarget } from "./mod.ts";
+import { Team } from "../models/mod.ts"; // TODO: get rid off
 
 export class TeamStore implements ITeamStore {
-  private lastTid?: number;
-
   constructor(
     private cfg: IConfigService,
     private db: IDatabaseService,
     private target: StoreTarget,
   ) {}
+
   async init() {
     // create static teachers' team if not already created
     if (!(await this.get(1).exists())) {
       // teachers' team
-      await this.add(1, { name: "Teachers", assignee: this.cfg.hash("root") });
+      const assignee = this.cfg.hash("root");
+      await this.add(1, { name: "Teachers", assignee }, true);
     }
   }
-  async nextTid(): Promise<number> {
-    this.lastTid = Math.max(...(await this.list()).map((x) => x.id)) + 1;
-    return this.lastTid;
+
+  async nextTeamId() {
+    return Math.max(...(await this.list()).map((x) => x.id)) + 1;
   }
+
   async list() {
     return await this.db.teams!.find().toArray();
   }
+
   get(id: number) {
     return new Team(this.db, id);
   }
-  async add(id: number | null, options: { name: string; assignee: string }) {
-    if (await this.target.us.get(options.assignee).exists()) return 2;
-    if (id !== null && await this.get(id).exists()) return 1;
-    const team = {
-      id: id ?? (await this.nextTid()),
+
+  async add(
+    teamId: number | null,
+    options: { name: string; assignee: string },
+    force = false,
+  ) {
+    if (!force && await this.target.us.get(options.assignee).exists()) {
+      return new CustomDictError("UserNotFound", { userId: options.assignee });
+    }
+    teamId ??= await this.nextTeamId();
+    if (!force && await this.get(teamId).exists()) {
+      return new CustomDictError("TeamAlreadyExists", { teamId });
+    }
+    await this.db.teams!.insertOne({
+      id: teamId,
       name: options.name,
       assignee: options.assignee,
       members: [],
       invitation: null,
-    };
-    await this.db.teams!.insertOne(team);
-    return 0;
+    });
+    return teamId;
   }
-  async delete(id: number) {
-    const team = this.get(id);
+  async delete(teamId: number) {
+    const team = this.get(teamId);
     if (!await team.exists()) {
-      throw new Error(`Team with id ${id} doesn't exist`);
+      return new CustomDictError("TeamNotFound", { teamId });
     }
     for (const uid of await team.members.get()) {
       await team.members.remove(uid);
@@ -59,6 +72,7 @@ export class TeamStore implements ITeamStore {
     }
     await this.db.teams!.deleteOne({ id: team.id });
   }
+
   readonly invitation = {
     get: async (invitation: string) => {
       const team = await this.db.teams!.findOne({ invitation });

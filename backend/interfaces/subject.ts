@@ -4,9 +4,8 @@
 
 export interface ISubject {
   exists(): Promise<boolean>;
-  assignee: {
-    get: () => Promise<string[]>;
-    add: (value: string) => Promise<void>;
-    remove: (value: string) => Promise<void>;
+  assignees: {
+    get: () => Promise<string[] | null>;
+    set: (value: string[] | null) => Promise<void>;
   };
 }

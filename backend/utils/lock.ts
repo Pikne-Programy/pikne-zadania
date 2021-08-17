@@ -1,6 +1,7 @@
 // Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
+
 export class Lock {
   last = Promise.resolve();
   resolver?: () => void;
@@ -19,6 +20,7 @@ export class Lock {
     if (this.resolver) this.resolver();
   }
 }
+
 export class Padlock { // see Mutex
   readonly key = Symbol();
   lock = new Lock();

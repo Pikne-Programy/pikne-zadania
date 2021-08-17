@@ -15,7 +15,7 @@ export class StoreTarget {
     db: IDatabaseService,
     ts: ITeamStoreConstructor,
     us: IUserStoreConstructor,
-  ) {
+  ) { // TODO: add SubjectStore and models' constructors
     this.ts = new ts(cfg, db, this);
     this.us = new us(cfg, db, this);
   }

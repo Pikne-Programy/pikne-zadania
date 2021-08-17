@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Application, HttpError } from "./deps.ts";
-import { Context, handleThrown, State } from "./utils/mod.ts";
+import { Application, Context, HttpError } from "./deps.ts";
+import { handleThrown } from "./utils/mod.ts";
 import {
   ConfigService,
   Database,
@@ -11,19 +11,19 @@ import {
   ExerciseStore,
   JWTService,
   StoreTarget,
+  SubjectStore,
   TeamStore,
   UserStore,
 } from "./services/mod.ts";
-import { ApiRouterBuilder } from "./router.ts";
 import {
   AuthController,
   SubjectController,
   TeamController,
   UserController,
 } from "./controllers/mod.ts";
-import { SubjectStore } from "./services/subjectStore.ts";
+import { ApiRouterBuilder } from "./router.ts";
 
-const app = new Application<State>();
+const app = new Application();
 
 app.addEventListener("error", handleThrown);
 
@@ -58,16 +58,16 @@ await db.connect();
 const target = new StoreTarget(cfg, db, TeamStore, UserStore);
 await target.us.init();
 await target.ts.init();
-const exs = new ExerciseStore(cfg);
-const sbs = new SubjectStore(db, exs);
-await sbs.init();
-const ex = new ExerciseService(exs);
+const es = new ExerciseStore(cfg);
+const ss = new SubjectStore(db, es);
+await ss.init();
+const ex = new ExerciseService(es);
 const jwt = new JWTService(cfg, target.us);
 
-const ac = new AuthController(cfg);
-const sc = new SubjectController(cfg);
-const tc = new TeamController(cfg);
-const uc = new UserController(cfg);
+const ac = new AuthController(cfg, target.us, jwt);
+const sc = new SubjectController(cfg, jwt, target.us, ss, es, ex);
+const tc = new TeamController(jwt, target.us, target.ts);
+const uc = new UserController(jwt, target.us, target.ts);
 
 const rb = new ApiRouterBuilder(ac, sc, tc, uc);
 

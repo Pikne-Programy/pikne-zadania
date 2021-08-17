@@ -2,10 +2,16 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { IUser } from "./mod.ts";
+import { CustomDictError } from "../types/mod.ts";
 
 export interface IJWTService {
-  create(login: string, hashedPassword: string): Promise<string | null>;
-  resolve(jwt?: string): Promise<IUser | null>;
-  revoke(login: string, jwt: string): Promise<void>; // throws
+  create(
+    login: string,
+    hashedPassword: string,
+  ): Promise<string | CustomDictError<"UserCredentialsInvalid">>;
+  resolve(jwt?: string): Promise<string | CustomDictError<"JWTNotFound">>;
+  revoke(
+    userId: string,
+    jwt: string,
+  ): Promise<void | CustomDictError<"JWTNotFound">>;
 }

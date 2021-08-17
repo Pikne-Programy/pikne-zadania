@@ -3,17 +3,30 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { CustomDictError, JSONObject, JSONType } from "../types/mod.ts";
 import { IUser } from "./mod.ts";
-import { JSONObject, JSONType } from "../types/mod.ts";
 
 export interface IExerciseService {
   render(
-    input: { content: string } | { subject: string; id: string },
+    input: { content: string } | { subject: string; exerciseId: string },
     user: IUser | { seed: number },
-  ): Promise<JSONObject | null>;
+  ): Promise<
+    {
+      type: string;
+      name: string;
+      done: number;
+      problem: JSONObject;
+      correctAnswer: JSONObject;
+    } | CustomDictError<"ExerciseBadFormat" | "ExerciseNotFound">
+  >;
   check(
-    input: { content: string } | { subject: string; id: string },
+    input: { content: string } | { subject: string; exerciseId: string },
     answer: JSONType,
     user: IUser | { seed: number },
-  ): Promise<{ done: number; info: JSONType; correctAnswer: JSONType } | null>;
+  ): Promise<
+    | { done: number; info: JSONType }
+    | CustomDictError<
+      "ExerciseBadFormat" | "ExerciseBadAnswerFormat" | "ExerciseNotFound"
+    >
+  >;
 }

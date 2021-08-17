@@ -3,10 +3,15 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { httpErrors, vs } from "../../deps.ts";
-import { IConfigService } from "../../interfaces/mod.ts";
-import { Exercise, JSONObject, JSONType } from "../../types/mod.ts";
+import { vs } from "../../deps.ts";
 import { Range, RNG } from "../../utils/mod.ts";
+import {
+  CustomDictError,
+  Exercise,
+  JSONObject,
+  JSONType,
+} from "../../types/mod.ts";
+import { IConfigService } from "../../interfaces/mod.ts";
 import RPN from "./RPN-parser/parser.ts";
 
 const greekAlphabet: { [key: string]: string } = {
@@ -96,7 +101,8 @@ export default class EquationExercise extends Exercise {
     `${RPN.variableR}=\\[(${RPN.numberR});(${RPN.numberR})(?:;(${RPN.numberR}))?\\](${RPN.unitR})`,
   );
 
-  type = "EqEx";
+  readonly type = "EqEx";
+  readonly description: string;
   readonly parsedContent: string; // "lorem ipsum \(d=300\mathrm{km\}\) foo \(v_a=\mathrm{\frac{m}{s}}\) bar \(v_b=\frac{m}{s}\)."
   readonly ranges: [number, number][] = []; // [index in variables, index in parsedContent]
   readonly variables: [string, RPN | Range | number][] = []; // [name, object]
@@ -226,18 +232,10 @@ export default class EquationExercise extends Exercise {
       }
     });
     this.ranges.reverse(); //reverse order so it's easier to parse
-    this.parsedContent = parsingContent;
+    this.description = this.parsedContent = parsingContent;
   }
 
-  render(seed: number): {
-    type: string;
-    name: string;
-    content: {
-      main: string;
-      unknowns: [string, string][];
-      img: string[];
-    };
-  } {
+  render(seed: number) {
     const rng = new RNG(seed, this.rngPrec);
     let parsingContent = this.parsedContent;
     for (const [index, textIndex] of this.ranges) {
@@ -253,28 +251,41 @@ export default class EquationExercise extends Exercise {
     return {
       type: this.type,
       name: this.name,
-      content: {
+      problem: {
         main: parsingContent,
-        unknowns: this.formattedUnknowns,
+        unknown: this.formattedUnknowns,
         img: this.img,
       },
     };
   }
-  check(seed: number, answer: JSONType) {
+
+  getCorrectAnswer(seed: number) {
+    const s = this.check(seed);
+    if ("correctAnswer" in s) return { answers: s.correctAnswer };
+    throw new Error("never"); // TODO: refactor, make it better
+  }
+
+  check(seed: number, answer?: JSONType) {
     // TODO: use value-schema
-    if (!isAnswer(answer)) {
-      throw new httpErrors["BadRequest"]("ERROR, INVALID ANSWER FORMAT");
+    if (answer !== undefined && !isAnswer(answer)) {
+      return new CustomDictError("ExerciseBadAnswerFormat", {
+        description: "INVALID ANSWER FORMAT",
+      });
     }
-    if (answer.length != this.unknowns.length) {
-      throw new httpErrors["BadRequest"]("ERROR, INVALID ANSWER LENGTH");
+    if (answer !== undefined && answer.length != this.unknowns.length) {
+      return new CustomDictError("ExerciseBadAnswerFormat", {
+        description: "INVALID ANSWER LENGTH",
+      });
     }
-    const answerDict = this.unknowns.reduce(
-      (a: { [key: string]: number | null }, x, i) => {
-        a[x] = answer[i];
-        return a;
-      },
-      {},
-    );
+    const answerDict = answer !== undefined // TODO: refactor
+      ? this.unknowns.reduce(
+        (a: { [key: string]: number | null }, x, i) => {
+          a[x] = answer[i];
+          return a;
+        },
+        {},
+      )
+      : {};
     const rng = new RNG(seed, this.rngPrec);
     const calculated: { [key: string]: number } = {};
     // add already calculated numbers to calculated variables
@@ -295,19 +306,26 @@ export default class EquationExercise extends Exercise {
       if (val instanceof RPN) calculated[name] = val.calculate(calculated);
     }
     // go through each unknown and compare the answers to what's calculated
-    const answers: boolean[] = [];
+    const info: boolean[] = [];
+    const correctAnswer: number[] = [];
     for (const name of this.unknowns) {
       const correctAns = calculated[name];
-      if (!(name in answerDict)) throw new Error("UNKNOWN IS NOT IN ANSWER");
+      correctAnswer.push(correctAns);
+      if (answer !== undefined && !(name in answerDict)) {
+        return new CustomDictError("ExerciseBadAnswerFormat", {
+          description: "UNKNOWN IS NOT IN ANSWER",
+        });
+      }
       const ans = answerDict[name];
-      answers.push(
+      info.push(
         ans != null &&
           Math.abs(ans - correctAns) <= this.answerPrecision * correctAns,
       );
     }
-    const done = answers.reduce((a: number, b) => a + (+b), 0) / answers.length;
-    return { correctAnswer: answers, done, info: null };
+    const done = info.reduce((a: number, b) => a + (+b), 0) / info.length;
+    return { correctAnswer, done, info };
   }
+
   static convertToLaTeX(unit: string): string {
     if (unit == "") return "";
     let parsedUnit = "";

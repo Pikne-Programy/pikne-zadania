@@ -5,6 +5,7 @@
 import { RoleType } from "../types/mod.ts";
 
 export interface IUser {
+  readonly id: string;
   exists(): Promise<boolean>;
   readonly login: {
     get: () => Promise<string>;

@@ -3,9 +3,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { IExerciseService, IExerciseStore } from "../interfaces/mod.ts";
-import { IUser } from "../interfaces/user.ts";
-import { JSONType } from "../types/mod.ts";
+import { CustomDictError, JSONType } from "../types/mod.ts";
+import { IExerciseService, IExerciseStore, IUser } from "../interfaces/mod.ts";
 
 export class ExerciseService implements IExerciseService {
   constructor(
@@ -13,10 +12,10 @@ export class ExerciseService implements IExerciseService {
   ) {}
 
   private getExercise(
-    input: { content: string } | { subject: string; id: string },
+    input: { content: string } | { subject: string; exerciseId: string },
   ) {
-    return "id" in input
-      ? this.ex.get(input.subject, input.id)
+    return "exerciseId" in input
+      ? this.ex.get(input.subject, input.exerciseId)
       : this.ex.parse(input.content);
   }
   private async getSeed(user: IUser | { seed: number }) {
@@ -26,24 +25,32 @@ export class ExerciseService implements IExerciseService {
   }
 
   async render(
-    input: { content: string } | { subject: string; id: string },
+    input: { content: string } | { subject: string; exerciseId: string },
     user: IUser | { seed: number },
   ) {
     const ex = this.getExercise(input);
-    if (ex === null) return null;
-    return ex.render(await this.getSeed(user));
+    if (ex instanceof CustomDictError) return ex;
+    const seed = await this.getSeed(user);
+    return {
+      ...ex.render(seed),
+      done: 0,
+      correctAnswer: ex.getCorrectAnswer(seed),
+    };
   }
 
   async check(
-    input: { content: string } | { subject: string; id: string },
+    input: { content: string } | { subject: string; exerciseId: string },
     answer: JSONType,
     user: IUser | { seed: number },
   ) {
     const ex = this.getExercise(input);
-    if (ex === null) return null;
+    if (ex instanceof CustomDictError) return ex;
     const r = ex.check(await this.getSeed(user), answer);
-    if ("exercises" in user && "id" in input) {
-      await user.exercises.set(input.id, r.done);
+    if (
+      !(r instanceof CustomDictError) && "exercises" in user &&
+      "exerciseId" in input
+    ) {
+      await user.exercises.set(input.exerciseId, r.done);
     }
     return r;
   }

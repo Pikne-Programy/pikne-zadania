@@ -109,10 +109,12 @@ export const schemas = {
     seed: vs.number(userSeedOptions),
     /** `undefined` -> `null` */
     seedOptional: vs.number({ ...userSeedOptions, ifUndefined: null }),
+    /** `undefined` -> `0` */
+    seedDefault: vs.number({ ...userSeedOptions, ifUndefined: 0 }),
     /** `null` -> `NaN` */
     number: vs.number(userNumberOptions),
     /** `null` -> `NaN`, `undefined` -> `null` */
-    numberOptional: vs.string({ ...userNumberOptions, ifUndefined: null }),
+    numberOptional: vs.number({ ...userNumberOptions, ifUndefined: null }),
   },
 
   team: {

@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { Algorithm } from "../deps.ts";
-import { IConfigService } from "../interfaces/mod.ts";
 import { sha256 } from "../utils/mod.ts";
+import { IConfigService } from "../interfaces/mod.ts";
 
 const algos = [
   "none",

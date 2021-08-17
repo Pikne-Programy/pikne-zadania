@@ -2,33 +2,54 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { FormDataBody, httpErrors, vs } from "../deps.ts";
-import { IConfigService } from "../interfaces/config.ts";
+import { httpErrors, Router, RouterContext, send, vs } from "../deps.ts";
+import {
+  followSchema,
+  generateSeed,
+  joinThrowable,
+  translateErrors,
+} from "../utils/mod.ts";
 import { schemas } from "../types/mod.ts";
-import { followSchema, Router, RouterContext as RC } from "../utils/oak.ts";
+import {
+  IConfigService,
+  IExerciseService,
+  IExerciseStore,
+  IJWTService,
+  ISubjectStore,
+  IUser,
+  IUserStore,
+} from "../interfaces/mod.ts";
+import { Authorizer } from "./mod.ts";
 
-export class SubjectController {
+export class SubjectController extends Authorizer {
   constructor(
-    private cfg: IConfigService,
-  ) {}
-
-  async list(ctx: RC) {
+    protected cfg: IConfigService,
+    protected jwt: IJWTService,
+    protected us: IUserStore,
+    protected ss: ISubjectStore,
+    protected es: IExerciseStore,
+    protected ex: IExerciseService,
+  ) {
+    super(jwt, us);
   }
 
-  async create(ctx: RC) {
+  async list(ctx: RouterContext) {
+  }
+
+  async create(ctx: RouterContext) {
     const req = await followSchema(ctx, {
       subject: schemas.exercise.subject,
       assignees: schemas.subject.assignees,
     });
   }
 
-  async info(ctx: RC) {
+  async info(ctx: RouterContext) {
     const req = await followSchema(ctx, {
       subject: schemas.exercise.subject,
     });
   }
 
-  async permit(ctx: RC) {
+  async permit(ctx: RouterContext) {
     const req = await followSchema(ctx, {
       subject: schemas.exercise.subject,
       assignees: schemas.subject.assignees,
@@ -38,7 +59,7 @@ export class SubjectController {
   readonly problem = {
     parent: this,
 
-    async get(ctx: RC) {
+    async get(ctx: RouterContext) {
       const req = await followSchema(ctx, {
         subject: schemas.exercise.subject,
         exerciseId: schemas.exercise.id,
@@ -46,7 +67,7 @@ export class SubjectController {
       });
     },
 
-    async update(ctx: RC) {
+    async update(ctx: RouterContext) {
       const req = await followSchema(ctx, {
         subject: schemas.exercise.subject,
         exerciseId: schemas.exercise.id,
@@ -58,11 +79,11 @@ export class SubjectController {
   readonly static = {
     parent: this,
 
-    async get(ctx: RC) {
+    async get(ctx: RouterContext) {
     },
 
-    async put(ctx: RC) {
-      let body: FormDataBody;
+    async put(ctx: RouterContext) {
+      let body;
       try {
         body = await ctx.request.body({ type: "form-data" }).value.read({
           maxFileSize: 100 * 2 ** 20, // 100 MiB
@@ -78,14 +99,14 @@ export class SubjectController {
   readonly hierarchy = {
     parent: this,
 
-    async get(ctx: RC) {
+    async get(ctx: RouterContext) {
       const req = await followSchema(ctx, {
         subject: schemas.exercise.subject,
         raw: vs.boolean({ strictType: true }),
       });
     },
 
-    async set(ctx: RC) {
+    async set(ctx: RouterContext) {
       const req = await followSchema(ctx, {
         subject: schemas.exercise.subject,
         hierarchy: schemas.exercise.hierarchy,
@@ -96,28 +117,13 @@ export class SubjectController {
   readonly exercise = {
     parent: this,
 
-    async list(ctx: RC) {
+    async list(ctx: RouterContext) {
       const req = await followSchema(ctx, {
         subject: schemas.exercise.subject,
       });
     },
 
-    async add(ctx: RC) {
-      const req = await followSchema(ctx, {
-        subject: schemas.exercise.subject,
-        exerciseId: schemas.exercise.id,
-        content: schemas.exercise.content,
-      });
-    },
-
-    async get(ctx: RC) {
-      const req = await followSchema(ctx, {
-        subject: schemas.exercise.subject,
-        exerciseId: schemas.exercise.id,
-      });
-    },
-
-    async update(ctx: RC) {
+    async add(ctx: RouterContext) {
       const req = await followSchema(ctx, {
         subject: schemas.exercise.subject,
         exerciseId: schemas.exercise.id,
@@ -125,7 +131,22 @@ export class SubjectController {
       });
     },
 
-    async preview(ctx: RC) {
+    async get(ctx: RouterContext) {
+      const req = await followSchema(ctx, {
+        subject: schemas.exercise.subject,
+        exerciseId: schemas.exercise.id,
+      });
+    },
+
+    async update(ctx: RouterContext) {
+      const req = await followSchema(ctx, {
+        subject: schemas.exercise.subject,
+        exerciseId: schemas.exercise.id,
+        content: schemas.exercise.content,
+      });
+    },
+
+    async preview(ctx: RouterContext) {
       const req = await followSchema(ctx, {
         content: schemas.exercise.content,
         seed: schemas.user.seedOptional,
@@ -134,36 +155,42 @@ export class SubjectController {
   };
 
   readonly router = new Router()
-    .get("/list", (ctx: RC) => this.list(ctx))
-    .post("/create", (ctx: RC) => this.create(ctx))
-    .post("/info", (ctx: RC) => this.info(ctx))
-    .post("/permit", (ctx: RC) => this.permit(ctx))
+    .get("/list", (ctx: RouterContext) => this.list(ctx))
+    .post("/create", (ctx: RouterContext) => this.create(ctx))
+    .post("/info", (ctx: RouterContext) => this.info(ctx))
+    .post("/permit", (ctx: RouterContext) => this.permit(ctx))
     .use(
       "/problem",
       new Router()
-        .post("/get", (ctx: RC) => this.problem.get(ctx))
-        .post("/update", (ctx: RC) => this.problem.update(ctx))
+        .post("/get", (ctx: RouterContext) => this.problem.get(ctx))
+        .post("/update", (ctx: RouterContext) => this.problem.update(ctx))
         .routes(),
     ).use(
       "/static",
       new Router()
-        .get("/:subject/:filename", (ctx: RC) => this.static.get(ctx))
-        .put("/:subject/:filename", (ctx: RC) => this.static.put(ctx))
+        .get(
+          "/:subject/:filename",
+          (ctx: RouterContext) => this.static.get(ctx),
+        )
+        .put(
+          "/:subject/:filename",
+          (ctx: RouterContext) => this.static.put(ctx),
+        )
         .routes(),
     ).use(
       "/hierarchy",
       new Router()
-        .post("/get", (ctx: RC) => this.hierarchy.get(ctx))
-        .post("/set", (ctx: RC) => this.hierarchy.set(ctx))
+        .post("/get", (ctx: RouterContext) => this.hierarchy.get(ctx))
+        .post("/set", (ctx: RouterContext) => this.hierarchy.set(ctx))
         .routes(),
     ).use(
       "/exercise",
       new Router()
-        .post("/list", (ctx: RC) => this.exercise.list(ctx))
-        .post("/add", (ctx: RC) => this.exercise.add(ctx))
-        .post("/get", (ctx: RC) => this.exercise.get(ctx))
-        .post("/update", (ctx: RC) => this.exercise.update(ctx))
-        .post("/preview", (ctx: RC) => this.exercise.preview(ctx))
+        .post("/list", (ctx: RouterContext) => this.exercise.list(ctx))
+        .post("/add", (ctx: RouterContext) => this.exercise.add(ctx))
+        .post("/get", (ctx: RouterContext) => this.exercise.get(ctx))
+        .post("/update", (ctx: RouterContext) => this.exercise.update(ctx))
+        .post("/preview", (ctx: RouterContext) => this.exercise.preview(ctx))
         .routes(),
     );
 }

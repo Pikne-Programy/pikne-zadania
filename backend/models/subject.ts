@@ -5,7 +5,7 @@
 import { SubjectType } from "../types/mod.ts";
 import { IDatabaseService, ISubject } from "../interfaces/mod.ts";
 
-// TODO: make an abstract Model class
+// TODO: make an abstract Model class [store's get with NotFound?]
 export class Subject implements ISubject {
   constructor(
     private db: IDatabaseService,
@@ -32,16 +32,11 @@ export class Subject implements ISubject {
     return (await this.db.subjects!.findOne({ id: this.id })) ? true : false;
   }
 
-  readonly assignee = {
-    get: async () => await this.get("assignees"),
-    add: async (value: string) => {
+  readonly assignees = {
+    get: () => this.get("assignees"),
+    set: async (value: string[] | null) => {
       await this.db.subjects!.updateOne({ id: this.id }, {
-        $push: { assignees: value },
-      });
-    },
-    remove: async (value: string) => {
-      await this.db.subjects!.updateOne({ id: this.id }, {
-        $pull: { assignees: value },
+        $set: { assignees: value },
       });
     },
   };
