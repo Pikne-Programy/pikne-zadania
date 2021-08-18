@@ -7,6 +7,27 @@ import { CustomDictError, JSONObject, JSONType } from "../types/mod.ts";
 import { IUser } from "./mod.ts";
 
 export interface IExerciseService {
+  render(input: { content: string }, user: IUser | { seed: number }): Promise<
+    {
+      type: string;
+      name: string;
+      done: number;
+      problem: JSONObject;
+      correctAnswer: JSONObject;
+    } | CustomDictError<"ExerciseBadFormat">
+  >;
+  render(
+    input: { subject: string; exerciseId: string },
+    user: IUser | { seed: number },
+  ): Promise<
+    {
+      type: string;
+      name: string;
+      done: number;
+      problem: JSONObject;
+      correctAnswer: JSONObject;
+    } | CustomDictError<"ExerciseNotFound">
+  >;
   render(
     input: { content: string } | { subject: string; exerciseId: string },
     user: IUser | { seed: number },

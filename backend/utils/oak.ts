@@ -37,24 +37,26 @@ export async function followSchema<T extends SchemaObject>(
   }
 }
 
-export function translateErrors<T>(err: T | CustomDictError): T {
+export function translateErrors<T>(err: T | CustomDictError) {
   if (!(err instanceof CustomDictError)) return err;
   switch (err.type) {
+    case "ExerciseBadAnswerFormat":
+    case "ExerciseBadFormat":
+      throw new httpErrors["BadRequest"]();
     case "UserCredentialsInvalid":
     case "JWTNotFound":
       throw new httpErrors["Unauthorized"]();
+    case "TeamInvitationNotFound":
+      throw new httpErrors["Forbidden"]();
+    case "UserNotFound":
+    case "TeamNotFound":
+    case "ExerciseNotFound":
+      throw new httpErrors["NotFound"]();
     case "UserAlreadyExists":
     case "TeamAlreadyExists":
     case "SubjectAlreadyExists":
     case "ExerciseAlreadyExists":
       throw new httpErrors["Conflict"]();
-    case "UserNotFound":
-    case "TeamNotFound":
-    case "ExerciseNotFound":
-      throw new httpErrors["NotFound"]();
-    case "ExerciseBadAnswerFormat":
-    case "ExerciseBadFormat":
-      throw new httpErrors["BadRequest"]();
     default:
       assertUnreachable(err.type);
   }

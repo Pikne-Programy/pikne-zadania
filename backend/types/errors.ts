@@ -15,6 +15,7 @@ type errors = {
   "JWTNotFound": whatever;
   "TeamAlreadyExists": team;
   "TeamNotFound": team;
+  "TeamInvitationNotFound": whatever;
   "ExerciseBadAnswerFormat": description;
   "ExerciseBadFormat": description;
   "ExerciseNotFound": exercise;

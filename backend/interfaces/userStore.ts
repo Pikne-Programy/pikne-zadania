@@ -18,6 +18,33 @@ export interface IUserStoreConstructor {
 export interface IUserStore {
   init(): Promise<void>;
   add(
+    where: { invitation: string },
+    options: {
+      login: string;
+      name: string;
+      number?: number;
+      role?: RoleType;
+      seed?: number;
+    } & ({ hashedPassword: string } | { dhPassword: string }),
+  ): Promise<
+    void | CustomDictError<"UserAlreadyExists" | "TeamInvitationNotFound">
+  >;
+  add(
+    where: { teamId: number },
+    options:
+      & {
+        login: string;
+        name: string;
+        number?: number;
+        role?: RoleType;
+        seed?: number;
+      }
+      & ({ hashedPassword: string } | { dhPassword: string }),
+  ): Promise<
+    | void
+    | CustomDictError<"UserAlreadyExists" | "TeamNotFound">
+  >;
+  add(
     where: { invitation: string } | { teamId: number },
     options:
       & {
@@ -28,7 +55,12 @@ export interface IUserStore {
         seed?: number;
       }
       & ({ hashedPassword: string } | { dhPassword: string }),
-  ): Promise<void | CustomDictError<"UserAlreadyExists" | "TeamNotFound">>;
+  ): Promise<
+    | void
+    | CustomDictError<
+      "UserAlreadyExists" | "TeamNotFound" | "TeamInvitationNotFound"
+    >
+  >;
   get(id: string): IUser; // returns placeholder
   delete(id: string): Promise<void | CustomDictError<"UserNotFound">>;
 }

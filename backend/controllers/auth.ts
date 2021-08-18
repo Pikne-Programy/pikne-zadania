@@ -15,23 +15,41 @@ export class AuthController {
   ) {}
 
   async register(ctx: RouterContext) {
-    const req = await followSchema(ctx, {
+    const { invitation, ...rest } = await followSchema(ctx, {
       login: schemas.user.loginEmail,
       name: schemas.user.name,
       hashedPassword: schemas.user.hashedPassword,
       number: schemas.user.number,
       invitation: schemas.team.invitationRequired,
-    });
+    }); //! R
+    translateErrors(await this.us.add({ invitation }, rest)); //! PEVO
+    ctx.response.status = 200; //! D
   }
 
   async login(ctx: RouterContext) {
+    const startTime = Date.now();
     const req = await followSchema(ctx, {
       login: schemas.user.login,
-      name: schemas.user.name,
-    });
+      hashedPassword: schemas.user.hashedPassword,
+    }); //! R
+    const jwt = await this.jwt.create(req.login, req.hashedPassword);
+    if (typeof jwt !== "string") {
+      const remainedTime = startTime + this.cfg.LOGIN_TIME - Date.now();
+      if (remainedTime > 0) await delay(remainedTime); // * preventing timing attack *
+      else console.error(`WARN: Missed LOGIN_TIME by ${remainedTime} ms.`);
+      throw new httpErrors["Unauthorized"]();
+    } //! PEVO
+    ctx.cookies.set("jwt", jwt, { maxAge: this.cfg.JWT_CONF.exp });
+    ctx.response.status = 200; //! D
   }
 
   async logout(ctx: RouterContext) {
+    const jwt = ctx.cookies.get("jwt");
+    const userId = translateErrors(await this.jwt.resolve(jwt)); //! APE
+    if (jwt === undefined) throw new Error("never"); // * the above would throw *
+    translateErrors(await this.jwt.revoke(userId, jwt)); //! O
+    ctx.cookies.delete("jwt");
+    ctx.response.status = 200; //! D
   }
 
   readonly router = new Router()

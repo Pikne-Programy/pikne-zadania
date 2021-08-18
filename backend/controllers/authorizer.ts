@@ -25,5 +25,6 @@ export class Authorizer {
     if (!(userId instanceof CustomDictError)) return this.us.get(userId);
     if (userId.type !== "JWTNotFound") assertUnreachable(userId.type);
     if (req) throw translateErrors(userId);
+    ctx.cookies.delete("jwt");
   }
 }

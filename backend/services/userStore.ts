@@ -73,6 +73,33 @@ export class UserStore implements IUserStore {
   }
 
   async add(
+    where: { invitation: string },
+    options: {
+      login: string;
+      name: string;
+      number?: number;
+      role?: RoleType;
+      seed?: number;
+    } & ({ hashedPassword: string } | { dhPassword: string }),
+  ): Promise<
+    void | CustomDictError<"UserAlreadyExists" | "TeamInvitationNotFound">
+  >;
+  async add(
+    where: { teamId: number },
+    options:
+      & {
+        login: string;
+        name: string;
+        number?: number;
+        role?: RoleType;
+        seed?: number;
+      }
+      & ({ hashedPassword: string } | { dhPassword: string }),
+  ): Promise<
+    | void
+    | CustomDictError<"UserAlreadyExists" | "TeamNotFound">
+  >;
+  async add(
     where: { invitation: string } | { teamId: number },
     options:
       & {
@@ -83,13 +110,21 @@ export class UserStore implements IUserStore {
         seed?: number;
       }
       & ({ hashedPassword: string } | { dhPassword: string }),
-  ) {
+  ): Promise<
+    | void
+    | CustomDictError<
+      "UserAlreadyExists" | "TeamNotFound" | "TeamInvitationNotFound"
+    >
+  > {
     const teamId = ("teamId" in where)
       ? where.teamId
       : await this.target.ts.invitation.get(where.invitation) ?? NaN;
     const team = this.target.ts.get(teamId); // teamId checked below
-    if (isNaN(teamId) || !(await team.exists())) {
-      return new CustomDictError("TeamNotFound", { teamId });
+    const exists = await team.exists();
+    if (!exists) {
+      if ("teamId" in where) {
+        return new CustomDictError("TeamNotFound", { teamId });
+      } else return new CustomDictError("TeamInvitationNotFound", {});
     }
     const special: { [key: number]: RoleType } = { 0: "admin", 1: "teacher" };
     const user: UserType = {

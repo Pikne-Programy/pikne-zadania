@@ -3,7 +3,12 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { CustomDictError, JSONType } from "../types/mod.ts";
+import {
+  CustomDictError,
+  Exercise,
+  JSONObject,
+  JSONType,
+} from "../types/mod.ts";
 import { IExerciseService, IExerciseStore, IUser } from "../interfaces/mod.ts";
 
 export class ExerciseService implements IExerciseService {
@@ -13,7 +18,7 @@ export class ExerciseService implements IExerciseService {
 
   private getExercise(
     input: { content: string } | { subject: string; exerciseId: string },
-  ) {
+  ): Exercise | CustomDictError<"ExerciseBadFormat" | "ExerciseNotFound"> {
     return "exerciseId" in input
       ? this.ex.get(input.subject, input.exerciseId)
       : this.ex.parse(input.content);
@@ -25,9 +30,41 @@ export class ExerciseService implements IExerciseService {
   }
 
   async render(
+    input: { content: string },
+    user: IUser | { seed: number },
+  ): Promise<
+    {
+      type: string;
+      name: string;
+      done: number;
+      problem: JSONObject;
+      correctAnswer: JSONObject;
+    } | CustomDictError<"ExerciseBadFormat">
+  >;
+  async render(
+    input: { subject: string; exerciseId: string },
+    user: IUser | { seed: number },
+  ): Promise<
+    {
+      type: string;
+      name: string;
+      done: number;
+      problem: JSONObject;
+      correctAnswer: JSONObject;
+    } | CustomDictError<"ExerciseNotFound">
+  >;
+  async render(
     input: { content: string } | { subject: string; exerciseId: string },
     user: IUser | { seed: number },
-  ) {
+  ): Promise<
+    {
+      type: string;
+      name: string;
+      done: number;
+      problem: JSONObject;
+      correctAnswer: JSONObject;
+    } | CustomDictError<"ExerciseBadFormat" | "ExerciseNotFound">
+  > {
     const ex = this.getExercise(input);
     if (ex instanceof CustomDictError) return ex;
     const seed = await this.getSeed(user);
