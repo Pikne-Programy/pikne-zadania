@@ -3,14 +3,14 @@ import { isObject } from 'src/app/helper/utils';
 export interface TeamItem {
   id: number;
   name: string;
-  assignee?: string;
+  assignee: string;
   invitation?: string | null;
 }
 export function isTeamItem(object: any): object is TeamItem {
   return isObject<TeamItem>(object, [
     ['id', ['number']],
     ['name', ['string']],
-    ['assignee', ['string', 'undefined']],
+    ['assignee', ['string']],
     ['invitation', ['string', 'null', 'undefined']],
   ]);
 }

@@ -1,9 +1,9 @@
 /* tslint:disable:no-unused-variable */
 
-import { TestBed, async, inject } from '@angular/core/testing';
+import { TestBed, inject } from '@angular/core/testing';
 import { NavService } from './navigation.service';
 
-describe('Service: Navingation', () => { // FIXME(Nircek): TYPO
+xdescribe('Service: Navigation', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [NavService],
