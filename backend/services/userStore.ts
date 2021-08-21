@@ -24,7 +24,11 @@ export class UserStore implements IUserStore {
     const warn = (
       what: string,
       why = "Please unset it or change ROOT_ENABLE.",
-    ) => console.warn(`WARN: ${what} is present. ${why}`);
+    ) => {
+      if (this.cfg.VERBOSITY >= 2) {
+        console.warn(`WARN: ${what} is present. ${why}`);
+      }
+    };
     const root = this.get(this.cfg.hash("root"));
     const rootType: { login: string; name: string; role: "admin" } = {
       login: "root",
@@ -44,26 +48,39 @@ export class UserStore implements IUserStore {
       if (
         await root.exists() && await root.dhPassword.get() == config.dhPassword
       ) {
-        console.log("ROOT was not changed.");
+        if (this.cfg.VERBOSITY >= 3) {
+          console.log("ROOT was not changed.");
+        }
       } else {
         await this.add(
           { teamId: 0 },
           { dhPassword: config.dhPassword, ...rootType },
         );
-        console.warn("ROOT was registered with ROOT_DHPASS.");
+        if (this.cfg.VERBOSITY >= 2) {
+          console.warn("ROOT was registered with ROOT_DHPASS.");
+        }
       }
     } else {
       if (!(config.password || root)) {
         throw new Error("no credentials for root");
       }
       if (config.password) {
-        console.log(new Date(), "Generating root password hash...");
+        if (this.cfg.VERBOSITY >= 3) {
+          console.log(new Date(), "Generating root password hash...");
+        }
         const dhPassword = secondhashSync(firsthash("root", config.password));
-        console.log(new Date(), "Generated!");
-        console.warn(`Please unset ROOT_PASS!`);
-        console.warn(`Set ROOT_DHPASS=${dhPassword} if needed.`);
+        if (this.cfg.VERBOSITY >= 3) {
+          console.log(new Date(), "Generated!");
+        }
+        if (this.cfg.VERBOSITY >= 2) {
+          console.warn(
+            `Please unset ROOT_PASS!\nSet ROOT_DHPASS=${dhPassword} if needed.`,
+          );
+        }
         await this.add({ invitation: "" }, { dhPassword, ...rootType });
-        console.warn("ROOT was registered with ROOT_PASS.");
+        if (this.cfg.VERBOSITY >= 2) {
+          console.warn("ROOT was registered with ROOT_PASS.");
+        }
       }
     }
   }

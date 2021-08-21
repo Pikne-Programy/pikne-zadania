@@ -36,7 +36,9 @@ export class AuthController {
     if (typeof jwt !== "string") {
       const remainedTime = startTime + this.cfg.LOGIN_TIME - Date.now();
       if (remainedTime > 0) await delay(remainedTime); // * preventing timing attack *
-      else console.error(`WARN: Missed LOGIN_TIME by ${remainedTime} ms.`);
+      else if (this.cfg.VERBOSITY >= 2) {
+        console.warn(`WARN: Missed LOGIN_TIME by ${remainedTime} ms.`);
+      }
       throw new httpErrors["Unauthorized"]();
     } //! PEVO
     ctx.cookies.set("jwt", jwt, { maxAge: this.cfg.JWT_CONF.exp });

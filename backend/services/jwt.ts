@@ -44,7 +44,7 @@ export class JWTService implements IJWTService {
       if (!user.exists() || !user.tokens.exists(jwt)) throw undefined;
       return userId;
     } catch (e) {
-      if (e !== undefined) handleThrown(e);
+      if (e !== undefined && this.cfg.VERBOSITY >= 2) handleThrown(e);
     }
     return new CustomDictError("JWTNotFound", {});
   }

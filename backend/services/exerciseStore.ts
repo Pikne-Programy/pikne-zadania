@@ -59,7 +59,7 @@ export class ExerciseStore implements IExerciseStore {
           this._structure[subject] = this.buildSectionList(subject, content);
         }
       } catch (e) {
-        handleThrown(e, `${subject}`);
+        if (this.cfg.VERBOSITY >= 1) handleThrown(e, `${subject}`);
       }
     }
   }
@@ -98,7 +98,7 @@ export class ExerciseStore implements IExerciseStore {
       if (ex instanceof Error) throw ex;
       return ex;
     } catch (e) {
-      handleThrown(e, `exercise ${uid}`);
+      if (this.cfg.VERBOSITY >= 1) handleThrown(e, `exercise ${uid}`);
     }
   }
 

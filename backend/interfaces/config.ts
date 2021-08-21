@@ -11,6 +11,14 @@ export interface IConfigService {
   readonly RNG_PREC: number;
   readonly ANSWER_PREC: number;
   readonly DECIMAL_POINT: boolean;
+  /**
+   * - 0 - quiet
+   * - 1 - critical
+   * - 2 - warning
+   * - 3 - information
+   * - 4 - debug
+   */
+  readonly VERBOSITY: 0 | 1 | 2 | 3 | 4; // TODO: rework
   readonly JWT_CONF: {
     exp: number;
     header: { alg: Algorithm; typ: "JWT" };

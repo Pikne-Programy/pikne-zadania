@@ -20,6 +20,10 @@ function isJWTAlgo(x?: string): x is Algorithm {
   return x != null && algos.includes(x as Algorithm); // fails if algos does not specifies all supported algorithms
 }
 
+function isFrom0To4(x: number): x is 0 | 1 | 2 | 3 | 4 {
+  return [0, 1, 2, 3, 4].includes(x);
+}
+
 function get(type: "string", key: string, def?: string): string;
 function get(type: "number", key: string, def?: number): number;
 function get(type: "boolean", key: string, def?: boolean): boolean;
@@ -55,6 +59,7 @@ export class ConfigService implements IConfigService {
   readonly RNG_PREC: number;
   readonly ANSWER_PREC: number;
   readonly DECIMAL_POINT: boolean;
+  readonly VERBOSITY: 0 | 1 | 2 | 3 | 4;
   readonly JWT_CONF: {
     exp: number;
     header: { alg: Algorithm; typ: "JWT" };
@@ -94,6 +99,11 @@ export class ConfigService implements IConfigService {
     this.RNG_PREC = get("number", "RNG_PREC", 3);
     this.ANSWER_PREC = get("number", "ANSWER_PREC", .01);
     this.DECIMAL_POINT = get("boolean", "DECIMAL_POINT", true);
+    const VERBOSITY = get("number", "VERBOSITY", 3);
+    if (!isFrom0To4(VERBOSITY)) {
+      throw new Error("VERBOSITY must be from 0 to 4.");
+    }
+    this.VERBOSITY = VERBOSITY;
   }
 
   hash(login: string) {
