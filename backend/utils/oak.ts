@@ -4,27 +4,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {
-  _Context,
-  _Router,
-  _RouterContext,
   httpErrors,
   ObjectTypeOf,
-  RouteParams,
+  RouterContext,
   SchemaObject,
   vs,
 } from "../deps.ts";
-import { JSONType, UserType } from "../types/mod.ts";
-
-export interface State {
-  seed: number;
-  user: UserType | null;
-}
-export type Context = _Context<State>;
-export type RouterContext<P extends RouteParams = RouteParams> = _RouterContext<
-  P,
-  State
->;
-export class Router extends _Router<RouteParams, State> {}
+import { assertUnreachable } from "./mod.ts";
+import { CustomDictError, JSONType } from "../types/mod.ts";
 
 function _placeholder(status: number, body?: JSONType) {
   return (ctx: RouterContext): unknown => {
@@ -38,18 +25,39 @@ export function placeholder(first: number | JSONType, body?: JSONType) {
   else return _placeholder(200, first);
 }
 
-export function followSchema<T extends SchemaObject>(
+export async function followSchema<T extends SchemaObject>(
+  ctx: RouterContext,
   schema: T,
-  cb: (ctx: RouterContext, req: ObjectTypeOf<T>) => Promise<void> | void,
-) {
-  return async (ctx: RouterContext) => {
-    let req;
-    try {
-      const body = await ctx.request.body({ type: "json" }).value;
-      req = vs.applySchemaObject(schema, body);
-    } catch (_) {
+): Promise<ObjectTypeOf<T>> {
+  try {
+    const body = await ctx.request.body({ type: "json" }).value;
+    return vs.applySchemaObject(schema, body);
+  } catch (_) {
+    throw new httpErrors["BadRequest"]();
+  }
+}
+
+export function translateErrors<T>(err: T | CustomDictError) {
+  if (!(err instanceof CustomDictError)) return err;
+  switch (err.type) {
+    case "ExerciseBadAnswerFormat":
+    case "ExerciseBadFormat":
       throw new httpErrors["BadRequest"]();
-    }
-    await cb(ctx, req);
-  };
+    case "UserCredentialsInvalid":
+    case "JWTNotFound":
+      throw new httpErrors["Unauthorized"]();
+    case "TeamInvitationNotFound":
+      throw new httpErrors["Forbidden"]();
+    case "UserNotFound":
+    case "TeamNotFound":
+    case "ExerciseNotFound":
+      throw new httpErrors["NotFound"]();
+    case "UserAlreadyExists":
+    case "TeamAlreadyExists":
+    case "SubjectAlreadyExists":
+    case "ExerciseAlreadyExists":
+      throw new httpErrors["Conflict"]();
+    default:
+      assertUnreachable(err.type);
+  }
 }

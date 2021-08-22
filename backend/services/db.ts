@@ -4,84 +4,32 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { Collection, MongoClient } from "../deps.ts";
-import { GlobalType, TeamType, UserType } from "../types/mod.ts";
-import { delay, Padlock } from "../utils/mod.ts";
-import { IConfig, IDatabase, ITeam, IUser } from "../interfaces/mod.ts";
+import { delay } from "../utils/mod.ts";
+import { SubjectType, TeamType, UserType } from "../types/mod.ts";
+import { IConfigService, IDatabaseService } from "../interfaces/mod.ts";
 
-export function lock<T>() {
-  return function (
-    _target: T,
-    _propertyKey: string,
-    descriptor: PropertyDescriptor,
-  ) {
-    const originalMethod = descriptor.value;
-    descriptor.value = async function (...args: unknown[]) {
-      let release = false;
-      if (!dbLocker.check(args[args.length - 1])) { // undefined if length < 0
-        args.push(await dbLocker.get());
-        release = true;
-      }
-      const result = await originalMethod.apply(this, args);
-      if (release) { // undefined if length < 0
-        dbLocker.release();
-      }
-      return result;
-    };
-  };
-}
-
-const dbLocker = new Padlock();
-
-export class Database implements IDatabase {
+export class Database implements IDatabaseService {
   private client?: MongoClient;
   users?: Collection<UserType>;
   teams?: Collection<TeamType>;
-  global?: Collection<GlobalType>; // TODO: remove
+  subjects?: Collection<SubjectType>;
 
   constructor(
-    private cfg: IConfig,
+    private cfg: IConfigService,
   ) {}
-  closeDB() {
-    this.client?.close();
-  }
 
-  async init(
-    team: ITeam,
-    user: IUser,
-  ) {
+  async connect() {
     this.client = new MongoClient();
     await delay(this.cfg.MONGO_CONF.time); // wait for database
     await this.client.connect(this.cfg.MONGO_CONF.url); // throwable
-    const _db = this.client.database(this.cfg.MONGO_CONF.db);
+    const db = this.client.database(this.cfg.MONGO_CONF.db);
 
-    this.users = _db.collection("users");
-    this.teams = _db.collection("teams");
-    this.global = _db.collection("global");
+    this.users = db.collection("users");
+    this.teams = db.collection("teams");
+    this.subjects = db.collection("subjects");
+  }
 
-    // create static teachers' team if not already created
-    if (!await team.get(1)) { // teachers' team
-      await team.add({
-        id: 1,
-        name: "Teachers",
-        assignee: "root",
-        members: [],
-        invitation: null,
-      });
-    }
-
-    await this.cfg.setuproot(
-      (dhpassword: string) =>
-        user.add({
-          email: "root",
-          name: "root",
-          dhpassword,
-          team: 0,
-          tokens: [],
-          seed: 0,
-          role: { name: "admin" },
-        }),
-      () => user.delete(user.hash("root")),
-      () => user.get(user.hash("root")),
-    );
+  close() {
+    this.client?.close();
   }
 }

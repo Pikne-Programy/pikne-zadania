@@ -1,76 +1,9 @@
 // Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import { constructApp } from "./app.ts";
 
-import { Application, HttpError } from "./deps.ts";
-import { Context, handleThrown, State } from "./utils/mod.ts";
-import {
-  Auth,
-  Config,
-  Database,
-  Exercises,
-  Team,
-  Teams,
-  User,
-  Users,
-} from "./services/mod.ts";
-import {
-  AuthController,
-  ExercisesController,
-  TeamsController,
-  UsersController,
-} from "./controllers/mod.ts";
-import RouterBuilder from "./router.ts";
-
-const app = new Application<State>();
-
-app.addEventListener("error", handleThrown);
-
-function die(ctx: Context, status = 500, msg = "") {
-  ctx.response.status = status;
-  ctx.response.body = { status, msg };
-}
-
-app.use(async (ctx: Context, next: () => unknown) => {
-  try {
-    await next();
-  } catch (e) {
-    if (e instanceof HttpError) die(ctx, e.status, e.message);
-    else {
-      die(ctx, 500, e instanceof Error ? e.message : "");
-      handleThrown(e);
-    }
-  } finally {
-    const id = ctx.state.user ? ctx.state.user.id : "null";
-    console.log(
-      ctx.request.method,
-      ctx.request.url.pathname,
-      id,
-      ctx.response.status,
-    );
-  }
-});
-
-export const cfg = new Config();
-const db = new Database(cfg);
-const tm = new Team(db);
-const us = new User(cfg, db, tm);
-await db.init(tm, us);
-const exs = new Exercises(us);
-const tms = new Teams(tm, us);
-const uss = new Users(us);
-const auth = new Auth(cfg, tm, us);
-const authc = new AuthController(cfg, auth);
-const exc = new ExercisesController(cfg, exs);
-const tmc = new TeamsController(tms);
-const usc = new UsersController(uss);
-const rb = new RouterBuilder(authc, exc, tmc, usc);
-
-const router = rb.router;
-app.use(router.routes());
-app.use(router.allowedMethods());
-
-app.addEventListener("listen", () => console.log("Server started"));
+const { app, closeDb, cfg } = await constructApp();
 
 const abortController = new AbortController();
 const { signal } = abortController;
@@ -94,10 +27,14 @@ Promise.race([
   Deno.signal(Deno.Signal.SIGQUIT),
   Deno.signal(Deno.Signal.SIGTERM),
 ]).then(() => {
-  console.log("The server is closing...");
+  if (cfg.VERBOSITY >= 3) {
+    console.log("The server is closing...");
+  }
   abortController.abort();
-  db.closeDB();
+  closeDb();
 }).then(() => countdown(5)).finally(Deno.exit);
 
 await app.listen({ port: 8000, signal });
-console.log("Oak server closed.");
+if (cfg.VERBOSITY >= 3) {
+  console.log("Oak server closed.");
+}

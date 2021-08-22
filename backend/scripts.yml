@@ -16,6 +16,7 @@ scripts:
       JWT_KEY: secret
       JWT_EXP: "604800" # 7 days
       DECIMAL_POINT: "no"
+      VERBOSITY: "4"
       ROOT_ENABLE: "yes"
       # ROOT_PASS: secret
       ROOT_DHPASS: $2a$10$zR.KkcwBxhQxbNPL9HMuReq8GyIJoQNilzdFoA1JevLQ0.BgZoo72

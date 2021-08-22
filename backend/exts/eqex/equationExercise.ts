@@ -3,11 +3,16 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { httpErrors, vs } from "../../deps.ts";
-import { Exercise, JSONObject, JSONType } from "../../types/mod.ts";
+import { vs } from "../../deps.ts";
 import { Range, RNG } from "../../utils/mod.ts";
+import {
+  CustomDictError,
+  Exercise,
+  JSONObject,
+  JSONType,
+} from "../../types/mod.ts";
+import { IConfigService } from "../../interfaces/mod.ts";
 import RPN from "./RPN-parser/parser.ts";
-import { cfg } from "../../server.ts";
 
 const greekAlphabet: { [key: string]: string } = {
   alpha: "\\alpha",
@@ -96,24 +101,30 @@ export default class EquationExercise extends Exercise {
     `${RPN.variableR}=\\[(${RPN.numberR});(${RPN.numberR})(?:;(${RPN.numberR}))?\\](${RPN.unitR})`,
   );
 
-  type = "EqEx";
+  readonly type = "EqEx";
+  readonly description: string;
   readonly parsedContent: string; // "lorem ipsum \(d=300\mathrm{km\}\) foo \(v_a=\mathrm{\frac{m}{s}}\) bar \(v_b=\frac{m}{s}\)."
   readonly ranges: [number, number][] = []; // [index in variables, index in parsedContent]
   readonly variables: [string, RPN | Range | number][] = []; // [name, object]
   readonly unknowns: string[] = []; // name
   readonly formattedUnknowns: [string, string][] = []; // [formatted name, unit]
   readonly order: number[] = []; // order of equations
-  readonly answerPrecision: number = cfg.ANSWER_PREC; // such number x that: ans*(100-x)% <= user ans <= ans*(100-x)% returns correct answer
-  readonly pointDecimalSeparator: boolean = cfg.DECIMAL_POINT; //true: '.', false: ','
+  readonly answerPrecision: number; // such number x that: ans*(100-x)% <= user ans <= ans*(100-x)% returns correct answer
+  readonly pointDecimalSeparator: boolean; //true: '.', false: ','
+  readonly rngPrec: number;
   readonly img: string[];
 
   // content -> parse to latex, extract RPN, Range and number -> return parsed text
   constructor(
+    protected cfg: IConfigService,
     readonly name: string,
     content: string,
     readonly properties: JSONObject,
   ) {
-    super(name, content, properties);
+    super(cfg, name, content, properties);
+    this.answerPrecision = this.cfg.ANSWER_PREC;
+    this.pointDecimalSeparator = this.cfg.DECIMAL_POINT;
+    this.rngPrec = this.cfg.RNG_PREC;
     try {
       this.img = vs.applySchemaObject(imgSchema, { t: this.properties.img }).t;
     } catch (_) {
@@ -221,19 +232,11 @@ export default class EquationExercise extends Exercise {
       }
     });
     this.ranges.reverse(); //reverse order so it's easier to parse
-    this.parsedContent = parsingContent;
+    this.description = this.parsedContent = parsingContent;
   }
 
-  render(seed: number): {
-    type: string;
-    name: string;
-    content: {
-      main: string;
-      unknowns: [string, string][];
-      img: string[];
-    };
-  } {
-    const rng = new RNG(seed, cfg.RNG_PREC);
+  render(seed: number) {
+    const rng = new RNG(seed, this.rngPrec);
     let parsingContent = this.parsedContent;
     for (const [index, textIndex] of this.ranges) {
       const range = this.variables[index][1];
@@ -248,28 +251,42 @@ export default class EquationExercise extends Exercise {
     return {
       type: this.type,
       name: this.name,
-      content: {
+      problem: {
         main: parsingContent,
-        unknowns: this.formattedUnknowns,
+        unknown: this.formattedUnknowns,
         img: this.img,
       },
     };
   }
-  check(seed: number, answer: JSONType): { done: number; answer: boolean[] } {
-    if (!isAnswer(answer)) {
-      throw new httpErrors["BadRequest"]("ERROR, INVALID ANSWER FORMAT");
+
+  getCorrectAnswer(seed: number) {
+    const s = this.check(seed);
+    if ("correctAnswer" in s) return { answers: s.correctAnswer };
+    throw new Error("never"); // TODO: refactor, make it better
+  }
+
+  check(seed: number, answer?: JSONType) {
+    // TODO: use value-schema
+    if (answer !== undefined && !isAnswer(answer)) {
+      return new CustomDictError("ExerciseBadAnswerFormat", {
+        description: "INVALID ANSWER FORMAT",
+      });
     }
-    if (answer.length != this.unknowns.length) {
-      throw new httpErrors["BadRequest"]("ERROR, INVALID ANSWER LENGTH");
+    if (answer !== undefined && answer.length != this.unknowns.length) {
+      return new CustomDictError("ExerciseBadAnswerFormat", {
+        description: "INVALID ANSWER LENGTH",
+      });
     }
-    const answerDict = this.unknowns.reduce(
-      (a: { [key: string]: number | null }, x, i) => {
-        a[x] = answer[i];
-        return a;
-      },
-      {},
-    );
-    const rng = new RNG(seed, cfg.RNG_PREC);
+    const answerDict = answer !== undefined // TODO: refactor
+      ? this.unknowns.reduce(
+        (a: { [key: string]: number | null }, x, i) => {
+          a[x] = answer[i];
+          return a;
+        },
+        {},
+      )
+      : {};
+    const rng = new RNG(seed, this.rngPrec);
     const calculated: { [key: string]: number } = {};
     // add already calculated numbers to calculated variables
     for (const [name, val] of this.variables) {
@@ -289,19 +306,26 @@ export default class EquationExercise extends Exercise {
       if (val instanceof RPN) calculated[name] = val.calculate(calculated);
     }
     // go through each unknown and compare the answers to what's calculated
-    const answers: boolean[] = [];
+    const info: boolean[] = [];
+    const correctAnswer: number[] = [];
     for (const name of this.unknowns) {
       const correctAns = calculated[name];
-      if (!(name in answerDict)) throw new Error("UNKNOWN IS NOT IN ANSWER");
+      correctAnswer.push(correctAns);
+      if (answer !== undefined && !(name in answerDict)) {
+        return new CustomDictError("ExerciseBadAnswerFormat", {
+          description: "UNKNOWN IS NOT IN ANSWER",
+        });
+      }
       const ans = answerDict[name];
-      answers.push(
+      info.push(
         ans != null &&
           Math.abs(ans - correctAns) <= this.answerPrecision * correctAns,
       );
     }
-    const done = answers.reduce((a: number, b) => a + (+b), 0) / answers.length;
-    return { answer: answers, done };
+    const done = info.reduce((a: number, b) => a + (+b), 0) / info.length;
+    return { correctAnswer, done, info };
   }
+
   static convertToLaTeX(unit: string): string {
     if (unit == "") return "";
     let parsedUnit = "";
