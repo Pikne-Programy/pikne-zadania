@@ -1,0 +1,44 @@
+name: Deno
+
+on: push
+
+jobs:
+  deno:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup repo
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Setup containers
+        run: |
+          docker-compose -f docker-compose.prod.yml up --build -d api # !!!
+          docker-compose exec -T api deno cache --unstable test_deps.ts
+
+      - name: Verify formatting
+        run: docker-compose exec -T api deno fmt --unstable --check
+        if: always()
+
+      - name: Run linter
+        run: docker-compose exec -T api deno lint --unstable
+        if: always()
+
+      - name: Run tests & Generate coverage report
+        run: |
+          set +e
+          docker-compose exec -T api deno test -A --unstable --coverage=/tmp/coverage
+          SUC=$?
+          docker-compose exec -T api deno coverage /tmp/coverage --lcov > deno.lcov && exit $SUC
+        if: always()
+
+      - name: Kill containers
+        run: docker-compose kill
+        if: always()
+
+      - uses: codecov/codecov-action@v2
+        with:
+          files: deno.lcov
+        if: always()
+
+
