@@ -3,7 +3,7 @@
 import { TestBed, async, inject } from '@angular/core/testing';
 import { NavService } from './navigation.service';
 
-describe('Service: Navingation', () => {
+describe('Service: Navingation', () => { // FIXME(Nircek): TYPO
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [NavService],
