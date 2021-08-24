@@ -26,7 +26,7 @@ export class JWTService implements IJWTService {
     ) {
       return new CustomDictError("UserCredentialsInvalid", { userId });
     }
-    const payload = this.payload(login);
+    const payload = this.payload(userId);
     const conf = this.cfg.JWT_CONF;
     const jwt = await create(conf.header, payload, conf.key); // throwable
     await user.tokens.add(jwt);
@@ -41,7 +41,9 @@ export class JWTService implements IJWTService {
       const userId = payload.id;
       if (typeof userId !== "string") throw undefined;
       const user = this.us.get(userId);
-      if (!user.exists() || !user.tokens.exists(jwt)) throw undefined;
+      if (!await user.exists() || !await user.tokens.exists(jwt)) {
+        throw undefined;
+      }
       return userId;
     } catch (e) {
       if (e !== undefined && this.cfg.VERBOSITY >= 2) handleThrown(e);

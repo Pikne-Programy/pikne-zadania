@@ -27,17 +27,19 @@ export class TeamController extends Authorizer {
     if (!["admin", "teacher"].includes(await user.role.get())) { // TODO: user.isTeacher
       throw new httpErrors["Forbidden"]();
     } //! P -- every and only teacher is able to view all teams !
-    ctx.response.body = (await this.ts.list()).map(async (e) => ({
-      teamId: e.id,
-      name: e.name,
-      assignee: {
-        userId: e.assignee,
-        name: await this.us.get(e.assignee).name.get(),
-      },
-      invitation: await this.isAssignee(e.id, user.id)
-        ? e.invitation ?? null
-        : undefined,
-    }));
+    ctx.response.body = await Promise.all(
+      (await this.ts.list()).map(async (e) => ({
+        teamId: e.id,
+        name: e.name,
+        assignee: {
+          userId: e.assignee,
+          name: await this.us.get(e.assignee).name.get(),
+        },
+        invitation: await this.isAssignee(e.id, user.id)
+          ? e.invitation ?? null
+          : undefined,
+      })),
+    );
     ctx.response.status = 200; //! D
   }
 

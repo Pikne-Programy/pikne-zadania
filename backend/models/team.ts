@@ -51,16 +51,15 @@ export class Team implements ITeam {
 
   readonly invitation = {
     get: async () => await this.get("invitation"),
-    set: async (value?: string) => {
+    set: async (invitation?: string) => {
+      const existing = (await this.db.teams!.findOne({ invitation }))?.id;
       if (
-        value !== undefined &&
-        (await this.db.teams!.findOne({ invitation: value }))?.id !== this.id
+        invitation !== undefined && existing !== undefined &&
+        existing !== this.id
       ) {
-        throw new Error("Invalid invitation"); // TODO: error message
+        throw new Error("Invalid invitation"); // TODO: error message // TODO: handle it
       }
-      await this.db.teams!.updateOne({ id: this.id }, {
-        $set: { value },
-      });
+      await this.db.teams!.updateOne({ id: this.id }, { $set: { invitation } });
     },
   };
 }

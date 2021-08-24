@@ -45,7 +45,7 @@ export class TeamStore implements ITeamStore {
     options: { name: string; assignee: string },
     force = false,
   ) {
-    if (!force && await this.target.us.get(options.assignee).exists()) {
+    if (!force && !await this.target.us.get(options.assignee).exists()) {
       return new CustomDictError("UserNotFound", { userId: options.assignee });
     }
     teamId ??= await this.nextTeamId();

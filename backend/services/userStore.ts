@@ -138,9 +138,11 @@ export class UserStore implements IUserStore {
       : await this.target.ts.invitation.get(where.invitation) ?? NaN;
     const team = this.target.ts.get(teamId); // teamId checked below
     const exists = await team.exists();
+    /** admin team */ let force = false;
     if (!exists) {
       if ("teamId" in where) {
-        return new CustomDictError("TeamNotFound", { teamId });
+        if (where.teamId === 0) force = true;
+        if (!force) return new CustomDictError("TeamNotFound", { teamId });
       } else return new CustomDictError("TeamInvitationNotFound", {});
     }
     const special: { [key: number]: RoleType } = { 0: "admin", 1: "teacher" };
@@ -165,7 +167,7 @@ export class UserStore implements IUserStore {
         return new CustomDictError("UserAlreadyExists", { userId: user.id });
       }
       await this.db.users!.insertOne(user);
-      await team.members.add(user.id);
+      if (!force) await team.members.add(user.id);
     }
   }
 

@@ -42,7 +42,7 @@ export class UserController extends Authorizer {
     ) {
       throw new httpErrors["Forbidden"]();
     } //! P
-    if (await who.exists()) throw new httpErrors["NotFound"](); //! E
+    if (!await who.exists()) throw new httpErrors["NotFound"](); //! E
     ctx.response.body = {
       name: await who.name.get(),
       teamId: await who.team.get(),
