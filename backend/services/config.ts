@@ -71,6 +71,8 @@ export class ConfigService implements IConfigService {
     password?: string;
     dhPassword?: string;
   };
+  readonly FRESH: boolean;
+  readonly EXERCISES_PATH: string;
 
   constructor() {
     const alg = Deno.env.get("JWT_ALG");
@@ -104,6 +106,20 @@ export class ConfigService implements IConfigService {
       throw new Error("VERBOSITY must be from 0 to 4.");
     }
     this.VERBOSITY = VERBOSITY;
+    let fresh = Deno.env.get("FRESH");
+    const safeWord =
+      "With great power comes great responsibility. Yes, do as I say!";
+    this.FRESH = fresh === safeWord;
+    if (this.VERBOSITY >= 2) {
+      if (fresh !== undefined) {
+        console.warn(
+          `The FRESH is present. Set its value to "${safeWord}" to delete all collections.`,
+        );
+      }
+      fresh = this.FRESH ? "" : " NOT";
+      console.warn(`The FRESH safe word was${fresh} triggered...`);
+    }
+    this.EXERCISES_PATH = get("string", "EXERCISES_PATH", "./exercises/");
   }
 
   hash(login: string) {

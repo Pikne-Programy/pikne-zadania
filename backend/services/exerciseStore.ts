@@ -2,7 +2,14 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { basename, existsSync, join, parse, walkSync } from "../deps.ts";
+import {
+  basename,
+  emptyDirSync,
+  existsSync,
+  join,
+  parse,
+  walkSync,
+} from "../deps.ts";
 import { handleThrown, joinThrowable } from "../utils/mod.ts";
 import {
   CustomDictError,
@@ -35,7 +42,7 @@ export class ExerciseStore implements IExerciseStore {
   // TODO: rework
   private readonly dict: { [key: string]: Exercise | undefined } = {}; // subject/exerciseId
   private readonly _structure: { [key: string]: Section[] } = {};
-  private readonly exercisesPath = "./exercises/";
+  private readonly exercisesPath;
 
   private readonly uid = (subject: string, exerciseId: string) =>
     `${subject}/${exerciseId}`;
@@ -43,6 +50,8 @@ export class ExerciseStore implements IExerciseStore {
   constructor(
     private cfg: IConfigService,
   ) {
+    this.exercisesPath = this.cfg.EXERCISES_PATH;
+    if (this.cfg.FRESH) this.drop();
     for (
       const { path } of [
         ...walkSync(this.exercisesPath, { includeFiles: false, maxDepth: 1 }),
@@ -62,6 +71,10 @@ export class ExerciseStore implements IExerciseStore {
         if (this.cfg.VERBOSITY >= 1) handleThrown(e, `${subject}`);
       }
     }
+  }
+
+  drop() {
+    emptyDirSync(this.exercisesPath);
   }
 
   parse(content: string) {

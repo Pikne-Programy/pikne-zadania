@@ -27,9 +27,22 @@ export class Database implements IDatabaseService {
     this.users = db.collection("users");
     this.teams = db.collection("teams");
     this.subjects = db.collection("subjects");
+
+    if (this.cfg.FRESH) await this.drop();
   }
 
   close() {
     this.client?.close();
+  }
+
+  async drop() {
+    function filterUseless(e: unknown) {
+      if (!(e instanceof Error) || !/"NamespaceNotFound"/.test(e.message)) {
+        throw e;
+      }
+    }
+    await this.users!.drop().catch(filterUseless);
+    await this.teams!.drop().catch(filterUseless);
+    await this.subjects!.drop().catch(filterUseless);
   }
 }

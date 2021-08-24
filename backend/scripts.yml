@@ -20,6 +20,7 @@ scripts:
       ROOT_ENABLE: "yes"
       # ROOT_PASS: secret
       ROOT_DHPASS: $2a$10$zR.KkcwBxhQxbNPL9HMuReq8GyIJoQNilzdFoA1JevLQ0.BgZoo72
+      # FRESH: With great power comes great responsibility. Yes, do as I say! # it's deleting all collections
 watcher:
   exts:
     - js

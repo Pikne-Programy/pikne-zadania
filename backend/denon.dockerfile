@@ -8,8 +8,9 @@ WORKDIR /app
 RUN chown -R deno:deno /usr/local
 USER deno
 RUN deno install -qAf --unstable https://deno.land/x/denon@2.4.8/denon.ts
-COPY deps.ts .
+COPY *deps.ts ./
 RUN deno cache --unstable deps.ts
-ADD . .
+RUN deno cache --unstable test_deps.ts
+COPY . .
 RUN deno cache --unstable server.ts
 CMD denon start # see scripts.yml

@@ -30,5 +30,7 @@ export interface IConfigService {
     password?: string;
     dhPassword?: string;
   };
+  readonly FRESH: boolean;
+  readonly EXERCISES_PATH: string;
   hash(login: string): string;
 }

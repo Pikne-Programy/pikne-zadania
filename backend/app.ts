@@ -81,5 +81,11 @@ export async function constructApp(cfg: IConfigService = new ConfigService()) {
   app.use(router.routes());
   app.use(router.allowedMethods());
 
-  return { app, closeDb: () => db.close(), cfg };
+  return {
+    app,
+    dropExercises: () => es.drop(),
+    dropDb: () => db.drop(),
+    closeDb: () => db.close(),
+    cfg,
+  };
 }

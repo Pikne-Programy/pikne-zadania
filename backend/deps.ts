@@ -6,7 +6,11 @@
 
 // don't forget to update deno and denon in Dockerfile and denon.dockerfile
 export { parse } from "https://deno.land/std@0.100.0/encoding/yaml.ts";
-export { existsSync, walkSync } from "https://deno.land/std@0.100.0/fs/mod.ts";
+export {
+  emptyDirSync,
+  existsSync,
+  walkSync,
+} from "https://deno.land/std@0.100.0/fs/mod.ts";
 export {
   basename,
   common,

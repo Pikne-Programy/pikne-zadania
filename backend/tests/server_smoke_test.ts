@@ -6,7 +6,7 @@ import { constructApp } from "../app.ts";
 
 const lazyDefaultConfig: IConfigService = {
   MONGO_CONF: {
-    db: "pikne-zadania",
+    db: "pikne-zadania--tests",
     url: "mongodb://mongo:27017",
     time: 5e3,
   },
@@ -26,6 +26,8 @@ const lazyDefaultConfig: IConfigService = {
     enable: true,
     dhPassword: "$2a$10$zR.KkcwBxhQxbNPL9HMuReq8GyIJoQNilzdFoA1JevLQ0.BgZoo72", // secret
   },
+  FRESH: true,
+  EXERCISES_PATH: "/tmp/pikne-zadania-exercises--tests/",
   hash(login: string) {
     return sha256(login, this.USER_SALT);
   },
@@ -44,7 +46,9 @@ const appSuite = new TestSuite<AC>({
   async beforeEach(context: AC) {
     context.request = await superoak(context.r.app.handle.bind(context.r.app));
   },
-  afterAll(context: AC) {
+  async afterAll(context: AC) {
+    await context.r.dropDb();
+    context.r.dropExercises();
     context.r.closeDb();
   },
 });
