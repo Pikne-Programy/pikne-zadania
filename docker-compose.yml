@@ -26,6 +26,8 @@ services:
       - html:/app/dist
     depends_on:
       - api
+#    ports:
+#      - 9876:9876
   api:
     build:
       context: backend

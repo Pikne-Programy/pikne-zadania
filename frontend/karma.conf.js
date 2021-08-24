@@ -2,6 +2,8 @@
 // https://karma-runner.github.io/1.0/config/configuration-file.html
 
 module.exports = function (config) {
+  const isCI = config.browsers[0] === 'FirefoxHeadless'; // inspired by https://github.com/angular/angular-cli/issues/10852#issuecomment-401040641
+  console.warn(`CI was${isCI ? '' : ' NOT'} detected.`);
   config.set({
     basePath: '',
     frameworks: ['jasmine', '@angular-devkit/build-angular'],
@@ -25,7 +27,7 @@ module.exports = function (config) {
       suppressAll: true // removes the duplicated traces
     },
     coverageReporter: {
-      reporters: [
+      reporters: isCI ? [{ type: 'lcovonly', subdir: '.' }] : [
         { type: 'text' },
         { type: 'text-summary' }
       ]

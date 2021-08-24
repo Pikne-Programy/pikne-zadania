@@ -1,11 +1,9 @@
 /* tslint:disable:no-unused-variable */
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-import { DebugElement } from '@angular/core';
 
 import { SubjectDashboardComponent } from './dashboard.component';
 
-describe('DashboardComponent', () => {
+xdescribe('DashboardComponent', () => {
   let component: SubjectDashboardComponent;
   let fixture: ComponentFixture<SubjectDashboardComponent>;
 
