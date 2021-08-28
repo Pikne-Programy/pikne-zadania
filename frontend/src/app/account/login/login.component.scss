@@ -18,6 +18,11 @@
   margin-top: -0.5rem;
   margin-left: -0.75rem;
   margin-bottom: 0.25rem !important;
+  border: none;
+
+  &:not(:hover) {
+    background-color: transparent;
+  }
 }
 
 .field {

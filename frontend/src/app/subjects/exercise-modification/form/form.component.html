@@ -12,7 +12,7 @@
 <!--#endregion-->
 <div class="box is-flex-grow-1 mb-0 scrollable">
   <!--#region Edit form -->
-  <form *ngIf="!isPreview" [formGroup]="form" (ngSubmit)="type!.warnings?.type ? isUnknownTypeModalOpen = true : submit()">
+  <form *ngIf="!isPreview" [formGroup]="form" (ngSubmit)="submit()">
     <div class="field">
       <div class="columns">
         <!--#region Type -->
@@ -20,9 +20,9 @@
           <label for="type" class="label">Typ zadania</label>
           <div class="control has-icons-right">
             <input id="type" class="input" [ngClass]="{
-                'is-primary': !type!.warnings?.type,
-                'is-warning': type!.warnings?.type
-              }" type="text" formControlName="type" [matAutocomplete]="types" (input)="preview = undefined">
+              'is-primary': !type!.warnings?.type,
+              'is-warning': type!.warnings?.type
+            }" type="text" formControlName="type" [matAutocomplete]="types" (input)="preview = undefined" (focus)="snippetService.closeSnippet()">
             <span *ngIf="type!.warnings?.type" class="icon has-text-warning is-small is-right">
               <i class="fas fa-exclamation-triangle"></i>
             </span>
@@ -32,12 +32,12 @@
         <!--#endregion-->
         <!--#region Name -->
         <div class="column py-only-mobile-2">
-          <label for="type" class="label">Nazwa</label>
+          <label for="name" class="label">Nazwa</label>
           <div class="control has-icons-right">
-            <input id="type" class="input" [ngClass]="{
-                'is-primary': !name!.errors?.name,
-                'is-danger': name!.errors?.name
-              }" type="text" formControlName="name" (input)="preview = undefined">
+            <input id="name" class="input" [ngClass]="{
+              'is-primary': !name!.errors?.name,
+              'is-danger': name!.errors?.name
+            }" type="text" formControlName="name" (input)="preview = undefined" (focus)="snippetService.closeSnippet()">
             <span *ngIf="name!.errors?.name" class="icon has-text-danger is-small is-right">
               <i class="fas fa-exclamation-circle"></i>
             </span>
@@ -49,9 +49,13 @@
     </div>
     <!--#region Content -->
     <div class="field for-content">
-      <label for="content" class="label">Treść</label>
-      <div class="control" [ngClass]="{ 'is-loading': isPreviewLoading }">
-        <textarea id="content" class="textarea is-primary has-fixed-size" formControlName="content" (input)="preview = undefined"></textarea>
+      <label for="textarea" class="label">Treść</label>
+      <!--#region Toolbar -->
+      <app-editor-toolbar class="is-primary" [ngClass]="{ 'is-focused': isTextareaFocused || isToolbarFocused }" [isHighlightingEnabled]="isHighlightingEnabled" [input]="content!" [textarea]="textarea$ | async" (toggleHighlighting)="toggleHighlighting()" tabindex="0" [(isFocused)]="isToolbarFocused"
+        (focus)="isToolbarFocused = true" (focusout)="isToolbarFocused = false"></app-editor-toolbar>
+      <!--#endregion-->
+      <div class="control" [ngClass]="{ 'is-loading': isPreviewLoading }" (click)="snippetService.closeSnippet()">
+        <app-highlight-textarea #textareaComp [form]="form" controlName="content" [toHighlight]="highlightList" [hasToolbar]="true" (input)="preview = undefined; snippetService.closeSnippet()" [(isFocused)]="isTextareaFocused" [isToolbarFocused]="isToolbarFocused"></app-highlight-textarea>
       </div>
     </div>
     <!--#endregion-->
@@ -64,7 +68,7 @@
         <button type="submit" class="button is-success" [ngClass]="{ 'is-loading': isSubmitted }" [disabled]="form.invalid">Zapisz</button>
       </div>
       <div class="control">
-        <button type="button" class="button is-danger" [disabled]="isSubmitted" (click)="cancel()">Odrzuć</button>
+        <button type="button" class="button is-danger" [disabled]="isSubmitted" (click)="cancel(); snippetService.closeSnippet()">Odrzuć</button>
       </div>
     </div>
     <!--#endregion-->

@@ -5,7 +5,7 @@
         <img class="logo" src="assets/logo/png/logo-512x512.png" srcset="assets/logo/logo.svg" alt="">
       </div>
       <div class="box">
-        <a class="button back is-white is-small mb-3" (click)="navigateBack()">
+        <a class="button back is-small mb-3" tabindex="0" (click)="navigateBack()">
           <span class="icon is-small">
             <i class="fas fa-chevron-left"></i>
           </span>
@@ -104,9 +104,8 @@
           <div class="field">
             <div class="columns is-mobile m-0">
               <label for="number" class="column label p-0">Numer w dzienniku</label>
-              <div class="column is-narrow field p-0" (change)="onToggleSwitch()">
-                <input id="switch" class="switch is-rounded" type="checkbox" [checked]="hasNumber">
-                <label for="switch"></label>
+              <div class="column is-narrow p-0">
+                <app-switch [cssClass]="'is-rounded'" [checked]="hasNumber" (onChange)="onToggleSwitch()"></app-switch>
               </div>
             </div>
             <fieldset class="control has-icons-left has-icons-right" [disabled]="!hasNumber">

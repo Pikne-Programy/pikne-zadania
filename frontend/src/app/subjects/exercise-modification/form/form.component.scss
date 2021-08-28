@@ -13,6 +13,10 @@
   margin-bottom: 0;
   z-index: 2;
 
+  & ul {
+    border-bottom-color: var(--tab-border-color);
+  }
+
   & li {
     &:not(:first-child) a {
       margin-left: -1px;
@@ -20,7 +24,7 @@
 
     & a {
       font-weight: 600;
-      border: #dbdbdb solid 1px;
+      border: var(--tab-border-color) solid 1px;
     }
 
     &.is-active a {
@@ -31,7 +35,7 @@
 
 .tabs.is-boxed.for-box + .box {
   max-height: calc(100% - 2.75em);
-  border: #dbdbdb solid 1px;
+  border: var(--tab-border-color) solid 1px;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
   border-top-color: transparent;
@@ -58,11 +62,6 @@ form {
       display: flex;
       flex-direction: column;
       flex-grow: 1;
-
-      & .textarea:not([rows]).has-fixed-size {
-        max-height: auto;
-        flex-grow: 1;
-      }
     }
   }
 }

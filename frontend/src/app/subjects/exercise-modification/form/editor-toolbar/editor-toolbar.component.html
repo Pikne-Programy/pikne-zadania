@@ -1,0 +1,56 @@
+<div class="is-flex">
+  <div *ngFor="let buttonList of buttons" class="field has-addons is-hidden-mobile has-max-height">
+    <div *ngFor="let button of buttonList[0]" class="control">
+      <!--#region Toolbar actions -->
+      <button class="button" type="button" [title]="button.getTitle(buttonList[1], screenSize)" (click)="executeButtonAction(button)" (focus)="isFocusedChange.emit(true)" (focusout)="isFocusedChange.emit(false)">
+        <span class="icon is-small">
+          <i *ngIf="!button.isSvg && !button.isText" class="fas" [ngClass]="button.icon"></i>
+          <svg *ngIf="button.isSvg && !button.isText" class="fas" [attr.viewBox]="button.viewBox" preserveAspectRatio="xMidYMid meet" width="75%">
+            <path fill="currentColor" [attr.d]="button.icon"></path>
+          </svg>
+          <i *ngIf="!button.isSvg && button.isText" class="fas text">{{ button.icon }}</i>
+        </span>
+        <span *ngIf="button.hasLabel(buttonList[1], screenSize)">{{ button.label }}</span>
+      </button>
+      <!--#endregion-->
+      <!--#region Snippets -->
+      <ng-container *ngIf="snippetService.currentSnippet === button.action">
+        <!--#region List snippet -->
+        <ul *ngIf="isListButton(button)" class="snippet box list" (focus)="isFocusedChange.emit(true)" (focusout)="isFocusedChange.emit(false)">
+          <li *ngFor="let option of button.options" class="panel-block" tabindex="0" (click)="addFunctionOrTrigonometry(option)" (keydown.enter)="addFunctionOrTrigonometry(option)" (focus)="isFocusedChange.emit(true)" (focusout)="isFocusedChange.emit(false)">
+            {{ option }}
+          </li>
+        </ul>
+        <!--#endregion-->
+        <!--#region Input snippet -->
+        <div *ngIf="isInputButton(button)" class="snippet box">
+          <div class="field" *ngFor="let field of button.fields; index as i">
+            <div class="control">
+              <input class="input" [ngClass]="{ 
+                'is-primary': field.isRequired && field.isValid() !== false,
+                'is-warning': field.isValid() === false
+              }" type="text" [placeholder]="field.name" [(ngModel)]="field.value" (focus)="isFocusedChange.emit(true)" (focusout)="isFocusedChange.emit(false)">
+            </div>
+          </div>
+          <!--#region Confirmation -->
+          <div class="buttons is-right">
+            <button class="button is-success is-inverted" type="button" (click)="confirmSnippet(button)" [disabled]="!button.isValid()" (focus)="isFocusedChange.emit(true)" (focusout)="isFocusedChange.emit(false)">
+              <span class="icon is-small">
+                <i class="fas fa-check"></i>
+              </span>
+            </button>
+            <button class="button is-danger is-inverted" type="button" (click)="snippetService.closeSnippet()" (focus)="isFocusedChange.emit(true)" (focusout)="isFocusedChange.emit(false)">
+              <span class="icon is-small">
+                <i class="fas fa-times"></i>
+              </span>
+            </button>
+          </div>
+          <!--#endregion-->
+        </div>
+        <!--#endregion-->
+      </ng-container>
+      <!--#endregion-->
+    </div>
+  </div>
+</div>
+<app-switch [cssClass]="'is-rounded'" label="Kolorowanie składni" [checked]="isHighlightingEnabled" (onChange)="toggleHighlighting.emit()" (onFocus)="isFocusedChange.emit(true)" (onFocusOut)="isFocusedChange.emit(false)"></app-switch>

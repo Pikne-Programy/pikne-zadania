@@ -38,7 +38,7 @@ export class ScreenSizeService implements OnDestroy {
     if (this.currentSize.getValue() != newSize) this.currentSize.next(newSize);
   }
 
-  private getSize(): number {
+  private getSize(): ScreenSizes {
     const width = window.innerWidth;
     for (let i = 0; i < Sizes.length; i++)
       if (width <= Sizes[i][1]) return Sizes[i][0];

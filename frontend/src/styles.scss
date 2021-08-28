@@ -33,11 +33,19 @@
 );
 :root {
   --primary: #{$primary};
+  --primary-box-shadow: #{bulmaRgba($primary, 0.25)};
+  --background-color: #{$background};
   --tooltip-background: #{$primary-invert};
   --footer-color: #ededed;
+  --tab-border-color: #dbdbdb;
+  --box-shadow-color: #{rgba($scheme-invert, 0.1)};
+  --text-color: #{$text};
+  --text-selection-color: lightgrey;
   @if theme.$is-dark {
     --tooltip-background: #{$background};
     --footer-color: #121212;
+    --tab-border-color: #363636;
+    --text-selection-color: #303030;
   }
 }
 $dark-box-background: bulmaDarken($background, 5%);
@@ -113,6 +121,12 @@ $dark-box-background: bulmaDarken($background, 5%);
         background-color: bulmaRgba(bulmaDarken($primary, 5%), 0.25) !important;
       }
     }
+  }
+}
+
+.tabs.is-boxed li.is-active a {
+  @if theme.$is-dark {
+    background-color: $dark-box-background !important;
   }
 }
 
@@ -202,6 +216,11 @@ $dark-box-background: bulmaDarken($background, 5%);
 
 .has-text-underlined {
   text-decoration: underline;
+}
+
+.switch[type="checkbox"]:checked + label::before,
+.switch[type="checkbox"]:checked + label::before {
+  background: var(--primary);
 }
 
 @import "~node_modules/bulma/bulma.sass";

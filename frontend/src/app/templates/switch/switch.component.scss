@@ -1,0 +1,8 @@
+.switch + label {
+  &::before {
+    top: 3px;
+  }
+  &::after {
+    top: calc(0.25rem + 3px);
+  }
+}

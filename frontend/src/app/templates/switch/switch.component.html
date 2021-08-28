@@ -1,0 +1,7 @@
+<div class="field" (change)="onChange.emit()">
+  <label *ngIf="label && !hasLabelRight" for="switch" class="is-clickable has-text-weight-semibold mr-1">{{ label }}</label>
+  <input id="switch" class="switch" [ngClass]="class" type="checkbox" [checked]="checked" (focus)="onFocus.emit()" (focusout)="onFocusOut.emit()">
+  <label for="switch" class="has-text-weight-semibold" [ngClass]="{
+    'is-clickable': hasLabelRight
+  }">{{ hasLabelRight ? label : '' }}</label>
+</div>
