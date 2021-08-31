@@ -17,7 +17,11 @@ export interface IExerciseStore {
     subject: string,
     id: string,
   ): Exercise | CustomDictError<"ExerciseNotFound">;
+  inYaml(
+    subject: string,
+    id: string,
+  ): boolean | CustomDictError<"ExerciseNotFound">;
   update(subject: string, id: string, content: string): void; // upsert
-
+  getContent(subject: string, id: string): string;
   getStaticContentPath(subject: string): string;
 }

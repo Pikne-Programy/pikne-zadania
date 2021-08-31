@@ -20,11 +20,6 @@ export class SubjectStore implements ISubjectStore {
     return new Subject(this.db, id);
   }
 
-  async list() {
-    // TODO
-    return await [];
-  }
-
   async init() {
     const diskSubjects = new Set(this.exs.listSubjects());
     const dbSubjects = new Set(
@@ -41,14 +36,16 @@ export class SubjectStore implements ISubjectStore {
     }
   }
 
-  async add(subject: string, _assignees: string[] | null) {
-    // TODO
-    return await new CustomDictError("SubjectAlreadyExists", { subject });
+  async list() {
+    const subjects = await this.db.subjects!.find().toArray();
+    return subjects.map((x) => x.id);
   }
 
-  assignees = (id: string) => ({
-    // TODO
-    get: async () => await [],
-    set: async (v: string[]) => {},
-  });
+  async add(id: string, assignees: string[] | null) {
+    const subject = this.get(id);
+    if (await subject.exists()) {
+      return await new CustomDictError("SubjectAlreadyExists", { subject: id });
+    }
+    this.db.subjects!.insertOne({ id, assignees });
+  }
 }

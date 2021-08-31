@@ -13,10 +13,4 @@ export interface ISubjectStore {
     subject: string,
     assignees: string[] | null,
   ): Promise<void | CustomDictError<"SubjectAlreadyExists">>;
-  assignees(id: string): {
-    get(): Promise<string[]>;
-    set(assignees: string[]): Promise<void>;
-    // add(uid: string): void;
-    // remove(uid: string): void;
-  };
 }

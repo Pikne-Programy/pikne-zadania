@@ -50,6 +50,7 @@ export function translateErrors<T>(err: T | CustomDictError) {
       throw new httpErrors["Forbidden"]();
     case "UserNotFound":
     case "TeamNotFound":
+    case "SubjectNotFound":
     case "ExerciseNotFound":
       throw new httpErrors["NotFound"]();
     case "UserAlreadyExists":

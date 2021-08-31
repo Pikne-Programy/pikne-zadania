@@ -2,14 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {
-  basename,
-  emptyDirSync,
-  existsSync,
-  join,
-  parse,
-  walkSync,
-} from "../deps.ts";
+import { emptyDirSync, existsSync, join, parse, walkSync } from "../deps.ts";
 import { handleThrown, joinThrowable } from "../utils/mod.ts";
 import {
   CustomDictError,
@@ -39,9 +32,12 @@ function isYAMLSection(what: unknown): what is YAMLSection {
 }
 
 export class ExerciseStore implements IExerciseStore {
-  // TODO: rework
-  private readonly dict: { [key: string]: Exercise | undefined } = {}; // subject/exerciseId
-  private readonly _structure: { [key: string]: Section[] } = {};
+  private readonly _structure: { [key: string]: Section[] } = {}; // subject -> eid
+  private readonly _unlisted: { [key: string]: string[] } = {}; // subject -> eid
+  private readonly exercises: {
+    [key: string]: [Exercise, boolean]; // uid -> [Exercise, inYaml]
+  } = {};
+
   private readonly exercisesPath;
 
   private readonly uid = (subject: string, exerciseId: string) =>
@@ -53,22 +49,48 @@ export class ExerciseStore implements IExerciseStore {
     this.exercisesPath = this.cfg.EXERCISES_PATH;
     if (this.cfg.FRESH) this.drop();
     for (
-      const { path } of [
+      const { path, name: subject } of [
         ...walkSync(this.exercisesPath, { includeFiles: false, maxDepth: 1 }),
       ].slice(1)
     ) {
-      const subject = basename(path);
       try {
         const index = join(path, "index.yml");
-        if (existsSync(index)) {
-          const content = parse(Deno.readTextFileSync(index));
-          if (!isArrayOf(isYAMLSection, content)) {
-            throw new Error("index not a YAMLSection[]");
+        if (!existsSync(index)) continue;
+        for (
+          const { name: file } of [
+            ...walkSync(join(this.exercisesPath, subject), {
+              includeDirs: false,
+              maxDepth: 1,
+              exts: [".txt"],
+            }),
+          ]
+        ) {
+          const match = file.match(/(.+)\.txt$/);
+          if (match === null || match.length < 2) {
+            throw new Error("never");
           }
-          this._structure[subject] = this.buildSectionList(subject, content);
+          this.appendExerciseFile(subject, match[1]);
         }
+
+        const content = parse(Deno.readTextFileSync(index));
+        if (!isArrayOf(isYAMLSection, content)) {
+          throw new Error("index not a YAMLSection[]");
+        }
+        const structure = this.buildSectionList(subject, content);
+        this._structure[subject] = structure;
       } catch (e) {
         if (this.cfg.VERBOSITY >= 1) handleThrown(e, `${subject}`);
+      }
+    }
+    for (const uid in this.exercises) {
+      if (this.exercises[uid][1] === false) {
+        const match = uid.match(/(.+)\/(.+)/);
+        if (match === null || match.length < 3) {
+          throw new Error("never");
+        }
+        const [subject, eid] = match.slice(1, 3);
+        if (!(subject in this._unlisted)) this._unlisted[subject] = [];
+        this._unlisted[subject].push(eid);
       }
     }
   }
@@ -102,16 +124,19 @@ export class ExerciseStore implements IExerciseStore {
     }
   }
 
-  private appendExerciseFile(subject: string, exerciseId: string) {
-    const uid = this.uid(subject, exerciseId);
-    const path = join(this.exercisesPath, `${uid}.txt`);
+  private appendExerciseFile(
+    subject: string,
+    exerciseId: string,
+  ) {
     try {
-      const content = Deno.readTextFileSync(path);
+      const content = this.getContent(subject, exerciseId);
       const ex = this.update(subject, exerciseId, content);
-      if (ex instanceof Error) throw ex;
+      if (ex instanceof Error) throw ex; // TODO
       return ex;
     } catch (e) {
-      if (this.cfg.VERBOSITY >= 1) handleThrown(e, `exercise ${uid}`);
+      if (this.cfg.VERBOSITY >= 1) {
+        handleThrown(e, `exercise ${this.uid(subject, exerciseId)}`);
+      }
     }
   }
 
@@ -119,22 +144,23 @@ export class ExerciseStore implements IExerciseStore {
     subject: string,
     elements: (YAMLSection | string)[],
   ) {
-    const r: Section[] = [];
+    const structure: Section[] = [];
     for (const el of elements) {
       if (typeof el === "string") {
-        let ex = this.get(subject, el);
-        if (ex?.type === "ExerciseNotFound") {
-          ex = this.appendExerciseFile(subject, el) ?? ex;
+        const ex = this.get(subject, el);
+        if (ex?.type === "ExerciseNotFound") { // TODO
+          // exercise exists in yaml but file doesn't exist
+          continue;
         }
-        if (ex instanceof Error) continue; // error reported above
-        r.push({ name: ex.name, children: el });
+        structure.push({ name: ex.name, children: el });
+        this.exercises[this.uid(subject, el)][1] = true;
       } else {
         const name = Object.keys(el)[0];
         const children = this._buildSectionList(subject, el[name]);
-        r.push({ name, children });
+        structure.push({ name, children });
       }
     }
-    return r;
+    return structure;
   }
 
   private buildSectionList(subject: string, elements: YAMLSection[]) {
@@ -142,11 +168,11 @@ export class ExerciseStore implements IExerciseStore {
   }
 
   listExercises(_subject: string) {
-    return ["pociagi-dwa", "czerpak"]; // TODO
+    return Object.keys(this.exercises);
   }
 
   listSubjects() {
-    return ["fizyka", "_fizyka"]; // TODO
+    return Object.keys(this._unlisted);
   }
 
   readonly structure = (subject: string) => ({
@@ -158,7 +184,7 @@ export class ExerciseStore implements IExerciseStore {
 
   add(subject: string, exerciseId: string, content: string) {
     const uid = this.uid(subject, exerciseId);
-    if (uid in this.dict) {
+    if (uid in this.exercises) {
       return new CustomDictError("ExerciseAlreadyExists", {
         subject,
         exerciseId,
@@ -168,15 +194,39 @@ export class ExerciseStore implements IExerciseStore {
   }
 
   get(subject: string, exerciseId: string) {
-    return this.dict[this.uid(subject, exerciseId)] ??
-      new CustomDictError("ExerciseNotFound", { subject, exerciseId });
+    const ex = this.exercises[this.uid(subject, exerciseId)];
+    if (ex === undefined) {
+      return new CustomDictError("ExerciseNotFound", { subject, exerciseId });
+    }
+    return ex[0];
   }
 
-  update(subject: string, exerciseId: string, content: string) {
+  inYaml(subject: string, exerciseId: string) {
+    const ex = this.exercises[this.uid(subject, exerciseId)];
+    if (ex === undefined) {
+      return new CustomDictError("ExerciseNotFound", { subject, exerciseId });
+    }
+    return ex[1];
+  }
+
+  update(
+    subject: string,
+    exerciseId: string,
+    content: string,
+  ) {
     const uid = this.uid(subject, exerciseId);
     const ex = this.parse(content);
-    if (ex instanceof Exercise) this.dict[uid] = ex;
+    if (ex instanceof Exercise) {
+      this.exercises[uid] = [ex, false];
+    }
     return ex;
+  }
+
+  getContent(subject: string, exerciseId: string) {
+    const uid = this.uid(subject, exerciseId);
+    const path = join(this.exercisesPath, `${uid}.txt`);
+    return Deno.readTextFileSync(path);
+    // TODO Deno.readTextFileSync throws an error
   }
 
   getStaticContentPath(subject: string) {

@@ -21,6 +21,7 @@ type errors = {
   "ExerciseNotFound": exercise;
   "ExerciseAlreadyExists": exercise;
   "SubjectAlreadyExists": subject;
+  "SubjectNotFound": subject;
 };
 type types = keyof errors;
 
