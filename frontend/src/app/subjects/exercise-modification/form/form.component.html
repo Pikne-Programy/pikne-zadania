@@ -1,118 +1,118 @@
 <!--#region Tabs -->
 <div class="tabs is-boxed for-box">
-  <ul>
-    <li [ngClass]="{ 'is-active': !isPreview }">
-      <a (click)="isPreview = false;">Edycja</a>
-    </li>
-    <li [ngClass]="{ 'is-active': isPreview }">
-      <a (click)="getPreview()">Podgląd</a>
-    </li>
-  </ul>
+    <ul>
+        <li [ngClass]="{ 'is-active': !isPreview }">
+            <a (click)="isPreview = false;">Edycja</a>
+        </li>
+        <li [ngClass]="{ 'is-active': isPreview }">
+            <a (click)="getPreview()">Podgląd</a>
+        </li>
+    </ul>
 </div>
 <!--#endregion-->
 <div class="box is-flex-grow-1 mb-0 scrollable">
-  <!--#region Edit form -->
-  <form *ngIf="!isPreview" [formGroup]="form" (ngSubmit)="submit()">
-    <div class="field">
-      <div class="columns">
-        <!--#region Type -->
-        <div class="column is-one-quarter py-only-mobile-0">
-          <label for="type" class="label">Typ zadania</label>
-          <div class="control has-icons-right">
-            <input id="type" class="input" [ngClass]="{
+    <!--#region Edit form -->
+    <form *ngIf="!isPreview" [formGroup]="form" (ngSubmit)="submit()">
+        <div class="field">
+            <div class="columns">
+                <!--#region Type -->
+                <div class="column is-one-quarter py-only-mobile-0">
+                    <label for="type" class="label">Typ zadania</label>
+                    <div class="control has-icons-right">
+                        <input id="type" class="input" [ngClass]="{
               'is-primary': !type!.warnings?.type,
               'is-warning': type!.warnings?.type
             }" type="text" formControlName="type" [matAutocomplete]="types" (input)="preview = undefined" (focus)="snippetService.closeSnippet()">
-            <span *ngIf="type!.warnings?.type" class="icon has-text-warning is-small is-right">
-              <i class="fas fa-exclamation-triangle"></i>
-            </span>
-          </div>
-          <p *ngIf="type!.warnings?.type" class="help is-warning">Nieznany typ zadania</p>
-        </div>
-        <!--#endregion-->
-        <!--#region Name -->
-        <div class="column py-only-mobile-2">
-          <label for="name" class="label">Nazwa</label>
-          <div class="control has-icons-right">
-            <input id="name" class="input" [ngClass]="{
+                        <span *ngIf="type!.warnings?.type" class="icon has-text-warning is-small is-right">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </span>
+                    </div>
+                    <p *ngIf="type!.warnings?.type" class="help is-warning">Nieznany typ zadania</p>
+                </div>
+                <!--#endregion-->
+                <!--#region Name -->
+                <div class="column py-only-mobile-2">
+                    <label for="name" class="label">Nazwa</label>
+                    <div class="control has-icons-right">
+                        <input id="name" class="input" [ngClass]="{
               'is-primary': !name!.errors?.name,
               'is-danger': name!.errors?.name
             }" type="text" formControlName="name" (input)="preview = undefined" (focus)="snippetService.closeSnippet()">
-            <span *ngIf="name!.errors?.name" class="icon has-text-danger is-small is-right">
-              <i class="fas fa-exclamation-circle"></i>
-            </span>
-          </div>
-          <p *ngIf="name!.errors?.name" class="help is-danger">Zadanie o tej nazwie już istnieje</p>
+                        <span *ngIf="name!.errors?.name" class="icon has-text-danger is-small is-right">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </span>
+                    </div>
+                    <p *ngIf="name!.errors?.name" class="help is-danger">Zadanie o tej nazwie już istnieje</p>
+                </div>
+                <!--#endregion-->
+            </div>
+        </div>
+        <!--#region Content -->
+        <div class="field for-content">
+            <label for="textarea" class="label">Treść</label>
+            <!--#region Toolbar -->
+            <app-editor-toolbar class="is-primary" [ngClass]="{ 'is-focused': isTextareaFocused || isToolbarFocused }" [isHighlightingEnabled]="isHighlightingEnabled" [formField]="content!" [textarea]="textarea$ | async" (toggleHighlighting)="toggleHighlighting()" tabindex="0"
+                [(isFocused)]="isToolbarFocused" (focus)="isToolbarFocused = true" (focusout)="isToolbarFocused = false"></app-editor-toolbar>
+            <!--#endregion-->
+            <div class="control" [ngClass]="{ 'is-loading': isPreviewLoading }" (click)="snippetService.closeSnippet()">
+                <app-highlight-textarea #textareaComp [form]="form" controlName="content" [toHighlight]="highlightList" [hasToolbar]="true" (onInput)="preview = undefined; snippetService.closeSnippet()" [(isFocused)]="isTextareaFocused" [isToolbarFocused]="isToolbarFocused"></app-highlight-textarea>
+            </div>
         </div>
         <!--#endregion-->
-      </div>
-    </div>
-    <!--#region Content -->
-    <div class="field for-content">
-      <label for="textarea" class="label">Treść</label>
-      <!--#region Toolbar -->
-      <app-editor-toolbar class="is-primary" [ngClass]="{ 'is-focused': isTextareaFocused || isToolbarFocused }" [isHighlightingEnabled]="isHighlightingEnabled" [input]="content!" [textarea]="textarea$ | async" (toggleHighlighting)="toggleHighlighting()" tabindex="0" [(isFocused)]="isToolbarFocused"
-        (focus)="isToolbarFocused = true" (focusout)="isToolbarFocused = false"></app-editor-toolbar>
-      <!--#endregion-->
-      <div class="control" [ngClass]="{ 'is-loading': isPreviewLoading }" (click)="snippetService.closeSnippet()">
-        <app-highlight-textarea #textareaComp [form]="form" controlName="content" [toHighlight]="highlightList" [hasToolbar]="true" (input)="preview = undefined; snippetService.closeSnippet()" [(isFocused)]="isTextareaFocused" [isToolbarFocused]="isToolbarFocused"></app-highlight-textarea>
-      </div>
-    </div>
+        <!--#region Submit -->
+        <div class="field is-grouped is-grouped-right is-align-items-center pb-only-mobile-3">
+            <div *ngIf="errorCode !== null" class="control">
+                <p class="has-text-danger">Wystąpił błąd ({{ errorCode }})</p>
+            </div>
+            <div class="control">
+                <button type="submit" class="button is-success" [ngClass]="{ 'is-loading': isSubmitted }" [disabled]="form.invalid">Zapisz</button>
+            </div>
+            <div class="control">
+                <button type="button" class="button is-danger" [disabled]="isSubmitted" (click)="cancel(); snippetService.closeSnippet()">Odrzuć</button>
+            </div>
+        </div>
+        <!--#endregion-->
+    </form>
     <!--#endregion-->
-    <!--#region Submit -->
-    <div class="field is-grouped is-grouped-right is-align-items-center pb-only-mobile-3">
-      <div *ngIf="errorCode !== null" class="control">
-        <p class="has-text-danger">Wystąpił błąd ({{ errorCode }})</p>
-      </div>
-      <div class="control">
-        <button type="submit" class="button is-success" [ngClass]="{ 'is-loading': isSubmitted }" [disabled]="form.invalid">Zapisz</button>
-      </div>
-      <div class="control">
-        <button type="button" class="button is-danger" [disabled]="isSubmitted" (click)="cancel(); snippetService.closeSnippet()">Odrzuć</button>
-      </div>
-    </div>
+    <!--#region Preview -->
+    <!--TODO Seed -->
+    <app-exercise *ngIf="preview && previewErrorCode === null" [ngClass]="{ 'is-hidden': !isPreview || isPreviewLoading }" [exercise]="preview" [hasSubmitButton]="false" [specialErrorMessage]="previewErrorMessage" (onLoaded)="isPreview = true; isPreviewLoading = false"></app-exercise>
+    <app-error *ngIf="isPreview && previewErrorCode !== null" [code]="previewErrorCode" [message]="previewErrorMessage"></app-error>
     <!--#endregion-->
-  </form>
-  <!--#endregion-->
-  <!--#region Preview -->
-  <!--TODO Seed -->
-  <app-exercise *ngIf="preview && previewErrorCode === null" [ngClass]="{ 'is-hidden': !isPreview || isPreviewLoading }" [exercise]="preview" [hasSubmitButton]="false" [specialErrorMessage]="previewErrorMessage" (onLoaded)="isPreview = true; isPreviewLoading = false"></app-exercise>
-  <app-error *ngIf="isPreview && previewErrorCode !== null" [code]="previewErrorCode" [message]="previewErrorMessage"></app-error>
-  <!--#endregion-->
 </div>
 
 <!--#region Type autocomplete -->
 <mat-autocomplete #types="matAutocomplete" autoActiveFirstOption>
-  <mat-option *ngFor="let typeOption of filteredTypes | async" [value]="typeOption">
-    {{ typeOption }}
-  </mat-option>
+    <mat-option *ngFor="let typeOption of filteredTypes | async" [value]="typeOption">
+        {{ typeOption }}
+    </mat-option>
 </mat-autocomplete>
 <!--#endregion-->
 
 <!--#region Modal Unknown type -->
 <app-card-modal [title]="'Nieznany typ zadania'" [open]="isUnknownTypeModalOpen" (onClose)="isUnknownTypeModalOpen = false">
-  <section>
-    <p class="has-text-justified">Podany typ zadania nie jest obsługiwany, co może to spowodować błąd przy jego wyświetlaniu. Czy na pewno chcesz kontynuować?</p>
-  </section>
-  <footer>
-    <div class="buttons">
-      <button class="button is-success" (click)="isUnknownTypeModalOpen = false; submit()">Zapisz zadanie</button>
-      <button class="button" (click)="isUnknownTypeModalOpen = false">Anuluj</button>
-    </div>
-  </footer>
+    <section>
+        <p class="has-text-justified">Podany typ zadania nie jest obsługiwany, co może to spowodować błąd przy jego wyświetlaniu. Czy na pewno chcesz kontynuować?</p>
+    </section>
+    <footer>
+        <div class="buttons">
+            <button class="button is-success" (click)="isUnknownTypeModalOpen = false; submit()">Zapisz zadanie</button>
+            <button class="button" (click)="isUnknownTypeModalOpen = false">Anuluj</button>
+        </div>
+    </footer>
 </app-card-modal>
 <!--#endregion-->
 
 <!--#region Modal Confirm cancel -->
 <app-card-modal [title]="'Odrzuć zmiany'" [open]="isConfirmCancelModalOpen" (onClose)="isConfirmCancelModalOpen = false">
-  <section>
-    <p class="has-text-justified">Czy na pewno chcesz odrzucić wszystkie zmiany?</p>
-  </section>
-  <footer>
-    <div class="buttons">
-      <button class="button is-danger" (click)="onCancel.emit()">Odrzuć</button>
-      <button class="button" (click)="isConfirmCancelModalOpen = false">Anuluj</button>
-    </div>
-  </footer>
+    <section>
+        <p class="has-text-justified">Czy na pewno chcesz odrzucić wszystkie zmiany?</p>
+    </section>
+    <footer>
+        <div class="buttons">
+            <button class="button is-danger" (click)="onCancel.emit()">Odrzuć</button>
+            <button class="button" (click)="isConfirmCancelModalOpen = false">Anuluj</button>
+        </div>
+    </footer>
 </app-card-modal>
 <!--#endregion-->

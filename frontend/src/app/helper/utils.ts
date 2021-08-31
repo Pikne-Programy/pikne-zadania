@@ -1,31 +1,32 @@
-export const TypeError = 489;
+export const TYPE_ERROR = 489;
 
 //#region capitalize
 /**
  * Capitalizes first letter of the string
- * @param string Text to be capitalized
+ *
+ * @param text Text to be capitalized
  * @param locale Used Locale
  */
 export function capitalize(
-  string: string | null,
-  locale: string = navigator.language
+    text: string | null | undefined,
+    locale: string = navigator.language
 ) {
-  if (string === null || string === undefined) return string;
-  else return string.charAt(0).toLocaleUpperCase(locale) + string.slice(1);
+    if (text === null || text === undefined) return text;
+    else return text.charAt(0).toLocaleUpperCase(locale) + text.slice(1);
 }
 //#endregion
 
 //#region isObject
 export const objectTypes = [
-  'string',
-  'number',
-  'bigint',
-  'boolean',
-  'symbol',
-  'undefined',
-  'object',
-  'function',
-  'null',
+    'string',
+    'number',
+    'bigint',
+    'boolean',
+    'symbol',
+    'undefined',
+    'object',
+    'function',
+    'null'
 ] as const;
 type ObjectType = typeof objectTypes[number];
 
@@ -61,44 +62,49 @@ type ObjectType = typeof objectTypes[number];
  * obj.children.every((child) => typeof child === 'string');
  */
 export function isObject<T>(
-  object: any,
-  fields: [
-    keyof T,
-    ObjectType[] | 'array' | 'array|null' | 'array|undefined' | 'any'
-  ][]
+    object: any,
+    fields: [
+        keyof T,
+        ObjectType[] | 'array' | 'array|null' | 'array|undefined' | 'any'
+    ][]
 ): object is T {
-  if (fields.some((field) => field[1].length < 1)) {
-    console.error('Type checking error');
-    return false;
-  }
-  return (
-    object !== undefined &&
-    object !== null &&
-    typeof object === 'object' &&
-    fields.every((field) => {
-      switch (field[1]) {
-        case 'any':
-          return field[0] in object;
-        case 'array':
-          return field[0] in object && Array.isArray(object[field[0]]);
-        case 'array|null':
-          return (
-            field[0] in object &&
-            (object[field[0]] === null || Array.isArray(object[field[0]]))
-          );
-        case 'array|undefined':
-          if (field[0] in object && object[field[0]] !== undefined)
-            return Array.isArray(object[field[0]]);
-          return true;
-        default:
-          return (
-            (field[0] in object || field[1].includes('undefined')) &&
-            ((object[field[0]] === null && field[1].includes('null')) ||
-              field[1].includes(typeof object[field[0]]))
-          );
-      }
-    })
-  );
+    if (fields.some((field) => field[1].length < 1)) {
+        console.error('Type checking error');
+        return false;
+    }
+    return (
+        object !== undefined &&
+        object !== null &&
+        typeof object === 'object' &&
+        fields.every((field) => {
+            switch (field[1]) {
+                case 'any':
+                    return field[0] in object;
+                case 'array':
+                    return (
+                        field[0] in object && Array.isArray(object[field[0]])
+                    );
+                case 'array|null':
+                    return (
+                        field[0] in object &&
+                        (object[field[0]] === null ||
+                            Array.isArray(object[field[0]]))
+                    );
+                case 'array|undefined':
+                    if (field[0] in object && object[field[0]] !== undefined)
+                        return Array.isArray(object[field[0]]);
+                    else return true;
+                default:
+                    return (
+                        (field[0] in object ||
+                            field[1].includes('undefined')) &&
+                        ((object[field[0]] === null &&
+                            field[1].includes('null')) ||
+                            field[1].includes(typeof object[field[0]]))
+                    );
+            }
+        })
+    );
 }
 //#endregion
 
@@ -107,9 +113,9 @@ export function isObject<T>(
  * Sets tab index of all elements with class "MathJax" to -1
  */
 export function removeMathTabIndex() {
-  document.querySelectorAll('.MathJax').forEach((element) => {
-    element.setAttribute('tabindex', '-1');
-  });
+    document.querySelectorAll('.MathJax').forEach((element) => {
+        element.setAttribute('tabindex', '-1');
+    });
 }
 //#endregion
 
@@ -118,41 +124,48 @@ export function removeMathTabIndex() {
  * Encodes provided password with login as salt using PBKDF2
  */
 export async function pbkdf2(
-  login: string,
-  password: string,
-  iterations: number = 1e6,
-  keylen: number = 256,
-  digest: string = 'SHA-512'
+    login: string,
+    password: string,
+    iterations: number = 1e6,
+    keylen: number = 256,
+    digest: string = 'SHA-512'
 ) {
-  // wtfpl (c) 2021 Nircek
-  // src: https://gist.github.com/Nircek/bf06c93f8df36bf645534c10eb6305ca
-  const salt = new TextEncoder().encode(login);
-  const plaintext = new TextEncoder().encode(password);
-  const key = await crypto.subtle.importKey('raw', plaintext, 'PBKDF2', false, [
-    'deriveBits',
-  ]);
-  const params = { name: 'PBKDF2', hash: digest, salt, iterations };
-  const hash = await crypto.subtle.deriveBits(params, key, keylen);
-  return btoa(String.fromCharCode(...new Uint8Array(hash)));
+    // wtfpl (c) 2021 Nircek
+    // src: https://gist.github.com/Nircek/bf06c93f8df36bf645534c10eb6305ca
+    const salt = new TextEncoder().encode(login);
+    const plaintext = new TextEncoder().encode(password);
+    const key = await crypto.subtle.importKey(
+        'raw',
+        plaintext,
+        'PBKDF2',
+        false,
+        ['deriveBits']
+    );
+    const params = { name: 'PBKDF2', hash: digest, salt, iterations };
+    const hash = await crypto.subtle.deriveBits(params, key, keylen);
+    return btoa(String.fromCharCode(...new Uint8Array(hash)));
 }
 //#endregion
 
 //#region getErrorCode
 /**
- * @param fallback Default fallback error is 489 ({@link TypeError})
+ * @param fallback Default fallback error is 489 ({@link TYPE_ERROR})
  */
-export function getErrorCode(error: any, fallback: number = TypeError): number {
-  return error.status && typeof error.status === 'number'
-    ? error.status
-    : fallback;
+export function getErrorCode(
+    error: any,
+    fallback: number = TYPE_ERROR
+): number {
+    return error.status && typeof error.status === 'number'
+        ? error.status
+        : fallback;
 }
 //#endregion
 
 //#region replaceAccents
 export function replaceAccents(str: string): string {
-  return str
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/ł/g, 'l');
+    return str
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/ł/g, 'l');
 }
 //#endregion

@@ -27,39 +27,39 @@ import { SubjectService } from './subjects/subject.service/subject.service';
 import { ExerciseModule } from './exercises/exercise.module';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    PublicExercisesComponent,
-    SubjectSelectComponent,
-    RegisterComponent,
-    LoginComponent,
-    AboutComponent,
-  ],
-  imports: [
-    BrowserModule,
-    HttpClientModule,
-    AppRoutingModule,
-    NavModule,
-    BrowserAnimationsModule,
-    FormsModule,
-    ReactiveFormsModule,
-    ExerciseModule,
-    TemplatesModule,
-    ServiceWorkerModule.register('ngsw-worker.js', {
-      enabled: environment.production,
-    }),
-  ],
-  providers: [
-    AccountService,
-    SubjectService,
-    ExerciseService,
-    NavService,
-    UpNavService,
-    AuthGuardService,
-    RoleGuardService,
-    ScreenSizeService,
-    ThemeService,
-  ],
-  bootstrap: [AppComponent],
+    declarations: [
+        AppComponent,
+        PublicExercisesComponent,
+        SubjectSelectComponent,
+        RegisterComponent,
+        LoginComponent,
+        AboutComponent
+    ],
+    imports: [
+        BrowserModule,
+        HttpClientModule,
+        AppRoutingModule,
+        NavModule,
+        BrowserAnimationsModule,
+        FormsModule,
+        ReactiveFormsModule,
+        ExerciseModule,
+        TemplatesModule,
+        ServiceWorkerModule.register('ngsw-worker.js', {
+            enabled: environment.production
+        })
+    ],
+    providers: [
+        AccountService,
+        SubjectService,
+        ExerciseService,
+        NavService,
+        UpNavService,
+        AuthGuardService,
+        RoleGuardService,
+        ScreenSizeService,
+        ThemeService
+    ],
+    bootstrap: [AppComponent]
 })
 export class AppModule {}

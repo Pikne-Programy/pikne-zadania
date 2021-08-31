@@ -1,29 +1,30 @@
-import { Location } from '@angular/common';
-import { Injectable, OnDestroy } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Injectable({
-  providedIn: 'root',
+    providedIn: 'root'
 })
-export class UpNavService implements OnDestroy {
-  private history: string[] = [];
+export class UpNavService {
+    constructor(private router: Router, private route: ActivatedRoute) {}
 
-  private event$: Subscription;
-  constructor(private router: Router, private location: Location) {
-    this.event$ = this.router.events.subscribe((event) => {
-      if (event instanceof NavigationEnd)
-        this.history.push(event.urlAfterRedirects);
-    });
-  }
+    navigateBack(fallback: string = '/') {
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+        return this.router.navigateByUrl(returnUrl ?? fallback);
+    }
 
-  back() {
-    this.history.pop();
-    if (this.history.length > 0) this.location.back();
-    else this.router.navigateByUrl('/');
-  }
+    forceNavigateBack(fallback: string = '/') {
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+        if (returnUrl && this.canActivate(returnUrl))
+            return this.router.navigateByUrl(returnUrl);
+        return this.router.navigateByUrl(fallback);
+    }
 
-  ngOnDestroy() {
-    this.event$.unsubscribe();
-  }
+    //TODO Improve Validator
+    private canActivate(url: string): boolean {
+        const rules = [
+            new RegExp('^/subject'),
+            new RegExp('^/user')
+        ];
+        return rules.every((regex) => !regex.test(url));
+    }
 }

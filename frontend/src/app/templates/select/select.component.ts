@@ -1,25 +1,24 @@
 import {
-  Component,
-  EventEmitter,
-  HostBinding,
-  Input,
-  Output,
-  TemplateRef,
+    Component,
+    EventEmitter,
+    HostBinding,
+    Input,
+    Output,
+    TemplateRef
 } from '@angular/core';
 import {
-  PanelItem,
-  SpecialPanelItem,
-  TextPipe,
+    PanelItem,
+    SpecialPanelItem,
+    TextPipe
 } from '../panel/panel.component';
 
 @Component({
-  selector: 'app-select',
-  templateUrl: './select.component.html',
-  styleUrls: ['./select.component.scss'],
-  host: { class: 'section' },
+    selector: 'app-select',
+    templateUrl: './select.component.html',
+    styleUrls: ['./select.component.scss']
 })
 export class SelectComponent {
-  @Input('main-link') mainLink?: string;
+  @Input('main-link') mainLink?: string; // eslint-disable-line @angular-eslint/no-input-rename
   /**
    * Single list of items shown in the panel (overrides *Tabs*). \
    * Forth & Fifth are optional and define if element has prefix/suffix (which has to be provided as Templates in ***ng-template*** with references in *prefix* & *suffix* fields)
@@ -50,10 +49,10 @@ export class SelectComponent {
   /**
    * Index of currently selected tab
    */
-  @Input('selected-tab') currentTab?: number;
+  @Input() currentTab?: number;
   @Output() onTabClick = new EventEmitter<number>();
-  @Input('loading') isLoading?: boolean;
-  @Input('text-pipe') pipe?: TextPipe;
+  @Input() isLoading?: boolean;
+  @Input('text-pipe') pipe?: TextPipe; // eslint-disable-line @angular-eslint/no-input-rename
   @Input() prefix?: TemplateRef<any>;
   @Input() suffix?: TemplateRef<any>;
   /**
@@ -61,10 +60,10 @@ export class SelectComponent {
    *
    * True by default
    */
-  @Input('is-root') isRoot?: boolean;
+  @Input() isRoot?: boolean;
 
   @HostBinding('class') get class() {
-    return this.isRoot !== false ? 'is-root' : '';
+      return this.isRoot !== false ? 'section is-root' : 'section';
   }
   constructor() {}
 }

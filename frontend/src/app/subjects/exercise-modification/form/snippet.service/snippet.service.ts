@@ -7,29 +7,29 @@ export enum SnippetType {
   TRIGONOMETRY,
   VARIABLE,
   RANGE,
-  UNKNOWN,
+  UNKNOWN
 }
 
 @Injectable({
-  providedIn: 'root',
+    providedIn: 'root'
 })
 export class SnippetService {
   private _currentSnippet: SnippetType | null = null;
   get currentSnippet() {
-    return this._currentSnippet;
+      return this._currentSnippet;
   }
 
   constructor() {}
 
   openSnippet(action: SnippetType, button?: InputButton) {
-    if (this._currentSnippet === action) this.closeSnippet();
-    else {
-      this._currentSnippet = action;
-      if (button) button.clearFields();
-    }
+      if (this._currentSnippet === action) this.closeSnippet();
+      else {
+          this._currentSnippet = action;
+          if (button) button.clearFields();
+      }
   }
 
   closeSnippet() {
-    this._currentSnippet = null;
+      this._currentSnippet = null;
   }
 }

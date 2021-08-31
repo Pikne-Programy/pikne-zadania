@@ -1,14 +1,15 @@
 import {
-  AfterViewInit,
-  Component,
-  EventEmitter,
-  Input,
-  Output,
+    AfterViewInit,
+    Component,
+    EventEmitter,
+    Input,
+    Output
 } from '@angular/core';
 import { ExerciseType } from 'src/app/exercise-service/exercises';
 import { setAsyncTimeout } from 'src/app/helper/tests/tests.utils';
 import { removeMathTabIndex } from 'src/app/helper/utils';
-declare var MathJax: any;
+// eslint-disable-next-line @typescript-eslint/naming-convention
+declare let MathJax: any;
 
 export interface ViewExercise {
   id: string;
@@ -18,9 +19,9 @@ export interface ViewExercise {
 }
 
 @Component({
-  selector: 'app-subject-ex-prev',
-  templateUrl: './preview.component.html',
-  styleUrls: ['./preview.component.scss', '../dashboard.component.scss'],
+    selector: 'app-subject-ex-prev',
+    templateUrl: './preview.component.html',
+    styleUrls: ['./preview.component.scss', '../dashboard.component.scss']
 })
 export class SubjectDashboardPreviewComponent implements AfterViewInit {
   @Input() exercise!: ViewExercise;
@@ -31,24 +32,24 @@ export class SubjectDashboardPreviewComponent implements AfterViewInit {
   constructor() {}
 
   ngAfterViewInit() {
-    setTimeout(() => {
-      if (this.isLast) {
-        switch (this.exercise.type) {
-          case 'EqEx':
-            this.setMath().finally(() => this.ready.emit());
-            break;
-          default:
-            this.ready.emit();
-            break;
-        }
-      }
-    }, 10);
+      setTimeout(() => {
+          if (this.isLast) {
+              switch (this.exercise.type) {
+                  case 'EqEx':
+                      this.setMath().finally(() => this.ready.emit());
+                      break;
+                  default:
+                      this.ready.emit();
+                      break;
+              }
+          }
+      }, 10);
   }
 
   async setMath() {
-    await setAsyncTimeout(50);
-    return MathJax.typesetPromise().then(() => {
-      removeMathTabIndex();
-    });
+      await setAsyncTimeout(50);
+      return MathJax.typesetPromise().then(() => {
+          removeMathTabIndex();
+      });
   }
 }

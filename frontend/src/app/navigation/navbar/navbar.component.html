@@ -3,7 +3,7 @@
   <div class="hero-head">
     <header class="navbar" role="navigation" aria-label="main navigation">
       <div class="navbar-brand">
-        <a role="button" class="navbar-burger has-burger-left has-logo" aria-label="menu" aria-expanded="false" data-target="navbarTop" [ngClass]="{'is-active': sideNavOpened}" (click)="toggleNavbar()">
+        <a role="button" class="navbar-burger has-burger-left has-logo" aria-label="menu" aria-expanded="false" data-target="navbarTop" [ngClass]="{ 'is-active': sideNavOpened }" (click)="toggleNavbar()">
           <span aria-hidden="true"></span>
           <span aria-hidden="true"></span>
           <span aria-hidden="true"></span>
@@ -15,7 +15,7 @@
 
       <div id="navbarTop" class="navbar-menu">
         <div class="navbar-start">
-          <a *ngFor="let item of menuElements" class="navbar-item menu-item has-text-weight-semibold" [routerLink]="item[0]">{{ item[1] }}</a>
+          <a *ngFor="let element of menuElements" class="navbar-item menu-item has-text-weight-semibold" [routerLink]="element.link" [queryParams]="getQueryParams(element)" [queryParamsHandling]="element.queryParamsHandling">{{ element.text }}</a>
         </div>
 
         <div class="navbar-end">

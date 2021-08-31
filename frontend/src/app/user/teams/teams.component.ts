@@ -6,71 +6,76 @@ import { TeamService } from '../team.service/team.service';
 import { TeamItem } from '../team.service/types';
 
 @Component({
-  selector: 'app-teams',
-  templateUrl: './teams.component.html',
-  styleUrls: ['./teams.component.scss'],
+    selector: 'app-teams',
+    templateUrl: './teams.component.html',
+    styleUrls: ['./teams.component.scss']
 })
 export class TeamsComponent implements OnInit {
-  constructor(
-    private teamService: TeamService,
-    private router: Router,
-    private route: ActivatedRoute
-  ) {}
+    errorCode: number | null = null;
+    isLoading = true;
 
-  ngOnInit() {
-    this.fetchTeams();
-  }
-  //#region Teams
-  teams: TeamItem[] = [];
+    constructor(
+        private teamService: TeamService,
+        private router: Router,
+        private route: ActivatedRoute
+    ) {}
 
-  errorCode: number | null = null;
-  isLoading = true;
+    ngOnInit() {
+        this.fetchTeams();
+    }
 
-  getTeamList(): [string, string, string][] {
-    return this.teams.map((val) => [val.name, val.id.toString(), 'fa-users']);
-  }
+    //#region Teams
+    teams: TeamItem[] = [];
 
-  fetchTeams() {
-    this.isLoading = true;
-    this.teamService
-      .getTeams()
-      .then((teams) => (this.teams = teams))
-      .catch((error) => (this.errorCode = getErrorCode(error)))
-      .finally(() => (this.isLoading = false));
-  }
-  //#endregion
+    getTeamList(): [string, string, string][] {
+        return this.teams.map((val) => [
+            val.name,
+            val.id.toString(),
+            'fa-users'
+        ]);
+    }
 
-  //#region New Team Modal
-  form = new FormGroup({
-    name: new FormControl('', [Validators.required]),
-  });
-  get name() {
-    return this.form.get('name');
-  }
+    fetchTeams() {
+        this.isLoading = true;
+        this.teamService
+            .getTeams()
+            .then((teams) => (this.teams = teams))
+            .catch((error) => (this.errorCode = getErrorCode(error)))
+            .finally(() => (this.isLoading = false));
+    }
+    //#endregion
 
-  isModalOpen = false;
-  modalErrorCode: number | null = null;
-  isModalLoading = false;
+    //#region New Team Modal
+    form = new FormGroup({
+        name: new FormControl('', [Validators.required])
+    });
+    get name() {
+        return this.form.get('name');
+    }
 
-  addTeam() {
-    this.isModalLoading = true;
-    this.teamService
-      .createTeam(this.name!.value)
-      .then((id) => {
-        this.router.navigate([id], { relativeTo: this.route });
-      })
-      .catch((error) => (this.modalErrorCode = getErrorCode(error)))
-      .finally(() => (this.isModalLoading = false));
-  }
+    isModalOpen = false;
+    modalErrorCode: number | null = null;
+    isModalLoading = false;
 
-  openModal() {
-    this.isModalOpen = true;
-  }
+    addTeam() {
+        this.isModalLoading = true;
+        this.teamService
+            .createTeam(this.name!.value)
+            .then((id) => {
+                this.router.navigate([id], { relativeTo: this.route });
+            })
+            .catch((error) => (this.modalErrorCode = getErrorCode(error)))
+            .finally(() => (this.isModalLoading = false));
+    }
 
-  closeModal() {
-    this.form.reset();
-    this.isModalOpen = false;
-    this.modalErrorCode = null;
-  }
-  //#endregion
+    openModal() {
+        this.isModalOpen = true;
+    }
+
+    closeModal() {
+        this.form.reset();
+        this.isModalOpen = false;
+        this.modalErrorCode = null;
+    }
+    //#endregion
 }

@@ -13,31 +13,31 @@ import { SafeHtmlPipe } from './highlight-textarea/safe-html.pipe';
 import { SwitchComponent } from './switch/switch.component';
 
 @NgModule({
-  imports: [
-    CommonModule,
-    RouterModule,
-    NavModule,
-    FormsModule,
-    ReactiveFormsModule,
-  ],
-  declarations: [
-    PanelComponent,
-    SelectComponent,
-    CardModalComponent,
-    ImagePlaceholderComponent,
-    CollapsibleDirective,
-    HighlightTextareaComponent,
-    SafeHtmlPipe,
-    SwitchComponent,
-  ],
-  exports: [
-    PanelComponent,
-    SelectComponent,
-    CardModalComponent,
-    ImagePlaceholderComponent,
-    CollapsibleDirective,
-    HighlightTextareaComponent,
-    SwitchComponent,
-  ],
+    imports: [
+        CommonModule,
+        RouterModule,
+        NavModule,
+        FormsModule,
+        ReactiveFormsModule
+    ],
+    declarations: [
+        PanelComponent,
+        SelectComponent,
+        CardModalComponent,
+        ImagePlaceholderComponent,
+        CollapsibleDirective,
+        HighlightTextareaComponent,
+        SafeHtmlPipe,
+        SwitchComponent
+    ],
+    exports: [
+        PanelComponent,
+        SelectComponent,
+        CardModalComponent,
+        ImagePlaceholderComponent,
+        CollapsibleDirective,
+        HighlightTextareaComponent,
+        SwitchComponent
+    ]
 })
 export class TemplatesModule {}

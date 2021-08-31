@@ -1,39 +1,39 @@
-<app-select *ngIf="errorCode === null" [main-link]="'/user/teams'" [items]="getTeamList()" [header]="'Klasy'" [loading]="isLoading" [text-pipe]="'uppercase'">
-  <div class="buttons is-right">
-    <button class="button is-primary is-flex is-align-items-baseline" (click)="openModal()">
-      <span class="icon">
-        <i class="fas fa-plus"></i>
-      </span>
-      <span>Dodaj nową klasę</span>
-    </button>
-  </div>
+<app-select *ngIf="errorCode === null" [main-link]="'/user/teams'" [items]="getTeamList()" [header]="'Klasy'" [isLoading]="isLoading" [text-pipe]="'uppercase'">
+    <div class="buttons is-right">
+        <button class="button is-primary is-flex is-align-items-baseline" (click)="openModal()">
+            <span class="icon">
+                <i class="fas fa-plus"></i>
+            </span>
+            <span>Dodaj nową klasę</span>
+        </button>
+    </div>
 </app-select>
 <!--#region New Team Modal -->
 <app-card-modal [title]="'Nowa klasa'" [open]="isModalOpen" (onClose)="closeModal()">
-  <section>
-    <form id="form" [formGroup]="form" (ngSubmit)="addTeam()">
-      <div class="field">
-        <label for="name" class="label">Nazwa</label>
-        <div class="control has-icons-left">
-          <input id="name" class="input is-primary" type="text" formControlName="name">
-          <span class="icon is-small is-left">
-            <i class="fas fa-users"></i>
-          </span>
+    <section>
+        <form id="form" [formGroup]="form" (ngSubmit)="addTeam()">
+            <div class="field">
+                <label for="name" class="label">Nazwa</label>
+                <div class="control has-icons-left">
+                    <input id="name" class="input is-primary" type="text" formControlName="name">
+                    <span class="icon is-small is-left">
+                        <i class="fas fa-users"></i>
+                    </span>
+                </div>
+            </div>
+        </form>
+    </section>
+    <footer class="width-full">
+        <div class="buttons width-full is-align-items-baseline">
+            <button type="submit" form="form" class="button is-success" [ngClass]="{ 'is-loading': isModalLoading }" [disabled]="form.invalid">
+                Dodaj
+            </button>
+            <button class="button" (click)="closeModal()">Anuluj</button>
+            <p *ngIf="modalErrorCode !== null" class="has-text-danger">
+                Wystąpił błąd ({{ modalErrorCode }})
+            </p>
         </div>
-      </div>
-    </form>
-  </section>
-  <footer class="width-full">
-    <div class="buttons width-full is-align-items-baseline">
-      <button type="submit" form="form" class="button is-success" [ngClass]="{ 'is-loading': isModalLoading }" [disabled]="form.invalid">
-        Dodaj
-      </button>
-      <button class="button" (click)="closeModal()">Anuluj</button>
-      <p *ngIf="modalErrorCode !== null" class="has-text-danger">
-        Wystąpił błąd ({{ modalErrorCode }})
-      </p>
-    </div>
-  </footer>
+    </footer>
 </app-card-modal>
 <!--#endregion-->
 <app-error *ngIf="errorCode !== null" [code]="errorCode"></app-error>

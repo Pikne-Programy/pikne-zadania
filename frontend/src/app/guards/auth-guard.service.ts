@@ -1,41 +1,44 @@
 import { Injectable } from '@angular/core';
 import {
-  ActivatedRouteSnapshot,
-  CanActivate,
-  Router,
-  RouterStateSnapshot,
+    ActivatedRouteSnapshot,
+    CanActivate,
+    Router,
+    RouterStateSnapshot
 } from '@angular/router';
 import { AccountService } from '../account/account.service';
 
 @Injectable({
-  providedIn: 'root',
+    providedIn: 'root'
 })
 export class AuthGuardService implements CanActivate {
-  constructor(private accountService: AccountService, private router: Router) {}
+    constructor(
+        private accountService: AccountService,
+        private router: Router
+    ) {}
 
-  canActivate(
-    _: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot
-  ): Promise<boolean> {
-    return this.accountService
-      .getAccount()
-      .then((response) => {
-        const account = response.observable.getValue();
-        if (response.error === null && account !== null) return true;
-        else {
-          this.redirectToLogin(state);
-          return false;
-        }
-      })
-      .catch(() => {
-        this.redirectToLogin(state);
-        return false;
-      });
-  }
+    canActivate(
+        _: ActivatedRouteSnapshot,
+        state: RouterStateSnapshot
+    ): Promise<boolean> {
+        return this.accountService
+            .getAccount()
+            .then((response) => {
+                const account = response.observable.getValue();
+                if (response.error === null && account !== null) return true;
+                else {
+                    this.redirectToLogin(state);
+                    return false;
+                }
+            })
+            .catch(() => {
+                this.redirectToLogin(state);
+                return false;
+            });
+    }
 
-  private redirectToLogin(state: RouterStateSnapshot) {
-    this.router.navigate(['/login'], {
-      queryParams: { returnUrl: state.url },
-    });
-  }
+    private redirectToLogin(state: RouterStateSnapshot) {
+        this.router.navigate(['/login'], {
+            queryParams: { returnUrl: state.url }
+        });
+    }
 }

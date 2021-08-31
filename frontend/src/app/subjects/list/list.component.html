@@ -1,15 +1,15 @@
-<app-select *ngIf="errorCode === null" [main-link]="'/subject/dashboard'" [items]="createList()" [header]="'Przedmioty'" [loading]="isLoading" [text-pipe]="'titlecase'" [suffix]="suffix">
-  <div class="buttons is-right">
-    <a class="button is-primary is-flex is-align-items-baseline" routerLink="/subject/new">
-      <span class="icon">
-        <i class="fas fa-plus"></i>
-      </span>
-      <span>Dodaj nowy przedmiot</span>
-    </a>
-  </div>
+<app-select *ngIf="errorCode === null" [main-link]="'/subject/dashboard'" [items]="createList()" [header]="'Przedmioty'" [isLoading]="isLoading" [text-pipe]="'titlecase'" [suffix]="suffix">
+    <div class="buttons is-right">
+        <a class="button is-primary is-flex is-align-items-baseline" routerLink="/subject/new">
+            <span class="icon">
+                <i class="fas fa-plus"></i>
+            </span>
+            <span>Dodaj nowy przedmiot</span>
+        </a>
+    </div>
 </app-select>
 <app-error *ngIf="errorCode !== null" [code]="errorCode"></app-error>
 
 <ng-template #suffix>
-  <i>&nbsp;(Prywatny)</i>
+    <i>&nbsp;(Prywatny)</i>
 </ng-template>

@@ -1,27 +1,27 @@
-/* tslint:disable:no-unused-variable */
+/* eslint-disable no-unused-vars, @typescript-eslint/no-unused-vars */
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { SubjectSelectComponent } from './subject-select.component';
 
 xdescribe('SubjectSelectComponent', () => {
-  let component: SubjectSelectComponent;
-  let fixture: ComponentFixture<SubjectSelectComponent>;
+    let component: SubjectSelectComponent;
+    let fixture: ComponentFixture<SubjectSelectComponent>;
 
-  beforeEach(
-    waitForAsync(() => {
-      TestBed.configureTestingModule({
-        declarations: [SubjectSelectComponent],
-      }).compileComponents();
-    })
-  );
+    beforeEach(
+        waitForAsync(() => {
+            TestBed.configureTestingModule({
+                declarations: [SubjectSelectComponent]
+            }).compileComponents();
+        })
+    );
 
-  beforeEach(() => {
-    fixture = TestBed.createComponent(SubjectSelectComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+    beforeEach(() => {
+        fixture = TestBed.createComponent(SubjectSelectComponent);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+    });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+    it('should create', () => {
+        expect(component).toBeTruthy();
+    });
 });

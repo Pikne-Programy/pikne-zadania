@@ -1,38 +1,36 @@
 import {
-  Component,
-  EventEmitter,
-  HostBinding,
-  Input,
-  Output,
+    Component,
+    EventEmitter,
+    HostBinding,
+    Input,
+    Output
 } from '@angular/core';
 
 @Component({
-  selector: 'app-card-modal',
-  templateUrl: './card-modal.component.html',
-  styleUrls: ['./card-modal.component.scss'],
-  host: { class: 'modal' },
+    selector: 'app-card-modal',
+    templateUrl: './card-modal.component.html',
+    styleUrls: ['./card-modal.component.scss']
 })
 export class CardModalComponent {
-  @Input() open!: boolean;
-  @Input() title!: string;
-  @Output('onClose') close = new EventEmitter();
-  @Input('has-list') hasList?: boolean;
-  /**
-   * Increases top margin to compensate for navbar
-   *
-   * True by default
-   */
-  @Input('navbar-margin') navbar?: boolean;
+    @Input() open!: boolean;
+    @Input() title!: string;
+    @Output() onClose = new EventEmitter();
+    @Input() hasList?: boolean;
+    /**
+     * Increases top margin to compensate for navbar
+     *
+     * True by default
+     */
+    @Input() hasNavbarMargin?: boolean;
 
-  @HostBinding('class') get class() {
-    return (
-      (this.open ? 'is-active' : '') +
-      (this.navbar === false ? '' : ' has-navbar')
-    );
-  }
-  constructor() {}
+    @HostBinding('class') get class() {
+        return `modal ${this.open ? 'is-active' : ''} ${
+            this.hasNavbarMargin !== false ? 'has-navbar' : ''
+        }`;
+    }
+    constructor() {}
 
-  closeModal() {
-    this.close.emit();
-  }
+    closeModal() {
+        this.onClose.emit();
+    }
 }

@@ -19,27 +19,27 @@ import { EditorToolbarComponent } from './exercise-modification/form/editor-tool
 import { SnippetService } from './exercise-modification/form/snippet.service/snippet.service';
 
 @NgModule({
-  declarations: [
-    SubjectComponent,
-    SubjectListComponent,
-    SubjectDashboardComponent,
-    SubjectDashboardPreviewComponent,
-    ExerciseModificationComponent,
-    ExerciseCreationComponent,
-    ExerciseModificationFormComponent,
-    EditorToolbarComponent,
-  ],
-  imports: [
-    CommonModule,
-    SubjectRoutingModule,
-    FormsModule,
-    ReactiveFormsModule,
-    NavModule,
-    TemplatesModule,
-    ExerciseModule,
-    MatAutocompleteModule,
-  ],
-  providers: [ExerciseModificationService, SnippetService],
-  bootstrap: [SubjectComponent],
+    declarations: [
+        SubjectComponent,
+        SubjectListComponent,
+        SubjectDashboardComponent,
+        SubjectDashboardPreviewComponent,
+        ExerciseModificationComponent,
+        ExerciseCreationComponent,
+        ExerciseModificationFormComponent,
+        EditorToolbarComponent
+    ],
+    imports: [
+        CommonModule,
+        SubjectRoutingModule,
+        FormsModule,
+        ReactiveFormsModule,
+        NavModule,
+        TemplatesModule,
+        ExerciseModule,
+        MatAutocompleteModule
+    ],
+    providers: [ExerciseModificationService, SnippetService],
+    bootstrap: [SubjectComponent]
 })
 export class SubjectModule {}

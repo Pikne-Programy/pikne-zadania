@@ -7,41 +7,41 @@ import { ExerciseModificationComponent } from './exercise-modification/modificat
 import { SubjectListComponent } from './list/list.component';
 
 const routes: Routes = [
-  {
-    path: '',
-    component: NavComponent,
-    children: [
-      {
+    {
         path: '',
-        pathMatch: 'full',
-        redirectTo: 'list',
-      },
-      {
-        path: 'list',
-        component: SubjectListComponent,
-      },
-      {
-        path: 'dashboard/:subjectId',
-        component: SubjectDashboardComponent,
-      },
-      {
-        path: 'exercise-edit/:subjectId/:exerciseId',
-        component: ExerciseModificationComponent,
-      },
-      {
-        path: 'exercise-new/:subjectId',
-        component: ExerciseCreationComponent,
-      },
-      {
-        path: 'categories/:subjectId',
-        //TODO Category modification component
-      },
-    ],
-  },
+        component: NavComponent,
+        children: [
+            {
+                path: '',
+                pathMatch: 'full',
+                redirectTo: 'list'
+            },
+            {
+                path: 'list',
+                component: SubjectListComponent
+            },
+            {
+                path: 'dashboard/:subjectId',
+                component: SubjectDashboardComponent
+            },
+            {
+                path: 'exercise-edit/:subjectId/:exerciseId',
+                component: ExerciseModificationComponent
+            },
+            {
+                path: 'exercise-new/:subjectId',
+                component: ExerciseCreationComponent
+            },
+            {
+                path: 'categories/:subjectId'
+                //TODO Category modification component
+            }
+        ]
+    }
 ];
 
 @NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
+    imports: [RouterModule.forChild(routes)],
+    exports: [RouterModule]
 })
 export class SubjectRoutingModule {}

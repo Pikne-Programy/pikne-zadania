@@ -1,6 +1,6 @@
-<app-select *ngIf="errorCode === null" [main-link]="'subjects'" [items]="getSubjectList()" [header]="'Przedmioty'" [loading]="isLoading" [text-pipe]="'titlecase'" [suffix]="suffix"></app-select>
+<app-select *ngIf="errorCode === null" [main-link]="'subjects'" [items]="getSubjectList()" [header]="'Przedmioty'" [isLoading]="isLoading" [text-pipe]="'titlecase'" [suffix]="suffix"></app-select>
 <app-error *ngIf="errorCode !== null" [code]="errorCode"></app-error>
 
 <ng-template #suffix>
-  <i>&nbsp;(Prywatny)</i>
+    <i>&nbsp;(Prywatny)</i>
 </ng-template>

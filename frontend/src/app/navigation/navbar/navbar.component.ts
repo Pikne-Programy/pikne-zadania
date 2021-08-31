@@ -3,57 +3,62 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AccountService } from 'src/app/account/account.service';
 import {
-  ButtonElement,
-  executeButtonClick,
-  NavService,
+    ButtonElement,
+    executeButtonClick,
+    MenuElement,
+    NavService
 } from '../services/navigation.service';
 
 @Component({
-  selector: 'app-navbar',
-  templateUrl: './navbar.component.html',
-  styleUrls: ['./navbar.component.scss'],
+    selector: 'app-navbar',
+    templateUrl: './navbar.component.html',
+    styleUrls: ['./navbar.component.scss']
 })
 export class NavbarComponent implements OnInit, OnDestroy {
-  sideNavOpened: boolean = false;
-  showTabs: boolean = false;
-  /**
-   * First - link; Second - text
-   */
-  menuElements?: [string, string][];
-  buttonElements?: ButtonElement[];
+    sideNavOpened = false;
+    showTabs = false;
+    /**
+     * First - link; Second - text
+     */
+    menuElements?: MenuElement[];
+    buttonElements?: ButtonElement[];
 
-  private opened$?: Subscription;
-  private menu$?: Subscription;
-  private buttons$?: Subscription;
-  constructor(
-    private navService: NavService,
-    private accountService: AccountService,
-    private router: Router
-  ) {}
+    private opened$?: Subscription;
+    private menu$?: Subscription;
+    private buttons$?: Subscription;
+    constructor(
+        private navService: NavService,
+        private accountService: AccountService,
+        private router: Router
+    ) {}
 
-  ngOnInit() {
-    this.opened$ = this.navService.sideNavOpened.subscribe((val) => {
-      this.sideNavOpened = val;
-    });
-    this.menu$ = this.navService.menuElements.subscribe((array) => {
-      this.menuElements = array;
-    });
-    this.buttons$ = this.navService.buttonElements.subscribe((array) => {
-      this.buttonElements = array;
-    });
-  }
+    ngOnInit() {
+        this.opened$ = this.navService.sideNavOpened.subscribe((val) => {
+            this.sideNavOpened = val;
+        });
+        this.menu$ = this.navService.menuElements.subscribe((array) => {
+            this.menuElements = array;
+        });
+        this.buttons$ = this.navService.buttonElements.subscribe((array) => {
+            this.buttonElements = array;
+        });
+    }
 
-  ngOnDestroy() {
-    this.opened$?.unsubscribe();
-    this.menu$?.unsubscribe();
-    this.buttons$?.unsubscribe();
-  }
+    ngOnDestroy() {
+        this.opened$?.unsubscribe();
+        this.menu$?.unsubscribe();
+        this.buttons$?.unsubscribe();
+    }
 
-  toggleNavbar() {
-    this.navService.toggleSidenav();
-  }
+    toggleNavbar() {
+        this.navService.toggleSidenav();
+    }
 
-  execute(buttonElement: ButtonElement) {
-    executeButtonClick(buttonElement, this.router, this.accountService);
-  }
+    getQueryParams(menuElement: MenuElement) {
+        return menuElement.getQueryParams(this.router.routerState.snapshot.url);
+    }
+
+    execute(buttonElement: ButtonElement) {
+        executeButtonClick(buttonElement, this.router, this.accountService);
+    }
 }

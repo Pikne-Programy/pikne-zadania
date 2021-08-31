@@ -7,53 +7,53 @@ import { PublicExercisesComponent } from './public-exercises/public-exercises.co
 import { SubjectSelectComponent } from './subject-select/subject-select.component';
 import { NavComponent } from './navigation/nav.component';
 import { AuthGuardService } from './guards/auth-guard.service';
-import { RoleGuardService, TeacherRoles } from './guards/role-guard.service';
+import { RoleGuardService, TEACHER_ROLES } from './guards/role-guard.service';
 
 const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: '/public-exercises' },
-  {
-    path: 'public-exercises',
-    component: NavComponent,
-    children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        component: SubjectSelectComponent,
-      },
-      {
-        path: 'subjects/:subjectId',
-        component: PublicExercisesComponent,
-      },
-    ],
-  },
-  {
-    path: 'login',
-    component: LoginComponent,
-  },
-  {
-    path: 'register',
-    component: RegisterComponent,
-  },
-  {
-    path: 'user',
-    canActivate: [AuthGuardService],
-    loadChildren: () => import('./user/user.module').then((m) => m.UserModule),
-  },
-  {
-    path: 'subject',
-    canActivate: [AuthGuardService, RoleGuardService],
-    data: { roles: TeacherRoles },
-    loadChildren: () =>
-      import('./subjects/subject.module').then((m) => m.SubjectModule),
-  },
-  {
-    path: 'about',
-    component: AboutComponent,
-  },
+    { path: '', pathMatch: 'full', redirectTo: '/public-exercises' },
+    {
+        path: 'public-exercises',
+        component: NavComponent,
+        children: [
+            {
+                path: '',
+                pathMatch: 'full',
+                component: SubjectSelectComponent
+            },
+            {
+                path: 'subjects/:subjectId',
+                component: PublicExercisesComponent
+            }
+        ]
+    },
+    {
+        path: 'login',
+        component: LoginComponent
+    },
+    {
+        path: 'register',
+        component: RegisterComponent
+    },
+    {
+        path: 'user',
+        canActivate: [AuthGuardService],
+        loadChildren: () => import('./user/user.module').then((m) => m.UserModule)
+    },
+    {
+        path: 'subject',
+        canActivate: [AuthGuardService, RoleGuardService],
+        data: { roles: TEACHER_ROLES },
+        loadChildren: () =>
+            import('./subjects/subject.module').then((m) => m.SubjectModule)
+    },
+    {
+        path: 'about',
+        component: AboutComponent
+    }
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule],
+    imports: [RouterModule.forRoot(routes)],
+    exports: [RouterModule]
 })
 export class AppRoutingModule {}

@@ -7,9 +7,9 @@ import { ExerciseComponent } from './exercise.component';
 import { ExerciseInflationService } from './inflation.service/inflation.service';
 
 @NgModule({
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, NavModule],
-  declarations: [ExerciseComponent, EqExComponent],
-  exports: [ExerciseComponent],
-  providers: [ExerciseInflationService],
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, NavModule],
+    declarations: [ExerciseComponent, EqExComponent],
+    exports: [ExerciseComponent],
+    providers: [ExerciseInflationService]
 })
 export class ExerciseModule {}

@@ -1,14 +1,14 @@
 import { Component, Input } from '@angular/core';
 
 @Component({
-  selector: 'app-image-placeholder',
-  templateUrl: './image-placeholder.component.html',
-  styleUrls: ['./image-placeholder.component.scss'],
+    selector: 'app-image-placeholder',
+    templateUrl: './image-placeholder.component.html',
+    styleUrls: ['./image-placeholder.component.scss']
 })
 export class ImagePlaceholderComponent {
-  @Input() src: string = 'assets/misc/png/exercise_placeholder.png';
-  @Input() srcset: string = 'assets/misc/exercise_placeholder.svg';
-  @Input() alt: string = '';
+  @Input() src = 'assets/misc/png/exercise_placeholder.png';
+  @Input() srcset = 'assets/misc/exercise_placeholder.svg';
+  @Input() alt = '';
 
   constructor() {}
 }

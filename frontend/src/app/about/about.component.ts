@@ -6,15 +6,15 @@ import { Component, ViewEncapsulation } from '@angular/core';
 import { UpNavService } from '../navigation/services/up-navigation.service';
 
 @Component({
-  selector: 'app-about',
-  templateUrl: './about.component.html',
-  styleUrls: ['./about.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+    selector: 'app-about',
+    templateUrl: './about.component.html',
+    styleUrls: ['./about.component.scss'],
+    encapsulation: ViewEncapsulation.None
 })
 export class AboutComponent {
-  constructor(private upNavService: UpNavService) {}
+    constructor(private upNavService: UpNavService) {}
 
-  back() {
-    this.upNavService.back();
-  }
+    back() {
+        this.upNavService.navigateBack();
+    }
 }

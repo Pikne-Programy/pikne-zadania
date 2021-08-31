@@ -1,6 +1,6 @@
 <div #backdrop class="backdrop textarea has-fixed-size" [innerHTML]="highlightedText | safeHtml">
 </div>
 <textarea #textarea id="textarea" class="textarea is-primary has-fixed-size" [ngClass]="{
-  'has-toolbar': hasToolbar,
-  'is-focused': isFocused || isToolbarFocused
-}" [formControl]="control" (input)="input.emit()" (scroll)="scroll()" (focus)="isFocusedChange.emit(true)" (focusout)="isFocusedChange.emit(false)"></textarea>
+    'has-toolbar': hasToolbar,
+    'is-focused': isFocused || isToolbarFocused
+}" [formControl]="control" (input)="onInput.emit()" (scroll)="scroll()" (focus)="isFocusedChange.emit(true)" (focusout)="isFocusedChange.emit(false)"></textarea>

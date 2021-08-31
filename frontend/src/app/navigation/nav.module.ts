@@ -10,16 +10,16 @@ import { LoadingComponent } from './loading/loading.component';
 import { ErrorComponent } from './error/error.component';
 
 @NgModule({
-  imports: [CommonModule, MatSidenavModule, RouterModule],
-  declarations: [
-    NavComponent,
-    NavbarComponent,
-    SidenavComponent,
-    SidenavDirective,
-    LoadingComponent,
-    ErrorComponent,
-  ],
-  exports: [NavComponent, LoadingComponent, ErrorComponent],
-  bootstrap: [NavComponent],
+    imports: [CommonModule, MatSidenavModule, RouterModule],
+    declarations: [
+        NavComponent,
+        NavbarComponent,
+        SidenavComponent,
+        SidenavDirective,
+        LoadingComponent,
+        ErrorComponent
+    ],
+    exports: [NavComponent, LoadingComponent, ErrorComponent],
+    bootstrap: [NavComponent]
 })
 export class NavModule {}

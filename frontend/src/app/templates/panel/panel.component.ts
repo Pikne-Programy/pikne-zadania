@@ -1,11 +1,11 @@
 import { LowerCasePipe, TitleCasePipe, UpperCasePipe } from '@angular/common';
 import {
-  Component,
-  EventEmitter,
-  HostBinding,
-  Input,
-  Output,
-  TemplateRef,
+    Component,
+    EventEmitter,
+    HostBinding,
+    Input,
+    Output,
+    TemplateRef
 } from '@angular/core';
 
 export type TextPipe = 'uppercase' | 'lowercase' | 'titlecase';
@@ -19,19 +19,18 @@ export type SpecialPanelItem = [
   boolean
 ];
 function convertToSpecial(
-  item: PanelItem | SpecialPanelItem
+    item: PanelItem | SpecialPanelItem
 ): SpecialPanelItem {
-  return item.length === 3 ? [item[0], item[1], item[2], false, false] : item;
+    return item.length === 3 ? [item[0], item[1], item[2], false, false] : item;
 }
 
 @Component({
-  selector: 'app-panel',
-  templateUrl: './panel.component.html',
-  styleUrls: ['./panel.component.scss'],
-  host: { class: 'panel is-flex is-flex-direction-column unscrollable' },
+    selector: 'app-panel',
+    templateUrl: './panel.component.html',
+    styleUrls: ['./panel.component.scss']
 })
 export class PanelComponent {
-  @Input('main-link') mainLink?: string;
+  @Input('main-link') mainLink?: string; // eslint-disable-line @angular-eslint/no-input-rename
   /**
    * Single list of items shown in the panel (overrides *Tabs*). \
    * Forth & Fifth are optional and define if element has prefix/suffix (which has to be provided as Templates in ***ng-template*** with references in *prefix* & *suffix* fields)
@@ -50,7 +49,7 @@ export class PanelComponent {
    *   <div>Suffix</div>
    * </ng-template>
    */
-  @Input('items') list?: PanelItem[] | SpecialPanelItem[];
+  @Input() items?: PanelItem[] | SpecialPanelItem[];
   /**
    * Multiple item lists, each associated with one tab
    *
@@ -62,68 +61,71 @@ export class PanelComponent {
   /**
    * Index of currently selected tab
    */
-  @Input('selected-tab') currentTab?: number;
+  @Input() currentTab?: number;
   @Output() onTabClick = new EventEmitter<number>();
-  @Input('loading') isLoading?: boolean;
-  @Input('text-pipe') pipe?: TextPipe;
+  @Input() isLoading?: boolean;
+  @Input('text-pipe') pipe?: TextPipe; // eslint-disable-line @angular-eslint/no-input-rename
   @Input() prefix?: TemplateRef<any>;
   @Input() suffix?: TemplateRef<any>;
 
   @HostBinding('class') get class() {
-    return this.getColor();
+      const HOST_CLASSES = 'panel is-flex is-flex-direction-column unscrollable';
+      return `${HOST_CLASSES} ${this.getColor()}`;
   }
   constructor() {}
 
   /**
    * First - Text; Second - link; Third - icon; Forth - has prefix; Fifth - has suffix
+   *
    * @see {@link SpecialPanelItem}
    */
   getItems(): SpecialPanelItem[] {
-    const res: SpecialPanelItem[] = [];
-    if (this.list) {
-      for (const item of this.list) res.push(convertToSpecial(item));
-      return res;
-    } else if (!this.tabs || this.tabs.length < 1) return [];
-    else {
-      for (const item of this.tabs[this.getCurrentTab(this.tabs.length)][1])
-        res.push(convertToSpecial(item));
-      return res;
-    }
+      const res: SpecialPanelItem[] = [];
+      if (this.items) {
+          for (const item of this.items) res.push(convertToSpecial(item));
+          return res;
+      }
+      else if (!this.tabs || this.tabs.length < 1) return [];
+      else {
+          for (const item of this.tabs[this.getCurrentTab(this.tabs.length)][1])
+              res.push(convertToSpecial(item));
+          return res;
+      }
   }
 
   getTabs(): string[] | undefined {
-    if (this.list || !this.tabs || this.tabs.length < 1) return undefined;
-    else return this.tabs.map((val) => val[0]);
+      if (this.items || !this.tabs || this.tabs.length < 1) return undefined;
+      else return this.tabs.map((val) => val[0]);
   }
 
   getCurrentTab(tabListLength: number): number {
-    if (
-      this.currentTab === undefined ||
+      if (
+          this.currentTab === undefined ||
       this.currentTab < 0 ||
       this.currentTab >= tabListLength
-    )
-      return 0;
-    else return this.currentTab;
+      )
+          return 0;
+      else return this.currentTab;
   }
 
   getRouterLink(itemLink: string) {
-    return this.mainLink ? [this.mainLink, itemLink] : [itemLink];
+      return this.mainLink ? [this.mainLink, itemLink] : [itemLink];
   }
 
   getColor(): string {
-    return this.color ? `is-${this.color.toLowerCase()}` : '';
+      return this.color ? `is-${this.color.toLowerCase()}` : '';
   }
 
   getPipedText(text: string): string {
-    switch (this.pipe) {
-      case 'uppercase':
-        return new UpperCasePipe().transform(text);
-      case 'lowercase':
-        return new LowerCasePipe().transform(text);
-      case 'titlecase':
-        return new TitleCasePipe().transform(text);
-      default:
-        return text;
-    }
+      switch (this.pipe) {
+          case 'uppercase':
+              return new UpperCasePipe().transform(text);
+          case 'lowercase':
+              return new LowerCasePipe().transform(text);
+          case 'titlecase':
+              return new TitleCasePipe().transform(text);
+          default:
+              return text;
+      }
   }
 }

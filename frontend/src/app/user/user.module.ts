@@ -16,25 +16,25 @@ import { AchievementsComponent } from './achievements/achievements.component';
 import { TeamService } from './team.service/team.service';
 
 @NgModule({
-  declarations: [
-    UserComponent,
-    DashboardComponent,
-    TeacherDashboardComponent,
-    UserDashboardComponent,
-    TeamsComponent,
-    TeamItemComponent,
-    AchievementsComponent,
-  ],
-  imports: [
-    CommonModule,
-    UserRoutingModule,
-    FormsModule,
-    ReactiveFormsModule,
-    ClipboardModule,
-    NavModule,
-    TemplatesModule,
-  ],
-  providers: [TeamService],
-  bootstrap: [UserComponent],
+    declarations: [
+        UserComponent,
+        DashboardComponent,
+        TeacherDashboardComponent,
+        UserDashboardComponent,
+        TeamsComponent,
+        TeamItemComponent,
+        AchievementsComponent
+    ],
+    imports: [
+        CommonModule,
+        UserRoutingModule,
+        FormsModule,
+        ReactiveFormsModule,
+        ClipboardModule,
+        NavModule,
+        TemplatesModule
+    ],
+    providers: [TeamService],
+    bootstrap: [UserComponent]
 })
 export class UserModule {}

@@ -1,57 +1,57 @@
-/* tslint:disable:no-unused-variable */
+/* eslint-disable no-unused-vars, @typescript-eslint/no-unused-vars */
 
 import { TestBed, inject } from '@angular/core/testing';
 import { Exercise } from 'src/app/exercise-service/exercises';
 import { ExerciseInflationService } from './inflation.service';
 
 describe('Service: ExerciseInflation', () => {
-  const exercise = new Exercise('id', 'sbId', 'EqEx', 'ex1', {
-    main: 'content',
-  });
-
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [ExerciseInflationService],
+    const exercise = new Exercise('id', 'sbId', 'EqEx', 'ex1', {
+        main: 'content'
     });
-  });
 
-  it('should return Exercise', inject(
-    [ExerciseInflationService],
-    (service: ExerciseInflationService) => {
-      expect(service).toBeTruthy();
-      (service as any)._exercise = exercise;
+    beforeEach(() => {
+        TestBed.configureTestingModule({
+            providers: [ExerciseInflationService]
+        });
+    });
 
-      expect(service.getExercise()).toEqual(exercise);
-    }
-  ));
+    it('should return Exercise', inject(
+        [ExerciseInflationService],
+        (service: ExerciseInflationService) => {
+            expect(service).toBeTruthy();
+            (service as any)._exercise = exercise;
 
-  it('should return null', inject(
-    [ExerciseInflationService],
-    (service: ExerciseInflationService) => {
-      expect(service).toBeTruthy();
-      (service as any)._exercise = null;
+            expect(service.getExercise()).toEqual(exercise);
+        }
+    ));
 
-      expect(service.getExercise()).toBeNull();
-    }
-  ));
+    it('should return null', inject(
+        [ExerciseInflationService],
+        (service: ExerciseInflationService) => {
+            expect(service).toBeTruthy();
+            (service as any)._exercise = null;
 
-  it('should set Exercise', inject(
-    [ExerciseInflationService],
-    (service: ExerciseInflationService) => {
-      expect(service).toBeTruthy();
+            expect(service.getExercise()).toBeNull();
+        }
+    ));
 
-      service.setExercise(exercise);
-      expect((service as any)._exercise).toBe(exercise);
-    }
-  ));
+    it('should set Exercise', inject(
+        [ExerciseInflationService],
+        (service: ExerciseInflationService) => {
+            expect(service).toBeTruthy();
 
-  it('should reset Exercise', inject(
-    [ExerciseInflationService],
-    (service: ExerciseInflationService) => {
-      expect(service).toBeTruthy();
+            service.setExercise(exercise);
+            expect((service as any)._exercise).toBe(exercise);
+        }
+    ));
 
-      service.resetExercise();
-      expect((service as any)._exercise).toBeNull();
-    }
-  ));
+    it('should reset Exercise', inject(
+        [ExerciseInflationService],
+        (service: ExerciseInflationService) => {
+            expect(service).toBeTruthy();
+
+            service.resetExercise();
+            expect((service as any)._exercise).toBeNull();
+        }
+    ));
 });

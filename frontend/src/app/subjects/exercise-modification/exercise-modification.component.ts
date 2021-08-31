@@ -2,47 +2,47 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import {
-  Exercise,
-  ExerciseModificationService,
+    Exercise,
+    ExerciseModificationService
 } from './service/exercise-modification.service';
 
 @Component({
-  template: '',
+    template: ''
 })
 export abstract class ExerciseModComponent implements OnInit, OnDestroy {
-  protected readonly SubjectError = 420;
-  protected readonly ExerciseError = 421;
+    protected readonly SubjectError = 420;
+    protected readonly ExerciseError = 421;
 
-  subjectId?: string;
-  exerciseId?: string | null;
-  exercise?: Exercise;
-  exerciseSet?: Set<string> | null;
+    subjectId?: string;
+    exerciseId?: string | null;
+    exercise?: Exercise;
+    exerciseSet?: Set<string> | null;
 
-  isLoading: boolean = true;
-  protected _errorCode: number | null = null;
-  abstract get errorCode(): number | null;
+    isLoading = true;
+    protected _errorCode: number | null = null;
+    abstract get errorCode(): number | null;
 
-  protected param$?: Subscription;
-  constructor(
-    protected exerciseService: ExerciseModificationService,
-    protected router: Router,
-    protected route: ActivatedRoute
-  ) {}
+    protected param$?: Subscription;
+    constructor(
+        protected exerciseService: ExerciseModificationService,
+        protected router: Router,
+        protected route: ActivatedRoute
+    ) {}
 
-  abstract ngOnInit(): void;
+    abstract ngOnInit(): void;
 
-  ngOnDestroy() {
-    this.param$?.unsubscribe();
-  }
+    ngOnDestroy() {
+        this.param$?.unsubscribe();
+    }
 
-  abstract getErrorMessage(errorCode: number): string | undefined;
+    abstract getErrorMessage(errorCode: number): string | undefined;
 
-  onSuccess() {
-    if (this.subjectId)
-      this.router.navigate(['/subject/dashboard', this.subjectId]);
-  }
-  onCancel() {
-    if (this.subjectId)
-      this.router.navigate(['/subject/dashboard', this.subjectId]);
-  }
+    onSuccess() {
+        if (this.subjectId)
+            this.router.navigate(['/subject/dashboard', this.subjectId]);
+    }
+    onCancel() {
+        if (this.subjectId)
+            this.router.navigate(['/subject/dashboard', this.subjectId]);
+    }
 }

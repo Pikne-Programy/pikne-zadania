@@ -65,6 +65,6 @@ export const examSubmit = '/api/exam/submit';
 
 //#region Misc
 export function image(subject: string, file: string): string {
-  return `/img/${subject}/${file}`;
+    return `/img/${subject}/${file}`;
 }
 //#endregion
