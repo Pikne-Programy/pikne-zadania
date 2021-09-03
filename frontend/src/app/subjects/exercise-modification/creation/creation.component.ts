@@ -36,7 +36,6 @@ export class ExerciseCreationComponent
         });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getErrorMessage(_: number) {
         return undefined;
     }

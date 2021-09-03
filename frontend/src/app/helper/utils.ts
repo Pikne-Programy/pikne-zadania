@@ -1,5 +1,7 @@
 export const TYPE_ERROR = 489;
 
+export type ObjectType = ({ [key: string]: unknown });
+
 //#region capitalize
 /**
  * Capitalizes first letter of the string
@@ -17,7 +19,7 @@ export function capitalize(
 //#endregion
 
 //#region isObject
-export const objectTypes = [
+export const propertyTypes = [
     'string',
     'number',
     'bigint',
@@ -28,7 +30,7 @@ export const objectTypes = [
     'function',
     'null'
 ] as const;
-type ObjectType = typeof objectTypes[number];
+type PropertyType = typeof propertyTypes[number];
 
 /**
  * Checks if object has all the provided fields with correct types.
@@ -65,7 +67,7 @@ export function isObject<T>(
     object: any,
     fields: [
         keyof T,
-        ObjectType[] | 'array' | 'array|null' | 'array|undefined' | 'any'
+        PropertyType[] | 'array' | 'array|null' | 'array|undefined' | 'any'
     ][]
 ): object is T {
     if (fields.some((field) => field[1].length < 1)) {

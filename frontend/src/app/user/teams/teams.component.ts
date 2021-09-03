@@ -30,7 +30,7 @@ export class TeamsComponent implements OnInit {
     getTeamList(): [string, string, string][] {
         return this.teams.map((val) => [
             val.name,
-            val.id.toString(),
+            val.teamId.toString(),
             'fa-users'
         ]);
     }

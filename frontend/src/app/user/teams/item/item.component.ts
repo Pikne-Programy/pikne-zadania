@@ -255,7 +255,7 @@ export class TeamItemComponent implements OnInit {
             this.teamService
                 .setAssignee(
                     this.teamId,
-                    this.assigneeList[this.selectedAssignee].id
+                    this.assigneeList[this.selectedAssignee].userId
                 )
                 .then(() => this.onModalSuccess())
                 .catch((error) => this.onModalError(error, this.AssigneeError));
@@ -290,7 +290,7 @@ export class TeamItemComponent implements OnInit {
             this.isModalLoading = true;
             this.teamService
                 .editUser(
-                    this.selectedUser.id,
+                    this.selectedUser.userId,
                     newName !== this.selectedUser.name ? newName : undefined,
                     isNaN(newNumber)
                         ? null
@@ -313,7 +313,7 @@ export class TeamItemComponent implements OnInit {
         else if (this.selectedUser) {
             this.isModalLoading = true;
             this.teamService
-                .removeUser(this.selectedUser.id)
+                .removeUser(this.selectedUser.userId)
                 .then(() => this.onModalSuccess())
                 .catch((error) => this.onModalError(error, this.UserError));
         }

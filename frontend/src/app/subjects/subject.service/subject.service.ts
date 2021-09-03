@@ -105,7 +105,7 @@ export class SubjectService {
         shouldHaveType: boolean = false
     ): Promise<ViewExerciseTreeNode> {
         return this.http
-            .post(ServerRoutes.subjectExerciseList, { id: subjectId })
+            .post(ServerRoutes.hierarchyGet, { subject: subjectId, raw: false })
             .pipe(
                 switchMap((response) => {
                     const subject = {

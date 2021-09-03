@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { isObject } from '../helper/utils';
+import { isObject, ObjectType } from '../helper/utils';
 
 export const exerciseTypes = ['EqEx'] as const;
 export type ExerciseType = typeof exerciseTypes[number];
@@ -12,7 +12,7 @@ export class Exercise {
         public readonly subjectId: string,
         public readonly type: ExerciseType,
         public readonly name: string,
-        public readonly content: any,
+        public readonly problem: ObjectType,
         public done?: number | null
     ) {}
 
@@ -31,7 +31,7 @@ export class Exercise {
                 ['subjectId', ['string']],
                 ['type', ['string']],
                 ['name', ['string']],
-                ['content', 'any'],
+                ['problem', ['object']],
                 ['done', ['number', 'null', 'undefined']]
             ]) && exerciseTypes.findIndex((type) => object.type === type) !== -1
         );
@@ -78,50 +78,99 @@ export class Exercise {
     }
 }
 
+//#region EqEx
 type EqExContentType = {
     main: string;
     img?: string[];
-    unknowns: [string, string][];
-    correct?: number[];
+    unknown: [string, string][];
 };
+type EqExAnswer = boolean[];
 export class EqEx extends Exercise {
-    content: EqExContentType;
+    problem: EqExContentType;
 
-    constructor(
+    protected constructor(
         id: string,
         subjectId: string,
         type: ExerciseType,
         name: string,
-        content: any,
+        problem: EqExContentType,
         done?: number | null
     ) {
-        super(id, subjectId, type, name, content, done);
-        this.content = content;
+        super(id, subjectId, type, name, problem, done);
+        this.problem = problem;
+    }
+
+    getAnswerObject(answers: (number | null)[]) {
+        return { answers };
     }
 
     static isEqEx(exercise: Exercise): exercise is EqEx {
         return (
-            isObject<EqExContentType>(exercise.content, [
+            isObject<EqExContentType>(exercise.problem, [
                 ['main', ['string']],
                 ['img', 'array|undefined'],
-                ['unknowns', 'array'],
-                ['correct', 'array|undefined']
+                ['unknown', 'array']
             ]) &&
-            (exercise.content.img?.every((url) => typeof url === 'string') ??
+            (exercise.problem.img?.every((url) => typeof url === 'string') ??
                 true) &&
-            exercise.content.unknowns.every(
+            exercise.problem.unknown.every(
                 (pair) =>
                     Array.isArray(pair) &&
                     pair.length === 2 &&
                     typeof pair[0] === 'string' &&
                     typeof pair[1] === 'string'
-            ) &&
-            (!exercise.content.correct ||
-                exercise.content.correct.every(
-                    (value) => typeof value === 'number'
-                ))
+            )
         );
     }
 
-    static isEqExAnswer = Exercise.isBoolArrayAnswer;
+    static isEqExAnswer: (object: any, length: number) => object is EqExAnswer =
+        Exercise.isBoolArrayAnswer;
 }
+//#endregion
+
+//#region Previews
+abstract class PreviewExerciseType {
+    readonly correctAnswer: ObjectType = {};
+
+    static isPreviewExercise: (exercise: Exercise) => boolean;
+}
+
+export class PreviewExercise extends Exercise implements PreviewExerciseType {
+    readonly correctAnswer: ObjectType = {};
+
+    static isPreviewExercise(exercise: Exercise): exercise is PreviewExercise {
+        return isObject<PreviewExercise>(exercise, [
+            ['correctAnswer', ['object']]
+        ]);
+    }
+}
+
+//#region EqEx
+type CorrectEqExAnswersType = {
+    answers: EqExAnswer;
+};
+export class PreviewEqEx extends EqEx implements PreviewExerciseType {
+    protected constructor(
+        id: string,
+        subjectId: string,
+        type: ExerciseType,
+        name: string,
+        problem: EqExContentType,
+        public readonly correctAnswer: CorrectEqExAnswersType,
+        done?: number | null
+    ) {
+        super(id, subjectId, type, name, problem, done);
+    }
+
+    static isPreviewExercise(exercise: Exercise): exercise is PreviewEqEx {
+        return (
+            isObject<PreviewEqEx>(exercise, [['correctAnswer', ['object']]]) &&
+            EqEx.isEqExAnswer(
+                exercise.correctAnswer.answers,
+                exercise.problem.unknown.length
+            )
+        );
+    }
+}
+//#endregion
+//#endregion

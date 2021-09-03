@@ -133,11 +133,12 @@ describe('Service: Account', () => {
     });
 
     describe('Fetching Account', () => {
+        const expectedBody = {};
         const messageCorrect = 'should fetch correct account';
-        const list: [any, number | null][] = [
+        const list: [any, [number, string] | null][] = [
             [
                 {
-                    name: 'Test',
+                    name: 'Student',
                     number: 1,
                     team: 2
                 },
@@ -151,25 +152,21 @@ describe('Service: Account', () => {
                 },
                 null
             ],
-            [{}, TYPE_ERROR],
+            [{}, [TYPE_ERROR, 'Type error - empty object']],
             [
                 {
                     name: 1,
                     number: null,
                     team: 'abc'
                 },
-                TYPE_ERROR
+                [TYPE_ERROR, 'Type error - wrong types']
             ]
         ];
         for (const [account, error] of list) {
             it(
                 error === null
-                    ? `${messageCorrect} (${getStringFromAny(
-                        account.name,
-                        '_missing-account-name_',
-                        `_account-name-${account.name as number}_`
-                    )})`
-                    : `${messageWrong} (${error})`,
+                    ? `${messageCorrect} (${account.name as string})`
+                    : `${messageWrong} (${error[1]})`,
                 waitForAsync(
                     inject(
                         [AccountService, HttpClient],
@@ -178,13 +175,14 @@ describe('Service: Account', () => {
 
                             const promise = service.getAccount();
                             const req = httpController.expectOne(
-                                ServerRoutes.user
+                                ServerRoutes.userGet
                             );
-                            expect(req.request.method).toEqual('GET');
+                            expect(req.request.method).toEqual('POST');
+                            expect(req.request.body).toEqual(expectedBody);
                             req.flush(account);
 
                             const response = await promise;
-                            expect(response.error).toBe(error);
+                            expect(response.error).toBe(error?.[0] ?? null);
                             response.observable.subscribe((val) => {
                                 expect(val).toBe(
                                     error !== null ? null : account
@@ -206,8 +204,11 @@ describe('Service: Account', () => {
                         const ERROR_CODE = 500;
 
                         const promise = service.getAccount();
-                        const req = httpController.expectOne(ServerRoutes.user);
-                        expect(req.request.method).toEqual('GET');
+                        const req = httpController.expectOne(
+                            ServerRoutes.userGet
+                        );
+                        expect(req.request.method).toEqual('POST');
+                        expect(req.request.body).toEqual(expectedBody);
                         req.error(new ErrorEvent('Server error'), {
                             status: ERROR_CODE
                         });

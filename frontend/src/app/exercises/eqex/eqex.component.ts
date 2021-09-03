@@ -2,18 +2,17 @@ import { AfterViewInit, Component, EventEmitter, Output } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { AccountService } from 'src/app/account/account.service';
 import { ExerciseService } from 'src/app/exercise-service/exercise.service';
-import { EqEx, Exercise } from 'src/app/exercise-service/exercises';
+import { EqEx, Exercise, PreviewEqEx } from 'src/app/exercise-service/exercises';
 import { Role, RoleGuardService } from 'src/app/guards/role-guard.service';
 import { serverMockEnabled } from 'src/app/helper/tests/tests.config';
 import { removeMathTabIndex } from 'src/app/helper/utils';
-import { image } from 'src/app/server-routes';
+import { staticFile } from 'src/app/server-routes';
 import {
     ExerciseComponentType,
     ExerciseInflationService as InflationService,
     SubmitButtonState
 } from '../inflation.service/inflation.service';
-// eslint-disable-next-line @typescript-eslint/naming-convention
-declare let MathJax: any;
+declare let MathJax: any; // eslint-disable-line @typescript-eslint/naming-convention
 
 class Unknown {
     private formatRegex = /^[+-]?\d*(?:[,.]\d+)?(?:[eE][+-]?\d+)?$/;
@@ -76,22 +75,22 @@ export class EqExComponent implements ExerciseComponentType, AfterViewInit {
         this.exercise = inflationService.getExercise<EqEx>();
         if (!this.exercise) this.onLoaded(InflationService.InflationError);
         else {
-            this.imgAlts = this.exercise.content.img;
+            this.imgAlts = this.exercise.problem.img;
             this.images = serverMockEnabled // eslint-disable-line @typescript-eslint/no-unnecessary-condition
-                ? this.exercise.content.img
-                : this.getImages(this.exercise.content.img);
-            this.unknowns = this.exercise.content.unknowns.map(
+                ? this.exercise.problem.img
+                : this.getImages(this.exercise.problem.img);
+            this.unknowns = this.exercise.problem.unknown.map(
                 (unknown) => new Unknown(unknown)
             );
-            if (this.exercise.content.correct) {
+            if (PreviewEqEx.isPreviewExercise(this.exercise)) {
                 for (
                     let i = 0;
-                    i < this.exercise.content.correct.length &&
+                    i < this.exercise.correctAnswer.answers.length &&
                     i < this.unknowns.length;
                     i++
                 ) {
                     this.unknowns[i].input =
-                        this.exercise.content.correct[i].toString();
+                        this.exercise.correctAnswer.answers[i].toString();
                     this.unknowns[i].isCorrect = true;
                 }
             }
@@ -117,7 +116,7 @@ export class EqExComponent implements ExerciseComponentType, AfterViewInit {
                 .submitAnswers(
                     this.exercise.subjectId,
                     this.exercise.id,
-                    answers,
+                    this.exercise.getAnswerObject(answers),
                     EqEx.isEqExAnswer,
                     this.unknowns.length
                 )
@@ -172,7 +171,7 @@ export class EqExComponent implements ExerciseComponentType, AfterViewInit {
         if (!this.exercise || !paths) return undefined;
         const img: string[] = [];
         for (const path of paths)
-            img.push(image(this.exercise.subjectId, path));
+            img.push(staticFile(this.exercise.subjectId, path));
         return img;
     }
 
@@ -182,5 +181,9 @@ export class EqExComponent implements ExerciseComponentType, AfterViewInit {
         if (images && Array.isArray(images) && i < images.length)
             alt += ` ${images[i]}`;
         return alt;
+    }
+
+    isPreview(exercise: EqEx): boolean {
+        return PreviewEqEx.isPreviewExercise(exercise);
     }
 }

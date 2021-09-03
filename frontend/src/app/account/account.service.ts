@@ -72,7 +72,7 @@ export class AccountService {
 
     async getAccount(): Promise<AccountReturnType> {
         const account = await this.http
-            .get(ServerRoutes.user)
+            .post(ServerRoutes.userGet, {})
             .pipe(
                 map((response) => {
                     if (isAccount(response)) return response;

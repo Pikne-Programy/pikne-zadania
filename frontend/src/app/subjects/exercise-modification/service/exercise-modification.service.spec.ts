@@ -7,8 +7,9 @@ import {
 } from '@angular/common/http/testing';
 import { TestBed, inject, waitForAsync } from '@angular/core/testing';
 import {
-    Exercise as PreviewExercise,
-    exerciseTypes
+    Exercise as RenderedExercise,
+    exerciseTypes,
+    PreviewExercise
 } from 'src/app/exercise-service/exercises';
 import { TYPE_ERROR } from 'src/app/helper/utils';
 import {
@@ -149,6 +150,7 @@ describe('Service: ExerciseModification', () => {
 
     describe('getAllExercises', () => {
         const subjectId = 'Sb1';
+        const expectedBody = { subject: subjectId };
 
         const list: [string, number, any][] = [
             ['server error', 500, {}],
@@ -174,7 +176,7 @@ describe('Service: ExerciseModification', () => {
                                 ServerRoutes.subjectExerciseList
                             );
                             expect(req.request.method).toEqual('POST');
-                            expect(req.request.body).toEqual({ id: subjectId });
+                            expect(req.request.body).toEqual(expectedBody);
                             if (errorCode !== TYPE_ERROR) {
                                 req.error(new ErrorEvent(testMess), {
                                     status: errorCode
@@ -192,40 +194,9 @@ describe('Service: ExerciseModification', () => {
             (service: ModificationService) => {
                 expect(service).toBeTruthy();
                 //#region Mock objects
-                const resultSet = new Set([
-                    'pociagi-dwa',
-                    'kat',
-                    'atom',
-                    'spotkanie'
-                ]);
-                const serverResponse = [
-                    {
-                        name: 'mechanika',
-                        children: [
-                            {
-                                name: 'kinematyka',
-                                children: [
-                                    {
-                                        name: 'Pociągi dwa',
-                                        children: 'pociagi-dwa'
-                                    },
-                                    {
-                                        name: 'Spotkanie',
-                                        children: 'spotkanie'
-                                    }
-                                ]
-                            },
-                            {
-                                name: 'Kąt',
-                                children: 'kat'
-                            }
-                        ]
-                    },
-                    {
-                        name: 'Atom',
-                        children: 'atom'
-                    }
-                ];
+                const exercises = ['pociagi-dwa', 'kat', 'atom', 'spotkanie'];
+                const resultSet = new Set(exercises);
+                const serverResponse = { exercises };
                 //#endregion
 
                 service
@@ -236,28 +207,31 @@ describe('Service: ExerciseModification', () => {
                     ServerRoutes.subjectExerciseList
                 );
                 expect(req.request.method).toEqual('POST');
-                expect(req.request.body).toEqual({ id: subjectId });
+                expect(req.request.body).toEqual(expectedBody);
                 req.flush(serverResponse);
             }
         ));
     });
 
     describe('getExercise', () => {
-        const id = 'ex1';
+        const exerciseId = 'ex1';
         const subjectId = 'Sb1';
+        const expectedBody = {
+            subject: subjectId,
+            exerciseId
+        };
 
         const list: [string, number, any][] = [
             ['server error', 500, {}],
-            ['Not Found error', 404, {}],
             [
                 'Type error (wrong server response)',
                 TYPE_ERROR,
-                [{ content: 123 }]
+                { content: 123 }
             ],
             [
                 'Type error (Exercise instance creation)',
                 TYPE_ERROR,
-                [{ content: 'abc' }]
+                { content: 'abc' }
             ]
         ];
         for (const [testMess, errorCode, serverResponse] of list) {
@@ -270,7 +244,7 @@ describe('Service: ExerciseModification', () => {
                             expect(service).toBeTruthy();
 
                             service
-                                .getExercise(subjectId, id)
+                                .getExercise(subjectId, exerciseId)
                                 .then(() => fail('should be rejected'))
                                 .catch((error) =>
                                     expect(error.status).toBe(errorCode)
@@ -279,9 +253,7 @@ describe('Service: ExerciseModification', () => {
                                 ServerRoutes.subjectExerciseGet
                             );
                             expect(req.request.method).toEqual('POST');
-                            expect(req.request.body).toEqual({
-                                id: `${subjectId}/${id}`
-                            });
+                            expect(req.request.body).toEqual(expectedBody);
                             if (errorCode !== TYPE_ERROR) {
                                 req.error(new ErrorEvent(testMess), {
                                     status: errorCode
@@ -308,7 +280,7 @@ describe('Service: ExerciseModification', () => {
                         };
 
                         service
-                            .getExercise(subjectId, id)
+                            .getExercise(subjectId, exerciseId)
                             .then((response) => {
                                 expect(response).toBeInstanceOf(Exercise);
                                 expect(response.type).toBe('EqEx');
@@ -320,9 +292,7 @@ describe('Service: ExerciseModification', () => {
                             ServerRoutes.subjectExerciseGet
                         );
                         expect(req.request.method).toEqual('POST');
-                        expect(req.request.body).toEqual({
-                            id: `${subjectId}/${id}`
-                        });
+                        expect(req.request.body).toEqual(expectedBody);
                         req.flush(serverResponse);
                     }
                 )
@@ -388,7 +358,7 @@ describe('Service: ExerciseModification', () => {
         );
 
         it(
-            'should throw Type error',
+            'should throw Type error (not an Exercise)',
             waitForAsync(
                 inject(
                     [ModificationService, HttpClient],
@@ -412,6 +382,31 @@ describe('Service: ExerciseModification', () => {
             )
         );
 
+        it('should throw Type error (not a PreviewExercise)', inject(
+            [ModificationService, HttpClient],
+            (service: ModificationService) => {
+                expect(service).toBeTruthy();
+                const result: RenderedExercise = {
+                    id: '',
+                    subjectId: '',
+                    type: 'EqEx',
+                    name: 'Ex1',
+                    problem: {}
+                };
+
+                service
+                    .getExercisePreview(exercise)
+                    .then(() => fail('should be rejected'))
+                    .catch((error) => expect(error.status).toBe(TYPE_ERROR));
+                const req = httpController.expectOne(
+                    ServerRoutes.subjectExercisePreview
+                );
+                expect(req.request.method).toEqual('POST');
+                expect(req.request.body).toEqual(stringifiedExercise);
+                req.flush(result);
+            }
+        ));
+
         it('should return preview', inject(
             [ModificationService, HttpClient],
             (service: ModificationService) => {
@@ -421,7 +416,8 @@ describe('Service: ExerciseModification', () => {
                     subjectId: '',
                     type: 'EqEx',
                     name: 'Ex1',
-                    content: {}
+                    problem: {},
+                    correctAnswer: {}
                 };
 
                 service
@@ -447,6 +443,11 @@ describe('Service: ExerciseModification', () => {
         const exercise = new Exercise('EqEx', name, 'Test content\n');
         const subjectId = 'Sb1';
         const result = `---\ntype: EqEx\nname: ${name}\n---\nTest content\n`;
+        const expectedBody = {
+            subject: subjectId,
+            exerciseId: id,
+            content: result
+        };
 
         const list: [string, number | null][] = [
             ['resolve', null],
@@ -477,14 +478,11 @@ describe('Service: ExerciseModification', () => {
                                 .catch((error) => {
                                     if (errorCode !== null)
                                         expect(error.status).toBe(errorCode);
-                                    else fail('should be resolved');
+                                    else fail('should resolve');
                                 });
                             const req = httpController.expectOne(url);
                             expect(req.request.method).toEqual('POST');
-                            expect(req.request.body).toEqual({
-                                id: `${subjectId}/${id}`,
-                                content: result
-                            });
+                            expect(req.request.body).toEqual(expectedBody);
                             if (errorCode === null) req.flush({});
                             else {
                                 req.error(new ErrorEvent(testMess), {

@@ -1,7 +1,7 @@
-//#region Exercise
-export const exerciseList = '/api/exercise/list';
-export const exerciseCheck = '/api/exercise/check';
-export const exerciseRender = '/api/exercise/render';
+//#region Exercise/Problem
+export const exerciseList = '/api/subject/hierarchy/get';
+export const exerciseGet = '/api/subject/problem/get';
+export const exerciseCheck = '/api/subject/problem/update';
 //#endregion
 
 //#region Subject
@@ -9,8 +9,14 @@ export const subjectList = '/api/subject/list';
 export const subjectCreate = '/api/subject/create';
 export const subjectInfo = '/api/subject/info';
 export const subjectPermit = '/api/subject/permit';
+//#endregion
 
-// Exercise modification
+//#region Hierarchy
+export const hierarchyGet = '/api/subject/hierarchy/get';
+export const hierarchySet = '/api/subject/hierarchy/set';
+//#endregion
+
+//#region Exercise modification
 export const subjectExerciseList = '/api/subject/exercise/list';
 export const subjectExerciseGet = '/api/subject/exercise/get';
 export const subjectExerciseAdd = '/api/subject/exercise/add';
@@ -25,14 +31,14 @@ export const logout = '/api/auth/logout';
 //#endregion
 
 //#region User
-export const user = '/api/user/current';
+export const userGet = '/api/user/info';
 export const userDelete = '/api/user/delete';
 export const userUpdate = '/api/user/update';
 export const userInfo = '/api/user/info';
 //#endregion
 
 //#region Team
-export const team = '/api/team/info';
+export const teamInfo = '/api/team/info';
 export const teamList = '/api/team/list';
 export const teamCreate = '/api/team/create';
 export const teamDelete = '/api/team/delete';
@@ -64,7 +70,7 @@ export const examSubmit = '/api/exam/submit';
 //#endregion
 
 //#region Misc
-export function image(subject: string, file: string): string {
-    return `/img/${subject}/${file}`;
+export function staticFile(subject: string, file: string): string {
+    return `/api/subject/static/${subject}/${file}`;
 }
 //#endregion

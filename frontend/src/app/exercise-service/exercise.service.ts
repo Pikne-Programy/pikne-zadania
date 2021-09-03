@@ -7,7 +7,11 @@ import { Exercise } from './exercises';
 import { Role, RoleGuardService } from '../guards/role-guard.service';
 import * as ServerRoutes from '../server-routes';
 import { ServerResponseNode, Subject } from './exercise.utils';
-import { TYPE_ERROR } from '../helper/utils';
+import { isObject, ObjectType, TYPE_ERROR } from '../helper/utils';
+
+type AnswersResponseType = {
+    info: any;
+};
 
 @Injectable({
     providedIn: 'root'
@@ -28,7 +32,7 @@ export class ExerciseService {
 
     getExerciseTree(subjectId: string) {
         return this.http
-            .post(ServerRoutes.exerciseList, { id: subjectId })
+            .post(ServerRoutes.exerciseList, { subject: subjectId, raw: true })
             .pipe(
                 switchMap((response) => {
                     const subject = { name: subjectId, children: response };
@@ -38,9 +42,7 @@ export class ExerciseService {
                             ? of(tree)
                             : throwError({ status: TYPE_ERROR });
                     }
-                    else
-                        return throwError({ status: TYPE_ERROR });
-
+                    else return throwError({ status: TYPE_ERROR });
                 })
             )
             .toPromise();
@@ -48,8 +50,9 @@ export class ExerciseService {
 
     getExercise(subjectId: string, id: string, seed?: number) {
         return this.http
-            .post(ServerRoutes.exerciseRender, {
-                id: `${subjectId}/${id}`,
+            .post(ServerRoutes.exerciseGet, {
+                subject: subjectId,
+                exerciseId: id,
                 seed
             })
             .pipe(
@@ -58,30 +61,31 @@ export class ExerciseService {
                         Exercise.getDone(response, subjectId);
                         return of(response);
                     }
-                    else
-                        return throwError({ status: TYPE_ERROR });
-
+                    else return throwError({ status: TYPE_ERROR });
                 })
             )
             .toPromise();
     }
 
-    submitAnswers<T>(
+    submitAnswers<T extends ObjectType, U>(
         subject: string,
         id: string,
-        answers: any,
-        typeChecker: (obj: any, ...args: any[]) => obj is T,
+        answer: T,
+        typeChecker: (obj: any, ...args: any[]) => obj is U,
         ...typeCheckerArgs: any[]
     ) {
         return this.http
             .post(ServerRoutes.exerciseCheck, {
-                id: `${subject}/${id}`,
-                answers
+                subject,
+                exerciseId: id,
+                answer
             })
             .pipe(
                 switchMap((response) =>
-                    typeChecker(response, ...typeCheckerArgs)
-                        ? of(response)
+                    isObject<AnswersResponseType>(response, [
+                        ['info', 'any']
+                    ]) && typeChecker(response.info, ...typeCheckerArgs)
+                        ? of(response.info)
                         : throwError({ status: TYPE_ERROR })
                 )
             )

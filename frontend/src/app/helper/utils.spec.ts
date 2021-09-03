@@ -5,7 +5,7 @@ import {
     capitalize,
     getErrorCode,
     isObject,
-    objectTypes,
+    propertyTypes,
     pbkdf2,
     replaceAccents,
     TYPE_ERROR
@@ -65,16 +65,16 @@ describe('Utils', () => {
             //#region Checking examples
             expect(expected.length)
                 .withContext("types & examples don't overlap")
-                .toEqual(objectTypes.length);
-            if (expected.length === objectTypes.length) {
+                .toEqual(propertyTypes.length);
+            if (expected.length === propertyTypes.length) {
                 for (let i = 0; i < expected.length; i++) {
                     if (expected[i] !== null) {
                         expect(typeof expected[i])
                             .withContext('wrong example order')
-                            .toBe(objectTypes[i]);
+                            .toBe(propertyTypes[i]);
                     }
                     else {
-                        expect(objectTypes[i])
+                        expect(propertyTypes[i])
                             .withContext('wrong example order')
                             .toBe('null');
                     }
@@ -82,13 +82,13 @@ describe('Utils', () => {
             }
             //#endregion
 
-            for (let i = 0; i < objectTypes.length; i++) {
+            for (let i = 0; i < propertyTypes.length; i++) {
                 expect(
                     isObject<{ var: any }>({ var: expected[i] }, [
-                        ['var', [objectTypes[i]]]
+                        ['var', [propertyTypes[i]]]
                     ])
                 )
-                    .withContext(`correct w/ ${objectTypes[i]}`)
+                    .withContext(`correct w/ ${propertyTypes[i]}`)
                     .toBe(true);
 
                 expect(
@@ -96,7 +96,7 @@ describe('Utils', () => {
                         ['var', 'any']
                     ])
                 )
-                    .withContext(`${objectTypes[i]} w/ any`)
+                    .withContext(`${propertyTypes[i]} w/ any`)
                     .toBe(true);
             }
 
@@ -257,7 +257,7 @@ describe('Utils', () => {
             };
             const props: [
                 keyof Type,
-                typeof objectTypes[number][] | 'array' | 'array|undefined'
+                typeof propertyTypes[number][] | 'array' | 'array|undefined'
             ][] = [
                 ['num', ['number']],
                 ['text', ['string', 'undefined']],

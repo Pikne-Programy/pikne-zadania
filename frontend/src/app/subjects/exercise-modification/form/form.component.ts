@@ -21,8 +21,8 @@ import {
     ExerciseModificationService
 } from '../service/exercise-modification.service';
 import {
-    Exercise as PreviewExercise,
-    exerciseTypes
+    exerciseTypes,
+    PreviewExercise
 } from 'src/app/exercise-service/exercises';
 import { Observable, Subject } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';

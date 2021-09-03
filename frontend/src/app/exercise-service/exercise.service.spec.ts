@@ -45,16 +45,19 @@ describe('Service: Exercise', () => {
 
     describe('getSubject', () => {
         let roleSpy: jasmine.Spy<(arg0: Account) => Role>;
-        let subjectCreateSpy: jasmine.Spy<
-            (
-                serverResponse: ServerResponseNode,
-                getLocalDone: boolean
-            ) => ExerciseTreeNode | null
-        >;
+        type SubjectCreateType = (
+            serverResponse: ServerResponseNode,
+            getLocalDone: boolean
+        ) => ExerciseTreeNode | null;
+        let subjectCreateSpy: jasmine.Spy<SubjectCreateType>;
         let subjectValidSpy: jasmine.Spy<
             (object: any, root?: boolean) => object is ServerResponseNode
         >;
         const subjectId = 'Sb1';
+        const expectedBody = {
+            subject: subjectId,
+            raw: true
+        };
 
         beforeEach(() => {
             roleSpy = spyOn(RoleGuardService, 'getRole');
@@ -89,6 +92,7 @@ describe('Service: Exercise', () => {
                             ServerRoutes.exerciseList
                         );
                         expect(req.request.method).toEqual('POST');
+                        expect(req.request.body).toEqual(expectedBody);
                         req.flush({ name: subjectId });
                     }
                 )
@@ -123,6 +127,7 @@ describe('Service: Exercise', () => {
                             ServerRoutes.exerciseList
                         );
                         expect(req.request.method).toEqual('POST');
+                        expect(req.request.body).toEqual(expectedBody);
                         req.flush({});
                     }
                 )
@@ -156,7 +161,7 @@ describe('Service: Exercise', () => {
                             const getDone =
                                 role === Role.USER || account === null;
                             const subject = {
-                                name: 'Sb1',
+                                name: subjectId,
                                 children: [
                                     {
                                         name: 'mechanika',
@@ -180,7 +185,7 @@ describe('Service: Exercise', () => {
                             //#endregion
 
                             service
-                                .getExerciseTree('Sb1')
+                                .getExerciseTree(subjectId)
                                 .then((response) =>
                                     expect(response).toEqual(
                                         subject as unknown as ExerciseTreeNode
@@ -191,6 +196,7 @@ describe('Service: Exercise', () => {
                                 ServerRoutes.exerciseList
                             );
                             expect(req.request.method).toEqual('POST');
+                            expect(req.request.body).toEqual(expectedBody);
                             req.flush(subject.children);
                         }
                     )
@@ -204,10 +210,17 @@ describe('Service: Exercise', () => {
         const exerciseContent = {
             main: 'Test content',
             img: ['1.png', '2.png'],
-            unknowns: [
+            unknown: [
                 ['x', '\\mathrm{km}'],
                 ['t', '\\mathrm{s}']
             ]
+        };
+        const subjectId = 'Sb1';
+        const exerciseId = 'ex1';
+        const expectedBody = {
+            subject: subjectId,
+            exerciseId,
+            seed: undefined
         };
 
         it(
@@ -220,19 +233,16 @@ describe('Service: Exercise', () => {
                         const errorCode = 500;
 
                         service
-                            .getExercise('Sb1', 'ex1')
+                            .getExercise(subjectId, exerciseId)
                             .then(() => fail('should be rejected'))
                             .catch((error) =>
                                 expect(error.status).toBe(errorCode)
                             );
                         const req = httpController.expectOne(
-                            ServerRoutes.exerciseRender
+                            ServerRoutes.exerciseGet
                         );
                         expect(req.request.method).toEqual('POST');
-                        expect(req.request.body).toEqual({
-                            id: 'Sb1/ex1',
-                            seed: undefined
-                        });
+                        expect(req.request.body).toEqual(expectedBody);
                         req.error(new ErrorEvent('Server error'), {
                             status: errorCode
                         });
@@ -250,19 +260,16 @@ describe('Service: Exercise', () => {
                         expect(service).toBeTruthy();
 
                         service
-                            .getExercise('Sb2', 'ex2')
+                            .getExercise(subjectId, exerciseId)
                             .then(() => fail('should be rejected'))
                             .catch((error) =>
                                 expect(error.status).toBe(TYPE_ERROR)
                             );
                         const req = httpController.expectOne(
-                            ServerRoutes.exerciseRender
+                            ServerRoutes.exerciseGet
                         );
                         expect(req.request.method).toEqual('POST');
-                        expect(req.request.body).toEqual({
-                            id: 'Sb2/ex2',
-                            seed: undefined
-                        });
+                        expect(req.request.body).toEqual(expectedBody);
                         req.flush({ type: 'EqEx', name: 'Ex2' });
                     }
                 )
@@ -277,28 +284,25 @@ describe('Service: Exercise', () => {
                     (service: ExerciseService) => {
                         expect(service).toBeTruthy();
                         const exercise: Exercise = {
-                            id: 'ex3',
-                            subjectId: 'Sb3',
+                            id: exerciseId,
+                            subjectId,
                             type: 'EqEx',
-                            name: 'Ex3',
-                            content: exerciseContent,
+                            name: 'Ex1',
+                            problem: exerciseContent,
                             done: 0.14
                         };
 
                         service
-                            .getExercise('Sb3', 'ex3')
+                            .getExercise(subjectId, exerciseId)
                             .then((response) =>
                                 expect(response).toEqual(exercise)
                             )
                             .catch(() => fail('should resolve'));
                         const req = httpController.expectOne(
-                            ServerRoutes.exerciseRender
+                            ServerRoutes.exerciseGet
                         );
                         expect(req.request.method).toEqual('POST');
-                        expect(req.request.body).toEqual({
-                            id: 'Sb3/ex3',
-                            seed: undefined
-                        });
+                        expect(req.request.body).toEqual(expectedBody);
                         req.flush(exercise);
                     }
                 )
@@ -312,10 +316,8 @@ describe('Service: Exercise', () => {
                     [ExerciseService, HttpClient],
                     (service: ExerciseService) => {
                         expect(service).toBeTruthy();
-                        const id = 'ex4';
-                        const subjectId = 'Sb4';
                         const type = 'EqEx';
-                        const name = 'Ex4';
+                        const name = 'Ex1';
                         const done = 0.14;
                         spyOn(
                             Object.getPrototypeOf(localStorage),
@@ -323,32 +325,29 @@ describe('Service: Exercise', () => {
                         ).and.returnValue(done.toString());
 
                         service
-                            .getExercise(subjectId, id)
+                            .getExercise(subjectId, exerciseId)
                             .then((response) =>
                                 expect(response).toEqual({
-                                    id,
+                                    id: exerciseId,
                                     subjectId,
                                     type,
                                     name,
-                                    content: exerciseContent,
+                                    problem: exerciseContent,
                                     done
                                 })
                             )
                             .catch(() => fail('should resolve'));
                         const req = httpController.expectOne(
-                            ServerRoutes.exerciseRender
+                            ServerRoutes.exerciseGet
                         );
                         expect(req.request.method).toEqual('POST');
-                        expect(req.request.body).toEqual({
-                            id: `${subjectId}/${id}`,
-                            seed: undefined
-                        });
+                        expect(req.request.body).toEqual(expectedBody);
                         req.flush({
-                            id,
+                            id: exerciseId,
                             subjectId,
                             type,
                             name,
-                            content: exerciseContent
+                            problem: exerciseContent
                         });
                     }
                 )
@@ -363,74 +362,29 @@ describe('Service: Exercise', () => {
             arg1: boolean,
             arg2: boolean
         ): obj is number[] => arg1 || arg2;
-
-        it(
-            'should return result',
-            waitForAsync(
-                inject(
-                    [ExerciseService, HttpClient],
-                    (service: ExerciseService) => {
-                        expect(service).toBeTruthy();
-                        const result = answers.map((_, i) => i % 2 === 0);
-
-                        service
-                            .submitAnswers(
-                                'Sb1',
-                                'ex1',
-                                answers,
-                                EqEx.isEqExAnswer,
-                                answers.length
-                            )
-                            .then((response) =>
-                                expect(response).toEqual(result)
-                            )
-                            .catch(() => fail('should resolve'));
-                        const req = httpController.expectOne(
-                            ServerRoutes.exerciseCheck
-                        );
-                        expect(req.request.method).toEqual('POST');
-                        expect(req.request.body).toEqual({
-                            id: 'Sb1/ex1',
-                            answers
-                        });
-                        req.flush(result);
-                    }
-                )
-            )
-        );
-
-        it(
-            'should return result (more type checker args)',
-            waitForAsync(
-                inject(
-                    [ExerciseService, HttpClient],
-                    (service: ExerciseService) => {
-                        expect(service).toBeTruthy();
-
-                        service
-                            .submitAnswers(
-                                'Sb2',
-                                'ex2',
-                                answers,
-                                typeChecker,
-                                false,
-                                true
-                            )
-                            .then((response) => expect(response).toBe(answers))
-                            .catch(() => fail('should be resolved'));
-                        const req = httpController.expectOne(
-                            ServerRoutes.exerciseCheck
-                        );
-                        expect(req.request.method).toEqual('POST');
-                        expect(req.request.body).toEqual({
-                            id: 'Sb2/ex2',
-                            answers
-                        });
-                        req.flush(answers);
-                    }
-                )
-            )
-        );
+        const subjectId = 'Sb1';
+        const exerciseId = 'ex1';
+        function getPromise<T>(
+            service: ExerciseService,
+            typeCheck: (obj: any, ...args: any[]) => obj is T,
+            ...typeCheckArgs: any[]
+        ) {
+            return service.submitAnswers(
+                subjectId,
+                exerciseId,
+                { answers },
+                typeCheck,
+                ...typeCheckArgs
+            );
+        }
+        const expectedBody = {
+            subject: subjectId,
+            exerciseId,
+            answer: {
+                answers
+            }
+        };
+        const serverResponse = { info: answers };
 
         it(
             'should throw error',
@@ -441,15 +395,7 @@ describe('Service: Exercise', () => {
                         expect(service).toBeTruthy();
                         const errorCode = 404;
 
-                        service
-                            .submitAnswers(
-                                'Sb3',
-                                'ex3',
-                                answers,
-                                typeChecker,
-                                false,
-                                true
-                            )
+                        getPromise(service, typeChecker, false, true)
                             .then(() => fail('should be rejected'))
                             .catch((error) =>
                                 expect(error.status).toBe(errorCode)
@@ -458,10 +404,7 @@ describe('Service: Exercise', () => {
                             ServerRoutes.exerciseCheck
                         );
                         expect(req.request.method).toEqual('POST');
-                        expect(req.request.body).toEqual({
-                            id: 'Sb3/ex3',
-                            answers
-                        });
+                        expect(req.request.body).toEqual(expectedBody);
                         req.error(new ErrorEvent('Not found'), {
                             status: errorCode
                         });
@@ -471,22 +414,14 @@ describe('Service: Exercise', () => {
         );
 
         it(
-            'should throw Type Error',
+            'should throw Type Error (wrong response)',
             waitForAsync(
                 inject(
                     [ExerciseService, HttpClient],
                     (service: ExerciseService) => {
                         expect(service).toBeTruthy();
 
-                        service
-                            .submitAnswers(
-                                'Sb4',
-                                'ex4',
-                                answers,
-                                typeChecker,
-                                false,
-                                false
-                            )
+                        getPromise(service, typeChecker, false, true)
                             .then(() => fail('should be rejected'))
                             .catch((error) =>
                                 expect(error.status).toBe(TYPE_ERROR)
@@ -495,11 +430,79 @@ describe('Service: Exercise', () => {
                             ServerRoutes.exerciseCheck
                         );
                         expect(req.request.method).toEqual('POST');
-                        expect(req.request.body).toEqual({
-                            id: 'Sb4/ex4',
-                            answers
-                        });
+                        expect(req.request.body).toEqual(expectedBody);
                         req.flush(answers);
+                    }
+                )
+            )
+        );
+
+        it(
+            'should throw Type Error (type checker failure)',
+            waitForAsync(
+                inject(
+                    [ExerciseService, HttpClient],
+                    (service: ExerciseService) => {
+                        expect(service).toBeTruthy();
+
+                        getPromise(service, typeChecker, false, false)
+                            .then(() => fail('should be rejected'))
+                            .catch((error) =>
+                                expect(error.status).toBe(TYPE_ERROR)
+                            );
+                        const req = httpController.expectOne(
+                            ServerRoutes.exerciseCheck
+                        );
+                        expect(req.request.method).toEqual('POST');
+                        expect(req.request.body).toEqual(expectedBody);
+                        req.flush(serverResponse);
+                    }
+                )
+            )
+        );
+
+        it(
+            'should return result (multi-arg type checker)',
+            waitForAsync(
+                inject(
+                    [ExerciseService, HttpClient],
+                    (service: ExerciseService) => {
+                        expect(service).toBeTruthy();
+
+                        getPromise(service, typeChecker, false, true)
+                            .then((response) => expect(response).toBe(answers))
+                            .catch(() => fail('should be resolved'));
+                        const req = httpController.expectOne(
+                            ServerRoutes.exerciseCheck
+                        );
+                        expect(req.request.method).toEqual('POST');
+                        expect(req.request.body).toEqual(expectedBody);
+                        req.flush(serverResponse);
+                    }
+                )
+            )
+        );
+
+        it(
+            'should return result (EqEx)',
+            waitForAsync(
+                inject(
+                    [ExerciseService, HttpClient],
+                    (service: ExerciseService) => {
+                        expect(service).toBeTruthy();
+                        const result = answers.map((_, i) => i % 2 === 0);
+
+                        getPromise(service, EqEx.isEqExAnswer, answers.length)
+                            .then((response) =>
+                                expect(response).toEqual(result)
+                            )
+                            .catch(() => fail('should be resolved'));
+                        const req = httpController.expectOne(
+                            ServerRoutes.exerciseCheck
+                        );
+                        expect(req.request.method).toEqual('POST');
+                        expect(req.request.body).toEqual(expectedBody);
+                        req.flush({ info: result });
                     }
                 )
             )

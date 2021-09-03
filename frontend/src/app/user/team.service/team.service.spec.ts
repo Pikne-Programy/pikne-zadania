@@ -37,9 +37,12 @@ describe('Service: Team', () => {
             const teamList: Types.TeamItem[] = [];
             for (let i = 1; i <= 3; i++) {
                 teamList.push({
-                    id: i,
+                    teamId: i,
                     name: `${i}d`,
-                    assignee: 'Smith'
+                    assignee: {
+                        userId: 'testUserId',
+                        name: 'Smith'
+                    }
                 });
             }
             teamList[1].invitation = null;
@@ -140,7 +143,10 @@ describe('Service: Team', () => {
         });
 
         describe('getTeam', () => {
-            const id = 2;
+            const teamId = 2;
+            const expectedBody = {
+                teamId
+            };
 
             it(
                 'should throw server error',
@@ -152,17 +158,17 @@ describe('Service: Team', () => {
                             const errorCode = 500;
 
                             service
-                                .getTeam(id)
+                                .getTeam(teamId)
                                 .then(() => fail('should be rejected'))
                                 .catch((error) =>
                                     expect(error.status).toBe(errorCode)
                                 );
                             const req = httpController.expectOne(
-                                ServerRoutes.team
+                                ServerRoutes.teamInfo
                             );
 
                             expect(req.request.method).toEqual('POST');
-                            expect(req.request.body).toEqual({ id });
+                            expect(req.request.body).toEqual(expectedBody);
                             req.error(new ErrorEvent('Server error'), {
                                 status: errorCode
                             });
@@ -180,18 +186,18 @@ describe('Service: Team', () => {
                             expect(service).toBeTruthy();
 
                             service
-                                .getTeam(id)
+                                .getTeam(teamId)
                                 .then(() => fail('should be rejected'))
                                 .catch((error) =>
                                     expect(error.status).toBe(TYPE_ERROR)
                                 );
                             const req = httpController.expectOne(
-                                ServerRoutes.team
+                                ServerRoutes.teamInfo
                             );
 
                             expect(req.request.method).toEqual('POST');
-                            expect(req.request.body).toEqual({ id });
-                            req.flush(null);
+                            expect(req.request.body).toEqual(expectedBody);
+                            req.flush({ abc: 'I am trash' });
                         }
                     )
                 )
@@ -237,6 +243,9 @@ describe('Service: Team', () => {
         describe('getAssigneeList', () => {
             const TEACHER_TEAM_ID = 1;
             const PERMISSION_ERROR = 403;
+            const expectedBody = {
+                teamId: TEACHER_TEAM_ID
+            };
 
             const list: [string, any, number][] = [
                 ['server error', null, 500],
@@ -251,7 +260,10 @@ describe('Service: Team', () => {
                     'Permission error',
                     {
                         name: 'Teachers',
-                        assignee: 'root'
+                        assignee: {
+                            userId: 'rootId',
+                            name: 'root'
+                        }
                     },
                     PERMISSION_ERROR
                 ]
@@ -272,13 +284,11 @@ describe('Service: Team', () => {
                                         expect(error.status).toBe(errorCode)
                                     );
                                 const req = httpController.expectOne(
-                                    ServerRoutes.team
+                                    ServerRoutes.teamInfo
                                 );
 
                                 expect(req.request.method).toEqual('POST');
-                                expect(req.request.body).toEqual({
-                                    id: TEACHER_TEAM_ID
-                                });
+                                expect(req.request.body).toEqual(expectedBody);
                                 if (response === null) {
                                     req.error(new ErrorEvent('Error'), {
                                         status: errorCode
@@ -301,7 +311,10 @@ describe('Service: Team', () => {
                             const [members] = getMembers();
                             const result: Types.Team = {
                                 name: 'Teachers',
-                                assignee: 'root',
+                                assignee: {
+                                    userId: 'rootId',
+                                    name: 'root'
+                                },
                                 invitation: null,
                                 members
                             };
@@ -313,13 +326,11 @@ describe('Service: Team', () => {
                                 )
                                 .catch(() => fail('should resolve'));
                             const req = httpController.expectOne(
-                                ServerRoutes.team
+                                ServerRoutes.teamInfo
                             );
 
                             expect(req.request.method).toEqual('POST');
-                            expect(req.request.body).toEqual({
-                                id: TEACHER_TEAM_ID
-                            });
+                            expect(req.request.body).toEqual(expectedBody);
                             req.flush(result);
                         }
                     )
@@ -329,7 +340,7 @@ describe('Service: Team', () => {
     });
 
     describe('Team modification & Registration', () => {
-        const id = 4;
+        const teamId = 4;
 
         describe('deleteTeam', () => {
             for (const [testMess, errorCode] of testList) {
@@ -341,12 +352,12 @@ describe('Service: Team', () => {
                             (service: TeamService) => {
                                 expect(service).toBeTruthy();
 
-                                const promise = service.deleteTeam(id);
+                                const promise = service.deleteTeam(teamId);
                                 expectTeamModRequest(
                                     promise,
                                     httpController,
                                     ServerRoutes.teamDelete,
-                                    { id },
+                                    { teamId },
                                     errorCode
                                 );
                             }
@@ -367,12 +378,15 @@ describe('Service: Team', () => {
                                 expect(service).toBeTruthy();
                                 const name = 'New name';
 
-                                const promise = service.setTeamName(id, name);
+                                const promise = service.setTeamName(
+                                    teamId,
+                                    name
+                                );
                                 expectTeamModRequest(
                                     promise,
                                     httpController,
                                     ServerRoutes.teamUpdate,
-                                    { id, name },
+                                    { teamId, name },
                                     errorCode
                                 );
                             }
@@ -391,17 +405,17 @@ describe('Service: Team', () => {
                             [TeamService, HttpClient],
                             (service: TeamService) => {
                                 expect(service).toBeTruthy();
-                                const assignee = 'User1Id';
+                                const assigneeId = 'User1Id';
 
                                 const promise = service.setAssignee(
-                                    id,
-                                    assignee
+                                    teamId,
+                                    assigneeId
                                 );
                                 expectTeamModRequest(
                                     promise,
                                     httpController,
                                     ServerRoutes.teamUpdate,
-                                    { id, assignee },
+                                    { teamId, assignee: assigneeId },
                                     errorCode
                                 );
                             }
@@ -423,14 +437,14 @@ describe('Service: Team', () => {
                                 const invitation = 'QwErTy';
 
                                 const promise = service.openTeam(
-                                    id,
+                                    teamId,
                                     invitation
                                 );
                                 expectTeamModRequest(
                                     promise,
                                     httpController,
                                     ServerRoutes.teamUpdate,
-                                    { id, invitation },
+                                    { teamId, invitation },
                                     errorCode
                                 );
                             }
@@ -451,12 +465,12 @@ describe('Service: Team', () => {
                                 expect(service).toBeTruthy();
                                 const invitation = null;
 
-                                const promise = service.closeTeam(id);
+                                const promise = service.closeTeam(teamId);
                                 expectTeamModRequest(
                                     promise,
                                     httpController,
                                     ServerRoutes.teamUpdate,
-                                    { id, invitation },
+                                    { teamId, invitation },
                                     errorCode
                                 );
                             }
@@ -468,7 +482,7 @@ describe('Service: Team', () => {
     });
 
     describe('User modification', () => {
-        const id = 'User1Id';
+        const userId = 'User1Id';
 
         describe('editUser', () => {
             const list: [
@@ -491,13 +505,13 @@ describe('Service: Team', () => {
                             (service: TeamService) => {
                                 expect(service).toBeTruthy();
                                 const body = {
-                                    id,
+                                    userId,
                                     name: newValues.name,
                                     number: newValues.number
                                 };
 
                                 const promise = service.editUser(
-                                    id,
+                                    userId,
                                     newValues.name,
                                     newValues.number
                                 );
@@ -525,12 +539,12 @@ describe('Service: Team', () => {
                             (service: TeamService) => {
                                 expect(service).toBeTruthy();
 
-                                const promise = service.removeUser(id);
+                                const promise = service.removeUser(userId);
                                 expectTeamModRequest(
                                     promise,
                                     httpController,
                                     ServerRoutes.userDelete,
-                                    { id },
+                                    { userId },
                                     errorCode
                                 );
                             }
@@ -549,11 +563,14 @@ function expectTeam(
     resultMembers?: Types.User[],
     invitation?: string
 ) {
-    const id = 2;
+    const teamId = 2;
     const name = '2d';
-    const assignee = 'Smith';
+    const assignee = {
+        userId: 'testUserId',
+        name: 'Smith'
+    };
     service
-        .getTeam(id)
+        .getTeam(teamId)
         .then((response) =>
             expect(response).toEqual({
                 name,
@@ -563,9 +580,9 @@ function expectTeam(
             })
         )
         .catch(() => fail('should resolve'));
-    const req = httpController.expectOne(ServerRoutes.team);
+    const req = httpController.expectOne(ServerRoutes.teamInfo);
     expect(req.request.method).toEqual('POST');
-    expect(req.request.body).toEqual({ id });
+    expect(req.request.body).toEqual({ teamId });
     req.flush({ name, assignee, invitation, members });
 }
 
@@ -600,29 +617,29 @@ function getMembers(): [Types.User[], Types.User[]] {
     const members: Types.User[] = [];
     for (let i = 1; i <= 4; i++) {
         members.push({
-            id: `User${i}Id`,
+            userId: `User${i}Id`,
             name: `User${i}`,
             number: i % 2 ? 4 - i : null
         });
     }
-    const resultMembers = [
+    const resultMembers: Types.User[] = [
         {
-            id: 'User3Id',
+            userId: 'User3Id',
             name: 'User3',
             number: 1
         },
         {
-            id: 'User1Id',
+            userId: 'User1Id',
             name: 'User1',
             number: 3
         },
         {
-            id: 'User2Id',
+            userId: 'User2Id',
             name: 'User2',
             number: null
         },
         {
-            id: 'User4Id',
+            userId: 'User4Id',
             name: 'User4',
             number: null
         }

@@ -116,9 +116,7 @@ describe('Service: Subject', () => {
                                     status: errorCode
                                 });
                             }
-                            else
-                                req.flush(serverResponse);
-
+                            else req.flush(serverResponse);
                         }
                     )
                 )
@@ -174,6 +172,11 @@ describe('Service: Subject', () => {
     });
 
     describe('getExerciseTree', () => {
+        const subjectId = 'Sb1';
+        const expectedBody = {
+            subject: subjectId,
+            raw: false
+        };
         it(
             'should throw server error',
             waitForAsync(
@@ -181,7 +184,6 @@ describe('Service: Subject', () => {
                     [SubjectService, HttpClient],
                     (service: SubjectService) => {
                         expect(service).toBeTruthy();
-                        const subjectId = 'Sb1';
                         const errorCode = 500;
 
                         service
@@ -191,10 +193,10 @@ describe('Service: Subject', () => {
                                 expect(error.status).toBe(errorCode)
                             );
                         const req = httpController.expectOne(
-                            ServerRoutes.subjectExerciseList
+                            ServerRoutes.hierarchyGet
                         );
                         expect(req.request.method).toEqual('POST');
-                        expect(req.request.body).toEqual({ id: subjectId });
+                        expect(req.request.body).toEqual(expectedBody);
                         req.error(new ErrorEvent('Server error'), {
                             status: errorCode
                         });
@@ -210,7 +212,6 @@ describe('Service: Subject', () => {
                     [SubjectService, HttpClient],
                     (service: SubjectService) => {
                         expect(service).toBeTruthy();
-                        const subjectId = 'Sb2';
                         spyOn(
                             TreeSubject,
                             'checkSubjectValidity'
@@ -223,10 +224,10 @@ describe('Service: Subject', () => {
                                 expect(error.status).toBe(TYPE_ERROR)
                             );
                         const req = httpController.expectOne(
-                            ServerRoutes.subjectExerciseList
+                            ServerRoutes.hierarchyGet
                         );
                         expect(req.request.method).toEqual('POST');
-                        expect(req.request.body).toEqual({ id: subjectId });
+                        expect(req.request.body).toEqual(expectedBody);
                         req.flush({ name: 'Mock result' });
                     }
                 )
@@ -240,7 +241,6 @@ describe('Service: Subject', () => {
                     [SubjectService, HttpClient],
                     (service: SubjectService) => {
                         expect(service).toBeTruthy();
-                        const subjectId = 'Sb3';
                         spyOn(
                             TreeSubject,
                             'checkSubjectValidity'
@@ -256,10 +256,10 @@ describe('Service: Subject', () => {
                                 expect(error.status).toBe(TYPE_ERROR)
                             );
                         const req = httpController.expectOne(
-                            ServerRoutes.subjectExerciseList
+                            ServerRoutes.hierarchyGet
                         );
                         expect(req.request.method).toEqual('POST');
-                        expect(req.request.body).toEqual({ id: subjectId });
+                        expect(req.request.body).toEqual(expectedBody);
                         req.flush({ name: 'Mock result' });
                     }
                 )
@@ -273,7 +273,6 @@ describe('Service: Subject', () => {
                     [SubjectService, HttpClient],
                     (service: SubjectService) => {
                         expect(service).toBeTruthy();
-                        const subjectId = 'Sb4';
                         const result = new ExerciseTreeNode('mock', null);
                         spyOn(
                             TreeSubject,
@@ -292,10 +291,10 @@ describe('Service: Subject', () => {
                             )
                             .catch(() => fail('should be resolved'));
                         const req = httpController.expectOne(
-                            ServerRoutes.subjectExerciseList
+                            ServerRoutes.hierarchyGet
                         );
                         expect(req.request.method).toEqual('POST');
-                        expect(req.request.body).toEqual({ id: subjectId });
+                        expect(req.request.body).toEqual(expectedBody);
                         req.flush(result);
                     }
                 )

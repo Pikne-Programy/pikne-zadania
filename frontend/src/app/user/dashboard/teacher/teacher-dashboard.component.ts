@@ -33,7 +33,7 @@ implements Utils.DashboardComponentType, OnInit {
   getTeamNames(): [string, string, string][] {
       return this.teams.map((team) => [
           team.name,
-          team.id.toString(),
+          team.teamId.toString(),
           'fa-users'
       ]);
   }

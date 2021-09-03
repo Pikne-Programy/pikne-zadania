@@ -16,8 +16,19 @@ describe('Exercise types', () => {
                 [
                     {
                         type: 'EqEx',
-                        name: 'Ex1',
-                        content: contentObj
+                        name: 'EqEx',
+                        problem: contentObj
+                    },
+                    true
+                ],
+                [
+                    {
+                        type: 'EqEx',
+                        name: 'PreviewEqEx',
+                        problem: contentObj,
+                        correctAnswer: {
+                            answers: [1, 2, 3]
+                        }
                     },
                     true
                 ],
@@ -26,8 +37,8 @@ describe('Exercise types', () => {
                 [
                     {
                         type: 'PicEx',
-                        name: 'Ex2',
-                        content: contentObj,
+                        name: 'PicEx',
+                        problem: contentObj,
                         done: 0.14,
                     },
                     true,
@@ -35,8 +46,8 @@ describe('Exercise types', () => {
                 [
                     {
                         type: 'MultiEx',
-                        name: 'Ex3',
-                        content: contentObj,
+                        name: 'MultiEx',
+                        problem: contentObj,
                         done: null,
                     },
                     true,
@@ -45,7 +56,7 @@ describe('Exercise types', () => {
                 [
                     {
                         type: 'EqEx',
-                        name: 'Ex4'
+                        name: 'Wrong EqEx'
                     },
                     false
                 ],
@@ -53,7 +64,7 @@ describe('Exercise types', () => {
                     {
                         type: false,
                         name: 1,
-                        content: null,
+                        problem: null,
                         done: 'well'
                     },
                     false
@@ -81,7 +92,7 @@ describe('Exercise types', () => {
                 const obj = {
                     type: 'abc',
                     name: 'Ex0',
-                    content: contentObj
+                    problem: contentObj
                 };
                 expect(Exercise.isExercise(obj, id, subjectId)).toBeFalse();
             });
@@ -147,7 +158,7 @@ describe('Exercise types', () => {
             //#region Test objects
             const id = 'test-id';
             const subjectId = 'test-sb-id';
-            const unknowns: [string, string][] = [
+            const unknown: [string, string][] = [
                 ['x', 'km'],
                 ['t', 's']
             ];
@@ -155,14 +166,14 @@ describe('Exercise types', () => {
                 [
                     {
                         main: 'correct',
-                        unknowns
+                        unknown
                     },
                     true
                 ],
                 [
                     {
                         main: 'wrong unknowns',
-                        unknowns: [
+                        unknown: [
                             ['abc', '123'],
                             ['def', '456', '@!#']
                         ]
@@ -173,7 +184,7 @@ describe('Exercise types', () => {
                     {
                         main: 'correct w/ images',
                         img: ['1.png', '2.png'],
-                        unknowns
+                        unknown
                     },
                     true
                 ],
@@ -181,7 +192,7 @@ describe('Exercise types', () => {
                     {
                         main: 'wrong img type',
                         img: '1.png',
-                        unknowns
+                        unknown
                     },
                     false
                 ],
@@ -189,7 +200,7 @@ describe('Exercise types', () => {
                     {
                         main: "wrong img items' types",
                         img: ['abc.png', 123],
-                        unknowns
+                        unknown
                     },
                     false
                 ],
@@ -197,26 +208,10 @@ describe('Exercise types', () => {
                     {
                         main: 'correct teacher version',
                         img: [],
-                        unknowns,
+                        unknown,
                         correct: [2.5, 125]
                     },
                     true
-                ],
-                [
-                    {
-                        main: "wrong 'correct' type",
-                        unknowns,
-                        correct: 123
-                    },
-                    false
-                ],
-                [
-                    {
-                        main: "wrong 'correct' items' types",
-                        unknowns,
-                        correct: [123, 'abc']
-                    },
-                    false
                 ]
             ];
             //#endregion
@@ -228,10 +223,10 @@ describe('Exercise types', () => {
                     subjectId,
                     type: 'EqEx',
                     name: `Ex${i + 1}`,
-                    content: contentObj
+                    problem: contentObj
                 };
                 it(`should return ${result} (${getStringFromAny(
-                    obj.content.main,
+                    obj.problem.main,
                     '_no-description_'
                 )})`, () => {
                     expect(EqEx.isEqEx(obj)).toBe(result);
@@ -259,4 +254,21 @@ describe('Exercise types', () => {
             });
         });
     });
+
+    //#region Previews
+    xdescribe('PreviewExercise', () => {
+        it('should ...', () => {
+            //FIXME Add tests
+            expect(true).toBe(true);
+        });
+    });
+
+
+    xdescribe('PreviewEqEx', () => {
+        it('should ...', () => { // eslint-disable-line jasmine/no-spec-dupes
+            //FIXME Add tests
+            expect(true).toBe(true);
+        });
+    });
+    //#endregion
 });

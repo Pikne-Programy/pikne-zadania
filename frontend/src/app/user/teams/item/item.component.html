@@ -7,7 +7,7 @@
                 <p class="panel-heading">Klasa&nbsp;{{ team.name | uppercase }}</p>
                 <div *ngIf="team.assignee" class="panel-block">
                     <h2 class="subtitle is-6 no-word-break m-0"><b>Właściciel:&nbsp;</b></h2>
-                    <h2 class="subtitle is-6 is-flex-grow-1 m-0">{{ team.assignee | titlecase }}</h2>
+                    <h2 class="subtitle is-6 is-flex-grow-1 m-0">{{ team.assignee.name | titlecase }}</h2>
                 </div>
                 <div class="panel-block">
                     <h2 class="subtitle is-6 no-word-break m-0"><b>Rejestracja:&nbsp;</b></h2>

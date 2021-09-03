@@ -2,15 +2,13 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { switchMap } from 'rxjs/operators';
 import { of, throwError } from 'rxjs';
-import {
-    ServerResponseNode,
-    Subject
-} from 'src/app/exercise-service/exercise.utils';
+import { ServerResponseNode } from 'src/app/exercise-service/exercise.utils';
 import * as ServerRoutes from 'src/app/server-routes';
-import { replaceAccents, TYPE_ERROR } from 'src/app/helper/utils';
+import { isObject, replaceAccents, TYPE_ERROR } from 'src/app/helper/utils';
 import {
-    Exercise as PreviewExercise,
-    exerciseTypes
+    Exercise as RenderedExercise,
+    exerciseTypes,
+    PreviewExercise
 } from 'src/app/exercise-service/exercises';
 
 export class Exercise {
@@ -80,6 +78,10 @@ export class Exercise {
     }
 }
 
+type ExerciseListType = {
+    exercises: string[];
+};
+
 @Injectable({
     providedIn: 'root'
 })
@@ -87,34 +89,28 @@ export class ExerciseModificationService {
     constructor(private http: HttpClient) {}
 
     private extractExercises(tree: ServerResponseNode): string[] {
-        if (!Array.isArray(tree.children))
-            return [tree.children];
+        if (!Array.isArray(tree.children)) return [tree.children];
 
         const result: string[] = [];
         tree.children.forEach((node) => {
             const children = this.extractExercises(node);
-            for (const exercise of children)
-                result.push(exercise);
-
+            for (const exercise of children) result.push(exercise);
         });
         return result;
     }
 
     getAllExercises(subjectId: string): Promise<Set<string>> {
         return this.http
-            .post(ServerRoutes.subjectExerciseList, { id: subjectId })
+            .post(ServerRoutes.subjectExerciseList, { subject: subjectId })
             .pipe(
-                switchMap((response) => {
-                    const subject = { name: subjectId, children: response };
-                    if (Subject.checkSubjectValidity(subject)) {
-                        return of(
-                            new Set<string>(this.extractExercises(subject))
-                        );
-                    }
-                    else
-                        return throwError({ status: TYPE_ERROR });
-
-                })
+                switchMap((response) =>
+                    isObject<ExerciseListType>(response, [
+                        ['exercises', 'array']
+                    ]) &&
+                    response.exercises.every((id) => typeof id === 'string')
+                        ? of(new Set(response.exercises))
+                        : throwError({ status: TYPE_ERROR })
+                )
             )
             .toPromise();
     }
@@ -122,14 +118,20 @@ export class ExerciseModificationService {
     getExercise(subjectId: string, exerciseId: string): Promise<Exercise> {
         return this.http
             .post(ServerRoutes.subjectExerciseGet, {
-                id: `${subjectId}/${exerciseId}`
+                subject: subjectId,
+                exerciseId
             })
             .pipe(
-                switchMap((response: { content?: unknown }) => {
-                    const content = response.content;
-                    if (content && typeof content === 'string') {
+                switchMap((response) => {
+                    if (
+                        isObject<{ content: string }>(response, [
+                            ['content', ['string']]
+                        ])
+                    ) {
                         try {
-                            const exercise = Exercise.createInstance(content);
+                            const exercise = Exercise.createInstance(
+                                response.content
+                            );
                             return of(exercise);
                         }
                         catch (error) {
@@ -137,9 +139,7 @@ export class ExerciseModificationService {
                             return throwError({ status: TYPE_ERROR });
                         }
                     }
-                    else
-                        return throwError({ status: TYPE_ERROR });
-
+                    else return throwError({ status: TYPE_ERROR });
                 })
             )
             .toPromise();
@@ -166,7 +166,8 @@ export class ExerciseModificationService {
                     ? ServerRoutes.subjectExerciseAdd
                     : ServerRoutes.subjectExerciseUpdate,
                 {
-                    id: `${subjectId}/${exerciseId}`,
+                    subject: subjectId,
+                    exerciseId,
                     content: content.toString()
                 }
             )
@@ -181,7 +182,8 @@ export class ExerciseModificationService {
             })
             .pipe(
                 switchMap((response) =>
-                    PreviewExercise.isExercise(response, '', '')
+                    RenderedExercise.isExercise(response, '', '') &&
+                    PreviewExercise.isPreviewExercise(response)
                         ? of(response)
                         : throwError({ status: TYPE_ERROR })
                 )

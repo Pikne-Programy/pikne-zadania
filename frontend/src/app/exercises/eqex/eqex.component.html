@@ -1,7 +1,7 @@
 <section *ngIf="exercise" [ngClass]="{ 'view-loading': isLoading }" class="section py-4 p-only-mobile-3">
   <div class="height-full is-flex is-flex-direction-column">
     <p class="title use-line-break is-1 is-size-4-mobile mb-only-mobile-3">{{ exercise.name }}</p>
-    <p class="subtitle is-size-6-mobile has-text-justified mx-4 mx-only-mobile-1 my-0 mb-tablet-3 mb-desktop-5">{{ exercise.content.main }}</p>
+    <p class="subtitle is-size-6-mobile has-text-justified mx-4 mx-only-mobile-1 my-0 mb-tablet-3 mb-desktop-5">{{ exercise.problem.main }}</p>
     <div *ngIf="images" class="columns is-multiline is-centered mt-4 mb-only-mobile-0 mb-only-tablet-2">
       <div *ngFor="let img of images; index as i" class="column img-column">
         <div class="height-full p-0">
@@ -25,7 +25,7 @@
                   'is-warning': unknown.isWrongFormat,
                   'is-success': unknown.isCorrect,
                   'is-danger': unknown.isWrong
-                }" [(ngModel)]="unknown.input" (input)="unknown.checkFormat(); checkIfSubmitDisabled()" [disabled]="isSubmitted" [readonly]="exercise.content.correct">
+                }" [(ngModel)]="unknown.input" (input)="unknown.checkFormat(); checkIfSubmitDisabled()" [disabled]="isSubmitted" [readonly]="isPreview(exercise)">
                 <span *ngIf="unknown.isWrongFormat" class="icon is-small is-right has-text-warning">
                   <i class="fas fa-exclamation-triangle"></i>
                 </span>

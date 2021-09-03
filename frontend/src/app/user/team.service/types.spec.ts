@@ -6,12 +6,15 @@ describe('Team types', () => {
         abc: 'I am trash :P'
     };
     //#region TeamItem
-    const id = 1;
+    const teamId = 1;
     const name = 'Teachers';
-    const assignee = 'root';
+    const assignee = {
+        userId: 'rootId',
+        name: 'root'
+    };
     const invitation = 'QwErTy';
     const teamItem = {
-        id,
+        teamId,
         name,
         assignee,
         invitation
@@ -21,7 +24,7 @@ describe('Team types', () => {
     const userId = 'User1Id';
     const userName = 'User1';
     const user = {
-        id: userId,
+        userId,
         name: userName,
         number: 12
     };
@@ -34,10 +37,10 @@ describe('Team types', () => {
         const list: [string, any, boolean][] = [
             ['wrong type', wrongItem, false],
             ['correct', teamItem, true],
-            ['correct w/o invitation', { id, name, assignee }, true],
+            ['correct w/o invitation', { teamId, name, assignee }, true],
             [
                 'correct with invitation null',
-                { id, name, assignee, invitation: null },
+                { teamId, name, assignee, invitation: null },
                 true
             ]
         ];
@@ -91,7 +94,7 @@ describe('Team types', () => {
             ['correct', user, true],
             [
                 'correct w/ number null',
-                { id: userId, name: userName, number: null },
+                { userId, name: userName, number: null },
                 true
             ]
         ];
