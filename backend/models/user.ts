@@ -23,7 +23,7 @@ export class User implements IUser {
     return user[key];
   }
   private async set<T extends keyof UserType>(key: T, value: UserType[T]) {
-    if (await !this.exists()) throw new Error(); // TODO: error message
+    if (!await this.exists()) throw new Error(); // TODO: error message
     await this.db.users!.updateOne({ id: this.id }, { $set: { [key]: value } });
   }
 
@@ -67,7 +67,7 @@ export class User implements IUser {
     },
     exists: async (value: string) => {
       const tokens = await this.get("tokens");
-      return tokens.indexOf(value) ? true : false;
+      return tokens.includes(value);
     },
     remove: async (value: string) => {
       await this.db.users!.updateOne({ id: this.id }, {

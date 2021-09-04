@@ -3,7 +3,12 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { firsthash, generateSeed, secondhashSync } from "../utils/mod.ts";
+import {
+  firsthash,
+  generateSeed,
+  secondhash,
+  secondhashSync,
+} from "../utils/mod.ts";
 import { CustomDictError, RoleType, UserType } from "../types/mod.ts";
 import {
   IConfigService,
@@ -154,7 +159,7 @@ export class UserStore implements IUserStore {
       team: teamId,
       dhPassword: ("dhPassword" in options)
         ? options.dhPassword
-        : this.cfg.hash(options.hashedPassword),
+        : await secondhash(options.hashedPassword),
       role: options.role ?? special[teamId] ?? "student",
       tokens: [],
       seed: options.seed ?? generateSeed(),

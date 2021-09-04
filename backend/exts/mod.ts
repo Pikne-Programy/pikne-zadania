@@ -6,6 +6,8 @@ import { Exercise } from "../types/mod.ts";
 import { IConfigService } from "../interfaces/mod.ts";
 import EquationExercise from "./eqex/equationExercise.ts";
 
+// TODO: move it to the Config
+
 export default <{
   [key: string]: new (
     cfg: IConfigService,

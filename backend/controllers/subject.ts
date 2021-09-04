@@ -39,7 +39,7 @@ export class SubjectController extends Authorizer {
   private async isAssigneeOf(s: string, user?: IUser) {
     if (user === undefined) return false;
     const subject = this.ss.get(s);
-    if (await subject.exists()) return false;
+    if (!await subject.exists()) return false;
     const assignees = await subject.assignees.get();
     return assignees === null || assignees.includes(user.id) || // public or the assignee
       await user.role.get() === "admin"; // or admin
@@ -86,7 +86,9 @@ export class SubjectController extends Authorizer {
     ) {
       throw new httpErrors["Unauthorized"]();
     } //! P
-    if (!this.ss.get(subject).exists()) throw new httpErrors["NotFound"](); //! E
+    if (!await this.ss.get(subject).exists()) {
+      throw new httpErrors["NotFound"](); //! E
+    }
     const raw = await this.ss.get(subject).assignees.get();
     const assignees = raw === null // TODO: rework
       ? null

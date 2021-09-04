@@ -22,7 +22,12 @@ export class AuthController {
       number: schemas.user.number,
       invitation: schemas.team.invitationRequired,
     }); //! R
-    translateErrors(await this.us.add({ invitation }, rest)); //! PEVO
+    translateErrors(
+      await this.us.add({ invitation }, {
+        ...rest,
+        number: isNaN(rest.number) ? undefined : rest.number,
+      }),
+    ); //! PEVO
     ctx.response.status = 200; //! D
   }
 

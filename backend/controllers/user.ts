@@ -46,7 +46,7 @@ export class UserController extends Authorizer {
     ctx.response.body = {
       name: await who.name.get(),
       teamId: await who.team.get(),
-      number: await who.number.get(),
+      number: await who.number.get() ?? null,
     };
     ctx.response.status = 200; //! D
   }
