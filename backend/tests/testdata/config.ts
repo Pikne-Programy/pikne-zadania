@@ -36,5 +36,30 @@ export const lazyDefaultConfig: IConfigService = {
   },
 };
 
-export const rootHashedPassword =
-  "t3SDQPqrwJM6fmiQZ7w3cO7ZJTStKE+aZ5mLlckMuqE=";
+export const data = {
+  root: {
+    id: "changed below",
+    login: "root",
+    name: "root",
+    hashedPassword: "t3SDQPqrwJM6fmiQZ7w3cO7ZJTStKE+aZ5mLlckMuqE=", // secret
+  },
+  teacher: {
+    id: "changed below",
+    login: "teacher@example.com",
+    name: "Smith",
+    hashedPassword: "26n60IlkcRznpeBQa2pI6zKp7ymLSBqiWLZEIEC+uEk=", // teacher
+    invitation: "QwErTy58",
+  },
+  student: {
+    id: "changed below",
+    login: "student@example.com",
+    name: "User",
+    hashedPassword: "Hth8SbNz18M69i3AJK7LEENcZ+S8KYDs8MhrlSWAK7U=", // student
+    invitation: "85yTrEwQ",
+    number: 1,
+  },
+};
+type roles = keyof typeof data;
+for (const key in data) {
+  data[key as roles].id = lazyDefaultConfig.hash(data[key as roles].login);
+}

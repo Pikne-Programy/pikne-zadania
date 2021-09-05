@@ -2,31 +2,21 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { TestSuite } from "../test_deps.ts";
-import { updateCookies } from "./utils/cookies.ts";
-import { e2eSuite, E2eSuiteContext, getSuperAgent } from "./e2e.ts";
-import { rootHashedPassword } from "./testdata/config.ts";
-
-async function login(
-  context: E2eSuiteContext,
-  login: string,
-  hashedPassword: string,
-  old?: string,
-) {
-  try {
-    const response = await (await getSuperAgent(context.g.app))
-      .post("/api/auth/login")
-      .send({ login, hashedPassword })
-      .expect(200);
-    return updateCookies(response, old);
-  } catch (e) {
-    throw new Error(`login \`${login}\` failed: ${e}`);
-  }
-}
+import { assertEquals, TestSuite } from "../test_deps.ts";
+import { e2eSuite, E2eSuiteContext } from "./e2e.ts";
+import { data } from "./testdata/config.ts";
+import {
+  createTeam,
+  login,
+  register,
+  updateTeamInvitation,
+} from "./utils/user.ts";
 
 export interface RoleSuiteContext extends E2eSuiteContext {
   roles: {
     root: string;
+    teacher: string;
+    student: string;
   };
 }
 export const roleSuite = new TestSuite<RoleSuiteContext>({
@@ -34,9 +24,15 @@ export const roleSuite = new TestSuite<RoleSuiteContext>({
   name: "role",
 
   async beforeAll(context) {
-    context.roles = { // TODO: add more roles
-      root: await login(context, "root", rootHashedPassword),
-    };
+    const root = await login(context, data.root);
+    await updateTeamInvitation(context, root, 1, data.teacher.invitation);
+    await register(context, data.teacher);
+    const teacher = await login(context, data.teacher);
+    assertEquals(await createTeam(context, teacher, "2d"), 2);
+    await updateTeamInvitation(context, teacher, 2, data.student.invitation);
+    await register(context, data.student);
+    const student = await login(context, data.student);
+    context.roles = { root, teacher, student };
   },
   // TODO: logout?
 });
