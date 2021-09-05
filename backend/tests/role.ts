@@ -4,12 +4,8 @@
 
 import { TestSuite } from "../test_deps.ts";
 import { updateCookies } from "./utils/cookies.ts";
-import {
-  e2eSuite,
-  E2eSuiteContext,
-  getSuperAgent,
-  rootHashedPassword,
-} from "./e2e.ts";
+import { e2eSuite, E2eSuiteContext, getSuperAgent } from "./e2e.ts";
+import { rootHashedPassword } from "./testdata/config.ts";
 
 async function login(
   context: E2eSuiteContext,
