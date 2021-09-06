@@ -297,7 +297,7 @@ export function startServer() {
                 '/api/subject/exercise/list',
                 (_schema: any, request: any) => {
                     if (!currentAccount) return new Response(500);
-                    if (currentAccount.team > 1) return new Response(403);
+                    if (currentAccount.teamId > 1) return new Response(403);
                     const id = JSON.parse(request.requestBody).id;
                     const subject = list.find((tree) => tree.name === id);
                     if (subject) return subject.children as ExerciseTree[];
@@ -308,7 +308,7 @@ export function startServer() {
                 '/api/subject/exercise/get',
                 (_schema: any, request: any) => {
                     if (!currentAccount) return new Response(500);
-                    if (currentAccount.team > 1) return new Response(403);
+                    if (currentAccount.teamId > 1) return new Response(403);
                     const id = /\/(.+)/.exec(
                         JSON.parse(request.requestBody).id
                     );
@@ -329,7 +329,7 @@ export function startServer() {
                 '/api/subject/exercise/add',
                 (_schema: any, request: any) => {
                     if (!currentAccount) return new Response(500);
-                    if (currentAccount.team > 1) return new Response(403);
+                    if (currentAccount.teamId > 1) return new Response(403);
                     const content = JSON.parse(request.requestBody).content;
                     if (
                         typeof content === 'string' &&
@@ -343,7 +343,7 @@ export function startServer() {
                 '/api/subject/exercise/update',
                 (_schema: any, request: any) => {
                     if (!currentAccount) return new Response(500);
-                    if (currentAccount.team > 1) return new Response(403);
+                    if (currentAccount.teamId > 1) return new Response(403);
                     const content = JSON.parse(request.requestBody).content;
                     if (
                         typeof content === 'string' &&
@@ -357,7 +357,7 @@ export function startServer() {
                 '/api/subject/exercise/preview',
                 (_schema: any, request: any) => {
                     if (!currentAccount) return new Response(500);
-                    if (currentAccount.team > 1) return new Response(403);
+                    if (currentAccount.teamId > 1) return new Response(403);
                     const attrs = JSON.parse(request.requestBody);
                     const regex = /name: (.+)\n---/i;
                     const nameArray = regex.exec(attrs.content as string);
@@ -406,23 +406,23 @@ export function startServer() {
                             default:
                                 currentAccount = {
                                     name: 'User1',
-                                    number: null,
-                                    team: 1
+                                    teamId: 1,
+                                    number: null
                                 };
                                 return new Response(200);
                         }
                     case 'c@c.cc':
                         currentAccount = {
                             name: 'User0',
-                            number: null,
-                            team: 0
+                            teamId: 0,
+                            number: null
                         };
                         return new Response(200);
                     case 'root':
                         currentAccount = {
                             name: 'root',
-                            number: null,
-                            team: 0
+                            teamId: 0,
+                            number: null
                         };
                         return new Response(200);
                     case 'd@d.dd':
@@ -430,8 +430,8 @@ export function startServer() {
                     default:
                         currentAccount = {
                             name: `User${teamAmount}`,
-                            number: 11,
-                            team: 2
+                            teamId: 2,
+                            number: 11
                         };
                         return new Response(200);
                 }
@@ -453,7 +453,7 @@ export function startServer() {
             });
             this.post('/api/user/delete', (_schema: any, request: any) => {
                 if (!currentAccount) return new Response(500);
-                if (currentAccount.team > 1) return new Response(403);
+                if (currentAccount.teamId > 1) return new Response(403);
                 const id = JSON.parse(request.requestBody).id;
                 if (id === undefined) return new Response(400);
                 const i = users.findIndex((val) => val.id === id);
@@ -463,7 +463,7 @@ export function startServer() {
             });
             this.post('/api/user/update', (_schema: any, request: any) => {
                 if (!currentAccount) return new Response(500);
-                if (currentAccount.team > 1) return new Response(403);
+                if (currentAccount.teamId > 1) return new Response(403);
 
                 const attrs = JSON.parse(request.requestBody);
                 if (attrs.id === undefined) return new Response(400);
@@ -476,7 +476,7 @@ export function startServer() {
             });
             this.post('/api/user/info', (_schema: any, request: any) => {
                 if (!currentAccount) return new Response(500);
-                if (currentAccount.team > 1) return new Response(403);
+                if (currentAccount.teamId > 1) return new Response(403);
                 const id = JSON.parse(request.requestBody).id;
                 if (id === undefined) return new Response(400);
                 const user = users.find((val) => val.id === id);
@@ -491,7 +491,7 @@ export function startServer() {
 
             //#region Team
             this.get('/api/team/list', () => {
-                switch (currentAccount?.team) {
+                switch (currentAccount?.teamId) {
                     case 0:
                         return teams;
                     case 1:
@@ -523,10 +523,10 @@ export function startServer() {
                         name: team.name,
                         assignee: team.assignee,
                         invitation:
-                            currentAccount.team < 2
+                            currentAccount.teamId < 2
                                 ? team.invitation
                                 : undefined,
-                        members: currentAccount.team < 2 ? members : undefined
+                        members: currentAccount.teamId < 2 ? members : undefined
                     };
                 }
                 else return new Response(404);
@@ -540,7 +540,7 @@ export function startServer() {
                     attrs.id <= teams.length
                 ) {
                     if (
-                        currentAccount.team !== 0 &&
+                        currentAccount.teamId !== 0 &&
                         teams[attrs.id - 1].assignee !== currentAccount.name
                     )
                         return new Response(403);
@@ -579,7 +579,7 @@ export function startServer() {
             });
             this.post('/api/team/create', (_schema: any, request: any) => {
                 if (!currentAccount) return new Response(500);
-                if (currentAccount.team >= 2) return new Response(403);
+                if (currentAccount.teamId >= 2) return new Response(403);
                 const name = JSON.parse(request.requestBody).name;
                 if (!name || typeof name !== 'string') return new Response(400);
                 const id = teams.length + 2;
@@ -599,7 +599,7 @@ export function startServer() {
                 if (id < 1 || id - 1 >= teams.length) return new Response(404);
                 if (
                     id === 1 ||
-                    (currentAccount.team !== 0 &&
+                    (currentAccount.teamId !== 0 &&
                         teams[id - 1].assignee !== currentAccount.name)
                 )
                     return new Response(403);

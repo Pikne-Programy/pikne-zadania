@@ -14,14 +14,14 @@ export type AccountReturnType = {
 
 export interface Account {
     name: string;
+    teamId: number;
     number: number | null;
-    team: number;
 }
 export function isAccount(object: any): object is Account {
     return isObject<Account>(object, [
         ['name', ['string']],
-        ['number', ['number', 'null']],
-        ['team', ['number']]
+        ['teamId', ['number']],
+        ['number', ['number', 'null']]
     ]);
 }
 

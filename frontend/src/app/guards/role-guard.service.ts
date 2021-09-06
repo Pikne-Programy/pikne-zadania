@@ -57,7 +57,7 @@ export class RoleGuardService implements CanActivate {
     }
 
     static getRole(account: Account): Role {
-        switch (account.team) {
+        switch (account.teamId) {
             case 0:
                 return Role.ADMIN;
             case 1:

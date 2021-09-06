@@ -59,7 +59,8 @@ describe('Service: ExerciseModification', () => {
                     fail('should throw error');
                 }
                 catch (error) {
-                    expect(error.message).toBe('Wrong exercise header');
+                    const message = (error as { message: string }).message;
+                    expect(message).toBe('Wrong exercise header');
                 }
             });
 
@@ -73,7 +74,8 @@ describe('Service: ExerciseModification', () => {
                     fail('should throw error');
                 }
                 catch (error) {
-                    expect(error.message).toBe('Exercise type not found');
+                    const message = (error as { message: string }).message;
+                    expect(message).toBe('Exercise type not found');
                 }
             });
 
@@ -90,7 +92,8 @@ describe('Service: ExerciseModification', () => {
                     fail('should throw error');
                 }
                 catch (error) {
-                    expect(error.message).toBe('Exercise name not found');
+                    const message = (error as { message: string }).message;
+                    expect(message).toBe('Exercise name not found');
                 }
             });
         });

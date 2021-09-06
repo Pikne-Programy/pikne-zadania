@@ -176,7 +176,7 @@
                     {
                         "selector": "property",
                         "modifiers": ["readonly"],
-                        "format": ["camelCase", "PascalCase"]
+                        "format": ["camelCase", "PascalCase", "UPPER_CASE"]
                     },
                     {
                         "selector": "parameter",
