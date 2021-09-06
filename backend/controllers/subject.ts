@@ -53,7 +53,7 @@ export class SubjectController extends Authorizer {
 
   async list(ctx: RouterContext) {
     const user = await this.authorize(ctx, false); //! A
-    const allSubjects = await this.ss.list();
+    const allSubjects = this.es.listSubjects();
     const selection = await Promise.all(
       allSubjects.map((s) => this.isPermittedToView(s, user)),
     );

@@ -57,6 +57,7 @@ export class ExerciseStore implements IExerciseStore {
       try {
         const index = join(path, "index.yml");
         if (!existsSync(index)) continue;
+        this._unlisted[subject] = [];
         for (
           const { name: file } of [
             ...walkSync(join(this.exercisesPath, subject), {
@@ -90,7 +91,6 @@ export class ExerciseStore implements IExerciseStore {
           throw new Error("never");
         }
         const [subject, eid] = match.slice(1, 3);
-        if (!(subject in this._unlisted)) this._unlisted[subject] = [];
         this._unlisted[subject].push(eid);
       }
     }
