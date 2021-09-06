@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { vs } from "../deps.ts";
-import { isArrayOf, isSection, Section } from "./mod.ts";
+import { makeSection, Section } from "./mod.ts";
 
 function comb(...args: ({ source: string } | string)[]) {
   return new RegExp(`^${
@@ -84,10 +84,7 @@ export const schemas = {
       pattern: comb(/_?/, kebabCase, /\//, kebabCase),
     }),
     hierarchy: vs.array<Section>({
-      converter: (e: unknown[], f) => {
-        if (!isArrayOf(isSection, e)) throw f();
-        return e;
-      },
+      converter: (arr: unknown[], f) => arr.map((e) => makeSection(e, f)),
     }),
     content: vs.string({ strictType: true }),
     answer: vs.object(),

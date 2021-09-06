@@ -1,4 +1,5 @@
 // Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
+// Copyright 2021 Marcin Wykpis <marwyk2003@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -152,7 +153,7 @@ export class ExerciseStore implements IExerciseStore {
           // exercise exists in yaml but file doesn't exist
           continue;
         }
-        structure.push({ name: ex.name, children: el });
+        structure.push({ name: ex.name, children: el }); // TODO: name should not be stored (add it dynamically in controller?)
         this.exercises[this.uid(subject, el)][1] = true;
       } else {
         const name = Object.keys(el)[0];
@@ -179,6 +180,7 @@ export class ExerciseStore implements IExerciseStore {
     get: () => this._structure[subject] ?? null,
     set: (value: Section[]) => {
       this._structure[subject] = value;
+      // TODO: disk
     },
   });
 

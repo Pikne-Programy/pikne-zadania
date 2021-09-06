@@ -26,6 +26,12 @@ export function isObjectOf<T>(
     Reflect.ownKeys(what).length == Object.keys(what).length &&
     Object.values(what).every((v) => how(v));
 }
+function isUnknown(_what: unknown): _what is unknown {
+  return true;
+}
+export function isObject(what: unknown): what is { [key: string]: unknown } {
+  return isObjectOf(isUnknown, what);
+}
 export function isJSONType(what: unknown): what is JSONType {
   return (["string", "number", "boolean"].includes(typeof what)) ||
     isObjectOf(isJSONType, what) || isArrayOf(isJSONType, what) ||

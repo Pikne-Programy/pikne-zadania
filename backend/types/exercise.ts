@@ -2,7 +2,13 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { CustomDictError, isArrayOf, JSONObject, JSONType } from "./mod.ts";
+import {
+  CustomDictError,
+  isArrayOf,
+  isObject,
+  JSONObject,
+  JSONType,
+} from "./mod.ts";
 import { IConfigService } from "../interfaces/mod.ts";
 
 export abstract class Exercise {
@@ -28,19 +34,37 @@ export abstract class Exercise {
     | CustomDictError<"ExerciseBadAnswerFormat">;
 }
 
-export type Section = {
+type SubSection = {
   name: string;
-  children: Section[] | string; // id
+  children: Section[];
 };
-function isNameChildrenObject(
-  what: unknown,
-): what is { name: unknown; children: unknown } {
-  return typeof what === "object" && what !== null &&
-    Object.keys(what).sort().toString() === "children,name";
-}
+export type Section = SubSection | { children: string };
+
 export function isSection(what: unknown): what is Section {
-  if (!isNameChildrenObject(what)) return false;
-  if (typeof what.name !== "string") return false;
+  if (!isObject(what)) return false;
   if (typeof what.children === "string") return true;
-  return isArrayOf(isSection, what.children);
+  return typeof what.name === "string" &&
+    isArrayOf(isSection, what.children);
+}
+export function isSubSection(what: Section): what is SubSection {
+  return typeof what.children !== "string";
+}
+
+export function makeSection(
+  what: unknown,
+  errorCallback: () => never,
+): Section {
+  if (!isObject(what)) errorCallback();
+  if (!("children" in what)) errorCallback();
+  if (typeof what.children === "string") {
+    const { children } = what;
+    return { children };
+  }
+  if (typeof what.name !== "string") errorCallback();
+  const { name, children } = what;
+  if (!Array.isArray(children)) errorCallback();
+  return {
+    name,
+    children: children.map((e) => makeSection(e, errorCallback)),
+  };
 }
