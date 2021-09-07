@@ -139,16 +139,16 @@ describe('Service: Account', () => {
             [
                 {
                     name: 'Student',
-                    number: 1,
-                    team: 2
+                    teamId: 2,
+                    number: 1
                 },
                 null
             ],
             [
                 {
                     name: 'Teacher',
-                    number: null,
-                    team: 1
+                    teamId: 1,
+                    number: null
                 },
                 null
             ],
@@ -156,8 +156,8 @@ describe('Service: Account', () => {
             [
                 {
                     name: 1,
-                    number: null,
-                    team: 'abc'
+                    teamId: 'abc',
+                    number: null
                 },
                 [TYPE_ERROR, 'Type error - wrong types']
             ]

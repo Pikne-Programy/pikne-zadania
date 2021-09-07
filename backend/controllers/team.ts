@@ -83,11 +83,13 @@ export class TeamController extends Authorizer {
         ? await team.invitation.get() ?? null
         : undefined,
       members: await Promise.all(
-        (await team.members.get()).map(this.us.get).map(async (e) => ({
-          userId: verbosity >= 1 ? e.id : undefined,
-          name: await e.name.get(),
-          number: await e.number.get() ?? null,
-        })),
+        (await team.members.get()).map((id) => this.us.get(id)).map(
+          async (e) => ({
+            userId: verbosity >= 1 ? e.id : undefined,
+            name: await e.name.get(),
+            number: await e.number.get() ?? null,
+          }),
+        ),
       ),
     };
     ctx.response.status = 200; //! D
@@ -120,8 +122,7 @@ export class TeamController extends Authorizer {
       if (inv === reservedTeamInvitation) {
         inv = this.ts.invitation.create(teamId);
       }
-      // TODO: V
-      await team.invitation.set(inv);
+      if (!await team.invitation.set(inv)) throw new httpErrors["Conflict"]();
     }
     if (name !== null) await team.name.set(name); //! O
     ctx.response.status = 200; //! D

@@ -20,6 +20,11 @@ export {
 export { normalize as _normalize } from "https://deno.land/std@0.100.0/path/mod.ts";
 export { pbkdf2Sync } from "https://deno.land/std@0.100.0/node/crypto.ts";
 export { createHash } from "https://deno.land/std@0.100.0/hash/mod.ts";
+import { stringify as _stringify } from "https://deno.land/std@0.106.0/encoding/yaml.ts";
+export function stringify(x: unknown) {
+  // deno-lint-ignore no-explicit-any
+  return _stringify(x as any);
+}
 
 export type {
   Context,

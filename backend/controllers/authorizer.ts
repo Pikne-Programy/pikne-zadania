@@ -24,7 +24,7 @@ export class Authorizer {
     const userId = await this.jwt.resolve(jwt);
     if (!(userId instanceof CustomDictError)) return this.us.get(userId);
     if (userId.type !== "JWTNotFound") assertUnreachable(userId.type);
-    if (req) throw translateErrors(userId);
     ctx.cookies.delete("jwt");
+    if (req) throw new Error(`never: ${translateErrors(userId)}`);
   }
 }

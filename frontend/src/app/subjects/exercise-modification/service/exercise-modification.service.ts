@@ -135,7 +135,13 @@ export class ExerciseModificationService {
                             return of(exercise);
                         }
                         catch (error) {
-                            console.error(error);
+                            console.error(
+                                isObject<{ message: string }>(error, [
+                                    ['message', ['string']]
+                                ])
+                                    ? error.message
+                                    : error
+                            );
                             return throwError({ status: TYPE_ERROR });
                         }
                     }

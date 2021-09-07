@@ -1,4 +1,5 @@
 // Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
+// Copyright 2021 Marcin Wykpis <marwyk2003@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -9,7 +10,7 @@ import {
   joinThrowable,
   translateErrors,
 } from "../utils/mod.ts";
-import { schemas } from "../types/mod.ts";
+import { isSubSection, schemas, Section } from "../types/mod.ts";
 import {
   IConfigService,
   IExerciseService,
@@ -40,9 +41,10 @@ export class SubjectController extends Authorizer {
     if (user === undefined) return false;
     const subject = this.ss.get(s);
     if (!await subject.exists()) return false;
+    if (await user.role.get() === "admin") return true;
     const assignees = await subject.assignees.get();
-    return assignees === null || assignees.includes(user.id) || // public or the assignee
-      await user.role.get() === "admin"; // or admin
+    if (assignees !== null && assignees.includes(user.id)) return true;
+    return await user.role.get() === "teacher" && assignees === null; // TODO: user.isTeacher
   }
 
   /** check if the subject would be visible for the User */
@@ -53,7 +55,7 @@ export class SubjectController extends Authorizer {
 
   async list(ctx: RouterContext) {
     const user = await this.authorize(ctx, false); //! A
-    const allSubjects = await this.ss.list();
+    const allSubjects = this.es.listSubjects();
     const selection = await Promise.all(
       allSubjects.map((s) => this.isPermittedToView(s, user)),
     );
@@ -69,7 +71,7 @@ export class SubjectController extends Authorizer {
       assignees: schemas.subject.assignees,
     }); //! R
     if (!["teacher", "admin"].includes(await user.role.get())) { // TODO: isTeacher
-      throw new httpErrors["Unauthorized"]();
+      throw new httpErrors["Forbidden"]();
     } //! P
     translateErrors(await this.ss.add(subject, assignees)); //! EVO // TODO: V - all assignees exit?
     ctx.response.status = 200; //! D
@@ -84,7 +86,7 @@ export class SubjectController extends Authorizer {
       !["teacher", "admin"].includes(await user.role.get()) || // is not teacher // TODO: isTeacher
       !await this.isPermittedToView(subject, user) // or is not permitted
     ) {
-      throw new httpErrors["Unauthorized"]();
+      throw new httpErrors["Forbidden"]();
     } //! P
     if (!await this.ss.get(subject).exists()) {
       throw new httpErrors["NotFound"](); //! E
@@ -107,7 +109,7 @@ export class SubjectController extends Authorizer {
       assignees: schemas.subject.assignees,
     }); //! R
     if (!await this.isAssigneeOf(subject, user)) {
-      throw new httpErrors["Unauthorized"]();
+      throw new httpErrors["Forbidden"]();
     } //! P
     if (!this.ss.get(subject).exists()) throw new httpErrors["NotFound"](); //! E
     // TODO: V
@@ -138,7 +140,7 @@ export class SubjectController extends Authorizer {
         seed: schemas.user.seedOptional,
       }); //! R
       if (!await this.parent.isPermittedToView(subject, user)) {
-        throw new httpErrors["Unauthorized"]();
+        throw new httpErrors["Forbidden"]();
       } //! P
       const parsed = translateErrors(
         await this.parent.ex.render(
@@ -164,7 +166,7 @@ export class SubjectController extends Authorizer {
         answer: schemas.exercise.answer,
       }); //! R
       if (!await this.parent.isPermittedToView(subject, user)) {
-        throw new httpErrors["Unauthorized"]();
+        throw new httpErrors["Forbidden"]();
       } //! P
       const { info } = translateErrors(
         await this.parent.ex.check(
@@ -186,7 +188,7 @@ export class SubjectController extends Authorizer {
       const { subject, filename } = ctx.params;
       if (!subject || !filename) throw new Error("never"); //! R
       if (!await this.parent.isPermittedToView(subject, user)) {
-        throw new httpErrors["Unauthorized"]();
+        throw new httpErrors["Forbidden"]();
       } //! P
       await send(ctx, filename, {
         root: this.parent.es.getStaticContentPath(subject),
@@ -199,7 +201,7 @@ export class SubjectController extends Authorizer {
       const { subject, filename } = ctx.params;
       if (!subject || !filename) throw new Error("never"); //! R
       if (!await this.parent.isAssigneeOf(subject, user)) {
-        throw new httpErrors["Unauthorized"]();
+        throw new httpErrors["Forbidden"]();
       } //! P
       let content: Uint8Array;
       try {
@@ -222,59 +224,66 @@ export class SubjectController extends Authorizer {
       ctx.response.status = 200; //! D
     },
   };
+
   readonly hierarchy = {
     parent: this,
 
     async get(ctx: RouterContext) {
+      const user = await this.parent.authorize(ctx, false);
       const req = await followSchema(ctx, {
         subject: schemas.exercise.subject,
         raw: vs.boolean({ strictType: true }),
       });
-
-      /*
-          TODO: use this logic
-    private userProgress(arr: DoneSection[], user: User) {
-      if (user && user.role.name === "student") {
-        for (const e of arr) {
-          if (typeof e.children === "string") {
-            e.done = user.role.exercises[e.children] ?? null; //TODO(nircek): subject/id
-          } else this.userProgress(e.children, user);
+      const iterateSection = async (section: Section[]) => {
+        const sectionArray: unknown[] = [];
+        for (const el of section) {
+          if (!isSubSection(el)) {
+            const exercise = this.parent.es.get(req.subject, el.children);
+            if (exercise instanceof Error) continue; // ignore not existing exercises
+            sectionArray.push({
+              name: exercise.name,
+              children: el.children,
+              description: req.raw ? undefined : exercise.description,
+              done: (req.raw || user === undefined)
+                ? undefined
+                : await user.exercises.get(
+                  this.parent.es.uid(req.subject, el.children),
+                ) ?? null,
+            });
+          } else {
+            sectionArray.push({
+              name: el.name,
+              children: await iterateSection(el.children),
+            });
+          }
         }
-      }
-    }
-      */
-      // TODO
-      // TODO: If the raw property equals false, there is the description property and can be the optional done property if the User is authenticated.
-      // TODO: If the raw property equals false and the User is authorized, there is a {"name": "", children: [...]} (sub-subject) object with all exercises not listed in the hierarchy.
+        return sectionArray;
+      };
       ctx.response.body = [
-        { name: "", children: [{ name: "Kula 2", children: "kula-2" }] },
-        {
-          name: "mechanika",
-          children: [
-            {
-              name: "kinematyka",
-              children: [
-                {
-                  name: "Pociągi dwa 2",
-                  children: "pociagi-dwa",
-                  description:
-                    "Z miast \\(A\\) i \\(B\\) odległych o \\(d=300\\;\\mathrm{km}\\) wyruszają jednocześnie\ndwa pociągi z prędkościami \\(v_a= 50\\;\\mathrm{\\frac{km}{h}}\\) oraz \\(v_b=70\\;\\mathrm{\\frac{km}{h}}\\).\nW jakiej odległości \\(x\\) od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie \\(t\\) się to stanie?",
-                  done: 0.34,
-                },
-              ],
-            },
-          ],
-        },
+        ...(await this.parent.isAssigneeOf(req.subject, user)
+          ? [{
+            name: "",
+            children: this.parent.es.unlisted(req.subject).get().map((x) => ({
+              name: this.parent.es.get(req.subject, x).name,
+              children: x,
+            })),
+          }]
+          : []),
+        ...await iterateSection(this.parent.es.structure(req.subject).get()),
       ];
       ctx.response.status = 200;
     },
 
     async set(ctx: RouterContext) {
+      const user = await this.parent.authorize(ctx);
       const req = await followSchema(ctx, {
         subject: schemas.exercise.subject,
         hierarchy: schemas.exercise.hierarchy,
       });
-      // TODO
+      if (!await this.parent.isAssigneeOf(req.subject, user)) {
+        throw new httpErrors["Forbidden"]();
+      } //! P
+      this.parent.es.structure(req.subject).set(req.hierarchy);
       ctx.response.status = 200;
     },
   };
@@ -288,7 +297,7 @@ export class SubjectController extends Authorizer {
         subject: schemas.exercise.subject,
       }); //! R
       if (!await this.parent.isPermittedToView(subject, user)) {
-        throw new httpErrors["Unauthorized"]();
+        throw new httpErrors["Forbidden"]();
       } //! P
       const exercises = translateErrors(this.parent.es.listExercises(subject)); // TODO: check E and if all exercises are listed
       ctx.response.body = { exercises };
@@ -303,7 +312,7 @@ export class SubjectController extends Authorizer {
         content: schemas.exercise.content,
       }); //! R
       if (!await this.parent.isAssigneeOf(subject, user)) {
-        throw new httpErrors["Unauthorized"]();
+        throw new httpErrors["Forbidden"]();
       } //! P
       this.parent.es.add(subject, exerciseId, content); // TODO: EVO; await?
       ctx.response.status = 200; //! D
@@ -316,9 +325,9 @@ export class SubjectController extends Authorizer {
         exerciseId: schemas.exercise.id,
       }); //! R
       if (!await this.parent.isAssigneeOf(subject, user)) {
-        throw new httpErrors["Unauthorized"]();
+        throw new httpErrors["Forbidden"]();
       } //! P
-      const content = ""; // this.parent.es.getContent(subject, exerciseId); // TODO: E
+      const content = this.parent.es.getContent(subject, exerciseId); // TODO: E
       ctx.response.body = { content };
       ctx.response.status = 200; //! D
     },
@@ -331,7 +340,7 @@ export class SubjectController extends Authorizer {
         content: schemas.exercise.content,
       }); //! R
       if (!await this.parent.isAssigneeOf(subject, user)) {
-        throw new httpErrors["Unauthorized"]();
+        throw new httpErrors["Forbidden"]();
       } //! P
       translateErrors(this.parent.es.update(subject, exerciseId, content)); // TODO: EVO; await?
       ctx.response.status = 200; //! D

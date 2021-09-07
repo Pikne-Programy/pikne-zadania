@@ -7,7 +7,7 @@ import {
     ServerResponseNode,
     Subject as TreeSubject
 } from 'src/app/exercise-service/exercise.utils';
-import { TYPE_ERROR } from 'src/app/helper/utils';
+import { isObject, TYPE_ERROR } from 'src/app/helper/utils';
 import * as ServerRoutes from 'src/app/server-routes';
 
 export class Subject {
@@ -82,9 +82,9 @@ export class SubjectService {
             .get(ServerRoutes.subjectList)
             .pipe(
                 switchMap((response) =>
-                    Array.isArray(response) &&
-                    response.every((val) => typeof val === 'string')
-                        ? of(this.createSubjectList(response))
+                    isObject<{ subjects: string[] }>(response, [['subjects', 'array']]) &&
+                    response.subjects.every((val) => typeof val === 'string')
+                        ? of(this.createSubjectList(response.subjects))
                         : throwError({ status: TYPE_ERROR })
                 )
             )

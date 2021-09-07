@@ -86,11 +86,20 @@ describe('Service: Subject', () => {
         const list: [string, number, any][] = [
             ['server error', 500, {}],
             [
-                'Type error - not an array',
+                'Type error - not a proper object',
                 TYPE_ERROR,
                 'I am a trash response :P'
             ],
-            ['Type error - mixed type array', TYPE_ERROR, ['abc', 123, false]]
+            [
+                'Type error - `subjects` is not an array',
+                TYPE_ERROR,
+                { subjects: 'I am a trash response :P' }
+            ],
+            [
+                'Type error - mixed type array',
+                TYPE_ERROR,
+                { subjects: ['abc', 123, false] }
+            ]
         ];
         for (const [testMess, errorCode, serverResponse] of list) {
             it(
@@ -164,7 +173,7 @@ describe('Service: Subject', () => {
                             ServerRoutes.subjectList
                         );
                         expect(req.request.method).toEqual('GET');
-                        req.flush(resultList);
+                        req.flush({ subjects: resultList });
                     }
                 )
             )

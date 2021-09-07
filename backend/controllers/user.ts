@@ -22,11 +22,11 @@ export class UserController extends Authorizer {
     super(jwt, us);
   }
 
-  private async isAssigneeOf(assignee: IUser, who: IUser) {
-    return await who.exists() &&
-        assignee.id ===
-          await this.ts.get(await who.team.get()).assignee.get() ||
-      await assignee.role.get() === "admin";
+  private async isAssigneeOf(assignee: IUser, who: IUser) { // * assuming `assignee` exists
+    if (await assignee.role.get() === "admin") return true;
+    if (!await who.exists()) return false;
+    const team = this.ts.get(await who.team.get());
+    return await team.exists() && assignee.id === await team.assignee.get();
   }
 
   async info(ctx: RouterContext) {
@@ -38,7 +38,7 @@ export class UserController extends Authorizer {
     const who = this.us.get(userId);
     if (
       userId !== user.id && // not themself and
-      !this.isAssigneeOf(user, who) // member of not their team // TODO: change when dealing with groups (but to what?)
+      !await this.isAssigneeOf(user, who) // member of not their team // TODO: change when dealing with groups (but to what?)
     ) {
       throw new httpErrors["Forbidden"]();
     } //! P
@@ -61,11 +61,11 @@ export class UserController extends Authorizer {
     const who = this.us.get(userId);
     if (
       // ? themself ?
-      !this.isAssigneeOf(user, who) // member of not their team // TODO: change when dealing with groups (but to what? maybe add two Ps?)
+      !await this.isAssigneeOf(user, who) // member of not their team // TODO: change when dealing with groups (but to what? maybe add two Ps?)
     ) {
       throw new httpErrors["Forbidden"]();
     } //! P
-    if (await who.exists()) throw new httpErrors["NotFound"](); //! E
+    if (!await who.exists()) throw new httpErrors["NotFound"](); //! E
     if (number !== null) {
       await who.number.set(isNaN(number) ? undefined : number);
     }
@@ -82,7 +82,7 @@ export class UserController extends Authorizer {
     const who = this.us.get(userId);
     if (
       // ? themself ?
-      !this.isAssigneeOf(user, who) // member of not their team // TODO: change when dealing with groups (but to what? maybe add two Ps?)
+      !await this.isAssigneeOf(user, who) // member of not their team // TODO: change when dealing with groups (but to what? maybe add two Ps?)
     ) {
       throw new httpErrors["Forbidden"]();
     } //! P

@@ -3,7 +3,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { CustomDictError, SubjectType } from "../types/mod.ts";
+import { CustomDictError } from "../types/mod.ts";
 import {
   IDatabaseService,
   IExerciseStore,
@@ -22,12 +22,12 @@ export class SubjectStore implements ISubjectStore {
 
   async init() {
     const diskSubjects = new Set(this.exs.listSubjects());
-    const dbSubjects = new Set(
-      (await this.db.subjects!.find().toArray()).map((x: SubjectType) => x.id),
-    ); // TODO: see FindCursor (without .toArray())
-    const allSubjects = new Set([...dbSubjects, ...dbSubjects]);
+    const dbSubjects = new Set((await this.db.subjects!.find().toArray())
+      .map((x) => x.id));
+    // TODO: see FindCursor (without .toArray())
+    const allSubjects = new Set([...diskSubjects, ...dbSubjects]);
     for (const id of allSubjects) {
-      const [inDisk, inDb] = [id in diskSubjects, id in dbSubjects];
+      const [inDisk, inDb] = [diskSubjects.has(id), dbSubjects.has(id)];
       if (inDisk && !inDb) {
         await this.db.subjects!.insertOne({ id, assignees: null });
       } else if (!inDisk && inDb) {

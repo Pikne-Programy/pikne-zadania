@@ -140,13 +140,13 @@ describe('Service: RoleGuard', () => {
     });
 });
 
-function getRole(team: number): Role {
-    return RoleGuardService.getRole({ team } as Account);
+function getRole(teamId: number): Role {
+    return RoleGuardService.getRole({ teamId } as Account);
 }
 
 function getAccount(roleTeam: RoleTeam | null): Account | null {
     return roleTeam !== null
-        ? { name: 'test', number: null, team: roleTeam as number }
+        ? { name: 'test', number: null, teamId: roleTeam as number }
         : null;
 }
 
