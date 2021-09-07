@@ -16,7 +16,9 @@ export interface RoleSuiteContext extends E2eSuiteContext {
   roles: {
     root: string;
     teacher: string;
+    teacher2: string;
     student: string;
+    student2: string;
   };
 }
 export const roleSuite = new TestSuite<RoleSuiteContext>({
@@ -28,11 +30,15 @@ export const roleSuite = new TestSuite<RoleSuiteContext>({
     await updateTeamInvitation(context, root, 1, data.teacher.invitation);
     await register(context, data.teacher);
     const teacher = await login(context, data.teacher);
+    await register(context, data.teacher2);
+    const teacher2 = await login(context, data.teacher2);
     assertEquals(await createTeam(context, teacher, "2d"), 2);
     await updateTeamInvitation(context, teacher, 2, data.student.invitation);
     await register(context, data.student);
     const student = await login(context, data.student);
-    context.roles = { root, teacher, student };
+    await register(context, data.student2);
+    const student2 = await login(context, data.student2);
+    context.roles = { root, teacher, teacher2, student, student2 };
   },
   // TODO: logout?
 });

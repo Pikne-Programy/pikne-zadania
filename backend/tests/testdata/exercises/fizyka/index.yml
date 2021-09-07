@@ -1,3 +1,4 @@
-- kinematyka:
-    - mechanika:
-      - pociagi-dwa
+- mechanika:
+    - kinematyka:
+        - pociagi-dwa
+        - pociagi-dwa-2

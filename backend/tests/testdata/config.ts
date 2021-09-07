@@ -50,6 +50,13 @@ export const data = {
     hashedPassword: "26n60IlkcRznpeBQa2pI6zKp7ymLSBqiWLZEIEC+uEk=", // teacher
     invitation: "QwErTy58",
   },
+  teacher2: {
+    id: "changed below",
+    login: "teacher2@example.com",
+    name: "Williams",
+    hashedPassword: "26n60IlkcRznpeBQa2pI6zKp7ymLSBqiWLZEIEC+uEk=", // teacher
+    invitation: "QwErTy58",
+  },
   student: {
     id: "changed below",
     login: "student@example.com",
@@ -57,6 +64,14 @@ export const data = {
     hashedPassword: "Hth8SbNz18M69i3AJK7LEENcZ+S8KYDs8MhrlSWAK7U=", // student
     invitation: "85yTrEwQ",
     number: 1,
+  },
+  student2: {
+    id: "changed below",
+    login: "student2@example.com",
+    name: "User2",
+    hashedPassword: "Hth8SbNz18M69i3AJK7LEENcZ+S8KYDs8MhrlSWAK7U=", // student
+    invitation: "85yTrEwQ",
+    number: 2,
   },
 };
 type roles = keyof typeof data;
