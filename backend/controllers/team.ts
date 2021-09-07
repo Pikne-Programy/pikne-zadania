@@ -122,8 +122,7 @@ export class TeamController extends Authorizer {
       if (inv === reservedTeamInvitation) {
         inv = this.ts.invitation.create(teamId);
       }
-      // TODO: V
-      await team.invitation.set(inv);
+      if (!await team.invitation.set(inv)) throw new httpErrors["Conflict"]();
     }
     if (name !== null) await team.name.set(name); //! O
     ctx.response.status = 200; //! D

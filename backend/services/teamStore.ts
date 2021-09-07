@@ -74,7 +74,6 @@ export class TeamStore implements ITeamStore {
       return new CustomDictError("TeamNotFound", { teamId });
     }
     for (const uid of await team.members.get()) {
-      await team.members.remove(uid);
       await this.target.us.delete(uid);
     }
     await this.db.teams!.deleteOne({ id: team.id });

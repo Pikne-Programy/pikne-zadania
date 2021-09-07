@@ -1,10 +1,12 @@
 // Copyright 2021 Marcin Wykpis <marwyk2003@gmail.com>
+// Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { TeamType } from "../types/mod.ts";
 import { IDatabaseService, ITeam } from "../interfaces/mod.ts";
 
+// TODO: make an abstract Model class
 export class Team implements ITeam {
   constructor(
     private db: IDatabaseService,
@@ -18,11 +20,19 @@ export class Team implements ITeam {
   }
   private async set<T extends keyof TeamType>(key: T, value: TeamType[T]) {
     if (!await this.exists()) throw new Error(); // TODO: error message
-    await this.db.teams!.updateOne({ id: this.id }, { $set: { [key]: value } });
+    if (value === undefined) {
+      await this.db.teams!.updateOne({ id: this.id }, {
+        $unset: { [key]: "" },
+      });
+    } else {
+      await this.db.teams!.updateOne({ id: this.id }, {
+        $set: { [key]: value },
+      });
+    }
   }
 
   async exists() {
-    return (await this.db.teams!.findOne({ id: this.id })) ? true : false;
+    return (await this.db.teams!.findOne({ id: this.id })) !== undefined;
   }
 
   readonly name = {
@@ -52,14 +62,14 @@ export class Team implements ITeam {
   readonly invitation = {
     get: async () => await this.get("invitation"),
     set: async (invitation?: string) => {
-      const existing = (await this.db.teams!.findOne({ invitation }))?.id;
-      if (
-        invitation !== undefined && existing !== undefined &&
-        existing !== this.id
-      ) {
-        throw new Error("Invalid invitation"); // TODO: error message // TODO: handle it
+      if (invitation === undefined) await this.set("invitation", undefined);
+      else {
+        const existing = (await this.db.teams!.findOne({ invitation }))?.id;
+        // * assuming there were no two teams with same id; `findOne` not `find`
+        if (existing !== undefined && existing !== this.id) return false;
+        await this.set("invitation", invitation);
       }
-      await this.db.teams!.updateOne({ id: this.id }, { $set: { invitation } });
+      return true;
     },
   };
 }

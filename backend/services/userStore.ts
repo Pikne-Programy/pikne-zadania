@@ -192,8 +192,8 @@ export class UserStore implements IUserStore {
     if (!await user.exists()) {
       return new CustomDictError("UserNotFound", { userId });
     }
-    await this.db.users!.deleteOne({ id: user.id });
     const team = this.target.ts.get(await user.team.get());
     if (await team.exists()) await team.members.remove(user.id);
+    await this.db.users!.deleteOne({ id: user.id });
   }
 }

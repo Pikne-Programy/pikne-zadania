@@ -24,7 +24,15 @@ export class User implements IUser {
   }
   private async set<T extends keyof UserType>(key: T, value: UserType[T]) {
     if (!await this.exists()) throw new Error(); // TODO: error message
-    await this.db.users!.updateOne({ id: this.id }, { $set: { [key]: value } });
+    if (value === undefined) {
+      await this.db.users!.updateOne({ id: this.id }, {
+        $unset: { [key]: "" },
+      });
+    } else {
+      await this.db.users!.updateOne({ id: this.id }, {
+        $set: { [key]: value },
+      });
+    }
   }
 
   async exists() {

@@ -19,6 +19,7 @@ export interface ITeam {
   };
   invitation: {
     get: () => Promise<string | undefined>;
-    set: (value: string | undefined) => Promise<void>;
+    /** It returns true if everything went well. */
+    set: (value: string | undefined) => Promise<boolean>;
   };
 }
