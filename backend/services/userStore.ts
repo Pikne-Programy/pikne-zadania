@@ -25,6 +25,11 @@ export class UserStore implements IUserStore {
     private target: StoreTarget,
   ) {}
 
+  private handle<T>(x: T | CustomDictError): T {
+    if (x instanceof CustomDictError) throw x;
+    return x;
+  }
+
   async init() {
     const warn = (
       what: string,
@@ -44,7 +49,9 @@ export class UserStore implements IUserStore {
     if (!config.enable) {
       if (config.password) warn("ROOT_PASS");
       if (config.dhPassword) warn("ROOT_DHPASS");
-      if (root) await this.delete(this.cfg.hash("root"));
+      if (await root.exists()) {
+        this.handle(await this.delete(this.cfg.hash("root")));
+      }
       return;
     }
     warn("ROOT_ENABLE", "It can be a security issue.");
@@ -57,9 +64,11 @@ export class UserStore implements IUserStore {
           console.log("ROOT was not changed.");
         }
       } else {
-        await this.add(
-          { teamId: 0 },
-          { dhPassword: config.dhPassword, ...rootType },
+        this.handle(
+          await this.add({ teamId: 0 }, {
+            dhPassword: config.dhPassword,
+            ...rootType,
+          }),
         );
         if (this.cfg.VERBOSITY >= 2) {
           console.warn("ROOT was registered with ROOT_DHPASS.");
@@ -82,7 +91,9 @@ export class UserStore implements IUserStore {
             `Please unset ROOT_PASS!\nSet ROOT_DHPASS=${dhPassword} if needed.`,
           );
         }
-        await this.add({ invitation: "" }, { dhPassword, ...rootType });
+        this.handle(
+          await this.add({ teamId: 0 }, { dhPassword, ...rootType }),
+        );
         if (this.cfg.VERBOSITY >= 2) {
           console.warn("ROOT was registered with ROOT_PASS.");
         }

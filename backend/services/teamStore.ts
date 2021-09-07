@@ -19,12 +19,19 @@ export class TeamStore implements ITeamStore {
     private target: StoreTarget,
   ) {}
 
+  private handle<T>(x: T | CustomDictError): T {
+    if (x instanceof CustomDictError) throw x;
+    return x;
+  }
+
   async init() {
     // create static teachers' team if not already created
     if (!(await this.get(1).exists())) {
       // teachers' team
       const assignee = this.cfg.hash("root");
-      await this.add(1, { name: "Teachers", assignee }, true);
+      this.handle( // better safe than sorry
+        await this.add(1, { name: "Teachers", assignee }, true),
+      );
     }
   }
 

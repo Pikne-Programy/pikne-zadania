@@ -37,7 +37,7 @@ export class JWTService implements IJWTService {
     try {
       if (jwt === undefined) throw undefined;
       const conf = this.cfg.JWT_CONF;
-      const payload = await verify(jwt, conf.key, conf.header.alg);
+      const payload = await verify(jwt, conf.key, conf.header.alg); // TODO: throwable
       const userId = payload.id;
       if (typeof userId !== "string") throw undefined;
       const user = this.us.get(userId);

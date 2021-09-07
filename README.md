@@ -102,7 +102,7 @@ docker-compose exec web npm run lint
 ```sh
 # build (see section above)
 docker-compose up -d
-docker-compose exec api deno test -A --unstable --watch
+docker-compose exec api deno test -A --unstable --cached-only --watch
 docker-compose down
 ```
 

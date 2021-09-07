@@ -27,7 +27,7 @@ jobs:
       - name: Run tests & Generate coverage report
         run: |
           set +e
-          docker-compose exec -T api deno test -A --unstable --coverage=/tmp/coverage
+          docker-compose exec -T api deno test -A --unstable --coverage=/tmp/coverage --cached-only
           SUC=$?
           docker-compose exec -T api deno coverage /tmp/coverage --lcov > deno.lcov && exit $SUC
         if: always()
@@ -40,5 +40,3 @@ jobs:
         with:
           files: deno.lcov
         if: always()
-
-
