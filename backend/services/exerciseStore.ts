@@ -3,7 +3,14 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { emptyDirSync, existsSync, join, parse, walkSync } from "../deps.ts";
+import {
+  emptyDirSync,
+  existsSync,
+  join,
+  parse,
+  stringify,
+  walkSync,
+} from "../deps.ts";
 import { handleThrown, joinThrowable } from "../utils/mod.ts";
 import {
   CustomDictError,
@@ -11,6 +18,7 @@ import {
   isArrayOf,
   isJSONType,
   isObjectOf,
+  isSubSection,
   Section,
 } from "../types/mod.ts";
 import { IConfigService, IExerciseStore } from "../interfaces/mod.ts";
@@ -41,7 +49,7 @@ export class ExerciseStore implements IExerciseStore {
 
   private readonly exercisesPath;
 
-  private readonly uid = (subject: string, exerciseId: string) =>
+  readonly uid = (subject: string, exerciseId: string) =>
     `${subject}/${exerciseId}`;
 
   constructor(
@@ -78,8 +86,7 @@ export class ExerciseStore implements IExerciseStore {
         if (!isArrayOf(isYAMLSection, content)) {
           throw new Error("index not a YAMLSection[]");
         }
-        const structure = this.buildSectionList(subject, content);
-        this._structure[subject] = structure;
+        this._structure[subject] = this.buildSectionList(subject, content);
       } catch (e) {
         if (this.cfg.VERBOSITY >= 1) handleThrown(e, `${subject}`);
       }
@@ -179,9 +186,38 @@ export class ExerciseStore implements IExerciseStore {
   readonly structure = (subject: string) => ({
     get: () => this._structure[subject] ?? null,
     set: (value: Section[]) => {
+      const index = joinThrowable(this.exercisesPath, subject, "index.yml");
+      const makeYAMLSection = (section: Section): YAMLSection | string => {
+        if (!isSubSection(section)) {
+          const exerciseId = section.children;
+          if (!(this.uid(subject, exerciseId) in this.exercises)) {
+            throw new CustomDictError("ExerciseNotFound", {
+              subject,
+              exerciseId,
+            });
+          }
+          return exerciseId;
+        }
+        return {
+          [section.name]: section.children.map(makeYAMLSection),
+        };
+      };
+      let res;
+      try {
+        res = value.map((x) => makeYAMLSection(x));
+      } catch (e) {
+        if (e instanceof CustomDictError) {
+          return e;
+        }
+        throw e;
+      }
+      Deno.writeTextFileSync(index, stringify(res));
       this._structure[subject] = value;
-      // TODO: disk
     },
+  });
+
+  readonly unlisted = (subject: string) => ({
+    get: () => this._unlisted[subject],
   });
 
   add(subject: string, exerciseId: string, content: string) {

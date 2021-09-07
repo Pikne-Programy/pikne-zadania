@@ -7,6 +7,7 @@ import { CustomDictError } from "../types/mod.ts";
 import { Subject } from "../models/mod.ts";
 
 export interface ISubjectStore {
+  init(): Promise<void>;
   get(id: string): Subject;
   list(): Promise<string[]>;
   add(
