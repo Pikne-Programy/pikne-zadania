@@ -3,7 +3,9 @@ API Endpoints of `pikne-zadania`
 Marcin Zepp <nircek-2103@protonmail.com>
 v0.3, 08.09.2021:Revision 3
 :issue: https://github.com/Pikne-Programy/pikne-zadania/issues/34[#34]
+:stylesheet: dark.css
 :source-highlighter: highlightjs
+:highlightjs-theme: dark
 :source-language: json
 :toc:
 
