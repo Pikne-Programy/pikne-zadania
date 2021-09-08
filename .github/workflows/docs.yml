@@ -1,0 +1,15 @@
+name: Docs
+on:
+  push:
+    branches: docs
+
+jobs:
+  gh-pages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: asciidoctor-ghpages
+        uses: manoelcampos/asciidoctor-ghpages-action@v2.1.2
+        # with:
+        #   asciidoctor_params: --attribute=nofooter
+        #   source_dir: docs/ # default is .
