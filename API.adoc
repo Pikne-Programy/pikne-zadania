@@ -1,0 +1,1318 @@
+API Endpoints of `pikne-zadania`
+================================
+Marcin Zepp <nircek-2103@protonmail.com>
+v0.3, 08.09.2021:Revision 3
+:issue: https://github.com/Pikne-Programy/pikne-zadania/issues/34[#34]
+:source-highlighter: highlightjs
+:source-language: json
+:toc:
+
+NOTE: Discuss API v{revnumber} at {issue}.
+
+== Throwing errors
+
+If there is an error (`4xx` or `5xx` HTTP status code), the API will return either no content or the JSON object with an error message:
+[source]
+----
+{
+  "status": 500,
+  "message": "<error message>"
+}
+----
+The `"status"` property is a status code of the response.
+
+== The most common errors status codes
+
+* 400, when the request is invalid,
+* 401, when the authentication failed, or a user didn't authenticate although it is required,
+* 500, if there is a problem on the server-side.
+
+== TODO
+
+* discuss permissions
+* review the whole document
+* rewrite descriptions and check status codes
+* add short descriptions in ToC?
+
+== Subject
+
+=== `GET /api/subject/list` [[GET_api_subject_list]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| GET
+| `/api/subject/list`
+| fetch list of all subjects
+|
+|===
+
+////
+TODO: can be used by
+anyone
+////
+
+.Request
+
+[source]
+----
+----
+
+.Response
+
+[source]
+----
+{
+  "subjects": ["fizyka", "_fizyka", "astronomia"]
+}
+----
+
+.Notes
+
+// subjects-:only-available
+* There are only subjects available for the User.
+
+=== `POST /api/subject/create` [[POST_api_subject_create]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/subject/create`
+| create new subject
+| 403, 409 (id already exists)
+|===
+
+////
+TODO: can be used by
+teachers
+////
+
+.Request
+
+[source]
+----
+{
+  "subject": "fizyka",
+  "assignees": [
+    "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755"
+  ]
+}
+----
+
+.Response
+
+[source]
+----
+----
+
+.Notes
+
+// subject+:underscore-prefix
+* Subjects that begins with the `_` character are private and not visible to unauthorized users.
+// assignees+:empty-warning
+* Only the Admin will be managing the subject if the `assignees` property equals `[]`.
+// subject+:unique
+* `subject` is a name and an id simultaneously.
+It has to be unique.
+// assignees+:def
+* If the `assignees` property equals `null`, all teachers will be able to manage the subject.
+
+=== `POST /api/subject/info` [[POST_api_subject_info]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/subject/info`
+| get list of authorized users
+| 403, 404
+|===
+
+////
+TODO: can be used by
+all assignees // TODO: make it in code
+and teachers if public
+////
+
+.Request
+
+[source]
+----
+{
+  "subject": "fizyka"
+}
+----
+
+.Response
+
+[source]
+----
+{
+  "assignees": [
+    {
+      "userId": "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755",
+      "name": "Smith"
+    }
+  ]
+}
+----
+
+.Notes
+
+// assignees-:def
+* If the `assignees` property equals `null`, all teachers can modify the subject.
+
+=== `POST /api/subject/permit` [[POST_api_subject_permit]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/subject/permit`
+| change list of authorized users
+| 403, 404
+|===
+
+////
+TODO: can be used by
+assignees
+////
+
+.Request
+
+[source]
+----
+{
+  "subject": "fizyka",
+  "assignees": [
+    "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755"
+  ]
+}
+----
+
+.Response
+
+[source]
+----
+----
+
+.Notes
+
+// assignees+:def
+* If the `assignees` property equals `null`, all teachers will be able to manage the subject.
+
+== Problem managing
+
+=== `POST /api/subject/problem/get` [[POST_api_subject_problem_get]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/subject/problem/get`
+| render an exercise
+| 403, 404
+|===
+
+////
+TODO: can be used by
+anyone if subject is public and exercise is listed in hierarchy
+if not: only assignees
+////
+
+.Request
+
+[source]
+----
+{
+  "subject": "fizyka",
+  "exerciseId": "pociagi-dwa",
+  "seed": 0
+}
+----
+
+.Response
+
+[source]
+----
+{
+  "type": "EqEx",
+  "name": "Pociągi dwa 2",
+  "done": 0.34,
+  "problem": {
+    "main": "Z miast \\(A\\) i \\(B\\) odległych o \\(d=300\\;\\mathrm{km}\\) wyruszają jednocześnie\ndwa pociągi z prędkościami \\(v_a= 50\\;\\mathrm{\\frac{km}{h}}\\) oraz \\(v_b=70\\;\\mathrm{\\frac{km}{h}}\\).\nW jakiej odległości \\(x\\) od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie \\(t\\) się to stanie?",
+    "img": ["1.png", "2.png"],
+    "unknown": [
+      ["x", "\\mathrm{km}"],
+      ["t", "\\mathrm{s}"]
+    ]
+  },
+  "correctAnswer": {
+    "answers": [2.5, 125]
+  }
+}
+----
+
+.Notes
+
+// seed+?:teacher|admin
+* Only the Teacher and the Admin can use the `seed` property.
+Otherwise, the database provides it.
+// correctAnswer-:teacher|admin
+* Only the Teacher and the Admin receive the `correctAnswer` property.
+// done-:def
+* The `done` property can be `null` or a number from 0 up to and including 1, see https://github.com/Pikne-Programy/pikne-zadania/issues/24#issuecomment-782939873[#24].
+// problem-:ext-dependent
+* The `problem` property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.
+// problem-:links2static
+* The `problem` property can contain links to static content.
+The User can access it via the <<GET_api_subject_static_.subject_.filename>> request.
+// TODO: 403 vs 401; don't question
+
+=== `POST /api/subject/problem/update` [[POST_api_subject_problem_update]]
+
+// TODO: change name to answer in v0.4
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/subject/problem/update`
+| store answers
+| 404
+|===
+
+////
+TODO: can be used by
+anyone if subject is public and exercise is listed in hierarchy
+if not: only assignees
+////
+
+.Request
+
+[source]
+----
+{
+  "subject": "fizyka",
+  "exerciseId": "pociagi-dwa",
+  "answer": {
+    "answers": [15.000000000000004, 13]
+  }
+}
+----
+
+.Response
+
+[source]
+----
+{
+  "info": [false, true]
+}
+----
+
+.Notes
+
+// info-:ext-dependent
+* The `info` property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.
+
+== Static files managing
+
+=== `GET /api/subject/static/:subject/:filename` [[GET_api_subject_static_.subject_.filename]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| GET
+| `/api/subject/static/:subject/:filename`
+| get a static file
+| 403, 404
+|===
+
+////
+TODO: can be used by
+anyone if subject is public
+if not: only assignees
+////
+
+.Notes
+
+// /static-:binary-data
+* There should be binary data with an appropriate Content-type in the response.
+
+=== `PUT /api/subject/static/:subject/:filename` [[PUT_api_subject_static_.subject_.filename]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| PUT
+| `/api/subject/static/:subject/:filename`
+| upload a static file
+| 403, 404
+|===
+
+////
+TODO: can be used by
+assignees
+////
+
+.Notes
+
+// /static+:multipart
+* The request data should follow the `multipart/form-data` Content-type.
+
+== Hierarchy modification
+
+=== `POST /api/subject/hierarchy/get` [[POST_api_subject_hierarchy_get]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/subject/hierarchy/get`
+| get hierarchy of exercises in subject
+| 404
+|===
+
+////
+TODO: can be used by
+anyone
+assignees if private
+////
+
+.Request
+
+[source]
+----
+{
+  "subject": "fizyka",
+  "raw": false
+}
+----
+
+.Response
+
+[source]
+----
+[
+  {
+    "name": "",
+    "children": [
+      {
+        "type": "EqEx",
+        "name": "Kula 2",
+        "children": "kula-2",
+        "description": "TODO",
+        "done": null
+      }
+    ]
+  },
+  {
+    "name": "mechanika",
+    "children": [
+      {
+        "name": "kinematyka",
+        "children": [
+          {
+            "type": "EqEx",
+            "name": "Pociągi dwa 2",
+            "children": "pociagi-dwa",
+            "description": "Z miast \\(A\\) i \\(B\\) odległych o \\(d= 300\\;\\mathrm{km}\\) wyruszają jednocześnie\ndwa pociągi z prędkościami \\(v_{a}= \\;\\mathrm{\\frac{km}{h}}\\) oraz \\(v_{b}= \\;\\mathrm{\\frac{km}{h}}\\).\nW jakiej odległości \\(x\\) od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie \\(t\\) się to stanie?\n",
+            "done": 0.34
+          }
+        ]
+      }
+    ]
+  }
+]
+----
+
+.Notes
+
+// description-&done-?:raw=false
+* If the `raw` property equals `false`, there is the `description` property and can be the optional `done` property if the User is authenticated.
+// /hierarchy.subsubject:exs-not-listed
+* If the `raw` property equals `false` and the User is authorized, there is a `{"name": "", children: [...]}` (sub-subject) object with all exercises not listed in the hierarchy.
+// description-:ext-dependent
+* The `description` property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.
+// done-:def
+* The `done` property can be `null` or a number from 0 up to and including 1, see https://github.com/Pikne-Programy/pikne-zadania/issues/24#issuecomment-782939873[#24].
+
+=== `POST /api/subject/hierarchy/set` [[POST_api_subject_hierarchy_set]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/subject/hierarchy/set`
+| set hierarchy of exercises in subject
+| 404
+|===
+
+////
+TODO: can be used by
+assignees
+////
+
+.Request
+
+[source]
+----
+{
+  "subject": "fizyka",
+  "hierarchy": [
+    {
+      "name": "mechanika",
+      "children": [
+        {
+          "name": "kinematyka",
+          "children": [
+            {
+              "children": "pociagi-dwa"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+----
+
+.Response
+
+[source]
+----
+----
+
+.Notes
+
+* none
+
+== Exercise modification
+
+=== `POST /api/subject/exercise/list` [[POST_api_subject_exercise_list]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/subject/exercise/list`
+| get all exercises from subject
+| 403, 404
+|===
+
+////
+TODO: can be used by
+anyone
+assignees if private
+////
+
+.Request
+
+[source]
+----
+{
+  "subject": "_fizyka"
+}
+----
+
+.Response
+
+[source]
+----
+{
+  "exercises": ["pociagi-dwa", "kula-2"]
+}
+----
+
+.Notes
+
+* none
+
+=== `POST /api/subject/exercise/add` [[POST_api_subject_exercise_add]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/subject/exercise/add`
+| add new exercise
+| 403, 409 (id already exists)
+|===
+
+////
+TODO: can be used by
+assignees
+////
+
+.Request
+
+[source]
+----
+{
+  "subject": "fizyka",
+  "exerciseId": "pociagi-dwa",
+  "content": "---\ntype: EqEx\nname: Pociągi dwa 2\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n"
+}
+----
+
+.Response
+
+[source]
+----
+----
+
+.Notes
+
+// content:ext-dependent
+* The `content` property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.
+// content+:links2static
+* The `content` property can contain links to static content.
+The User can upload it via the <<PUT_api_subject_static_.subject_.filename>> request.
+
+=== `POST /api/subject/exercise/get` [[POST_api_subject_exercise_get]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/subject/exercise/get`
+| get content of an exercise
+| 403, 404
+|===
+
+////
+TODO: can be used by
+assignees
+////
+
+.Request
+
+[source]
+----
+{
+  "subject": "fizyka",
+  "exerciseId": "pociagi-dwa"
+}
+----
+
+.Response
+
+[source]
+----
+{
+  "content": "---\ntype: EqEx\nname: Pociągi dwa 2\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n"
+}
+----
+
+.Notes
+
+// content:ext-dependent
+* The `content` property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.
+
+=== `POST /api/subject/exercise/update` [[POST_api_subject_exercise_update]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/subject/exercise/update`
+| update exercise's content
+| 403, 404
+|===
+
+////
+TODO: can be used by
+assignees
+////
+
+.Request
+
+[source]
+----
+{
+  "subject": "fizyka",
+  "exerciseId": "pociagi-dwa",
+  "content": "---\ntype: EqEx\nname: Pociągi dwa 2\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n"
+}
+----
+
+.Response
+
+[source]
+----
+----
+
+.Notes
+
+// content+:only-changeable
+* Only the `content` property is changeable.
+Changing an `exerciseId` fails or overwrites an old exercise.
+// content:ext-dependent
+* The `content` property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.
+
+=== `POST /api/subject/exercise/preview` [[POST_api_subject_exercise_preview]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/subject/exercise/preview`
+| preview an exercise
+| 403, 404
+|===
+
+////
+TODO: can be used by
+authorized
+////
+
+.Request
+
+[source]
+----
+{
+  "content": "---\ntype: EqEx\nname: Pociągi dwa 2\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n",
+  "seed": 0
+}
+----
+
+.Response
+
+[source]
+----
+{
+  "type": "EqEx",
+  "name": "Pociągi dwa 2",
+  "problem": {
+    "main": "Z miast \\(A\\) i \\(B\\) odległych o \\(d=300\\;\\mathrm{km}\\) wyruszają jednocześnie\ndwa pociągi z prędkościami \\(v_a= 50\\;\\mathrm{\\frac{km}{h}}\\) oraz \\(v_b=70\\;\\mathrm{\\frac{km}{h}}\\).\nW jakiej odległości \\(x\\) od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie \\(t\\) się to stanie?",
+    "img": ["1.png", "2.png"],
+    "unknown": [
+      ["x", "\\mathrm{km}"],
+      ["t", "\\mathrm{s}"]
+    ]
+  },
+  "correctAnswer": {
+    "answers": [2.5, 125]
+  }
+}
+----
+
+.Notes
+
+// seed+?
+* The `seed` property is optional.
+// problem-:ext-dependent
+* The `problem` property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.
+// problem-:links2static
+* The `problem` property can contain links to static content.
+The User can access it via the <<GET_api_subject_static_.subject_.filename>> request.
+// content:ext-dependent
+* The `content` property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.
+
+== Auth
+
+=== `POST /api/auth/register` [[POST_api_auth_register]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/auth/register`
+| register a new user
+| 403 (wrong invitation), 409 (account already exists)
+|===
+
+////
+TODO: can be used by
+anyone
+////
+
+.Request
+
+[source]
+----
+{
+  "login": "user@example.com",
+  "name": "User",
+  "hashedPassword": "r02H/fnQ3M3Xfjqsr3dg8mY78lBDXWoiR0O0JcXW8VM=",
+  "number": 11,
+  "invitation": "QwErTy58"
+}
+----
+
+.Response
+
+[source]
+----
+----
+
+.Notes
+
+// /register:not-authenticate
+* This request doesn't authenticate, unlike a <<POST_api_auth_login>> one.
+// login+:email!root
+* The `login` property is an email address.
+With this request, it is not possible to register hard-coded users (like `root`).
+// hashedPassword+:def
+* The description of the `hashedPassword` property generation is https://github.com/Pikne-Programy/pikne-zadania/issues/22#issuecomment-789536400[here].
+// number+:def
+* The `number` property is a number or `null`.
+
+=== `POST /api/auth/login` [[POST_api_auth_login]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/auth/login`
+| authenticate
+| -
+|===
+
+////
+TODO: can be used by
+anyone
+////
+
+.Request
+
+[source]
+----
+{
+  "login": "user@example.com",
+  "hashedPassword": "r02H/fnQ3M3Xfjqsr3dg8mY78lBDXWoiR0O0JcXW8VM="
+}
+----
+
+.Response
+
+[source]
+----
+----
+
+.Notes
+
+// hashedPassword+:def
+* The description of the `hashedPassword` property generation is https://github.com/Pikne-Programy/pikne-zadania/issues/22#issuecomment-789536400[here].
+
+=== `POST /api/auth/logout` [[POST_api_auth_logout]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/auth/logout`
+| unauthenticate
+| -
+|===
+
+////
+TODO: can be used by
+authorized
+////
+
+.Request
+
+[source]
+----
+----
+
+.Response
+
+[source]
+----
+----
+
+.Notes
+
+* none
+
+== User
+
+=== `POST /api/user/info` [[POST_api_user_info]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/user/info`
+| get info about a user
+| 403, 404
+|===
+
+////
+TODO: can be used by
+authorized if a request is referring to the User
+assignees of the team of the User in request
+////
+
+.Request
+
+[source]
+----
+{
+  "userId": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}
+----
+
+.Response
+
+[source]
+----
+{
+  "name": "User",
+  "teamId": 2,
+  "number": 11
+}
+----
+
+.Notes
+
+// userId+?:ommitting=db
+* Omitting the `userId` property causes using the User's one.
+// number+:def
+* The `number` property is a number or `null`.
+
+=== `POST /api/user/update` [[POST_api_user_update]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/user/update`
+| update User's data
+| 403, 404
+|===
+
+////
+TODO: can be used by
+assignees of the team of the User in request
+////
+
+.Request
+
+[source]
+----
+{
+  "userId": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "number": 33
+}
+----
+
+.Response
+
+[source]
+----
+----
+
+.Notes
+
+// #changeable(number,name)
+* Only `number` and `name` properties are changeable.
+// number+:def
+* The `number` property is a number or `null`.
+
+=== `POST /api/user/delete` [[POST_api_user_delete]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/user/delete`
+| unregister a user
+| 403, 404
+|===
+
+////
+TODO: can be used by
+assignees of the team of the User in request
+////
+
+.Request
+
+[source]
+----
+{
+  "userId": "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755"
+}
+----
+
+.Response
+
+[source]
+----
+----
+
+.Notes
+
+* none
+
+== Team
+
+=== `GET /api/team/list` [[GET_api_team_list]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| GET
+| `/api/team/list`
+| get list of teams
+| 403
+|===
+
+////
+TODO: can be used by
+teachers
+////
+
+.Request
+
+[source]
+----
+----
+
+.Response
+
+[source]
+----
+[
+  {
+    "teamId": 1,
+    "name": "Teachers",
+    "assignee": {
+      "userId": "4813494d137e1631bba301d5acab6e7bb7aa74ce1185d456565ef51d737677b2",
+      "name": "root"
+    },
+    "invitation": "QwErTy58"
+  },
+  {
+    "teamId": 2,
+    "name": "2d",
+    "assignee": {
+      "userId": "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755",
+      "name": "Smith"
+    },
+    "invitation": null
+  },
+  {
+    "teamId": 3,
+    "name": "3d",
+    "assignee": {
+      "userId": "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755",
+      "name": "Smith"
+    },
+    "invitation": null
+  }
+]
+----
+
+.Notes
+
+// [teams]:admin-id-0
+* There is always a hard-coded `admin` team with id `0`.
+// invitation-?:if-can-manage
+* If the User can manage a team, there is the `invitation` property there.
+// invitation-:def
+* When a team has closed registration, the `invitation` property is `null`.
+
+=== `POST /api/team/create` [[POST_api_team_create]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/team/create`
+| create new team
+| 403
+|===
+
+////
+TODO: can be used by
+teachers
+////
+
+.Request
+
+[source]
+----
+{
+  "name": "2d"
+}
+----
+
+.Response
+
+[source]
+----
+{
+  "teamId": 2
+}
+----
+
+.Notes
+
+* none
+
+=== `POST /api/team/info` [[POST_api_team_info]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/team/info`
+| get info about team
+| 403, 404
+|===
+
+////
+TODO: can be used by
+teachers
+////
+
+.Request
+
+[source]
+----
+{
+  "teamId": 2
+}
+----
+
+.Response
+
+[source]
+----
+{
+  "name": "2d",
+  "assignee": {
+    "userId": "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755",
+    "name": "Smith"
+  },
+  "invitation": "QwErTy58",
+  "members": [
+    {
+      "userId": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "User",
+      "number": 11
+    }
+  ]
+}
+----
+
+.Notes
+
+// invitation&userId-:!student
+* The Student will not receive the `invitation` property and any of `userId` properties.
+// invitation-:def
+* When a team has closed registration, the `invitation` property is `null`.
+
+=== `POST /api/team/update` [[POST_api_team_update]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/team/update`
+| change team's data
+| 403, 404, 409 (invitation code is taken)
+|===
+
+////
+TODO: can be used by
+assignees
+////
+
+.Request
+
+[source]
+----
+{
+  "teamId": 2,
+  "invitation": "QwErTy58"
+}
+----
+
+.Response
+
+[source]
+----
+----
+
+.Notes
+
+// assgignee+:only-teacher
+* Only a teacher can be an assignee of a team.
+// #changeable(invitation,assignee,name)
+* Only `invitation`, `assignee` and `name` properties are changeable.
+// invitation+:gen-def
+* The `invitation` property can also be an empty string `""` (in that case, it will be random)
+or `null` (in that case, registration will be closed).
+
+=== `POST /api/team/delete` [[POST_api_team_delete]]
+
+|===
+| Method | URL | Description | Special status codes
+
+| POST
+| `/api/team/delete`
+| delete a team
+| 403, 404
+|===
+
+////
+TODO: can be used by
+assignees
+////
+
+.Request
+
+[source]
+----
+{
+  "teamId": 2
+}
+----
+
+.Response
+
+[source]
+----
+----
+
+.Notes
+
+* none
+
+== Notes directory
+
+.Notes directory
+[%collapsible]
+====
+////
+get tags:
+(?<=\.Notes\n[^[]*)^// (.*)\n
+////
+
+// seed+?
+* The `seed` property is optional.
+
+// seed+?:teacher|admin
+* Only the Teacher and the Admin can use the `seed` property.
+Otherwise, the database provides it.
+
+// content:ext-dependent
+* The `content` property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.
+
+// description-:ext-dependent
+* The `description` property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.
+
+// info-:ext-dependent
+* The `info` property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.
+
+// problem-:ext-dependent
+* The `problem` property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.
+
+// content+:links2static
+* The `content` property can contain links to static content.
+The User can upload it via the <<PUT_api_subject_static_.subject_.filename>> request.
+
+// problem-:links2static
+* The `problem` property can contain links to static content.
+The User can access it via the <<GET_api_subject_static_.subject_.filename>> request.
+
+// assignees+:def
+* If the `assignees` property equals `null`, all teachers will be able to manage the subject.
+
+// assignees-:def
+* If the `assignees` property equals `null`, all teachers can modify the subject.
+
+// done-:def
+* The `done` property can be `null` or a number from 0 up to and including 1, see https://github.com/Pikne-Programy/pikne-zadania/issues/24#issuecomment-782939873[#24].
+
+// hashedPassword+:def
+* The description of the `hashedPassword` property generation is https://github.com/Pikne-Programy/pikne-zadania/issues/22#issuecomment-789536400[here].
+
+// invitation-:def
+* When a team has closed registration, the `invitation` property is `null`.
+
+// number+:def
+* The `number` property is a number or `null`.
+
+// [teams]:admin-id-0
+* There is always a hard-coded `admin` team with id `0`.
+
+// assignees+:empty-warning
+* Only the Admin will be managing the subject if the `assignees` property equals `[]`.
+
+// subject+:underscore-prefix
+* Subjects that begins with the `_` character are private and not visible to unauthorized users.
+
+// subject+:unique
+* `subject` is a name and an id simultaneously.
+It has to be unique.
+
+// assgignee+:only-teacher
+* Only a teacher can be an assignee of a team.
+
+// content+:only-changeable
+* Only the `content` property is changeable.
+Changing an `exerciseId` fails or overwrites an old exercise.
+
+// #changeable(invitation,assignee,name)
+* Only `invitation`, `assignee` and `name` properties are changeable.
+
+// #changeable(number,name)
+* Only `number` and `name` properties are changeable.
+
+// userId+?:ommitting=db
+* Omitting the `userId` property causes using the User's one.
+
+// invitation+:gen-def
+* The `invitation` property can also be an empty string `""` (in that case, it will be random)
+or `null` (in that case, registration will be closed).
+
+// invitation-?:if-can-manage
+* If the User can manage a team, there is the `invitation` property there.
+
+// invitation&userId-:!student
+* The Student will not receive the `invitation` property and any of `userId` properties.
+
+// login+:email!root
+* The `login` property is an email address.
+With this request, it is not possible to register hard-coded users (like `root`).
+
+// /register:not-authenticate
+* This request doesn't authenticate, unlike a <<POST_api_auth_login>> one.
+
+// /static-:binary-data
+* There should be binary data with an appropriate Content-type in the response.
+
+// /static+:multipart
+* The request data should follow the `multipart/form-data` Content-type.
+
+// /hierarchy.subsubject:exs-not-listed
+* If the `raw` property equals `false` and the User is authorized, there is a `{"name": "", children: [...]}` (sub-subject) object with all exercises not listed in the hierarchy.
+
+// correctAnswer-:teacher|admin
+* Only the Teacher and the Admin receive the `correctAnswer` property.
+
+// description-&done-?:raw=false
+* If the `raw` property equals `false`, there is the `description` property and can be the optional `done` property if the User is authenticated.
+
+// subjects-:only-available
+* There are only subjects available for the User.
+
+====
