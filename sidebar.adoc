@@ -1,0 +1,10 @@
+:stylesheet: ./dark.css
+:nofooter:
+
+* link:.[Home]
+* Specification
+** link:API[API (endpoints)]
+** link:Exercise[]
+** link:EqEx[EquationExercise (EqEx)]
+
+'''

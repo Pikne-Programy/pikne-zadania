@@ -1,0 +1,8 @@
+:nofooter:
+
+****
+[%hardbreaks]
+The project has been made by students of 8th High School of Maria Skłodowska-Curie in Katowice (class 2d in 2020/2021).
+(C) 2021 https://github.com/Nircek[Nircek] (Marcin Zepp), https://github.com/Marwyk2003[Marwyk2003] (Marcin Wykpis), https://github.com/miloszwasacz[miloszwasacz] (Miłosz Wąsacz), https://github.com/MichalTheProgrammer[MichalTheProgrammer] (Michał Szymocha)
+This project is licensed under the terms of https://github.com/Pikne-Programy/pikne-zadania/blob/master/COPYING[the GNU AGPL v3 or later].
+****
