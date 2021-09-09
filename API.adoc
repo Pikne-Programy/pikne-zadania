@@ -1,19 +1,21 @@
 API Endpoints of link:.[`pikne-zadania`]
 ========================================
 Marcin Zepp <nircek-2103@protonmail.com>
-v0.3, 2021-09-09: Revision 4
+v0.3, 2021-09-09: Revision 4.1
 :issue: https://github.com/Pikne-Programy/pikne-zadania/issues/34[#34]
 :stylesheet: main.css
 :linkcss:
 :docinfo1:
 :icons: font
 :toc:
-:toclevels: 3
 
 ifndef::env-github[]
 ++++
-<div style="display:none;">
+<div style="position:relative;">
 <ul class="styles">
+<button onclick="document.querySelectorAll(`details`).forEach(e => { e.open = false; });">Collapse all</button>
+<button onclick="document.querySelectorAll(`details`).forEach(e => { e.open = true; });">Uncollapse all</button>
+<br>
 <li class="current">Light</li>
 <li>Dark</li>
 </ul>
@@ -51,9 +53,12 @@ IMPORTANT: The request will have a `403 Forbidden` status code instead of `404 N
 
 == Endpoints
 
+
 === Subject
 
-==== `GET /api/subject/list` - list all available subjects [[GET_api_subject_list]]
+.`GET /api/subject/list` - list all available subjects [[GET_api_subject_list]]
+[%collapsible]
+====
 
 .It can be used by
 * anyone.
@@ -80,7 +85,11 @@ IMPORTANT: The request will have a `403 Forbidden` status code instead of `404 N
 // subjects-:only-available
 * There are only subjects available for the User.
 
-==== `POST /api/subject/create` - create a new subject [[POST_api_subject_create]]
+====
+
+.`POST /api/subject/create` - create a new subject [[POST_api_subject_create]]
+[%collapsible]
+====
 
 .It can be used by
 * all teachers.
@@ -118,7 +127,11 @@ It has to be unique.
 // assignees+:def
 * If the `assignees` property equals `null`, all teachers will be able to manage the subject.
 
-==== `POST /api/subject/info` - read assignees of a subject [[POST_api_subject_info]]
+====
+
+.`POST /api/subject/info` - read assignees of a subject [[POST_api_subject_info]]
+[%collapsible]
+====
 
 .It can be used by
 * all assignees of a subject,
@@ -154,7 +167,11 @@ It has to be unique.
 // assignees-:def
 * If the `assignees` property equals `null`, all teachers can modify the subject.
 
-==== `POST /api/subject/permit` - update assignees of a subject [[POST_api_subject_permit]]
+====
+
+.`POST /api/subject/permit` - update assignees of a subject [[POST_api_subject_permit]]
+[%collapsible]
+====
 
 .It can be used by
 * all assignees of a subject.
@@ -189,9 +206,13 @@ QUESTION: should we permit all teachers to use this request if a subject's `assi
 // assignees+:def
 * If the `assignees` property equals `null`, all teachers will be able to manage the subject.
 
+====
+
 === Problem managing
 
-==== `POST /api/subject/problem/get` - render an exercise [[POST_api_subject_problem_get]]
+.`POST /api/subject/problem/get` - render an exercise [[POST_api_subject_problem_get]]
+[%collapsible]
+====
 
 .It can be used by
 * anyone if a subject is public and an exercise is listed in a subject's hierarchy,
@@ -246,9 +267,13 @@ Otherwise, the database provides it.
 The one shown above is the EquationExercise (EqEx) one.
 // problem-:links2static
 * The `problem` property can contain links to static content.
-The User can access it via the <<GET_api_subject_static_.subject_.filename>> request.
+The User can access it via the <<GET_api_subject_static_.subject_.filename,`GET /api/subject/static/:subject/:filename`>> request.
 
-==== `POST /api/subject/problem/update` - submit an answer & store it [[POST_api_subject_problem_update]]
+====
+
+.`POST /api/subject/problem/update` - submit an answer & store it [[POST_api_subject_problem_update]]
+[%collapsible]
+====
 
 // TODO: change name to submit in v0.4
 
@@ -286,9 +311,13 @@ The User can access it via the <<GET_api_subject_static_.subject_.filename>> req
 * The `info` property is dependent on exercise type (ExT).
 The one shown above is the EquationExercise (EqEx) one.
 
+====
+
 === Static files managing
 
-==== `GET /api/subject/static/:subject/:filename` - get a static file [[GET_api_subject_static_.subject_.filename]]
+.`GET /api/subject/static/:subject/:filename` - get a static file [[GET_api_subject_static_.subject_.filename]]
+[%collapsible]
+====
 
 .It can be used by
 * anyone if a subject is public,
@@ -305,7 +334,11 @@ The one shown above is the EquationExercise (EqEx) one.
 // /static-:binary-data
 * There should be binary data with an appropriate Content-type in the response.
 
-==== `PUT /api/subject/static/:subject/:filename` - upload a static file [[PUT_api_subject_static_.subject_.filename]]
+====
+
+.`PUT /api/subject/static/:subject/:filename` - upload a static file [[PUT_api_subject_static_.subject_.filename]]
+[%collapsible]
+====
 
 .It can be used by
 * all assignees of a subject.
@@ -321,9 +354,13 @@ The one shown above is the EquationExercise (EqEx) one.
 // /static+:multipart
 * The request data should follow the `multipart/form-data` Content-type.
 
+====
+
 === Hierarchy modification
 
-==== `POST /api/subject/hierarchy/get` - read an exercise hierarchy of a subject [[POST_api_subject_hierarchy_get]]
+.`POST /api/subject/hierarchy/get` - read an exercise hierarchy of a subject [[POST_api_subject_hierarchy_get]]
+[%collapsible]
+====
 
 .It can be used by
 * anyone if a subject is public,
@@ -390,7 +427,11 @@ The one shown above is the EquationExercise (EqEx) one.
 // done-:def
 * The `done` property can be `null` or a number from 0 up to and including 1, see https://github.com/Pikne-Programy/pikne-zadania/issues/24#issuecomment-782939873[#24].
 
-==== `POST /api/subject/hierarchy/set` - update an exercise hierarchy of a subject [[POST_api_subject_hierarchy_set]]
+====
+
+.`POST /api/subject/hierarchy/set` - update an exercise hierarchy of a subject [[POST_api_subject_hierarchy_set]]
+[%collapsible]
+====
 
 .It can be used by
 * all assignees of a subject.
@@ -436,9 +477,13 @@ QUESTION: should we permit all teachers to use this request if a subject's `assi
 
 * none
 
+====
+
 === Exercise modification
 
-==== `POST /api/subject/exercise/list` - get all exercises from a subject [[POST_api_subject_exercise_list]]
+.`POST /api/subject/exercise/list` - get all exercises from a subject [[POST_api_subject_exercise_list]]
+[%collapsible]
+====
 
 .It can be used by
 * all assignees of a subject,
@@ -468,7 +513,11 @@ QUESTION: should we permit all teachers to use this request if a subject's `assi
 
 * none
 
-==== `POST /api/subject/exercise/add` - create an exercise [[POST_api_subject_exercise_add]]
+====
+
+.`POST /api/subject/exercise/add` - create an exercise [[POST_api_subject_exercise_add]]
+[%collapsible]
+====
 
 .It can be used by
 * all assignees of a subject,
@@ -501,9 +550,13 @@ QUESTION: should we permit all teachers to use this request if a subject's `assi
 The one shown above is the EquationExercise (EqEx) one.
 // content+:links2static
 * The `content` property can contain links to static content.
-The User can upload it via the <<PUT_api_subject_static_.subject_.filename>> request.
+The User can upload it via the <<PUT_api_subject_static_.subject_.filename,`PUT /api/subject/static/:subject/:filename`>> request.
 
-==== `POST /api/subject/exercise/get` - read a content of an exercise [[POST_api_subject_exercise_get]]
+====
+
+.`POST /api/subject/exercise/get` - read a content of an exercise [[POST_api_subject_exercise_get]]
+[%collapsible]
+====
 
 .It can be used by
 * all assignees of a subject,
@@ -538,7 +591,11 @@ The User can upload it via the <<PUT_api_subject_static_.subject_.filename>> req
 * The `content` property is dependent on exercise type (ExT).
 The one shown above is the EquationExercise (EqEx) one.
 
-==== `POST /api/subject/exercise/update` - update a content of an exercise [[POST_api_subject_exercise_update]]
+====
+
+.`POST /api/subject/exercise/update` - update a content of an exercise [[POST_api_subject_exercise_update]]
+[%collapsible]
+====
 
 .It can be used by
 * all assignees of a subject,
@@ -572,7 +629,11 @@ Changing an `exerciseId` fails or overwrites an old exercise.
 * The `content` property is dependent on exercise type (ExT).
 The one shown above is the EquationExercise (EqEx) one.
 
-==== `POST /api/subject/exercise/preview` - render an exercise from a content [[POST_api_subject_exercise_preview]]
+====
+
+.`POST /api/subject/exercise/preview` - render an exercise from a content [[POST_api_subject_exercise_preview]]
+[%collapsible]
+====
 
 .It can be used by
 * all authorized.
@@ -619,14 +680,18 @@ The one shown above is the EquationExercise (EqEx) one.
 The one shown above is the EquationExercise (EqEx) one.
 // problem-:links2static
 * The `problem` property can contain links to static content.
-The User can access it via the <<GET_api_subject_static_.subject_.filename>> request.
+The User can access it via the <<GET_api_subject_static_.subject_.filename,`GET /api/subject/static/:subject/:filename`>> request.
 // content:ext-dependent
 * The `content` property is dependent on exercise type (ExT).
 The one shown above is the EquationExercise (EqEx) one.
 
+====
+
 === Auth
 
-==== `POST /api/auth/register` - create a new user [[POST_api_auth_register]]
+.`POST /api/auth/register` - create a new user [[POST_api_auth_register]]
+[%collapsible]
+====
 
 .It can be used by
 * anyone who has a valid invitation.
@@ -656,7 +721,7 @@ The one shown above is the EquationExercise (EqEx) one.
 .Notes
 
 // /register:not-authenticate
-* This request doesn't authenticate, unlike a <<POST_api_auth_login>> one.
+* This request doesn't authenticate, unlike a <<POST_api_auth_login,`POST /api/auth/login`>> one.
 // login+:email!root
 * The `login` property is an email address.
 With this request, it is not possible to register hard-coded users (like `root`).
@@ -665,7 +730,11 @@ With this request, it is not possible to register hard-coded users (like `root`)
 // number+:def
 * The `number` property is a number or `null`.
 
-==== `POST /api/auth/login` - authenticate [[POST_api_auth_login]]
+====
+
+.`POST /api/auth/login` - authenticate [[POST_api_auth_login]]
+[%collapsible]
+====
 
 .It can be used by
 * anyone.
@@ -693,7 +762,11 @@ With this request, it is not possible to register hard-coded users (like `root`)
 // hashedPassword+:def
 * The description of the `hashedPassword` property generation is https://github.com/Pikne-Programy/pikne-zadania/issues/22#issuecomment-789536400[here].
 
-==== `POST /api/auth/logout` - unauthenticate [[POST_api_auth_logout]]
+====
+
+.`POST /api/auth/logout` - unauthenticate [[POST_api_auth_logout]]
+[%collapsible]
+====
 
 .It can be used by
 * all authorized.
@@ -716,9 +789,13 @@ With this request, it is not possible to register hard-coded users (like `root`)
 
 * none
 
+====
+
 === User
 
-==== `POST /api/user/info` - read user's info [[POST_api_user_info]]
+.`POST /api/user/info` - read user's info [[POST_api_user_info]]
+[%collapsible]
+====
 
 .It can be used by
 * all authorized if a request is referring to the User,
@@ -753,7 +830,11 @@ With this request, it is not possible to register hard-coded users (like `root`)
 // number+:def
 * The `number` property is a number or `null`.
 
-==== `POST /api/user/update` - update user's info[[POST_api_user_update]]
+====
+
+.`POST /api/user/update` - update user's info[[POST_api_user_update]]
+[%collapsible]
+====
 
 .It can be used by
 * the assignee of the team of the requested user.
@@ -783,7 +864,11 @@ With this request, it is not possible to register hard-coded users (like `root`)
 // number+:def
 * The `number` property is a number or `null`.
 
-==== `POST /api/user/delete` - delete a user [[POST_api_user_delete]]
+====
+
+.`POST /api/user/delete` - delete a user [[POST_api_user_delete]]
+[%collapsible]
+====
 
 .It can be used by
 * the assignee of the team of the requested user.
@@ -809,9 +894,13 @@ With this request, it is not possible to register hard-coded users (like `root`)
 
 * none
 
+====
+
 === Team
 
-==== `GET /api/team/list` - list all teams [[GET_api_team_list]]
+.`GET /api/team/list` - list all teams [[GET_api_team_list]]
+[%collapsible]
+====
 
 .It can be used by
 * all teachers.
@@ -868,7 +957,11 @@ With this request, it is not possible to register hard-coded users (like `root`)
 // invitation-:def
 * When a team has closed registration, the `invitation` property is `null`.
 
-==== `POST /api/team/create` - create a team [[POST_api_team_create]]
+====
+
+.`POST /api/team/create` - create a team [[POST_api_team_create]]
+[%collapsible]
+====
 
 .It can be used by
 * all teachers.
@@ -897,7 +990,11 @@ With this request, it is not possible to register hard-coded users (like `root`)
 
 * none
 
-==== `POST /api/team/info` - read team's info [[POST_api_team_info]]
+====
+
+.`POST /api/team/info` - read team's info [[POST_api_team_info]]
+[%collapsible]
+====
 
 .It can be used by
 * all authorized if a request is referring to the User's team,
@@ -942,7 +1039,11 @@ With this request, it is not possible to register hard-coded users (like `root`)
 // invitation-:def
 * When a team has closed registration, the `invitation` property is `null`.
 
-==== `POST /api/team/update` - update team's info [[POST_api_team_update]]
+====
+
+.`POST /api/team/update` - update team's info [[POST_api_team_update]]
+[%collapsible]
+====
 
 .It can be used by
 * the assignee of the requested team,
@@ -976,7 +1077,11 @@ With this request, it is not possible to register hard-coded users (like `root`)
 * The `invitation` property can also be an empty string `""` (in that case, it will be random)
 or `null` (in that case, registration will be closed).
 
-==== `POST /api/team/delete` - delete a team [[POST_api_team_delete]]
+====
+
+.`POST /api/team/delete` - delete a team [[POST_api_team_delete]]
+[%collapsible]
+====
 
 .It can be used by
 * the assignee of the requested team.
@@ -1001,6 +1106,8 @@ or `null` (in that case, registration will be closed).
 .Notes
 
 * none
+
+====
 
 ////
 
@@ -1058,11 +1165,11 @@ The one shown above is the EquationExercise (EqEx) one.
 
 // content+:links2static
 * The `content` property can contain links to static content.
-The User can upload it via the <<PUT_api_subject_static_.subject_.filename>> request.
+The User can upload it via the <<PUT_api_subject_static_.subject_.filename,`PUT /api/subject/static/:subject/:filename`>> request.
 
 // problem-:links2static
 * The `problem` property can contain links to static content.
-The User can access it via the <<GET_api_subject_static_.subject_.filename>> request.
+The User can access it via the <<GET_api_subject_static_.subject_.filename,`GET /api/subject/static/:subject/:filename`>> request.
 
 // assignees+:def
 * If the `assignees` property equals `null`, all teachers will be able to manage the subject.
@@ -1126,7 +1233,7 @@ or `null` (in that case, registration will be closed).
 With this request, it is not possible to register hard-coded users (like `root`).
 
 // /register:not-authenticate
-* This request doesn't authenticate, unlike a <<POST_api_auth_login>> one.
+* This request doesn't authenticate, unlike a <<POST_api_auth_login,`POST /api/auth/login`>> one.
 
 // /static-:binary-data
 * There should be binary data with an appropriate Content-type in the response.
