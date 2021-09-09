@@ -1,29 +1,26 @@
-:stylesheet: dark.css
-:source-highlighter: highlightjs
-:highlightjs-theme: dark
-:nofooter:
-include::sidebar.adoc[]
+Equation Exercise (EqEx) specification v0.2
+===========================================
+include::header.adoc[]
 
-== Equation Exercise (EqEx) specification v0.2
 Equation Exercise is an answer only oriented type of Exercise. The file was specifically designed for physics problems but can be used for any answer only exercises.
 
 The file consists of three segments: the **Header**, the **Text** and the **Calculations**. The separator between them is the line with `---` only. In particular, the file starts with `---`.
 
-=== Header
+== Header
 The header defines respectively fields:
 
 * **type**: EqEx (static for this type of exercise)
 * **name**: the name of the exercise
 * **img**: the name of exercise's image (optional)
 
-[source,yaml]
+[source,yml]
 ----
 type: "EqEx"
 name: "Sample name"
 img: "image.jpg"
 ----
 
-=== Text
+== Text
 The text is the exercise's content with specified types and values of all the variables.
 
 Such specification has the format:
@@ -36,7 +33,7 @@ Notice that all greek letters will be replaced with the corresponding symbol.
 Notice that units similar to `1/s` should be written as `/s`. In addition `deg` will be replaced with Unicode's `°` +
 e.g. `g=10m/s^2`, `W=20kg*m^2/s^2`, `f=5/s`
 
-==== Value
+=== Value
 There are three types of variables in the EqEx format:
 
 * **constant (numeric)**:  variable has a predetermined value. The value is a number written in decimal notation (`1`, `-0.5`) or scientific notation (`1.234e5`, `1e-3`) +
@@ -48,7 +45,7 @@ e.g. `x=[0;5;1]` would yield `x=` one of `0, 1, 2, 3, 4, 5`
 * **unknown**: variable defined in **the calculation** part. All the unknowns are in query. Unknowns are defined by `?` character instead of its value. +
 e.g. `x=?m/s`
 
-==== Calculations
+=== Calculations
 Each line in the **Calculations** is a declaration (or redeclaration) of a variable. Auxilary variables can be declared and used in the equations underneath. Every variable in the query (unknown) must be declared in the **Calculation** segment.
 
 Special-use character `=` splits the equation into the following parts:
@@ -57,7 +54,7 @@ Special-use character `=` splits the equation into the following parts:
 * `=`
 * mathematic expression
 
-==== Mathematic Expression
+=== Mathematic Expression
 Operations and functions supported:
 
 * **arytmetic operations:** `+`, `-`, `*`, `/`, `^`
@@ -74,8 +71,8 @@ Operations and functions supported:
 
 e.g. `x=-5*sinr(3.14)`, `y=sqrt(abs(x+1))^2`, `z=log2(2^10)/5`.
 
-=== Example
-[source,yaml]
+== Example
+[source,yml]
 ----
 type: "EqEx"
 name: "Velocity 1"

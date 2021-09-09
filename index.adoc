@@ -1,5 +1,6 @@
-:nofooter:
-include::sidebar.adoc[]
+Pikne Zadania - wiki
+====================
+include::header.adoc[]
 
 Welcome to the wiki of Pikne Zadania!
 

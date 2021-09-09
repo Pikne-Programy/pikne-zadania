@@ -1,0 +1,26 @@
+:source-highlighter: highlightjs
+:stylesheet: https://cdn.jsdelivr.net/gh/asciidoctor/asciidoctor@2.0/data/stylesheets/asciidoctor-default.css
+:linkcss:
+////
+:stylesheet: https://cdn.jsdelivr.net/gh/darshandsoni/asciidoctor-skins/css/dark.css
+:highlightjs-theme: dark
+////
+
+++++
+<style>
+.compact-lists li>p {
+  margin: 0 !important;
+}
+</style>
+++++
+
+[.compact-lists]
+****
+* link:.[Home]
+* Specification
+** link:API[API (endpoints)]
+** link:Exercise[]
+** link:EqEx[EquationExercise (EqEx)]
+****
+
+''''
