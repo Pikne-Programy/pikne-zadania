@@ -1,18 +1,16 @@
 API Endpoints of link:.[`pikne-zadania`]
 ========================================
 Marcin Zepp <nircek-2103@protonmail.com>
-v0.3, 2021-09-08: Revision 3
-:title: pikne-zadania's API endopints
+v0.3, 2021-09-09: Revision 4
 :issue: https://github.com/Pikne-Programy/pikne-zadania/issues/34[#34]
 :stylesheet: main.css
 :linkcss:
 :docinfo1:
-:source-highlighter: highlightjs
-:highlightjs-theme: dark
-:source-language: json
 :icons: font
 :toc:
+:toclevels: 3
 
+ifndef::env-github[]
 ++++
 <div style="display:none;">
 <ul class="styles">
@@ -21,61 +19,56 @@ v0.3, 2021-09-08: Revision 3
 </ul>
 </div>
 ++++
+endif::[]
 
 NOTE: Discuss API v{revnumber} at {issue}.
 
 == Throwing errors
 
 If there is an error (`4xx` or `5xx` HTTP status code), the API will return either no content or the JSON object with an error message:
-[source]
+
+[source,json]
 ----
 {
   "status": 500,
   "message": "<error message>"
 }
 ----
+
 The `"status"` property is a status code of the response.
 
-== The most common error status codes
+== The most common status codes
 
-* 400, when the request is invalid,
-* 401, when the authentication failed, or a user didn't authenticate although it is required,
-* 500, if there is a problem on the server-side.
+* `200 OK`, when the request is succesful,
+* `400 Bad Request`, when the request is invalid,
+* `401 Unauthorized`, when the User must authenticate but the authentication failed or was not provided; +
+  the unauthenticated will always get `401 Unauthorized` instead of `403 Forbidden`.
+* `403 Forbidden`, when the User is not authorized to make a request (see "It can be used by" section),
+* `404 Not Found`, when the requested resource does not exist,
+* `500 Internal Server Error`, when there is a problem on the server-side.
 
-== TODO
+IMPORTANT: The request will have a `403 Forbidden` status code instead of `404 Not Found` one when a resource is unavailable for the User to list (or it would be if it existed).
 
-* discuss permissions
-* review the whole document
-* rewrite descriptions and check status codes
-* add short descriptions in ToC?
+== Endpoints
 
-== Subject
+=== Subject
 
-=== `GET /api/subject/list` [[GET_api_subject_list]]
+==== `GET /api/subject/list` - list all available subjects [[GET_api_subject_list]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* anyone.
 
-| GET
-| `/api/subject/list`
-| fetch list of all subjects
-|
-|===
-
-////
-TODO: can be used by
-anyone
-////
+.Special status codes
 
 .Request
 
-[source]
+[source,json]
 ----
 ----
 
 .Response
 
-[source]
+[source,json]
 ----
 {
   "subjects": ["fizyka", "_fizyka", "astronomia"]
@@ -87,25 +80,17 @@ anyone
 // subjects-:only-available
 * There are only subjects available for the User.
 
-=== `POST /api/subject/create` [[POST_api_subject_create]]
+==== `POST /api/subject/create` - create a new subject [[POST_api_subject_create]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* all teachers.
 
-| POST
-| `/api/subject/create`
-| create new subject
-| 403, 409 (id already exists)
-|===
-
-////
-TODO: can be used by
-teachers
-////
+.Special status codes
+* `409 Conflict` - the name (the `subject` property) is already taken.
 
 .Request
 
-[source]
+[source,json]
 ----
 {
   "subject": "fizyka",
@@ -117,7 +102,7 @@ teachers
 
 .Response
 
-[source]
+[source,json]
 ----
 ----
 
@@ -133,26 +118,17 @@ It has to be unique.
 // assignees+:def
 * If the `assignees` property equals `null`, all teachers will be able to manage the subject.
 
-=== `POST /api/subject/info` [[POST_api_subject_info]]
+==== `POST /api/subject/info` - read assignees of a subject [[POST_api_subject_info]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* all assignees of a subject,
+* or all teachers if a subject's `assignees` equals `null`.
 
-| POST
-| `/api/subject/info`
-| get list of authorized users
-| 403, 404
-|===
-
-////
-TODO: can be used by
-all assignees // TODO: make it in code
-and teachers if public
-////
+.Special status codes
 
 .Request
 
-[source]
+[source,json]
 ----
 {
   "subject": "fizyka"
@@ -161,7 +137,7 @@ and teachers if public
 
 .Response
 
-[source]
+[source,json]
 ----
 {
   "assignees": [
@@ -178,25 +154,21 @@ and teachers if public
 // assignees-:def
 * If the `assignees` property equals `null`, all teachers can modify the subject.
 
-=== `POST /api/subject/permit` [[POST_api_subject_permit]]
+==== `POST /api/subject/permit` - update assignees of a subject [[POST_api_subject_permit]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* all assignees of a subject.
 
-| POST
-| `/api/subject/permit`
-| change list of authorized users
-| 403, 404
-|===
+[sidebar]
+QUESTION: should we permit all teachers to use this request if a subject's `assignees` equals `null`?
+// add if so:
+// or all teachers if a subject's `assignees` equals `null`.
 
-////
-TODO: can be used by
-assignees
-////
+.Special status codes
 
 .Request
 
-[source]
+[source,json]
 ----
 {
   "subject": "fizyka",
@@ -208,7 +180,7 @@ assignees
 
 .Response
 
-[source]
+[source,json]
 ----
 ----
 
@@ -217,28 +189,19 @@ assignees
 // assignees+:def
 * If the `assignees` property equals `null`, all teachers will be able to manage the subject.
 
-== Problem managing
+=== Problem managing
 
-=== `POST /api/subject/problem/get` [[POST_api_subject_problem_get]]
+==== `POST /api/subject/problem/get` - render an exercise [[POST_api_subject_problem_get]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* anyone if a subject is public and an exercise is listed in a subject's hierarchy,
+* all assignees of a subject.
 
-| POST
-| `/api/subject/problem/get`
-| render an exercise
-| 403, 404
-|===
-
-////
-TODO: can be used by
-anyone if subject is public and exercise is listed in hierarchy
-if not: only assignees
-////
+.Special status codes
 
 .Request
 
-[source]
+[source,json]
 ----
 {
   "subject": "fizyka",
@@ -249,7 +212,7 @@ if not: only assignees
 
 .Response
 
-[source]
+[source,json]
 ----
 {
   "type": "EqEx",
@@ -284,30 +247,20 @@ The one shown above is the EquationExercise (EqEx) one.
 // problem-:links2static
 * The `problem` property can contain links to static content.
 The User can access it via the <<GET_api_subject_static_.subject_.filename>> request.
-// TODO: 403 vs 401; don't question
 
-=== `POST /api/subject/problem/update` [[POST_api_subject_problem_update]]
+==== `POST /api/subject/problem/update` - submit an answer & store it [[POST_api_subject_problem_update]]
 
-// TODO: change name to answer in v0.4
+// TODO: change name to submit in v0.4
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* anyone if a subject is public and an exercise is listed in a subject's hierarchy,
+* all assignees of a subject.
 
-| POST
-| `/api/subject/problem/update`
-| store answers
-| 404
-|===
-
-////
-TODO: can be used by
-anyone if subject is public and exercise is listed in hierarchy
-if not: only assignees
-////
+.Special status codes
 
 .Request
 
-[source]
+[source,json]
 ----
 {
   "subject": "fizyka",
@@ -320,7 +273,7 @@ if not: only assignees
 
 .Response
 
-[source]
+[source,json]
 ----
 {
   "info": [false, true]
@@ -333,73 +286,54 @@ if not: only assignees
 * The `info` property is dependent on exercise type (ExT).
 The one shown above is the EquationExercise (EqEx) one.
 
-== Static files managing
+=== Static files managing
 
-=== `GET /api/subject/static/:subject/:filename` [[GET_api_subject_static_.subject_.filename]]
+==== `GET /api/subject/static/:subject/:filename` - get a static file [[GET_api_subject_static_.subject_.filename]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* anyone if a subject is public,
+* all assignees of a subject.
 
-| GET
-| `/api/subject/static/:subject/:filename`
-| get a static file
-| 403, 404
-|===
+.Special status codes
 
-////
-TODO: can be used by
-anyone if subject is public
-if not: only assignees
-////
+.Request
+
+.Response
 
 .Notes
 
 // /static-:binary-data
 * There should be binary data with an appropriate Content-type in the response.
 
-=== `PUT /api/subject/static/:subject/:filename` [[PUT_api_subject_static_.subject_.filename]]
+==== `PUT /api/subject/static/:subject/:filename` - upload a static file [[PUT_api_subject_static_.subject_.filename]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* all assignees of a subject.
 
-| PUT
-| `/api/subject/static/:subject/:filename`
-| upload a static file
-| 403, 404
-|===
+.Special status codes
 
-////
-TODO: can be used by
-assignees
-////
+.Request
+
+.Response
 
 .Notes
 
 // /static+:multipart
 * The request data should follow the `multipart/form-data` Content-type.
 
-== Hierarchy modification
+=== Hierarchy modification
 
-=== `POST /api/subject/hierarchy/get` [[POST_api_subject_hierarchy_get]]
+==== `POST /api/subject/hierarchy/get` - read an exercise hierarchy of a subject [[POST_api_subject_hierarchy_get]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* anyone if a subject is public,
+* all assignees of a subject.
 
-| POST
-| `/api/subject/hierarchy/get`
-| get hierarchy of exercises in subject
-| 404
-|===
-
-////
-TODO: can be used by
-anyone
-assignees if private
-////
+.Special status codes
 
 .Request
 
-[source]
+[source,json]
 ----
 {
   "subject": "fizyka",
@@ -409,7 +343,7 @@ assignees if private
 
 .Response
 
-[source]
+[source,json]
 ----
 [
   {
@@ -456,25 +390,21 @@ The one shown above is the EquationExercise (EqEx) one.
 // done-:def
 * The `done` property can be `null` or a number from 0 up to and including 1, see https://github.com/Pikne-Programy/pikne-zadania/issues/24#issuecomment-782939873[#24].
 
-=== `POST /api/subject/hierarchy/set` [[POST_api_subject_hierarchy_set]]
+==== `POST /api/subject/hierarchy/set` - update an exercise hierarchy of a subject [[POST_api_subject_hierarchy_set]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* all assignees of a subject.
 
-| POST
-| `/api/subject/hierarchy/set`
-| set hierarchy of exercises in subject
-| 404
-|===
+[sidebar]
+QUESTION: should we permit all teachers to use this request if a subject's `assignees` equals `null`?
+// add if so:
+// or all teachers if a subject's `assignees` equals `null`.
 
-////
-TODO: can be used by
-assignees
-////
+.Special status codes
 
 .Request
 
-[source]
+[source,json]
 ----
 {
   "subject": "fizyka",
@@ -498,7 +428,7 @@ assignees
 
 .Response
 
-[source]
+[source,json]
 ----
 ----
 
@@ -506,28 +436,19 @@ assignees
 
 * none
 
-== Exercise modification
+=== Exercise modification
 
-=== `POST /api/subject/exercise/list` [[POST_api_subject_exercise_list]]
+==== `POST /api/subject/exercise/list` - get all exercises from a subject [[POST_api_subject_exercise_list]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* all assignees of a subject,
+* or all teachers if a subject's `assignees` equals `null`.
 
-| POST
-| `/api/subject/exercise/list`
-| get all exercises from subject
-| 403, 404
-|===
-
-////
-TODO: can be used by
-anyone
-assignees if private
-////
+.Special status codes
 
 .Request
 
-[source]
+[source,json]
 ----
 {
   "subject": "_fizyka"
@@ -536,7 +457,7 @@ assignees if private
 
 .Response
 
-[source]
+[source,json]
 ----
 {
   "exercises": ["pociagi-dwa", "kula-2"]
@@ -547,25 +468,18 @@ assignees if private
 
 * none
 
-=== `POST /api/subject/exercise/add` [[POST_api_subject_exercise_add]]
+==== `POST /api/subject/exercise/add` - create an exercise [[POST_api_subject_exercise_add]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* all assignees of a subject,
+* or all teachers if a subject's `assignees` equals `null`.
 
-| POST
-| `/api/subject/exercise/add`
-| add new exercise
-| 403, 409 (id already exists)
-|===
-
-////
-TODO: can be used by
-assignees
-////
+.Special status codes
+* `409 Conflict` - the name (`subject` and `exerciseId` properties) is already taken.
 
 .Request
 
-[source]
+[source,json]
 ----
 {
   "subject": "fizyka",
@@ -576,7 +490,7 @@ assignees
 
 .Response
 
-[source]
+[source,json]
 ----
 ----
 
@@ -589,25 +503,19 @@ The one shown above is the EquationExercise (EqEx) one.
 * The `content` property can contain links to static content.
 The User can upload it via the <<PUT_api_subject_static_.subject_.filename>> request.
 
-=== `POST /api/subject/exercise/get` [[POST_api_subject_exercise_get]]
+==== `POST /api/subject/exercise/get` - read a content of an exercise [[POST_api_subject_exercise_get]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* all assignees of a subject,
+* or all teachers if a subject's `assignees` equals `null`,
 
-| POST
-| `/api/subject/exercise/get`
-| get content of an exercise
-| 403, 404
-|===
-
-////
-TODO: can be used by
-assignees
-////
+.Special status codes
+* `200 OK`,
+ `403 Forbidden`, `404 Not Found`
 
 .Request
 
-[source]
+[source,json]
 ----
 {
   "subject": "fizyka",
@@ -617,7 +525,7 @@ assignees
 
 .Response
 
-[source]
+[source,json]
 ----
 {
   "content": "---\ntype: EqEx\nname: Pociągi dwa 2\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n"
@@ -630,25 +538,17 @@ assignees
 * The `content` property is dependent on exercise type (ExT).
 The one shown above is the EquationExercise (EqEx) one.
 
-=== `POST /api/subject/exercise/update` [[POST_api_subject_exercise_update]]
+==== `POST /api/subject/exercise/update` - update a content of an exercise [[POST_api_subject_exercise_update]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* all assignees of a subject,
+* or all teachers if a subject's `assignees` equals `null`.
 
-| POST
-| `/api/subject/exercise/update`
-| update exercise's content
-| 403, 404
-|===
-
-////
-TODO: can be used by
-assignees
-////
+.Special status codes
 
 .Request
 
-[source]
+[source,json]
 ----
 {
   "subject": "fizyka",
@@ -659,7 +559,7 @@ assignees
 
 .Response
 
-[source]
+[source,json]
 ----
 ----
 
@@ -672,25 +572,16 @@ Changing an `exerciseId` fails or overwrites an old exercise.
 * The `content` property is dependent on exercise type (ExT).
 The one shown above is the EquationExercise (EqEx) one.
 
-=== `POST /api/subject/exercise/preview` [[POST_api_subject_exercise_preview]]
+==== `POST /api/subject/exercise/preview` - render an exercise from a content [[POST_api_subject_exercise_preview]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* all authorized.
 
-| POST
-| `/api/subject/exercise/preview`
-| preview an exercise
-| 403, 404
-|===
-
-////
-TODO: can be used by
-authorized
-////
+.Special status codes
 
 .Request
 
-[source]
+[source,json]
 ----
 {
   "content": "---\ntype: EqEx\nname: Pociągi dwa 2\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n",
@@ -700,7 +591,7 @@ authorized
 
 .Response
 
-[source]
+[source,json]
 ----
 {
   "type": "EqEx",
@@ -733,27 +624,19 @@ The User can access it via the <<GET_api_subject_static_.subject_.filename>> req
 * The `content` property is dependent on exercise type (ExT).
 The one shown above is the EquationExercise (EqEx) one.
 
-== Auth
+=== Auth
 
-=== `POST /api/auth/register` [[POST_api_auth_register]]
+==== `POST /api/auth/register` - create a new user [[POST_api_auth_register]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* anyone who has a valid invitation.
 
-| POST
-| `/api/auth/register`
-| register a new user
-| 403 (wrong invitation), 409 (account already exists)
-|===
-
-////
-TODO: can be used by
-anyone
-////
+.Special status codes
+* `409 Conflict` - the login is already taken.
 
 .Request
 
-[source]
+[source,json]
 ----
 {
   "login": "user@example.com",
@@ -766,7 +649,7 @@ anyone
 
 .Response
 
-[source]
+[source,json]
 ----
 ----
 
@@ -782,25 +665,16 @@ With this request, it is not possible to register hard-coded users (like `root`)
 // number+:def
 * The `number` property is a number or `null`.
 
-=== `POST /api/auth/login` [[POST_api_auth_login]]
+==== `POST /api/auth/login` - authenticate [[POST_api_auth_login]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* anyone.
 
-| POST
-| `/api/auth/login`
-| authenticate
-| -
-|===
-
-////
-TODO: can be used by
-anyone
-////
+.Special status codes
 
 .Request
 
-[source]
+[source,json]
 ----
 {
   "login": "user@example.com",
@@ -810,7 +684,7 @@ anyone
 
 .Response
 
-[source]
+[source,json]
 ----
 ----
 
@@ -819,31 +693,22 @@ anyone
 // hashedPassword+:def
 * The description of the `hashedPassword` property generation is https://github.com/Pikne-Programy/pikne-zadania/issues/22#issuecomment-789536400[here].
 
-=== `POST /api/auth/logout` [[POST_api_auth_logout]]
+==== `POST /api/auth/logout` - unauthenticate [[POST_api_auth_logout]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* all authorized.
 
-| POST
-| `/api/auth/logout`
-| unauthenticate
-| -
-|===
-
-////
-TODO: can be used by
-authorized
-////
+.Special status codes
 
 .Request
 
-[source]
+[source,json]
 ----
 ----
 
 .Response
 
-[source]
+[source,json]
 ----
 ----
 
@@ -851,28 +716,19 @@ authorized
 
 * none
 
-== User
+=== User
 
-=== `POST /api/user/info` [[POST_api_user_info]]
+==== `POST /api/user/info` - read user's info [[POST_api_user_info]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* all authorized if a request is referring to the User,
+* the assignee of the team of the requested user.
 
-| POST
-| `/api/user/info`
-| get info about a user
-| 403, 404
-|===
-
-////
-TODO: can be used by
-authorized if a request is referring to the User
-assignees of the team of the User in request
-////
+.Special status codes
 
 .Request
 
-[source]
+[source,json]
 ----
 {
   "userId": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
@@ -881,7 +737,7 @@ assignees of the team of the User in request
 
 .Response
 
-[source]
+[source,json]
 ----
 {
   "name": "User",
@@ -897,25 +753,16 @@ assignees of the team of the User in request
 // number+:def
 * The `number` property is a number or `null`.
 
-=== `POST /api/user/update` [[POST_api_user_update]]
+==== `POST /api/user/update` - update user's info[[POST_api_user_update]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* the assignee of the team of the requested user.
 
-| POST
-| `/api/user/update`
-| update User's data
-| 403, 404
-|===
-
-////
-TODO: can be used by
-assignees of the team of the User in request
-////
+.Special status codes
 
 .Request
 
-[source]
+[source,json]
 ----
 {
   "userId": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -925,7 +772,7 @@ assignees of the team of the User in request
 
 .Response
 
-[source]
+[source,json]
 ----
 ----
 
@@ -936,25 +783,16 @@ assignees of the team of the User in request
 // number+:def
 * The `number` property is a number or `null`.
 
-=== `POST /api/user/delete` [[POST_api_user_delete]]
+==== `POST /api/user/delete` - delete a user [[POST_api_user_delete]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* the assignee of the team of the requested user.
 
-| POST
-| `/api/user/delete`
-| unregister a user
-| 403, 404
-|===
-
-////
-TODO: can be used by
-assignees of the team of the User in request
-////
+.Special status codes
 
 .Request
 
-[source]
+[source,json]
 ----
 {
   "userId": "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755"
@@ -963,7 +801,7 @@ assignees of the team of the User in request
 
 .Response
 
-[source]
+[source,json]
 ----
 ----
 
@@ -971,33 +809,24 @@ assignees of the team of the User in request
 
 * none
 
-== Team
+=== Team
 
-=== `GET /api/team/list` [[GET_api_team_list]]
+==== `GET /api/team/list` - list all teams [[GET_api_team_list]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* all teachers.
 
-| GET
-| `/api/team/list`
-| get list of teams
-| 403
-|===
-
-////
-TODO: can be used by
-teachers
-////
+.Special status codes
 
 .Request
 
-[source]
+[source,json]
 ----
 ----
 
 .Response
 
-[source]
+[source,json]
 ----
 [
   {
@@ -1039,25 +868,16 @@ teachers
 // invitation-:def
 * When a team has closed registration, the `invitation` property is `null`.
 
-=== `POST /api/team/create` [[POST_api_team_create]]
+==== `POST /api/team/create` - create a team [[POST_api_team_create]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* all teachers.
 
-| POST
-| `/api/team/create`
-| create new team
-| 403
-|===
-
-////
-TODO: can be used by
-teachers
-////
+.Special status codes
 
 .Request
 
-[source]
+[source,json]
 ----
 {
   "name": "2d"
@@ -1066,7 +886,7 @@ teachers
 
 .Response
 
-[source]
+[source,json]
 ----
 {
   "teamId": 2
@@ -1077,25 +897,17 @@ teachers
 
 * none
 
-=== `POST /api/team/info` [[POST_api_team_info]]
+==== `POST /api/team/info` - read team's info [[POST_api_team_info]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* all authorized if a request is referring to the User's team,
+* all teachers.
 
-| POST
-| `/api/team/info`
-| get info about team
-| 403, 404
-|===
-
-////
-TODO: can be used by
-teachers
-////
+.Special status codes
 
 .Request
 
-[source]
+[source,json]
 ----
 {
   "teamId": 2
@@ -1104,7 +916,7 @@ teachers
 
 .Response
 
-[source]
+[source,json]
 ----
 {
   "name": "2d",
@@ -1130,25 +942,17 @@ teachers
 // invitation-:def
 * When a team has closed registration, the `invitation` property is `null`.
 
-=== `POST /api/team/update` [[POST_api_team_update]]
+==== `POST /api/team/update` - update team's info [[POST_api_team_update]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* the assignee of the requested team,
 
-| POST
-| `/api/team/update`
-| change team's data
-| 403, 404, 409 (invitation code is taken)
-|===
-
-////
-TODO: can be used by
-assignees
-////
+.Special status codes
+* `409 Conflict` - the invitation is already taken.
 
 .Request
 
-[source]
+[source,json]
 ----
 {
   "teamId": 2,
@@ -1158,7 +962,7 @@ assignees
 
 .Response
 
-[source]
+[source,json]
 ----
 ----
 
@@ -1172,25 +976,16 @@ assignees
 * The `invitation` property can also be an empty string `""` (in that case, it will be random)
 or `null` (in that case, registration will be closed).
 
-=== `POST /api/team/delete` [[POST_api_team_delete]]
+==== `POST /api/team/delete` - delete a team [[POST_api_team_delete]]
 
-|===
-| Method | URL | Description | Special status codes
+.It can be used by
+* the assignee of the requested team.
 
-| POST
-| `/api/team/delete`
-| delete a team
-| 403, 404
-|===
-
-////
-TODO: can be used by
-assignees
-////
+.Special status codes
 
 .Request
 
-[source]
+[source,json]
 ----
 {
   "teamId": 2
@@ -1199,7 +994,7 @@ assignees
 
 .Response
 
-[source]
+[source,json]
 ----
 ----
 
@@ -1207,15 +1002,36 @@ assignees
 
 * none
 
-== Notes directory
+////
 
-.Notes directory
+== Used phrases
+
+.It can be used by
 [%collapsible]
 ====
-////
+* anyone,
+* all teachers,
+* or all teachers if a subject's `assignees` equals `null`,
+* anyone if a subject is public and an exercise is listed in a subject's hierarchy,
+* all assignees of a subject,
+* anyone if a subject is public,
+* all authorized,
+* all authorized if a request is referring to the User,
+* all authorized if a request is referring to the User's team,
+* the assignee of the team of the requested user,
+* the assignee of the requested team,
+* all teachers,
+* anyone who has a valid invitation,
+====
+
+.Notes
+[%collapsible]
+====
+
+----
 get tags:
 (?<=\.Notes\n[^[]*)^// (.*)\n
-////
+----
 
 // seed+?
 * The `seed` property is optional.
@@ -1331,5 +1147,7 @@ With this request, it is not possible to register hard-coded users (like `root`)
 * There are only subjects available for the User.
 
 ====
+
+////
 
 include::footer.adoc[]

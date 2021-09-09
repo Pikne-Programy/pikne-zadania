@@ -1,6 +1,28 @@
 @import url(//fonts.googleapis.com/css?family=Noto+Sans);
 @import url(https://cdn.jsdelivr.net/gh/asciidoctor/asciidoctor@2.0/data/stylesheets/asciidoctor-default.css); /* Default asciidoc style framework - important */
 
+.subheader,
+.admonitionblock td.content > .title,
+.audioblock > .title,
+.exampleblock > .title,
+.imageblock > .title,
+.listingblock > .title,
+.literalblock > .title,
+.stemblock > .title,
+.openblock > .title,
+.paragraph > .title,
+.quoteblock > .title,
+table.tableblock > .title,
+.verseblock > .title,
+.videoblock > .title,
+.dlist > .title,
+.olist > .title,
+.ulist > .title,
+.qlist > .title,
+.hdlist > .title {
+  margin-bottom: 0.5em;
+}
+
 .compact-lists li > p {
   margin: 0 !important;
 }
