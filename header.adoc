@@ -1,21 +1,18 @@
-:source-highlighter: highlightjs
-:stylesheet: https://cdn.jsdelivr.net/gh/asciidoctor/asciidoctor@2.0/data/stylesheets/asciidoctor-default.css
+:stylesheet: main.css
 :linkcss:
-////
-:stylesheet: https://cdn.jsdelivr.net/gh/darshandsoni/asciidoctor-skins/css/dark.css
-:highlightjs-theme: dark
-////
+:docinfo1:
 
-++++
-<style>
-.compact-lists li>p {
-  margin: 0 !important;
-}
-</style>
-++++
 
 [.compact-lists]
 ****
+++++
+<div style="position:relative;">
+<ul class="styles">
+<li class="current">Light</li>
+<li>Dark</li>
+</ul>
+</div>
+++++
 * link:.[Home]
 * Specification
 ** link:API[API (endpoints)]

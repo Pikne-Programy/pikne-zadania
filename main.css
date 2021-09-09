@@ -1,0 +1,22 @@
+@import url(//fonts.googleapis.com/css?family=Noto+Sans);
+@import url(https://cdn.jsdelivr.net/gh/asciidoctor/asciidoctor@2.0/data/stylesheets/asciidoctor-default.css); /* Default asciidoc style framework - important */
+
+.compact-lists li > p {
+  margin: 0 !important;
+}
+
+ul.styles {
+  position: absolute;
+  right: 0;
+  display: block;
+  text-align: right;
+  font-weight: 900;
+}
+
+ul.styles li {
+  display: inline;
+}
+
+ul.styles li + li:before {
+  content: "| ";
+}

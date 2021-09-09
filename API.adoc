@@ -4,12 +4,23 @@ Marcin Zepp <nircek-2103@protonmail.com>
 v0.3, 2021-09-08: Revision 3
 :title: pikne-zadania's API endopints
 :issue: https://github.com/Pikne-Programy/pikne-zadania/issues/34[#34]
-:stylesheet: dark.css
+:stylesheet: main.css
+:linkcss:
+:docinfo1:
 :source-highlighter: highlightjs
 :highlightjs-theme: dark
 :source-language: json
 :icons: font
 :toc:
+
+++++
+<div style="display:none;">
+<ul class="styles">
+<li class="current">Light</li>
+<li>Dark</li>
+</ul>
+</div>
+++++
 
 NOTE: Discuss API v{revnumber} at {issue}.
 

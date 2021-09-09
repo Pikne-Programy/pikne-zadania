@@ -1,0 +1,30 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"
+  integrity="sha384-3J57zMPq3MVZNftJooMj0yTPa/5Jwox3gxrP+A2v+Q3k0SGttDQTwoFxjl//O+BY" crossorigin="anonymous"></script>
+<script>
+  if (!hljs.initHighlighting.called) {
+    hljs.initHighlighting.called = true
+      ;[].slice.call(document.querySelectorAll('pre.highlight > code')).forEach(function (el) { hljs.highlightBlock(el) })
+  }
+  hljs.debugMode();
+  const styles = [...document.querySelectorAll(".styles > li")]
+  // styles.reverse();
+  styles.forEach((style) => {
+    style.addEventListener("click", (event) => {
+      // inspired by https://github.com/highlightjs/highlight.js/blob/e91ffbdbcb9232287677b26c792e5fe8a75c3167/demo/demo.js
+      const current = document.querySelector(".styles .current");
+      const currentStyle = current.textContent;
+      const nextStyle = event.target.textContent;
+
+      if (currentStyle !== nextStyle) {
+        document.querySelector(`link[title="${nextStyle}"]`).removeAttribute("disabled");
+        document.querySelector(`link[title="${currentStyle}"]`).setAttribute("disabled", "disabled");
+        document.querySelector(`link[title="asciidoctor-${nextStyle}"]`).removeAttribute("disabled");
+        document.querySelector(`link[title="asciidoctor-${currentStyle}"]`).setAttribute("disabled", "disabled");
+
+        current.classList.remove("current");
+        event.target.classList.add("current");
+      }
+    });
+    style.click();
+  });
+</script>
