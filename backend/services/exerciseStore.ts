@@ -138,7 +138,11 @@ export class ExerciseStore implements IExerciseStore {
   ) {
     try {
       const content = this.getContent(subject, exerciseId);
-      const ex = this.update(subject, exerciseId, content);
+      const uid = this.uid(subject, exerciseId);
+      const ex = this.parse(content);
+      if (ex instanceof Exercise) {
+        this.exercises[uid] = [ex, false];
+      }
       if (ex instanceof Error) throw ex; // TODO
       return ex;
     } catch (e) {
@@ -187,31 +191,28 @@ export class ExerciseStore implements IExerciseStore {
     get: () => this._structure[subject] ?? null,
     set: (value: Section[]) => {
       const index = joinThrowable(this.exercisesPath, subject, "index.yml");
-      const makeYAMLSection = (section: Section): YAMLSection | string => {
-        if (!isSubSection(section)) {
-          const exerciseId = section.children;
-          if (!(this.uid(subject, exerciseId) in this.exercises)) {
-            throw new CustomDictError("ExerciseNotFound", {
-              subject,
-              exerciseId,
-            });
+      const makeYAMLSection = (
+        section: Section[],
+      ): (YAMLSection | string)[] => {
+        return section.flatMap<YAMLSection | string>((x) => {
+          if (!isSubSection(x)) {
+            const exerciseId = x.children;
+            const uid = this.uid(subject, exerciseId);
+            if (!(uid in this.exercises)) return [];
+            if (!this.exercises[uid][1]) {
+              this.exercises[uid][1] = true;
+              this._unlisted[subject] = this._unlisted[subject].filter((x) =>
+                x !== exerciseId
+              );
+            }
+            return exerciseId;
           }
-          return exerciseId;
-        }
-        return {
-          [section.name]: section.children.map(makeYAMLSection),
-        };
+          return {
+            [x.name]: makeYAMLSection(x.children),
+          };
+        });
       };
-      let res;
-      try {
-        res = value.map((x) => makeYAMLSection(x));
-      } catch (e) {
-        if (e instanceof CustomDictError) {
-          return e;
-        }
-        throw e;
-      }
-      Deno.writeTextFileSync(index, stringify(res));
+      Deno.writeTextFileSync(index, stringify(makeYAMLSection(value)));
       this._structure[subject] = value;
     },
   });
@@ -253,11 +254,10 @@ export class ExerciseStore implements IExerciseStore {
     content: string,
   ) {
     const uid = this.uid(subject, exerciseId);
+    const path = join(this.exercisesPath, subject, exerciseId) + ".txt";
     const ex = this.parse(content);
-    if (ex instanceof Exercise) {
-      this.exercises[uid] = [ex, false];
-    }
-    return ex;
+    if (ex instanceof Exercise) this.exercises[uid][0] = ex;
+    Deno.writeTextFileSync(path, content);
   }
 
   getContent(subject: string, exerciseId: string) {

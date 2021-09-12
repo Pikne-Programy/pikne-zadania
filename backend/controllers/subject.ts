@@ -243,6 +243,7 @@ export class SubjectController extends Authorizer {
             sectionArray.push({
               name: exercise.name,
               children: el.children,
+              type: req.raw ? undefined : exercise.type,
               description: req.raw ? undefined : exercise.description,
               done: (req.raw || user === undefined)
                 ? undefined
@@ -260,13 +261,22 @@ export class SubjectController extends Authorizer {
         return sectionArray;
       };
       ctx.response.body = [
-        ...(await this.parent.isAssigneeOf(req.subject, user)
+        ...(await this.parent.isAssigneeOf(req.subject, user) && !req.raw
           ? [{
             name: "",
-            children: this.parent.es.unlisted(req.subject).get().map((x) => ({
-              name: this.parent.es.get(req.subject, x).name,
-              children: x,
-            })),
+            children: this.parent.es.unlisted(req.subject).get().flatMap(
+              (x) => {
+                const exercise = this.parent.es.get(req.subject, x);
+                if (exercise instanceof Error) return []; // ignore not existing exercises
+                return {
+                  name: exercise.name,
+                  children: x,
+                  type: exercise.type,
+                  description: exercise.description,
+                  done: null,
+                };
+              },
+            ),
           }]
           : []),
         ...await iterateSection(this.parent.es.structure(req.subject).get()),

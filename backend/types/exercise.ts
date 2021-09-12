@@ -43,7 +43,7 @@ export type Section = SubSection | { children: string };
 export function isSection(what: unknown): what is Section {
   if (!isObject(what)) return false;
   if (typeof what.children === "string") return true;
-  return typeof what.name === "string" &&
+  return typeof what.name === "string" && what.name !== "" &&
     isArrayOf(isSection, what.children);
 }
 export function isSubSection(what: Section): what is SubSection {

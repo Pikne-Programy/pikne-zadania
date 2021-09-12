@@ -12,12 +12,16 @@ export interface IExerciseStore {
   listSubjects(): string[];
   structure(subject: string): {
     get(): Section[];
-    set(value: Section[]): void;
+    set(value: Section[]): CustomDictError<"ExerciseAlreadyExists"> | void;
   };
   unlisted(subject: string): ({
     get: () => string[];
   });
-  add(subject: string, id: string, content: string): void;
+  add(
+    subject: string,
+    id: string,
+    content: string,
+  ): CustomDictError<"ExerciseAlreadyExists"> | void;
   get(
     subject: string,
     id: string,
