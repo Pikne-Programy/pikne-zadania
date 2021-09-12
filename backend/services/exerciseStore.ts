@@ -137,7 +137,11 @@ export class ExerciseStore implements IExerciseStore {
   ) {
     try {
       const content = this.getContent(subject, exerciseId);
-      const ex = this.update(subject, exerciseId, content);
+      const uid = this.uid(subject, exerciseId);
+      const ex = this.parse(content);
+      if (ex instanceof Exercise) {
+        this.exercises[uid] = [ex, false];
+      }
       if (ex instanceof Error) throw ex; // TODO
       return ex;
     } catch (e) {
@@ -189,11 +193,16 @@ export class ExerciseStore implements IExerciseStore {
       const makeYAMLSection = (section: Section): YAMLSection | string => {
         if (!isSubSection(section)) {
           const exerciseId = section.children;
-          if (!(this.uid(subject, exerciseId) in this.exercises)) {
+          const uid = this.uid(subject, exerciseId);
+          if (!(uid in this.exercises)) {
             throw new CustomDictError("ExerciseNotFound", {
               subject,
               exerciseId,
             });
+          }
+          if (!this.exercises[uid][1]) {
+            this.exercises[uid][1] = true;
+            this._unlisted[subject].filter((x) => x !== exerciseId);
           }
           return exerciseId;
         }
@@ -251,12 +260,8 @@ export class ExerciseStore implements IExerciseStore {
     exerciseId: string,
     content: string,
   ) {
-    const uid = this.uid(subject, exerciseId);
-    const ex = this.parse(content);
-    if (ex instanceof Exercise) {
-      this.exercises[uid] = [ex, false];
-    }
-    return ex;
+    const path = join(this.exercisesPath, subject, exerciseId, ".txt");
+    Deno.writeTextFileSync(path, content);
   }
 
   getContent(subject: string, exerciseId: string) {

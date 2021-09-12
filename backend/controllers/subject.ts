@@ -243,6 +243,7 @@ export class SubjectController extends Authorizer {
             sectionArray.push({
               name: exercise.name,
               children: el.children,
+              type: req.raw ? undefined : exercise.type,
               description: req.raw ? undefined : exercise.description,
               done: (req.raw || user === undefined)
                 ? undefined
