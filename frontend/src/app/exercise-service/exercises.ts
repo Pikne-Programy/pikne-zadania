@@ -147,7 +147,7 @@ export class PreviewExercise extends Exercise implements PreviewExerciseType {
 
 //#region EqEx
 type CorrectEqExAnswersType = {
-    answers: EqExAnswer;
+    answers: number[];
 };
 export class PreviewEqEx extends EqEx implements PreviewExerciseType {
     protected constructor(
@@ -165,10 +165,8 @@ export class PreviewEqEx extends EqEx implements PreviewExerciseType {
     static isPreviewExercise(exercise: Exercise): exercise is PreviewEqEx {
         return (
             isObject<PreviewEqEx>(exercise, [['correctAnswer', ['object']]]) &&
-            EqEx.isEqExAnswer(
-                exercise.correctAnswer.answers,
-                exercise.problem.unknown.length
-            )
+            isObject<CorrectEqExAnswersType>(exercise.correctAnswer, [['answers', 'array']]) &&
+            exercise.correctAnswer.answers.every((val) => typeof val === 'number')
         );
     }
 }

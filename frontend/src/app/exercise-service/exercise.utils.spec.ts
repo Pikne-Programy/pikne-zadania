@@ -5,7 +5,7 @@ import {
 } from './exercise.utils';
 import { ExerciseType } from './exercises';
 
-const desc = 'Test description';
+const description = 'Test description';
 
 describe('Exercise Utils', () => {
     describe('Subject', () => {
@@ -112,7 +112,7 @@ describe('Exercise Utils', () => {
                 expect(Subject.checkSubjectValidity(obj)).toBe(false);
             });
 
-            it('should return true (valid Subject w/ \'type\' & \'desc\')', () => {
+            it('should return true (valid Subject w/ \'type\' & \'description\')', () => {
                 const obj: ServerResponseNode = {
                     name: 'Sb1',
                     children: [
@@ -126,7 +126,7 @@ describe('Exercise Utils', () => {
                                             type: 'EqEx',
                                             name: 'Ex1',
                                             children: 'ex1',
-                                            desc
+                                            description
                                         }
                                     ]
                                 },
@@ -134,7 +134,7 @@ describe('Exercise Utils', () => {
                                     type: 'EqEx',
                                     name: 'Ex2',
                                     children: 'ex2',
-                                    desc
+                                    description
                                 }
                             ]
                         },
@@ -142,7 +142,7 @@ describe('Exercise Utils', () => {
                             type: 'EqEx',
                             name: 'Ex3',
                             children: 'ex3',
-                            desc
+                            description
                         }
                     ]
                 };
@@ -156,7 +156,7 @@ describe('Exercise Utils', () => {
                         {
                             name: 'Ex1',
                             children: 'ex1',
-                            desc
+                            description
                         }
                     ]
                 };
@@ -171,7 +171,7 @@ describe('Exercise Utils', () => {
                             type: 'Abc',
                             name: 'Ex1',
                             children: 'ex1',
-                            desc
+                            description
                         }
                     ]
                 };
@@ -198,7 +198,7 @@ describe('Exercise Utils', () => {
                     type: 'EqEx',
                     name: 'Ex1',
                     children: 'ex1',
-                    desc
+                    description
                 }
             ]
         };
@@ -234,7 +234,7 @@ describe('Exercise Utils', () => {
                                     type: 'EqEx',
                                     name: 'Ex1',
                                     children: 'ex1',
-                                    desc
+                                    description
                                 }
                             ]
                         }
@@ -335,7 +335,7 @@ function expectToBeExerciseTreeNode(
 
     if (type) {
         expect(obj.type).toBe(type);
-        expect(obj.description).toBe(desc);
+        expect(obj.description).toBe(description);
     }
 
     if (url) {

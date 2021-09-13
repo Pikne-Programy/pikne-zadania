@@ -32,7 +32,7 @@ export class ExerciseService {
 
     getExerciseTree(subjectId: string) {
         return this.http
-            .post(ServerRoutes.exerciseList, { subject: subjectId, raw: true })
+            .post(ServerRoutes.exerciseList, { subject: subjectId, raw: false })
             .pipe(
                 switchMap((response) => {
                     const subject = { name: subjectId, children: response };

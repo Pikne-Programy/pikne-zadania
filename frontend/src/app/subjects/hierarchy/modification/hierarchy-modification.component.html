@@ -1,0 +1,196 @@
+<div *ngIf="hierarchy && !isLoading && errorCode === null" class="container height-full">
+    <div class="tile is-ancestor height-full m-0 scrollable">
+        <!--#region Tree view -->
+        <div class="tile is-parent">
+            <div class="tile is-child box hierarchy-box scrollable">
+                <div class="menu">
+                    <ul class="menu-list">
+                        <ng-container *ngFor="let node of hierarchy">
+                            <ng-container [ngTemplateOutlet]="nodeTemplate" [ngTemplateOutletContext]="{ $implicit: node }"></ng-container>
+                        </ng-container>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!--#endregion-->
+        <!--#region Actions -->
+        <div class="tile is-parent is-vertical is-narrow">
+            <div class="tile is-child is-narrow box hierarchy-box scrollable">
+                <div class="buttons is-flex-direction-column mb-2">
+                    <button class="button is-primary is-inverted is-fullwidth is-justify-content-flex-start" (click)="openModal(MODALS.ADD)">
+                        <span class="icon is-small">
+                            <i class="fas fa-plus"></i>
+                        </span>
+                        <span>Dodaj kategorię</span>
+                    </button>
+                    <button class="button is-primary is-inverted is-fullwidth is-justify-content-flex-start" (click)="openModal(MODALS.MOVE)" [disabled]="!isMoveEnabled()">
+                        <span class="icon is-small">
+                            <i class="fas fa-arrows-alt"></i>
+                        </span>
+                        <span>Przenieś elementy</span>
+                    </button>
+                </div>
+                <div class="buttons is-confirmation divider-top">
+                    <button class="button is-success" [class.is-loading]="isSubmitLoading" (click)="submit()">Zapisz</button>
+                    <button class="button is-danger" (click)="cancel()" [disabled]="isSubmitLoading">Odrzuć</button>
+                </div>
+            </div>
+        </div>
+        <!--#endregion-->
+    </div>
+</div>
+<app-loading *ngIf="isLoading"></app-loading>
+<app-error *ngIf="errorCode !== null && !isLoading" [code]="errorCode"></app-error>
+
+<!--#region Modal Move -->
+<app-card-modal [title]="'Przenieś elementy'" [open]="openedModal === MODALS.MOVE" (onClose)="closeModal()">
+    <section style="margin: -20px;">
+        <div class="field p-2 m-0">
+            <div class="control">
+                <div class="input is-link with-tags">
+                    <span *ngFor="let tag of moveModalTagList; index as i" class="tag is-link is-rounded is-unselectable">
+                        <span *ngIf="tag.name !== ''">{{ tag.name | titlecase }}</span>
+                        <span *ngIf="tag.name === ''"><i>Nieprzypisane</i></span>
+                        <button class="delete is-small" (click)="deleteTag(i, MODALS.MOVE)"></button>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div *ngIf="moveModalNodeList && moveModalNodeList.length > 0" class="menu divider-top">
+            <a *ngFor="let node of moveModalNodeList" class="panel-block" (click)="addTag(node, MODALS.MOVE)">
+                <span *ngIf="node.name !== ''">{{ node.name | titlecase }}</span>
+                <span *ngIf="node.name === ''"><i>Nieprzypisane</i></span>
+            </a>
+        </div>
+    </section>
+    <footer>
+        <div class="buttons">
+            <button class="button is-success" (click)="move()">Przenieś</button>
+            <button class="button" (click)="closeModal()">Anuluj</button>
+        </div>
+    </footer>
+</app-card-modal>
+<!--#endregion-->
+
+<!--#region Modal Add -->
+<app-card-modal [title]="'Dodaj kategorię'" [open]="openedModal === MODALS.ADD" (onClose)="closeModal()">
+    <section style="margin: -20px;">
+        <form id="addForm" class="p-2" [formGroup]="addForm" (ngSubmit)="add()">
+            <div class="field">
+                <div class="control has-icons-left">
+                    <input class="input is-primary" type="text" formControlName="newName" placeholder="Nazwa">
+                    <span class="icon is-small is-left">
+                        <i class="fas fa-folder"></i>
+                    </span>
+                </div>
+            </div>
+            <div class="field">
+                <div class="control">
+                    <div class="input is-link with-tags">
+                        <span *ngFor="let tag of addModalTagList; index as i" class="tag is-link is-rounded is-unselectable">
+                            <span>{{ tag.name | titlecase }}</span>
+                            <button class="delete is-small" (click)="deleteTag(i, MODALS.ADD)"></button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div *ngIf="addModalNodeList && addModalNodeList.length > 0" class="menu divider-top">
+            <a *ngFor="let node of addModalNodeList" class="panel-block" (click)="addTag(node, MODALS.ADD)">
+                {{ node.name | titlecase }}
+            </a>
+        </div>
+    </section>
+    <footer>
+        <div class="buttons">
+            <button type="submit" form="addForm" class="button is-success" [disabled]="addForm.invalid">Dodaj</button>
+            <button class="button" (click)="closeModal()">Anuluj</button>
+        </div>
+    </footer>
+</app-card-modal>
+<!--#endregion-->
+
+<!--#region Modal Edit -->
+<app-card-modal [title]="'Zmień nazwę kategorii'" [open]="openedModal === MODALS.EDIT" (onClose)="closeModal()">
+    <section>
+        <form id="editForm" [formGroup]="editForm" (ngSubmit)="edit()">
+            <div class="field">
+                <div class="control has-icons-left">
+                    <input class="input is-primary" type="text" formControlName="editName">
+                    <span class="icon is-small is-left">
+                        <i class="fas fa-folder"></i>
+                    </span>
+                </div>
+            </div>
+        </form>
+    </section>
+    <footer class="width-full">
+        <div class="buttons">
+            <button type="submit" form="editForm" class="button is-success" [disabled]="editForm.invalid">Zmień</button>
+            <button class="button" (click)="closeModal()">Anuluj</button>
+        </div>
+    </footer>
+</app-card-modal>
+<!--#endregion-->
+
+<!--#region Modal Reorder -->
+<app-card-modal [title]="'Uporządkuj'" [open]="openedModal === MODALS.REORDER" (onClose)="closeModal()">
+    <section class="reorder-list" style="margin: -20px;" cdkDropList (cdkDropListDropped)="drop($event)">
+        <a *ngFor="let node of childrenToReorder" class="panel-block is-drag-item" cdkDrag>
+            {{ node.name | titlecase }}
+            <span class="icon is-small">
+                <i class="fas fa-bars"></i>
+            </span>
+        </a>
+    </section>
+    <footer>
+        <div class="buttons">
+            <button class="button is-success" (click)="reorder()">Zatwierdź</button>
+            <button class="button" (click)="closeModal()">Anuluj</button>
+        </div>
+    </footer>
+</app-card-modal>
+<!--#endregion-->
+
+<!--#region Modal Discard -->
+<app-card-modal [title]="'Odrzuć zmiany'" [open]="openedModal === MODALS.DISCARD" (onClose)="closeModal()">
+    <section>
+        <p class="has-text-justified">Czy na pewno chcesz odrzucić wszystkie zmiany?</p>
+    </section>
+    <footer>
+        <div class="buttons">
+            <button class="button is-danger" (click)="closeModal(); navigateToDashboard()">Odrzuć</button>
+            <button class="button" (click)="closeModal()">Anuluj</button>
+        </div>
+    </footer>
+</app-card-modal>
+<!--#endregion-->
+
+<!--#region Tree node template -->
+<ng-template #nodeTemplate let-node>
+    <li>
+        <a class="is-flex is-unselectable" [class.is-active]="node.isSelected" (click)="selectNode(node)">
+            <span class="icon">
+                <i class="fas" [ngClass]="{
+                    'fa-folder': !node.exerciseId && !node.isSelected,
+                    'fa-folder-open': !node.exerciseId && node.isSelected,
+                    'fa-file-alt': node.exerciseId
+                }"></i>
+            </span>
+            <span *ngIf="node.name !== ''" class="is-flex-grow-1">{{ node.name | titlecase }}</span>
+            <span *ngIf="node.name === ''" class="is-flex-grow-1"><i>Nieprzypisane</i></span>
+            <button *ngIf="!node.exerciseId && node.name !== ''" class="button is-node-action" [ngClass]="getNodeActionStyle(node)" title="Zmień nazwę" (click)="openModal(MODALS.EDIT, node); $event.stopPropagation()">
+                <i class="fas fa-pen"></i>
+            </button>
+            <button *ngIf="!node.exerciseId && node.name !== ''" class="button is-node-action" [ngClass]="getNodeActionStyle(node)" title="Uporządkuj" (click)="openModal(MODALS.REORDER, node); $event.stopPropagation()">
+                <i class="fas fa-sort"></i>
+            </button>
+        </a>
+        <ul *ngIf="node.children.length > 0" class="menu-list" [class.is-collapsed]="!node.isSelected">
+            <ng-container *ngFor="let child of node.children">
+                <ng-container [ngTemplateOutlet]="nodeTemplate" [ngTemplateOutletContext]="{ $implicit: child }"></ng-container>
+            </ng-container>
+        </ul>
+    </li>
+</ng-template>
+<!--#endregion-->

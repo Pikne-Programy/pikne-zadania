@@ -4,6 +4,7 @@ import { NavComponent } from '../navigation/nav.component';
 import { SubjectDashboardComponent } from './dashboard/dashboard.component';
 import { ExerciseCreationComponent } from './exercise-modification/creation/creation.component';
 import { ExerciseModificationComponent } from './exercise-modification/modification/modification.component';
+import { HierarchyModificationComponent } from './hierarchy/modification/hierarchy-modification.component';
 import { SubjectListComponent } from './list/list.component';
 
 const routes: Routes = [
@@ -33,8 +34,8 @@ const routes: Routes = [
                 component: ExerciseCreationComponent
             },
             {
-                path: 'categories/:subjectId'
-                //TODO Category modification component
+                path: 'categories/:subjectId',
+                component: HierarchyModificationComponent
             }
         ]
     }

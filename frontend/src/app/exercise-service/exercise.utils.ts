@@ -6,7 +6,7 @@ export interface ServerResponseNode {
     name: string;
     children: ServerResponseNode[] | string;
     done?: number | null;
-    desc?: string;
+    description?: string;
 }
 
 export class Subject {
@@ -34,7 +34,7 @@ export class Subject {
                 ['name', ['string']],
                 ['children', 'any'],
                 ['done', ['number', 'null', 'undefined']],
-                ['desc', ['string', 'undefined']]
+                ['description', ['string', 'undefined']]
             ]) &&
             (Array.isArray(object.children)
                 ? object.children.every((child) =>
@@ -88,7 +88,7 @@ export class ExerciseTreeNode {
                         capitalize(child.name)!,
                         node,
                         child.type,
-                        child.desc,
+                        child.description,
                         child.children,
                         child.done === undefined && getLocal
                             ? getLocalDone(subject, child.children)

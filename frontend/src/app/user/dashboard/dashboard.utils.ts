@@ -1,7 +1,7 @@
 import { Account } from 'src/app/account/account.service';
 import { TeamItem } from '../team.service/types';
+export { INTERNAL_ERROR } from 'src/app/helper/utils';
 
-export const INTERNAL_ERROR = 480;
 export const ERROR_MESSAGE = 'Błąd wczytywania danych użytkownika';
 
 export interface DashboardComponentType {

@@ -1,4 +1,5 @@
-export const TYPE_ERROR = 489;
+export const TYPE_ERROR = 40089;
+export const INTERNAL_ERROR = 40080;
 
 export type ObjectType = ({ [key: string]: unknown });
 
@@ -151,11 +152,11 @@ export async function pbkdf2(
 
 //#region getErrorCode
 /**
- * @param fallback Default fallback error is 489 ({@link TYPE_ERROR})
+ * @param fallback Default fallback error is 40080 ({@link INTERNAL_ERROR})
  */
 export function getErrorCode(
     error: any,
-    fallback: number = TYPE_ERROR
+    fallback: number = INTERNAL_ERROR
 ): number {
     return error.status && typeof error.status === 'number'
         ? error.status

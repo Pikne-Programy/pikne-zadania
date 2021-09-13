@@ -43,7 +43,7 @@ describe('Service: Exercise', () => {
         httpController.verify();
     });
 
-    describe('getSubject', () => {
+    describe('getExerciseTree', () => {
         let roleSpy: jasmine.Spy<(arg0: Account) => Role>;
         type SubjectCreateType = (
             serverResponse: ServerResponseNode,
@@ -56,7 +56,7 @@ describe('Service: Exercise', () => {
         const subjectId = 'Sb1';
         const expectedBody = {
             subject: subjectId,
-            raw: true
+            raw: false
         };
 
         beforeEach(() => {
