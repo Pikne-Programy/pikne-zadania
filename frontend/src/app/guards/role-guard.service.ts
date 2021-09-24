@@ -7,6 +7,7 @@ import {
     RouterStateSnapshot
 } from '@angular/router';
 import { Account, AccountService, isAccount } from '../account/account.service';
+import { AuthGuardService } from './auth-guard.service';
 
 export enum Role {
     USER,
@@ -21,6 +22,7 @@ export const TEACHER_ROLES = [Role.TEACHER, Role.ADMIN];
 })
 export class RoleGuardService implements CanActivate {
     constructor(
+        private authGuard: AuthGuardService,
         private accountService: AccountService,
         private router: Router
     ) {}
@@ -32,24 +34,37 @@ export class RoleGuardService implements CanActivate {
     canActivate(
         route: ActivatedRouteSnapshot,
         state: RouterStateSnapshot
-    ): boolean {
-        const account = this.getAccount();
-        if (!account || !isAccount(account)) {
-            this.redirect('/login', { returnUrl: state.url });
-            return false;
-        }
-        const roles = route.data.roles;
-        if (
-            !roles ||
-            !Array.isArray(roles) ||
-            roles.some((role) => typeof role !== 'number') ||
-            !roles.includes(RoleGuardService.getRole(account))
-        ) {
-            this.redirect('/user/dashboard');
-            return false;
-        }
+    ): Promise<boolean> {
+        return this.authGuard
+            .canActivate(route, state)
+            .then((result) => {
+                if (!result) return false;
 
-        return true;
+                const account = this.getAccount();
+                if (!account || !isAccount(account)) {
+                    this.redirectToLogin(state);
+                    return false;
+                }
+                const roles = route.data.roles;
+                if (
+                    !roles ||
+                    !Array.isArray(roles) ||
+                    roles.some((role) => typeof role !== 'number') ||
+                    !roles.includes(RoleGuardService.getRole(account))
+                ) {
+                    this.redirect('/user/dashboard');
+                    return false;
+                }
+                return true;
+            })
+            .catch(() => {
+                this.redirectToLogin(state);
+                return false;
+            });
+    }
+
+    private redirectToLogin(state: RouterStateSnapshot) {
+        this.redirect('/login', { returnUrl: state.url });
     }
 
     private redirect(destination: string, queryParams?: Params | null) {

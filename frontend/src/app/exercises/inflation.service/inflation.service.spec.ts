@@ -15,43 +15,67 @@ describe('Service: ExerciseInflation', () => {
         });
     });
 
-    it('should return Exercise', inject(
-        [ExerciseInflationService],
-        (service: ExerciseInflationService) => {
-            expect(service).toBeTruthy();
-            (service as any)._exercise = exercise;
+    describe('exercise', () => {
+        it('should return Exercise', inject(
+            [ExerciseInflationService],
+            (service: ExerciseInflationService) => {
+                expect(service).toBeTruthy();
+                (service as any)._exercise = exercise;
 
-            expect(service.getExercise()).toEqual(exercise);
-        }
-    ));
+                expect(service.getExercise()).toEqual(exercise);
+            }
+        ));
 
-    it('should return null', inject(
-        [ExerciseInflationService],
-        (service: ExerciseInflationService) => {
-            expect(service).toBeTruthy();
-            (service as any)._exercise = null;
+        it('should return null', inject(
+            [ExerciseInflationService],
+            (service: ExerciseInflationService) => {
+                expect(service).toBeTruthy();
+                (service as any)._exercise = null;
 
-            expect(service.getExercise()).toBeNull();
-        }
-    ));
+                expect(service.getExercise()).toBeNull();
+            }
+        ));
 
-    it('should set Exercise', inject(
-        [ExerciseInflationService],
-        (service: ExerciseInflationService) => {
-            expect(service).toBeTruthy();
+        it('should set Exercise', inject(
+            [ExerciseInflationService],
+            (service: ExerciseInflationService) => {
+                expect(service).toBeTruthy();
 
-            service.setExercise(exercise);
-            expect((service as any)._exercise).toBe(exercise);
-        }
-    ));
+                service.setExercise(exercise);
+                expect((service as any)._exercise).toBe(exercise);
+            }
+        ));
 
-    it('should reset Exercise', inject(
-        [ExerciseInflationService],
-        (service: ExerciseInflationService) => {
-            expect(service).toBeTruthy();
+        it('should reset Exercise', inject(
+            [ExerciseInflationService],
+            (service: ExerciseInflationService) => {
+                expect(service).toBeTruthy();
 
-            service.resetExercise();
-            expect((service as any)._exercise).toBeNull();
-        }
-    ));
+                service.resetExercise();
+                expect((service as any)._exercise).toBeNull();
+            }
+        ));
+    });
+
+    describe('showAnswers', () => {
+        it('should return false', inject(
+            [ExerciseInflationService],
+            (service: ExerciseInflationService) => {
+                expect(service).toBeTruthy();
+
+                expect(service.showAnswers).toBeFalse();
+            }
+        ));
+
+        it('should return true after toggle', inject(
+            [ExerciseInflationService],
+            (service: ExerciseInflationService) => {
+                expect(service).toBeTruthy();
+
+                expect(service.showAnswers).toBeFalse();
+                service.toggleAnswers();
+                expect(service.showAnswers).toBeTrue();
+            }
+        ));
+    });
 });

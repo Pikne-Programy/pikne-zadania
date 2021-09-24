@@ -47,7 +47,7 @@ export class ExerciseComponent implements AfterViewInit, OnChanges, OnDestroy {
     submitState: SubmitButtonState = 'disabled';
     constructor(
         private factoryResolver: ComponentFactoryResolver,
-        private inflationService: ExerciseInflationService
+        public inflationService: ExerciseInflationService
     ) {}
 
     ngAfterViewInit() {

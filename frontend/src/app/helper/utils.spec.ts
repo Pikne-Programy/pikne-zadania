@@ -8,7 +8,7 @@ import {
     propertyTypes,
     pbkdf2,
     replaceAccents,
-    TYPE_ERROR
+    INTERNAL_ERROR
 } from './utils';
 
 describe('Utils', () => {
@@ -389,7 +389,7 @@ describe('Utils', () => {
         });
 
         it('should return default fallback', () => {
-            const defCode = TYPE_ERROR;
+            const defCode = INTERNAL_ERROR;
             expect(getErrorCode({})).toBe(defCode);
             expect(getErrorCode({}, undefined)).toBe(defCode);
             expect(getErrorCode({ abc: 404 })).toBe(defCode);

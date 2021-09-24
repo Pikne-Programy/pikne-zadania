@@ -22,22 +22,45 @@ export class ExerciseService {
         private accountService: AccountService
     ) {}
 
-    private createExerciseTree(serverResponse: ServerResponseNode) {
+    private createExerciseTree(
+        serverResponse: ServerResponseNode,
+        getUnassigned: boolean
+    ) {
         const account = this.accountService.currentAccount.getValue();
         const isUser = account
             ? RoleGuardService.getRole(account) === Role.USER
             : true;
-        return Subject.createSubject(serverResponse, isUser);
+        return Subject.createSubject(
+            getUnassigned
+                ? serverResponse
+                : this.filterOutUnassigned(serverResponse),
+            isUser
+        );
     }
 
-    getExerciseTree(subjectId: string) {
+    private filterOutUnassigned(
+        serverResponse: ServerResponseNode
+    ): ServerResponseNode {
+        if (!Array.isArray(serverResponse.children)) return serverResponse;
+        return {
+            name: serverResponse.name,
+            children: serverResponse.children.filter(
+                (child) => child.name !== ''
+            )
+        };
+    }
+
+    getExerciseTree(subjectId: string, getUnassigned: boolean = false) {
         return this.http
             .post(ServerRoutes.exerciseList, { subject: subjectId, raw: false })
             .pipe(
                 switchMap((response) => {
                     const subject = { name: subjectId, children: response };
                     if (Subject.checkSubjectValidity(subject)) {
-                        const tree = this.createExerciseTree(subject);
+                        const tree = this.createExerciseTree(
+                            subject,
+                            getUnassigned
+                        );
                         return tree
                             ? of(tree)
                             : throwError({ status: TYPE_ERROR });

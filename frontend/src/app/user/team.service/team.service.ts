@@ -10,12 +10,12 @@ import { isObject, TYPE_ERROR } from 'src/app/helper/utils';
     providedIn: 'root'
 })
 export class TeamService {
-    private readonly PermissionError = 403;
+    private readonly PERMISSION_ERROR = 40003;
 
     constructor(private http: HttpClient) {}
 
     //#region Fetching
-    getTeams() {
+    getTeams(): Promise<Utils.TeamItem[]> {
         return this.http
             .get(ServerRoutes.teamList)
             .pipe(
@@ -28,7 +28,7 @@ export class TeamService {
             .toPromise();
     }
 
-    getTeam(id: number) {
+    getTeam(id: number): Promise<Utils.Team> {
         return this.http
             .post(ServerRoutes.teamInfo, { teamId: id })
             .pipe(
@@ -51,7 +51,7 @@ export class TeamService {
             .toPromise();
     }
 
-    getAssigneeList() {
+    getAssigneeList(): Promise<Utils.User[]> {
         const TEACHER_TEAM_ID = 1;
         return this.http
             .post(ServerRoutes.teamInfo, { teamId: TEACHER_TEAM_ID })
@@ -60,7 +60,7 @@ export class TeamService {
                     Utils.isTeam(response)
                         ? response.members
                             ? of(response.members)
-                            : throwError({ status: this.PermissionError })
+                            : throwError({ status: this.PERMISSION_ERROR })
                         : throwError({ status: TYPE_ERROR })
                 )
             )
@@ -69,7 +69,7 @@ export class TeamService {
     //#endregion
 
     //#region Team modification
-    createTeam(name: string) {
+    createTeam(name: string): Promise<number> {
         return this.http
             .post(ServerRoutes.teamCreate, { name })
             .pipe(
@@ -77,7 +77,7 @@ export class TeamService {
                     isObject<{ teamId: number }>(response, [
                         ['teamId', ['number']]
                     ])
-                        ? of(response)
+                        ? of(response.teamId)
                         : throwError({ status: TYPE_ERROR })
                 )
             )

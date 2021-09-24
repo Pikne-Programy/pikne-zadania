@@ -242,7 +242,7 @@ describe('Service: Team', () => {
 
         describe('getAssigneeList', () => {
             const TEACHER_TEAM_ID = 1;
-            const PERMISSION_ERROR = 403;
+            const PERMISSION_ERROR = 40003;
             const expectedBody = {
                 teamId: TEACHER_TEAM_ID
             };

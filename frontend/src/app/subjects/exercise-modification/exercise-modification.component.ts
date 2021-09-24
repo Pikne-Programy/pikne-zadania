@@ -10,8 +10,8 @@ import {
     template: ''
 })
 export abstract class ExerciseModComponent implements OnInit, OnDestroy {
-    protected readonly SubjectError = 420;
-    protected readonly ExerciseError = 421;
+    protected readonly SubjectError = 40020;
+    protected readonly ExerciseError = 40021;
 
     subjectId?: string;
     exerciseId?: string | null;

@@ -1,49 +1,58 @@
 <section *ngIf="exercise" [ngClass]="{ 'view-loading': isLoading }" class="section py-4 p-only-mobile-3">
-  <div class="height-full is-flex is-flex-direction-column">
-    <p class="title use-line-break is-1 is-size-4-mobile mb-only-mobile-3">{{ exercise.name }}</p>
-    <p class="subtitle is-size-6-mobile has-text-justified mx-4 mx-only-mobile-1 my-0 mb-tablet-3 mb-desktop-5">{{ exercise.problem.main }}</p>
-    <div *ngIf="images" class="columns is-multiline is-centered mt-4 mb-only-mobile-0 mb-only-tablet-2">
-      <div *ngFor="let img of images; index as i" class="column img-column">
-        <div class="height-full p-0">
-          <div class="height-full is-flex is-align-items-center is-justify-content-center">
-            <img [src]="img" (load)="onImageLoaded()" (error)="onImageLoaded()" alt="{{ getImageAlt(i) }}">
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="columns mt-4 mb-only-mobile-0">
-      <div *ngFor="let unknown of unknowns" class="tile column is-flex is-justify-content-center pt-0 pb-2">
-        <div class="columns is-mobile">
-          <div class="column is-narrow pb-2r">
-            <div class="subtitle height-full unknowns-width is-flex is-align-items-center is-justify-content-flex-end">{{ getTextAsMath(unknown.name + '=') }}</div>
-          </div>
-          <div class="column px-0">
-            <div class="field">
-              <div class="control has-icons-right">
-                <input type="text" class="input" [ngClass]="{
-                  'is-primary': !(unknown.isWrongFormat || unknown.isCorrect || unknown.isWrong),
-                  'is-warning': unknown.isWrongFormat,
-                  'is-success': unknown.isCorrect,
-                  'is-danger': unknown.isWrong
-                }" [(ngModel)]="unknown.input" (input)="unknown.checkFormat(); checkIfSubmitDisabled()" [disabled]="isSubmitted" [readonly]="isPreview(exercise)">
-                <span *ngIf="unknown.isWrongFormat" class="icon is-small is-right has-text-warning">
-                  <i class="fas fa-exclamation-triangle"></i>
-                </span>
-                <span *ngIf="unknown.isCorrect" class="icon is-small is-right has-text-success">
-                  <i class="fas fa-check"></i>
-                </span>
-                <span *ngIf="unknown.isWrong" class="icon is-small is-right has-text-danger">
-                  <i class="fas fa-times"></i>
-                </span>
-              </div>
-              <p [ngClass]="{ 'hidden': !unknown.isWrongFormat }" class="help is-warning">Niepoprawny format</p>
+    <div class="height-full is-flex is-flex-direction-column">
+        <p class="title use-line-break is-1 is-size-4-mobile mb-only-mobile-3">{{ exercise.name }}</p>
+        <p class="subtitle is-size-6-mobile has-text-justified mx-4 mx-only-mobile-1 my-0 mb-tablet-3 mb-desktop-5">{{ exercise.problem.main }}</p>
+        <div *ngIf="images" class="columns is-multiline is-centered mt-4 mb-only-mobile-0 mb-only-tablet-2">
+            <div *ngFor="let img of images; index as i" class="column img-column">
+                <div class="height-full p-0">
+                    <div class="height-full is-flex is-align-items-center is-justify-content-center">
+                        <img [src]="img" (load)="onImageLoaded()" (error)="onImageLoaded()" alt="{{ getImageAlt(i) }}">
+                    </div>
+                </div>
             </div>
-          </div>
-          <div class="column is-narrow pb-2r">
-            <div class="subtitle height-full unknowns-width is-flex is-align-items-center">{{ getTextAsMath(unknown.unit) }}</div>
-          </div>
         </div>
-      </div>
+        <div class="columns mt-4 mb-only-mobile-0">
+            <div *ngFor="let unknown of unknowns; index as i" class="tile column is-flex is-justify-content-center pt-0 pb-2">
+                <div class="columns is-mobile">
+                    <div class="column is-narrow pb-2r">
+                        <div class="subtitle height-full unknowns-width is-flex is-align-items-center is-justify-content-flex-end">{{ getTextAsMath(unknown.name + '=') }}</div>
+                    </div>
+                    <div class="column px-0">
+                        <div *ngIf="!showAnswers(exercise)" class="field">
+                            <div class="control has-icons-right">
+                                <input type="text" class="input" [ngClass]="{
+                                    'is-primary': !(unknown.isWrongFormat || unknown.isCorrect || unknown.isWrong),
+                                    'is-warning': unknown.isWrongFormat,
+                                    'is-success': unknown.isCorrect,
+                                    'is-danger': unknown.isWrong
+                                }" [(ngModel)]="unknown.input" (input)="unknown.checkFormat(); checkIfSubmitDisabled()" [disabled]="isSubmitted">
+                                <span *ngIf="unknown.isWrongFormat" class="icon is-small is-right has-text-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </span>
+                                <span *ngIf="unknown.isCorrect" class="icon is-small is-right has-text-success">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                                <span *ngIf="unknown.isWrong" class="icon is-small is-right has-text-danger">
+                                    <i class="fas fa-times"></i>
+                                </span>
+                            </div>
+                            <p class="help is-warning" [class.hidden]="!unknown.isWrongFormat">Niepoprawny format</p>
+                        </div>
+                        <div *ngIf="showAnswers(exercise)" class="field">
+                            <div class="control has-icons-right">
+                                <input type="text" class="input is-success" [(ngModel)]="correct![i].input" readonly>
+                                <span class="icon is-small is-right has-text-success">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                            </div>
+                            <p class="help is-warning hidden">Spacer</p>
+                        </div>
+                    </div>
+                    <div class="column is-narrow pb-2r">
+                        <div class="subtitle height-full unknowns-width is-flex is-align-items-center">{{ getTextAsMath(unknown.unit) }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 </section>

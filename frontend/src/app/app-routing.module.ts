@@ -41,7 +41,7 @@ const routes: Routes = [
     },
     {
         path: 'subject',
-        canActivate: [AuthGuardService, RoleGuardService],
+        canActivate: [RoleGuardService],
         data: { roles: TEACHER_ROLES },
         loadChildren: () =>
             import('./subjects/subject.module').then((m) => m.SubjectModule)

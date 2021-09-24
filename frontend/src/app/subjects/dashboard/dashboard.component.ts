@@ -20,7 +20,7 @@ interface ExerciseError {
     styleUrls: ['./dashboard.component.scss']
 })
 export class SubjectDashboardComponent implements OnInit, OnDestroy {
-    private readonly SubjectError = 420;
+    private readonly SubjectError = 40020;
 
     subject?: Subject;
     categoryTree?: ViewExerciseTreeNode;

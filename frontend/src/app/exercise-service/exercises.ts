@@ -100,7 +100,7 @@ export class EqEx extends Exercise {
         this.problem = problem;
     }
 
-    getAnswerObject(answers: (number | null)[]) {
+    static getAnswerObject(answers: (number | null)[]) {
         return { answers };
     }
 

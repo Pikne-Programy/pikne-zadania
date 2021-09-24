@@ -24,8 +24,8 @@ enum ModalType {
     styleUrls: ['./item.component.scss']
 })
 export class TeamItemComponent implements OnInit {
-    private readonly IdError = 420;
-    private readonly AccountError = 421;
+    private readonly IdError = 40020;
+    private readonly AccountError = 40021;
     readonly InvitationTakenError = 409;
     readonly InternalError = INTERNAL_ERROR;
 

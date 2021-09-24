@@ -12,15 +12,20 @@ import {
     AccountReturnType,
     AccountService
 } from '../account/account.service';
+import { AuthGuardService } from './auth-guard.service';
 import { Role, RoleGuardService } from './role-guard.service';
 
 enum RoleTeam {
     ADMIN,
     TEACHER,
-    USER
+    USER,
+    AUTH_GUARD_ERROR
 }
 
 describe('Service: RoleGuard', () => {
+    const authGuardMock = {
+        canActivate: () => Promise.resolve(true)
+    };
     const routerMock = {
         navigate: () => {}
     };
@@ -35,98 +40,181 @@ describe('Service: RoleGuard', () => {
         TestBed.configureTestingModule({
             providers: [
                 RoleGuardService,
+                { provide: AuthGuardService, useValue: authGuardMock },
                 { provide: Router, useValue: routerMock },
                 { provide: AccountService, useValue: accountServiceMock }
             ]
         });
     });
 
-    it('#canActivate should correctly check role', inject(
-        [RoleGuardService, AccountService, Router],
-        (
-            service: RoleGuardService,
-            accountService: AccountService,
-            router: Router
-        ) => {
-            expect(service).toBeTruthy();
-            const accountSpy = spyOn(accountService.currentAccount, 'getValue');
-            const routerSpy = spyOn(router, 'navigate').and.stub();
+    describe('canActivate', () => {
+        const roleList: [Role[], RoleTeam | null | undefined, boolean][] = [
+            [[], RoleTeam.AUTH_GUARD_ERROR, false],
+            [[], undefined, false],
+            [[], null, false],
+            [[Role.ADMIN, Role.TEACHER], RoleTeam.USER, false],
+            [[Role.ADMIN, Role.TEACHER], RoleTeam.TEACHER, true],
+            [[Role.ADMIN, Role.TEACHER], RoleTeam.ADMIN, true],
+            [[Role.ADMIN], RoleTeam.ADMIN, true],
+            [[Role.ADMIN], RoleTeam.USER, false],
+            [[Role.USER], RoleTeam.USER, true],
+            [[Role.USER], RoleTeam.TEACHER, false]
+        ];
+        for (const [expected, current, contains] of roleList) {
+            it(
+                `should correctly check role ([${expected
+                    .map((role) => Role[role])
+                    .join(', ')}], ${getRoleName(current)})`,
+                waitForAsync(
+                    inject(
+                        [
+                            RoleGuardService,
+                            AuthGuardService,
+                            AccountService,
+                            Router
+                        ],
+                        (
+                            service: RoleGuardService,
+                            authGuard: AuthGuardService,
+                            accountService: AccountService,
+                            router: Router
+                        ) => {
+                            expect(service).toBeTruthy();
+                            const authGuardSpy = spyOn(
+                                authGuard,
+                                'canActivate'
+                            );
+                            const accountSpy = spyOn(
+                                accountService.currentAccount,
+                                'getValue'
+                            );
+                            const routerSpy = spyOn(
+                                router,
+                                'navigate'
+                            ).and.stub();
+                            const currentUrl = 'register';
+                            authGuardSpy.and.callFake(() =>
+                                current === RoleTeam.AUTH_GUARD_ERROR
+                                    ? Promise.reject('Authorization error')
+                                    : Promise.resolve(current !== undefined)
+                            );
+                            accountSpy.and.callFake(() => getAccount(current));
 
-            const roleList: [Role[], RoleTeam | null, boolean][] = [
-                [[], null, false],
-                [[Role.ADMIN, Role.TEACHER], RoleTeam.USER, false],
-                [[Role.ADMIN, Role.TEACHER], RoleTeam.TEACHER, true],
-                [[Role.ADMIN, Role.TEACHER], RoleTeam.ADMIN, true],
-                [[Role.ADMIN], RoleTeam.ADMIN, true],
-                [[Role.ADMIN], RoleTeam.USER, false],
-                [[Role.USER], RoleTeam.USER, true],
-                [[Role.USER], RoleTeam.TEACHER, false]
-            ];
-            for (const [expected, current, contains] of roleList) {
-                const currentUrl = 'register';
-                accountSpy.and.callFake(() => getAccount(current));
-
-                const result = service.canActivate(
-                    {
-                        data: { roles: expected }
-                    } as unknown as ActivatedRouteSnapshot,
-                    { url: currentUrl } as RouterStateSnapshot
-                );
-                if (!contains) {
-                    if (current === null) {
-                        expect(routerSpy)
-                            .withContext('should redirect (wrong account)')
-                            .toHaveBeenCalledWith(['/login'], {
-                                queryParams: { returnUrl: currentUrl }
-                            });
-                    }
-                    else {
-                        expect(routerSpy)
-                            .withContext('should redirect (permission denied)')
-                            .toHaveBeenCalledWith(['/user/dashboard'], {
-                                queryParams: undefined
-                            });
-                    }
-                }
-                expect(result).toBe(contains);
-            }
+                            service
+                                .canActivate(
+                                    {
+                                        data: { roles: expected }
+                                    } as unknown as ActivatedRouteSnapshot,
+                                    { url: currentUrl } as RouterStateSnapshot
+                                )
+                                .then((result) => {
+                                    expect(result)
+                                        .withContext(
+                                            `Expected ${
+                                                contains ? 'not ' : ''
+                                            }to let activate ([${expected
+                                                .map((role) => Role[role])
+                                                .join(', ')}], ${getRoleName(
+                                                current
+                                            )})`
+                                        )
+                                        .toBe(contains);
+                                })
+                                .then(() => {
+                                    if (!contains && current !== undefined) {
+                                        if (
+                                            current === null ||
+                                            current ===
+                                                RoleTeam.AUTH_GUARD_ERROR
+                                        ) {
+                                            expect(routerSpy)
+                                                .withContext(
+                                                    'should redirect (wrong account)'
+                                                )
+                                                .toHaveBeenCalledWith(
+                                                    ['/login'],
+                                                    {
+                                                        queryParams: {
+                                                            returnUrl:
+                                                                currentUrl
+                                                        }
+                                                    }
+                                                );
+                                        }
+                                        else {
+                                            expect(routerSpy)
+                                                .withContext(
+                                                    'should redirect (permission denied)'
+                                                )
+                                                .toHaveBeenCalledWith(
+                                                    ['/user/dashboard'],
+                                                    {
+                                                        queryParams: undefined
+                                                    }
+                                                );
+                                        }
+                                    }
+                                })
+                                .catch(() => fail('should resolve'));
+                        }
+                    )
+                )
+            );
         }
-    ));
+    });
 
-    it(
-        '#getPermission should return role',
-        waitForAsync(
-            inject([AccountService], async (accountService: AccountService) => {
-                const list: [AccountReturnType, Role | null][] = [
-                    [getAccountReturnObject(null, null), null],
-                    [getAccountReturnObject({} as Account, 500), null],
-                    [
-                        getAccountReturnObject(
-                            getAccount(RoleTeam.ADMIN),
-                            null
-                        ),
-                        Role.ADMIN
-                    ]
-                ];
-                const accountSpy = spyOn(accountService, 'getAccount');
-                for (const [obj, result] of list) {
-                    accountSpy.and.callFake(async () => obj);
-                    if (result !== null) {
-                        await expectAsync(
-                            RoleGuardService.getPermissions(accountService)
-                        ).toBeResolvedTo(result);
-                    }
-                    else {
-                        await expectAsync(
-                            RoleGuardService.getPermissions(accountService)
-                        ).toBeRejectedWith(
-                            obj.error !== null ? { status: obj.error } : {}
-                        );
-                    }
-                }
-            })
-        )
-    );
+    describe('getPermission', () => {
+        const list: [AccountReturnType, Role | null][] = [
+            [getAccountReturnObject(null, null), null],
+            [getAccountReturnObject({} as Account, 500), null],
+            [
+                getAccountReturnObject(getAccount(RoleTeam.ADMIN), null),
+                Role.ADMIN
+            ]
+        ];
+        for (const [obj, result] of list) {
+            it(
+                `should return role (${
+                    result !== null ? Role[result] : 'null'
+                })`,
+                waitForAsync(
+                    inject(
+                        [
+                            RoleGuardService,
+                            AuthGuardService,
+                            AccountService,
+                            Router
+                        ],
+                        async (accountService: AccountService) => {
+                            const accountSpy = spyOn(
+                                accountService,
+                                'getAccount'
+                            );
+                            accountSpy.and.callFake(async () => obj);
+                            if (result !== null) {
+                                await expectAsync(
+                                    RoleGuardService.getPermissions(
+                                        accountService
+                                    )
+                                ).toBeResolvedTo(result);
+                            }
+                            else {
+                                await expectAsync(
+                                    RoleGuardService.getPermissions(
+                                        accountService
+                                    )
+                                ).toBeRejectedWith(
+                                    obj.error !== null
+                                        ? { status: obj.error }
+                                        : {}
+                                );
+                            }
+                        }
+                    )
+                )
+            );
+        }
+    });
 
     it('#getRole should return correct Role', () => {
         expect(getRole(0)).toBe(Role.ADMIN);
@@ -140,12 +228,25 @@ describe('Service: RoleGuard', () => {
     });
 });
 
+function getRoleName(role: RoleTeam | null | undefined): string {
+    switch (role) {
+        case null:
+            return '__not-authorized-null__';
+        case undefined:
+            return '__not-authorized-authguard__';
+        case RoleTeam.AUTH_GUARD_ERROR:
+            return '__authorization-error__';
+        default:
+            return RoleTeam[role];
+    }
+}
+
 function getRole(teamId: number): Role {
     return RoleGuardService.getRole({ teamId } as Account);
 }
 
-function getAccount(roleTeam: RoleTeam | null): Account | null {
-    return roleTeam !== null
+function getAccount(roleTeam: RoleTeam | null | undefined): Account | null {
+    return roleTeam !== null && roleTeam !== undefined
         ? { name: 'test', number: null, teamId: roleTeam as number }
         : null;
 }

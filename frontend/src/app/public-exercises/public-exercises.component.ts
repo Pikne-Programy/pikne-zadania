@@ -13,8 +13,8 @@ import { Subject } from '../subjects/subject.service/subject.service';
     styleUrls: ['./public-exercises.component.scss']
 })
 export class PublicExercisesComponent implements OnInit, OnDestroy {
-    private readonly SubjectError = 420;
-    private readonly TreeError = 421;
+    private readonly SubjectError = 40020;
+    private readonly TreeError = 40021;
 
     @Input() isSingleSubject = false;
     isLoading = true;

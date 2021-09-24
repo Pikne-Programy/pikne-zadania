@@ -2,7 +2,11 @@ import { AfterViewInit, Component, EventEmitter, Output } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { AccountService } from 'src/app/account/account.service';
 import { ExerciseService } from 'src/app/exercise-service/exercise.service';
-import { EqEx, Exercise, PreviewEqEx } from 'src/app/exercise-service/exercises';
+import {
+    EqEx,
+    Exercise,
+    PreviewEqEx
+} from 'src/app/exercise-service/exercises';
 import { Role, RoleGuardService } from 'src/app/guards/role-guard.service';
 import { serverMockEnabled } from 'src/app/helper/tests/tests.config';
 import { removeMathTabIndex } from 'src/app/helper/utils';
@@ -23,9 +27,17 @@ class Unknown {
     name: string;
     unit: string;
     input = '';
+    correct: string | null = null;
     constructor(unknown: [string, string]) {
         this.name = unknown[0];
         this.unit = unknown[1];
+    }
+
+    static getCorrectUnknown(unknown: Unknown, input: string): Unknown {
+        const result = new Unknown([unknown.name, unknown.unit]);
+        result.input = input;
+        result.isCorrect = true;
+        return result;
     }
 
     checkFormat() {
@@ -60,10 +72,11 @@ export class EqExComponent implements ExerciseComponentType, AfterViewInit {
     images?: string[];
     private imgAlts?: string[];
     unknowns: Unknown[] = [];
+    correct: Unknown[] | null = null;
 
     private isUser: boolean;
     constructor(
-        inflationService: InflationService,
+        private inflationService: InflationService,
         private exerciseService: ExerciseService,
         accountService: AccountService
     ) {
@@ -83,16 +96,16 @@ export class EqExComponent implements ExerciseComponentType, AfterViewInit {
                 (unknown) => new Unknown(unknown)
             );
             if (PreviewEqEx.isPreviewExercise(this.exercise)) {
-                for (
-                    let i = 0;
-                    i < this.exercise.correctAnswer.answers.length &&
-                    i < this.unknowns.length;
-                    i++
-                ) {
-                    this.unknowns[i].input =
-                        this.exercise.correctAnswer.answers[i].toString();
-                    this.unknowns[i].isCorrect = true;
+                const correct = this.exercise.correctAnswer.answers;
+                if (correct.length === this.unknowns.length) {
+                    this.correct = this.unknowns.map((unknown, i) =>
+                        Unknown.getCorrectUnknown(
+                            unknown,
+                            correct[i].toString()
+                        )
+                    );
                 }
+                else this.onLoaded(InflationService.CorrectAnswerLengthError);
             }
 
             if (!this.images || this.images.length === 0) this.onLoaded();
@@ -116,7 +129,7 @@ export class EqExComponent implements ExerciseComponentType, AfterViewInit {
                 .submitAnswers(
                     this.exercise.subjectId,
                     this.exercise.id,
-                    this.exercise.getAnswerObject(answers),
+                    EqEx.getAnswerObject(answers),
                     EqEx.isEqExAnswer,
                     this.unknowns.length
                 )
@@ -183,7 +196,11 @@ export class EqExComponent implements ExerciseComponentType, AfterViewInit {
         return alt;
     }
 
-    isPreview(exercise: EqEx): boolean {
-        return PreviewEqEx.isPreviewExercise(exercise);
+    showAnswers(exercise: Exercise): boolean {
+        return (
+            PreviewEqEx.isPreviewExercise(exercise) &&
+            this.inflationService.showAnswers &&
+            this.correct !== null
+        );
     }
 }
