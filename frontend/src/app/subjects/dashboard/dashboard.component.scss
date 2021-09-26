@@ -1,56 +1,57 @@
+@use "sass:math";
 @use "src/styles.variables.scss" as *;
 $mobile: nth($size_breakpoints, 1);
 $fullhd: nth($size_breakpoints, 5);
 
 .mobile-unscrollable {
-  overflow: auto;
+    overflow: auto;
 
-  @media only screen and (max-width: nth($mobile, 3)) {
-    overflow: hidden;
-  }
+    @media only screen and (max-width: nth($mobile, 3)) {
+        overflow: hidden;
+    }
 }
 
 .tile {
-  &.panel.is-root {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  @media only screen and (min-width: nth($fullhd, 2)) {
-    $special_sizes: 2, 10;
-    @each $size in $special_sizes {
-      &.is-#{$size}-bigscreen {
-        width: ($size / 12) * 100%;
-      }
+    &.panel.is-root {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
     }
-  }
+
+    @media only screen and (min-width: nth($fullhd, 2)) {
+        $special_sizes: 2, 10;
+        @each $size in $special_sizes {
+            &.is-#{$size}-bigscreen {
+                width: math.div($size, 12) * 100%;
+            }
+        }
+    }
 }
 
 a {
-  transition: background-color 0.125s ease-out;
+    transition: background-color 0.125s ease-out;
 }
 
 .menu-list li ul {
-  margin-right: 0;
+    margin-right: 0;
 }
 
 .is-hidden {
-  display: none;
+    display: none;
 }
 
 app-subject-ex-prev {
-  display: flex;
-  flex-direction: column;
-  padding: 1rem;
-  padding-top: 0.5rem;
-  border-bottom: 1px solid #ededed;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    padding-top: 0.5rem;
+    border-bottom: 1px solid #ededed;
 
-  &:first-child {
-    padding-top: 0.75rem;
-  }
+    &:first-child {
+        padding-top: 0.75rem;
+    }
 
-  &.panel-block:last-child {
-    border-radius: 0;
-  }
+    &.panel-block:last-child {
+        border-radius: 0;
+    }
 }

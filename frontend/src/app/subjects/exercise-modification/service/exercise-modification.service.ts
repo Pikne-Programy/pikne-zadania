@@ -4,79 +4,13 @@ import { switchMap } from 'rxjs/operators';
 import { of, throwError } from 'rxjs';
 import { ServerResponseNode } from 'src/app/exercise-service/exercise.utils';
 import * as ServerRoutes from 'src/app/server-routes';
-import { isObject, replaceAccents, TYPE_ERROR } from 'src/app/helper/utils';
+import { isObject, TYPE_ERROR } from 'src/app/helper/utils';
 import {
     Exercise as RenderedExercise,
-    exerciseTypes,
     PreviewExercise
 } from 'src/app/exercise-service/exercises';
-
-export class Exercise {
-    constructor(
-        public type: string = '',
-        public name: string = '',
-        //TODO Images
-        public content: string = ''
-    ) {}
-
-    static createInstance(serverResponse: string): Exercise {
-        const header = this.getHeader(serverResponse);
-        const type = this.getType(header);
-        const name = this.getName(header);
-        const content = this.getContent(serverResponse, header);
-        return new Exercise(type, name, content);
-    }
-
-    private static getHeader(input: string): string {
-        const regex = /^(---\ntype: .+?\nname: .+?\n---)\n/g;
-        const match = regex.exec(input);
-        if (!match || match.length < 2)
-            throw new Error('Wrong exercise header');
-
-        return match[1];
-    }
-
-    private static getType(header: string): string {
-        const regex = /type: (.+)\nname/g;
-        const match = regex.exec(header);
-        if (!match || match.length < 2)
-            throw new Error('Exercise type not found');
-
-        return match[1];
-    }
-
-    private static getName(header: string): string {
-        const regex = /name: (.+)\n---/g;
-        const match = regex.exec(header);
-        if (!match || match.length < 2)
-            throw new Error('Exercise name not found');
-
-        return match[1];
-    }
-
-    private static getContent(input: string, header: string): string {
-        return input.substring(header.length + 1);
-    }
-
-    toString(): string {
-        const type =
-            exerciseTypes.find(
-                (value: string) =>
-                    value.toUpperCase() === this.type.toLocaleUpperCase()
-            ) ?? this.type;
-        return `---\ntype: ${type}\nname: ${this.name}\n---\n${this.content}`;
-    }
-
-    generateId(): string {
-        return Exercise.generateId(this.name);
-    }
-
-    static generateId(str: string): string {
-        return encodeURIComponent(
-            replaceAccents(str.toLocaleLowerCase()).replace(/\s/g, '-')
-        );
-    }
-}
+import { Exercise } from './exercise-modification.utils';
+export { Exercise, ExerciseHeader } from './exercise-modification.utils';
 
 type ExerciseListType = {
     exercises: string[];

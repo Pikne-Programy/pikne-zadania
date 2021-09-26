@@ -1,5 +1,5 @@
 import { capitalize, isObject } from '../helper/utils';
-import { ExerciseType, exerciseTypes } from './exercises';
+import { ExerciseType, isExerciseType } from './exercises';
 
 export interface ServerResponseNode {
     type?: ExerciseType;
@@ -42,8 +42,7 @@ export class Subject {
                   )
                 : !root && typeof object.children === 'string') &&
             (shouldHaveType && typeof object.children === 'string'
-                ? object.type !== undefined &&
-                  exerciseTypes.includes(object.type)
+                ? object.type !== undefined && isExerciseType(object.type)
                 : true)
         );
     }

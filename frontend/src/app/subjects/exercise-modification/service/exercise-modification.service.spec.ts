@@ -8,15 +8,12 @@ import {
 import { TestBed, inject, waitForAsync } from '@angular/core/testing';
 import {
     Exercise as RenderedExercise,
-    exerciseTypes,
     PreviewExercise
 } from 'src/app/exercise-service/exercises';
 import { TYPE_ERROR } from 'src/app/helper/utils';
-import {
-    Exercise,
-    ExerciseModificationService as ModificationService
-} from './exercise-modification.service';
+import { ExerciseModificationService as ModificationService } from './exercise-modification.service';
 import * as ServerRoutes from 'src/app/server-routes';
+import { Exercise, ExerciseHeader } from './exercise-modification.utils';
 
 describe('Service: ExerciseModification', () => {
     let httpController: HttpTestingController;
@@ -32,123 +29,6 @@ describe('Service: ExerciseModification', () => {
 
     afterEach(() => {
         httpController.verify();
-    });
-
-    describe('Exercise', () => {
-        const content =
-            'Z miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n';
-        const apiContent = `---\ntype: EqEx\nname: Pociągi dwa\n---\n${content}`;
-
-        describe('createInstance', () => {
-            it('create instance of Exercise', () => {
-                try {
-                    const exercise = Exercise.createInstance(apiContent);
-                    expect(exercise).toBeInstanceOf(Exercise);
-                    expect(exercise.type).toBe('EqEx');
-                    expect(exercise.name).toBe('Pociągi dwa');
-                    expect(exercise.content).toBe(content);
-                }
-                catch (_) {
-                    fail('should create proper Exercise instance');
-                }
-            });
-
-            it('should throw error (wrong header)', () => {
-                try {
-                    Exercise.createInstance(content);
-                    fail('should throw error');
-                }
-                catch (error) {
-                    const message = (error as { message: string }).message;
-                    expect(message).toBe('Wrong exercise header');
-                }
-            });
-
-            it('should throw error (type not found)', () => {
-                spyOn(Exercise as any, 'getHeader').and.returnValue(
-                    'I am a trashy header'
-                );
-
-                try {
-                    Exercise.createInstance(content);
-                    fail('should throw error');
-                }
-                catch (error) {
-                    const message = (error as { message: string }).message;
-                    expect(message).toBe('Exercise type not found');
-                }
-            });
-
-            it('should throw error (name not found)', () => {
-                spyOn(Exercise as any, 'getHeader').and.returnValue(
-                    'I am a trashy header'
-                );
-                spyOn(Exercise as any, 'getType').and.returnValue(
-                    'I am a trashy type'
-                );
-
-                try {
-                    Exercise.createInstance(content);
-                    fail('should throw error');
-                }
-                catch (error) {
-                    const message = (error as { message: string }).message;
-                    expect(message).toBe('Exercise name not found');
-                }
-            });
-        });
-
-        describe('toString', () => {
-            it('should use existing Exercise type', () => {
-                const name = 'Ex1';
-                const resultList = exerciseTypes.map((type) =>
-                    getToStringResult(type, name, content)
-                );
-
-                const list = ['EqEx', 'EQEX', 'eqex'];
-                for (const type of list) {
-                    const exercise = new Exercise(type, name, content);
-                    expect(resultList)
-                        .withContext('Wrong conversion result')
-                        .toContain(exercise.toString());
-                }
-            });
-
-            it('should use provided Exercise type', () => {
-                const name = 'Ex2';
-                const type = 'I am a trashy type';
-
-                const exercise = new Exercise(type, name, content);
-                expect(exercise.toString()).toBe(
-                    getToStringResult(type, name, content)
-                );
-            });
-        });
-
-        describe('generateId', () => {
-            const list: [string, string][] = [
-                ['Pociągi dwa', 'pociagi-dwa'],
-                ['pociagi-dwa', 'pociagi-dwa'],
-                ['póĆíägî\u00a0\u00a0ĐwÃ', 'pociagi--%C4%91wa']
-            ];
-
-            it('should generate id from Exercise instance', () => {
-                for (const [name, result] of list) {
-                    const exercise = new Exercise('EqEx', name);
-                    expect(exercise.generateId())
-                        .withContext(`Expected '${name}' to be '${result}'`)
-                        .toBe(result);
-                }
-            });
-
-            it('should generate id from string', () => {
-                for (const [name, result] of list) {
-                    expect(Exercise.generateId(name))
-                        .withContext(`Expected '${name}' to be '${result}'`)
-                        .toBe(result);
-                }
-            });
-        });
     });
 
     describe('getAllExercises', () => {
@@ -286,8 +166,10 @@ describe('Service: ExerciseModification', () => {
                             .getExercise(subjectId, exerciseId)
                             .then((response) => {
                                 expect(response).toBeInstanceOf(Exercise);
-                                expect(response.type).toBe('EqEx');
-                                expect(response.name).toBe('Pociągi dwa');
+                                expect(response.header.type).toBe('EqEx');
+                                expect(response.header.name).toBe(
+                                    'Pociągi dwa'
+                                );
                                 expect(response.content).toBe(content);
                             })
                             .catch(() => fail('should be resolved'));
@@ -322,11 +204,14 @@ describe('Service: ExerciseModification', () => {
     });
 
     describe('getExercisePreview', () => {
-        const exercise = new Exercise('EqEx', 'Ex1', 'Test content');
+        //TODO Tests w/ images
+        const exercise = new Exercise(
+            new ExerciseHeader('EqEx', 'Ex1'),
+            'Test content'
+        );
         const stringifiedExercise = {
             content: getToStringResult(
-                exercise.type,
-                exercise.name,
+                `type: ${exercise.header.type}\nname: ${exercise.header.name}\n`,
                 exercise.content
             ),
             seed: undefined
@@ -443,7 +328,10 @@ describe('Service: ExerciseModification', () => {
         name: string,
         specialCases: [string, number | null][]
     ) {
-        const exercise = new Exercise('EqEx', name, 'Test content\n');
+        const exercise = new Exercise(
+            new ExerciseHeader('EqEx', name),
+            'Test content\n'
+        );
         const subjectId = 'Sb1';
         const result = `---\ntype: EqEx\nname: ${name}\n---\nTest content\n`;
         const expectedBody = {
@@ -500,6 +388,6 @@ describe('Service: ExerciseModification', () => {
     }
 });
 
-function getToStringResult(type: string, name: string, content: string) {
-    return `---\ntype: ${type}\nname: ${name}\n---\n${content}`;
+export function getToStringResult(header: string, content: string) {
+    return `---\n${header}---\n${content}`;
 }

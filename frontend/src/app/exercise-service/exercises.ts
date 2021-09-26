@@ -1,8 +1,28 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { isObject, ObjectType } from '../helper/utils';
 
+//#region ExerciseType
 export const exerciseTypes = ['EqEx'] as const;
 export type ExerciseType = typeof exerciseTypes[number];
+export const exerciseTypesFull = ['EquationExercise'] as const;
+export type ExerciseTypeFull = typeof exerciseTypesFull[number];
+const exerciseTypeMapList: [ExerciseType | ExerciseTypeFull, ExerciseType][] = [
+    ['EqEx', 'EqEx'],
+    ['EquationExercise', 'EqEx']
+];
+const exerciseTypeMap = new Map<string, ExerciseType>(exerciseTypeMapList);
+/**
+ * @param replace If true (default), replaces input with corresponding ExerciseType
+ */
+export function isExerciseType(
+    input: string,
+    replace: boolean = true
+): input is ExerciseType {
+    const type = exerciseTypeMap.get(input);
+    if (type && replace) input = type;
+    return type !== undefined;
+}
+//#endregion
 
 export const categorySeparator = '~';
 
@@ -33,7 +53,7 @@ export class Exercise {
                 ['name', ['string']],
                 ['problem', ['object']],
                 ['done', ['number', 'null', 'undefined']]
-            ]) && exerciseTypes.findIndex((type) => object.type === type) !== -1
+            ]) && isExerciseType(object.type)
         );
     }
 
@@ -165,8 +185,12 @@ export class PreviewEqEx extends EqEx implements PreviewExerciseType {
     static isPreviewExercise(exercise: Exercise): exercise is PreviewEqEx {
         return (
             isObject<PreviewEqEx>(exercise, [['correctAnswer', ['object']]]) &&
-            isObject<CorrectEqExAnswersType>(exercise.correctAnswer, [['answers', 'array']]) &&
-            exercise.correctAnswer.answers.every((val) => typeof val === 'number')
+            isObject<CorrectEqExAnswersType>(exercise.correctAnswer, [
+                ['answers', 'array']
+            ]) &&
+            exercise.correctAnswer.answers.every(
+                (val) => typeof val === 'number'
+            )
         );
     }
 }

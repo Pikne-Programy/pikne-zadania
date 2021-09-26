@@ -18,10 +18,12 @@ import {
 } from '@angular/forms';
 import {
     Exercise,
+    ExerciseHeader,
     ExerciseModificationService
 } from '../service/exercise-modification.service';
 import {
-    exerciseTypes,
+    exerciseTypesFull,
+    isExerciseType,
     PreviewExercise
 } from 'src/app/exercise-service/exercises';
 import { Observable, Subject } from 'rxjs';
@@ -42,7 +44,7 @@ interface AbstractControlWarn extends AbstractControl {
 })
 export class ExerciseModificationFormComponent
 implements OnInit, AfterViewInit {
-    private readonly InternalError = 480;
+    private readonly InternalError = 40080;
     private readonly IdError = 409;
     readonly previewErrorMessage = 'Błąd podglądu';
 
@@ -75,10 +77,7 @@ implements OnInit, AfterViewInit {
     }
 
     filteredTypes?: Observable<string[]>;
-    private typeList: string[] = Array.from(exerciseTypes);
-    private typeSet: Set<string> = new Set(
-        exerciseTypes.map((type) => type.toUpperCase())
-    );
+    private typeList: string[] = Array.from(exerciseTypesFull);
 
     preview?: PreviewExercise;
     isPreview = false;
@@ -98,17 +97,18 @@ implements OnInit, AfterViewInit {
     constructor(
         private exerciseService: ExerciseModificationService,
         public snippetService: SnippetService
-    ) {}
+    ) {
+    }
 
     ngOnInit() {
         this.isCreation = this.exerciseId === undefined;
         this.form = new FormGroup({
-            type: new FormControl(this.exercise.type, [
+            type: new FormControl(this.exercise.header.type, [
                 Validators.required,
                 this.formatValidator(),
                 this.typeValidator()
             ]),
-            name: new FormControl(this.exercise.name, [
+            name: new FormControl(this.exercise.header.name, [
                 Validators.required,
                 this.formatValidator(),
                 this.nameValidator()
@@ -118,7 +118,7 @@ implements OnInit, AfterViewInit {
             ])
         });
         this.filteredTypes = this.type!.valueChanges.pipe(
-            startWith(this.exercise.type),
+            startWith(this.exercise.header.type),
             map((value) => this._filter(value))
         );
     }
@@ -130,9 +130,9 @@ implements OnInit, AfterViewInit {
     }
 
     createExercise(): Exercise {
+        //TODO Images
         return new Exercise(
-            this.type!.value,
-            this.name!.value,
+            new ExerciseHeader(this.type!.value, this.name!.value),
             this.content!.value
         );
     }
@@ -209,7 +209,7 @@ implements OnInit, AfterViewInit {
             control.warnings =
                 typeof control.value === 'string' &&
                 control.value.trim().length > 0 &&
-                !this.typeSet.has(control.value.toLocaleUpperCase())
+                !isExerciseType(control.value, false)
                     ? { type: { value: control.value } }
                     : null;
             return null;
