@@ -1,7 +1,7 @@
 API Endpoints of link:.[`pikne-zadania`]
 ========================================
 Marcin Zepp <nircek-2103@protonmail.com>
-v0.3, 2021-09-09: Revision 4.1
+v0.3, 2021-09-27: Revision 5
 :issue: https://github.com/Pikne-Programy/pikne-zadania/issues/34[#34]
 :stylesheet: main.css
 :linkcss:
@@ -362,6 +362,8 @@ The one shown above is the EquationExercise (EqEx) one.
 [%collapsible]
 ====
 
+// TODO: get rid of `raw` in v0.4
+
 .It can be used by
 * anyone if a subject is public,
 * all assignees of a subject.
@@ -505,13 +507,28 @@ QUESTION: should we permit all teachers to use this request if a subject's `assi
 [source,json]
 ----
 {
-  "exercises": ["pociagi-dwa", "kula-2"]
+  "exercises": [
+    {
+      "id": "kula-2",
+      "type": "EqEx",
+      "name": "Kula 2",
+      "description": "TODO"
+    },
+    {
+      "id": "pociagi-dwa",
+      "type": "EqEx",
+      "name": "Pociągi dwa 2",
+      "description": "Z miast \\(A\\) i \\(B\\) odległych o \\(d= 300\\;\\mathrm{km}\\) wyruszają jednocześnie\ndwa pociągi z prędkościami \\(v_{a}= \\;\\mathrm{\\frac{km}{h}}\\) oraz \\(v_{b}= \\;\\mathrm{\\frac{km}{h}}\\).\nW jakiej odległości \\(x\\) od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie \\(t\\) się to stanie?\n"
+    }
+  ]
 }
 ----
 
 .Notes
 
-* none
+// description-:ext-dependent
+* The `description` property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.
 
 ====
 
