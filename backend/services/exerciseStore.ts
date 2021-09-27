@@ -179,8 +179,14 @@ export class ExerciseStore implements IExerciseStore {
     return this._buildSectionList(subject, elements);
   }
 
-  listExercises(_subject: string) {
-    return Object.keys(this.exercises);
+  listExercises(subject: string) {
+    if (!this.listSubjects().includes(subject)) {
+      return new CustomDictError("SubjectNotFound", { subject });
+    }
+    const prefix = `${subject}/`;
+    return Object.keys(this.exercises)
+      .filter((e) => e.startsWith(prefix)) // TODO: refactor
+      .map((e) => e.slice(prefix.length));
   }
 
   listSubjects() {

@@ -10,7 +10,12 @@ import {
   joinThrowable,
   translateErrors,
 } from "../utils/mod.ts";
-import { isSubSection, schemas, Section } from "../types/mod.ts";
+import {
+  CustomDictError,
+  isSubSection,
+  schemas,
+  Section,
+} from "../types/mod.ts";
 import {
   IConfigService,
   IExerciseService,
@@ -49,8 +54,9 @@ export class SubjectController extends Authorizer {
 
   /** check if the subject would be visible for the User */
   private async isPermittedToView(s: string, user?: IUser) {
-    return !/^_/.test(s) || // if it is public
-      await this.isAssigneeOf(s, user); // or the User is assigned to it
+    if (!/^_/.test(s)) return true; // if exercise is public
+    if (await user?.role.get() === "admin") return true;
+    return await this.isAssigneeOf(s, user);
   }
 
   async list(ctx: RouterContext) {
@@ -309,7 +315,17 @@ export class SubjectController extends Authorizer {
       if (!await this.parent.isPermittedToView(subject, user)) {
         throw new httpErrors["Forbidden"]();
       } //! P
-      const exercises = translateErrors(this.parent.es.listExercises(subject)); // TODO: check E and if all exercises are listed
+      const exercises = translateErrors(this.parent.es.listExercises(subject)) //! E // TODO: check if all exercises are listed after refactor
+        .map((id) => {
+          const ex = this.parent.es.get(subject, id);
+          if (ex instanceof CustomDictError) throw new Error("never");
+          return {
+            id,
+            type: ex.type,
+            name: ex.name,
+            description: ex.description,
+          };
+        });
       ctx.response.body = { exercises };
       ctx.response.status = 200; //! D
     },

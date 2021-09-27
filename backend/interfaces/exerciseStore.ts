@@ -8,7 +8,7 @@ import { CustomDictError, Exercise, Section } from "../types/mod.ts";
 export interface IExerciseStore {
   uid(subject: string, id: string): string;
   parse(content: string): Exercise | CustomDictError<"ExerciseBadFormat">;
-  listExercises(subject: string): string[];
+  listExercises(subject: string): string[] | CustomDictError<"SubjectNotFound">;
   listSubjects(): string[];
   structure(subject: string): {
     get(): Section[];
