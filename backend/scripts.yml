@@ -29,3 +29,7 @@ watcher:
     - tsx
     - json
     - yml
+# * needs restarting denon
+  skip: ["exercises/**"]
+logger:
+  debug: false
