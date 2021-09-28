@@ -1,5 +1,5 @@
 import { capitalize, isObject } from '../helper/utils';
-import { ExerciseType, isExerciseType } from './exercises';
+import { checkAndReplaceExerciseType, ExerciseType } from './exercises';
 
 export interface ServerResponseNode {
     type?: ExerciseType;
@@ -42,7 +42,8 @@ export class Subject {
                   )
                 : !root && typeof object.children === 'string') &&
             (shouldHaveType && typeof object.children === 'string'
-                ? object.type !== undefined && isExerciseType(object.type)
+                ? object.type !== undefined &&
+                  checkAndReplaceExerciseType(object)
                 : true)
         );
     }

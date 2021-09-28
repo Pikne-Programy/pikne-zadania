@@ -8,45 +8,45 @@
 @use "~bulma/sass/utilities/initial-variables" as iv;
 @use "./themes/theme.variables.scss" as theme;
 @use "./styles.variables.scss" as var;
-@use "~bulma/sass/utilities/derived-variables" as * with(
-  $primary: theme.$prim,
-  $link-hover: theme.$lnk-hover,
-
-  $background: theme.$bg,
-  $text: theme.$txt,
-  $text-light: theme.$txt-light,
-  $text-strong: theme.$txt-strong,
-
-  $border: theme.$bor,
-  $border-hover: theme.$bor-hover,
-  $border-light: theme.$bor-light,
-  $border-light-hover: theme.$bor-light-hover,
-
-  $scheme-main: theme.$sch-main,
-  $scheme-main-bis: theme.$sch-main-bis,
-  $scheme-main-ter: theme.$sch-main-ter,
-  $scheme-invert: theme.$sch-invert,
-  $scheme-invert-bis: theme.$sch-invert-bis,
-  $scheme-invert-ter: theme.$sch-invert-ter,
-
-  $custom-colors: theme.$custom-col
-);
+@use "~bulma/sass/utilities/derived-variables" as *
+    with(
+        $primary: theme.$prim,
+        $link-hover: theme.$lnk-hover,
+        $background: theme.$bg,
+        $text: theme.$txt,
+        $text-light: theme.$txt-light,
+        $text-strong: theme.$txt-strong,
+        $border: theme.$bor,
+        $border-hover: theme.$bor-hover,
+        $border-light: theme.$bor-light,
+        $border-light-hover: theme.$bor-light-hover,
+        $scheme-main: theme.$sch-main,
+        $scheme-main-bis: theme.$sch-main-bis,
+        $scheme-main-ter: theme.$sch-main-ter,
+        $scheme-invert: theme.$sch-invert,
+        $scheme-invert-bis: theme.$sch-invert-bis,
+        $scheme-invert-ter: theme.$sch-invert-ter,
+        $custom-colors: theme.$custom-col
+    );
 :root {
-  --primary: #{$primary};
-  --primary-box-shadow: #{bulmaRgba($primary, 0.25)};
-  --background-color: #{$background};
-  --tooltip-background: #{$primary-invert};
-  --footer-color: #ededed;
-  --tab-border-color: #dbdbdb;
-  --box-shadow-color: #{rgba($scheme-invert, 0.1)};
-  --text-color: #{$text};
-  --text-selection-color: lightgrey;
-  @if theme.$is-dark {
-    --tooltip-background: #{$background};
-    --footer-color: #121212;
-    --tab-border-color: #363636;
-    --text-selection-color: #303030;
-  }
+    --primary: #{$primary};
+    --primary-box-shadow: #{bulmaRgba($primary, 0.25)};
+    --background-color: #{$background};
+    --tooltip-background: #{$primary-invert};
+    --footer-color: #ededed;
+    --tab-border-color: #dbdbdb;
+    --box-shadow-color: #{rgba($scheme-invert, 0.1)};
+    --text-color: #{$text};
+    --text-selection-color: lightgrey;
+    --expanded-folder-background: whitesmoke;
+    --box-background-color: #{$scheme-main};
+    @if theme.$is-dark {
+        --tooltip-background: #{$background};
+        --footer-color: #121212;
+        --tab-border-color: #363636;
+        --text-selection-color: #303030;
+        --expanded-folder-background: #101010;
+    }
 }
 $dark-box-background: bulmaDarken($background, 5%);
 //#endregion
@@ -59,168 +59,172 @@ $dark-box-background: bulmaDarken($background, 5%);
 //#region Overriding stylesheets
 .mat-drawer-container,
 .mat-drawer {
-  background-color: $background !important;
-  color: $text !important;
+    background-color: $background !important;
+    color: $text !important;
 }
 
 .hero {
-  &.is-primary a.navbar-item {
-    &:focus:not(:hover) {
-      color: $primary !important;
+    &.is-primary a.navbar-item {
+        &:focus:not(:hover) {
+            color: $primary !important;
+        }
+        &:focus-within:not(:hover) {
+            color: $primary !important;
+        }
     }
-    &:focus-within:not(:hover) {
-      color: $primary !important;
+    a.navbar-item.logo:hover {
+        background-color: transparent !important;
     }
-  }
-  a.navbar-item.logo:hover {
-    background-color: transparent !important;
-  }
 }
 
 .breadcrumb.is-bold {
-  font-weight: 600;
+    font-weight: 600;
 }
 
 .button {
-  font-weight: iv.$weight-semibold;
+    font-weight: iv.$weight-semibold;
 
-  &.is-inverted {
-    &.is-primary {
-      &:hover {
-        background-color: bulmaDarken($primary-invert, 2.5%);
-      }
-      &:active {
-        background-color: bulmaDarken($primary-invert, 5%);
-      }
-      &:focus:not(:active) {
-        box-shadow: var.$button-focus-box-shadow-size
-          bulmaRgba($primary-invert, 0.25);
-      }
+    &.is-inverted {
+        &.is-primary {
+            &:hover {
+                background-color: bulmaDarken($primary-invert, 2.5%);
+            }
+            &:active {
+                background-color: bulmaDarken($primary-invert, 5%);
+            }
+            &:focus:not(:active) {
+                box-shadow: var.$button-focus-box-shadow-size
+                    bulmaRgba($primary-invert, 0.25);
+            }
+        }
+        @if theme.$is-dark {
+            background-color: $dark-box-background !important;
+            &:hover,
+            &:active {
+                background-color: bulmaLighten(black, 10%) !important;
+            }
+            &:focus:not(:active) {
+                box-shadow: var.$button-focus-box-shadow-size
+                    bulmaRgba(black, 0.25) !important;
+            }
+        }
     }
     @if theme.$is-dark {
-      background-color: $dark-box-background !important;
-      &:hover,
-      &:active {
-        background-color: bulmaLighten(black, 10%) !important;
-      }
-      &:focus:not(:active) {
-        box-shadow: var.$button-focus-box-shadow-size
-          bulmaRgba(black, 0.25) !important;
-      }
+        &.is-primary.is-light {
+            &:hover {
+                background-color: bulmaRgba(
+                    bulmaDarken($primary, 2.5%),
+                    0.25
+                ) !important;
+            }
+            &:active {
+                background-color: bulmaRgba(
+                    bulmaDarken($primary, 5%),
+                    0.25
+                ) !important;
+            }
+        }
     }
-  }
-  @if theme.$is-dark {
-    &.is-primary.is-light {
-      &:hover {
-        background-color: bulmaRgba(
-          bulmaDarken($primary, 2.5%),
-          0.25
-        ) !important;
-      }
-      &:active {
-        background-color: bulmaRgba(bulmaDarken($primary, 5%), 0.25) !important;
-      }
-    }
-  }
 }
 
 .tabs.is-boxed li.is-active a {
-  @if theme.$is-dark {
-    background-color: $dark-box-background !important;
-  }
+    @if theme.$is-dark {
+        background-color: $dark-box-background !important;
+    }
 }
 
 .tile.is-narrow {
-  flex: none;
+    flex: none;
 }
 
 .panel-heading + .panel,
 .panel-tabs + .panel {
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
 }
 
 .panel-heading .button {
-  padding: 0;
-  height: 1.5rem;
-  width: 1.5rem;
+    padding: 0;
+    height: 1.5rem;
+    width: 1.5rem;
 
-  &:not(:last-child) {
-    margin-right: 0.5rem;
-  }
-
-  &.is-primary:focus:not(:active) {
-    box-shadow: var.$button-focus-box-shadow-size
-      bulmaRgba(findColorInvert(theme.$prim), 0.25);
-    @if theme.$is-dark {
-      box-shadow: var.$button-focus-box-shadow-size bulmaRgba(black, 0.25);
+    &:not(:last-child) {
+        margin-right: 0.5rem;
     }
-  }
+
+    &.is-primary:focus:not(:active) {
+        box-shadow: var.$button-focus-box-shadow-size
+            bulmaRgba(findColorInvert(theme.$prim), 0.25);
+        @if theme.$is-dark {
+            box-shadow: var.$button-focus-box-shadow-size
+                bulmaRgba(black, 0.25);
+        }
+    }
 }
 
 @if theme.$is-dark {
-  .panel {
-    background-color: $dark-box-background;
-  }
+    .panel {
+        background-color: $dark-box-background;
+    }
 }
 
 .box {
-  @if theme.$is-dark {
-    background-color: $dark-box-background !important;
-  }
-  & .level {
-    border-top-left-radius: inherit;
-    border-top-right-radius: inherit;
-  }
+    @if theme.$is-dark {
+        background-color: $dark-box-background !important;
+    }
+    & .level {
+        border-top-left-radius: inherit;
+        border-top-right-radius: inherit;
+    }
 }
 
 .menu-list a:not(.is-active) .icon {
-  &.is-success {
-    color: $success;
-  }
-  &.is-warning {
-    color: $warning;
-  }
-  &.is-danger {
-    color: $danger;
-  }
+    &.is-success {
+        color: $success;
+    }
+    &.is-warning {
+        color: $warning;
+    }
+    &.is-danger {
+        color: $danger;
+    }
 }
 
 .modal-card-head {
-  & .modal-card-title {
-    max-width: calc(100% - 40px);
-  }
-  & .delete {
-    margin-left: 20px;
-  }
+    & .modal-card-title {
+        max-width: calc(100% - 40px);
+    }
+    & .delete {
+        margin-left: 20px;
+    }
 }
 
 .icon {
-  &.is-extra-large {
-    height: 10rem;
-    width: 10rem;
-  }
-  &.is-very-small {
-    width: 0.25rem;
-    height: 0.25rem;
-  }
+    &.is-extra-large {
+        height: 10rem;
+        width: 10rem;
+    }
+    &.is-very-small {
+        width: 0.25rem;
+        height: 0.25rem;
+    }
 }
 
 .fas.fa-10x {
-  font-size: 10em;
+    font-size: 10em;
 }
 
 .no-word-break {
-  word-break: keep-all !important;
+    word-break: keep-all !important;
 }
 
 .has-text-underlined {
-  text-decoration: underline;
+    text-decoration: underline;
 }
 
 .switch[type="checkbox"]:checked + label::before,
 .switch[type="checkbox"]:checked + label::before {
-  background: var(--primary);
+    background: var(--primary);
 }
 
 @import "~node_modules/bulma/bulma.sass";
@@ -228,37 +232,38 @@ $dark-box-background: bulmaDarken($background, 5%);
 
 html,
 body {
-  /* Hiding scrollbar */
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-  ::-webkit-scrollbar {
-    display: none;
-  }
-  background-color: $background;
+    /* Hiding scrollbar */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    ::-webkit-scrollbar {
+        display: none;
+    }
+    background-color: $background;
+    list-style: none;
 }
 
 .root {
-  height: 100vh;
-  width: 100vw;
-  display: flex !important;
-  flex-direction: column !important;
+    height: 100vh;
+    width: 100vw;
+    display: flex !important;
+    flex-direction: column !important;
 }
 
 .scrollable {
-  overflow: auto !important;
+    overflow: auto !important;
 }
 
 .unscrollable {
-  overflow: hidden !important;
+    overflow: hidden !important;
 }
 
 //#region Borders
 @mixin borders($name, $size, $style, $color) {
-  @each $dir, $dir_ab in var.$directions {
-    .#{$name}#{$dir} {
-      border#{$dir}: $size $style $color;
+    @each $dir, $dir_ab in var.$directions {
+        .#{$name}#{$dir} {
+            border#{$dir}: $size $style $color;
+        }
     }
-  }
 }
 
 @include borders(divider, 1px, solid, rgba(0, 0, 0, 0.12));
@@ -266,67 +271,67 @@ body {
 
 //#region Spaces(margins & padding) and Sizes(widths & height)
 @mixin breakpoint-spaces($property, $name) {
-  @each $dir, $dir_ab in var.$directions {
-    @for $i from 0 through 6 {
-      @each $br_name, $br_bottom, $br_top in var.$size_breakpoints {
-        .#{$name}#{$dir_ab}-#{$br_name}-#{$i} {
-          @media only screen and (min-width: $br_bottom) {
-            @include bulma-spaces($property, $dir, $i);
-          }
+    @each $dir, $dir_ab in var.$directions {
+        @for $i from 0 through 6 {
+            @each $br_name, $br_bottom, $br_top in var.$size_breakpoints {
+                .#{$name}#{$dir_ab}-#{$br_name}-#{$i} {
+                    @media only screen and (min-width: $br_bottom) {
+                        @include bulma-spaces($property, $dir, $i);
+                    }
+                }
+                .#{$name}#{$dir_ab}-only-#{$br_name}-#{$i} {
+                    @media only screen and (min-width: $br_bottom) and (max-width: $br_top) {
+                        @include bulma-spaces($property, $dir, $i);
+                    }
+                }
+            }
         }
-        .#{$name}#{$dir_ab}-only-#{$br_name}-#{$i} {
-          @media only screen and (min-width: $br_bottom) and (max-width: $br_top) {
-            @include bulma-spaces($property, $dir, $i);
-          }
-        }
-      }
     }
-  }
 }
 @mixin combined-breakpoint-spaces($property, $name) {
-  $dirs: "x" "-left" "-right", "y" "-top" "-bottom";
-  @each $dirName, $dir1, $dir2 in $dirs {
-    @for $i from 0 through 6 {
-      @each $br_name, $br_bottom, $br_top in var.$size_breakpoints {
-        $directions: $dir1, $dir2;
-        .#{$name}#{$dirName}-#{$br_name}-#{$i} {
-          @media only screen and (min-width: $br_bottom) {
-            @include bulma-spaces($property, $directions, $i);
-          }
+    $dirs: "x" "-left" "-right", "y" "-top" "-bottom";
+    @each $dirName, $dir1, $dir2 in $dirs {
+        @for $i from 0 through 6 {
+            @each $br_name, $br_bottom, $br_top in var.$size_breakpoints {
+                $directions: $dir1, $dir2;
+                .#{$name}#{$dirName}-#{$br_name}-#{$i} {
+                    @media only screen and (min-width: $br_bottom) {
+                        @include bulma-spaces($property, $directions, $i);
+                    }
+                }
+                .#{$name}#{$dirName}-only-#{$br_name}-#{$i} {
+                    @media only screen and (min-width: $br_bottom) and (max-width: $br_top) {
+                        @include bulma-spaces($property, $directions, $i);
+                    }
+                }
+            }
         }
-        .#{$name}#{$dirName}-only-#{$br_name}-#{$i} {
-          @media only screen and (min-width: $br_bottom) and (max-width: $br_top) {
-            @include bulma-spaces($property, $directions, $i);
-          }
-        }
-      }
     }
-  }
 }
 @mixin bulma-spaces($property, $dirs, $i) {
-  @if $i == 5 {
-    @each $dir in $dirs {
-      @include space($property, $dir, 1.5rem);
+    @if $i == 5 {
+        @each $dir in $dirs {
+            @include space($property, $dir, 1.5rem);
+        }
+    } @else if $i == 6 {
+        @each $dir in $dirs {
+            @include space($property, $dir, 3rem);
+        }
+    } @else {
+        @each $dir in $dirs {
+            @include space($property, $dir, $i * 0.25rem);
+        }
     }
-  } @else if $i == 6 {
-    @each $dir in $dirs {
-      @include space($property, $dir, 3rem);
-    }
-  } @else {
-    @each $dir in $dirs {
-      @include space($property, $dir, $i * 0.25rem);
-    }
-  }
 }
 @mixin space($property, $dir, $size) {
-  #{$property}#{$dir}: $size !important;
+    #{$property}#{$dir}: $size !important;
 }
 @mixin rem-directional-spaces($property, $name, $size) {
-  @each $dir, $dir_ab in var.$directions {
-    .#{$name}#{$dir_ab}-#{$size}r {
-      @include space($property, $dir, $size * 1rem);
+    @each $dir, $dir_ab in var.$directions {
+        .#{$name}#{$dir_ab}-#{$size}r {
+            @include space($property, $dir, $size * 1rem);
+        }
     }
-  }
 }
 
 @include breakpoint-spaces(margin, m);
@@ -336,25 +341,25 @@ body {
 @include rem-directional-spaces(padding, p, 2);
 
 @mixin sizes {
-  $i: 0;
-  @while $i <= 100 {
-    $prefixes: "", "max-", "min-";
-    $types: "height", "width";
-    @each $type in $types {
-      @each $prefix in $prefixes {
-        @if $i == 100 {
-          .#{$prefix}#{$type}-full {
-            #{$prefix}#{$type}: $i * 1%;
-          }
-        } @else {
-          .#{$prefix}#{$type}-#{$i} {
-            #{$prefix}#{$type}: $i * 1%;
-          }
+    $i: 0;
+    @while $i <= 100 {
+        $prefixes: "", "max-", "min-";
+        $types: "height", "width";
+        @each $type in $types {
+            @each $prefix in $prefixes {
+                @if $i == 100 {
+                    .#{$prefix}#{$type}-full {
+                        #{$prefix}#{$type}: $i * 1%;
+                    }
+                } @else {
+                    .#{$prefix}#{$type}-#{$i} {
+                        #{$prefix}#{$type}: $i * 1%;
+                    }
+                }
+            }
         }
-      }
+        $i: $i + 5;
     }
-    $i: $i + 5;
-  }
 }
 @include sizes();
 //#endregion

@@ -40,7 +40,7 @@ describe('Exercise Utils', () => {
                     name: 'Ex1',
                     children: 'ex1'
                 };
-                expect(Subject.checkSubjectValidity(obj)).toBe(false);
+                expect(Subject.checkSubjectValidity(obj)).toBeFalse();
             });
 
             it('should return true (valid Subject)', () => {
@@ -71,10 +71,10 @@ describe('Exercise Utils', () => {
                         }
                     ]
                 };
-                expect(Subject.checkSubjectValidity(obj)).toBe(true);
+                expect(Subject.checkSubjectValidity(obj)).toBeTrue();
             });
 
-            it('should return true (valid Subject w/ \'done\')', () => {
+            it("should return true (valid Subject w/ 'done')", () => {
                 const obj = {
                     name: 'Sb1',
                     children: [
@@ -90,10 +90,10 @@ describe('Exercise Utils', () => {
                         }
                     ]
                 };
-                expect(Subject.checkSubjectValidity(obj)).toBe(true);
+                expect(Subject.checkSubjectValidity(obj)).toBeTrue();
             });
 
-            it('should return false (wrong \'done\' type)', () => {
+            it("should return false (wrong 'done' type)", () => {
                 const obj = {
                     name: 'Sb1',
                     children: [
@@ -109,10 +109,10 @@ describe('Exercise Utils', () => {
                         }
                     ]
                 };
-                expect(Subject.checkSubjectValidity(obj)).toBe(false);
+                expect(Subject.checkSubjectValidity(obj)).toBeFalse();
             });
 
-            it('should return true (valid Subject w/ \'type\' & \'description\')', () => {
+            it("should return true (valid Subject w/ 'type' & 'description')", () => {
                 const obj: ServerResponseNode = {
                     name: 'Sb1',
                     children: [
@@ -146,7 +146,7 @@ describe('Exercise Utils', () => {
                         }
                     ]
                 };
-                expect(Subject.checkSubjectValidity(obj, true)).toBe(true);
+                expect(Subject.checkSubjectValidity(obj, true)).toBeTrue();
             });
 
             it('should return false (missing type)', () => {
@@ -160,10 +160,10 @@ describe('Exercise Utils', () => {
                         }
                     ]
                 };
-                expect(Subject.checkSubjectValidity(obj, true)).toBe(false);
+                expect(Subject.checkSubjectValidity(obj, true)).toBeFalse();
             });
 
-            it('should return false (wrong \'type\')', () => {
+            it("should return false (wrong 'type')", () => {
                 const obj = {
                     name: 'Sb1',
                     children: [
@@ -175,13 +175,45 @@ describe('Exercise Utils', () => {
                         }
                     ]
                 };
-                expect(Subject.checkSubjectValidity(obj, true)).toBe(false);
+                expect(Subject.checkSubjectValidity(obj, true)).toBeFalse();
+            });
+
+            it('should return true & replace type', () => {
+                type Exercise = {
+                    type: string;
+                    name: string;
+                    children: string;
+                    description?: string;
+                };
+                const list: [Exercise, string][] = [
+                    [
+                        {
+                            type: 'EquationExercise',
+                            name: 'Ex1',
+                            children: 'ex1',
+                            description
+                        },
+                        'EqEx'
+                    ]
+                ];
+                for (const [exercise, resultType] of list) {
+                    const obj = {
+                        name: 'Sb1',
+                        children: [exercise]
+                    };
+                    expect(Subject.checkSubjectValidity(obj, true))
+                        .withContext(exercise.type)
+                        .toBeTrue();
+                    expect(exercise.type)
+                        .withContext(exercise.type)
+                        .toBe(resultType);
+                }
             });
         });
     });
 
     describe('ExerciseTreeNode', () => {
-    //#region Objects
+        //#region Objects
         const obj1 = {
             name: 'Sb1',
             children: [
@@ -273,7 +305,13 @@ describe('Exercise Utils', () => {
                 const subCategory = category.children[0];
                 expectToBeExerciseTreeNode(subCategory, 'SubCat1', 1, category);
                 const exercise = subCategory.children[0];
-                expectToBeExerciseTreeNode(exercise, 'Ex1', 0, subCategory, 'ex1');
+                expectToBeExerciseTreeNode(
+                    exercise,
+                    'Ex1',
+                    0,
+                    subCategory,
+                    'ex1'
+                );
             });
 
             it(`${testMess} (depth 1 w/ type)`, () => {
@@ -285,7 +323,14 @@ describe('Exercise Utils', () => {
                 );
                 expectToBeExerciseTreeNode(subject, 'Sb1', 1, null);
                 const exercise = subject.children[0];
-                expectToBeExerciseTreeNode(exercise, 'Ex1', 0, subject, 'ex1', 'EqEx');
+                expectToBeExerciseTreeNode(
+                    exercise,
+                    'Ex1',
+                    0,
+                    subject,
+                    'ex1',
+                    'EqEx'
+                );
             });
 
             it(`${testMess} (depth 3 w/ type)`, () => {
@@ -301,7 +346,14 @@ describe('Exercise Utils', () => {
                 const subCategory = category.children[0];
                 expectToBeExerciseTreeNode(subCategory, 'SubCat1', 1, category);
                 const exercise = subCategory.children[0];
-                expectToBeExerciseTreeNode(exercise, 'Ex1', 0, subCategory, 'ex1', 'EqEx');
+                expectToBeExerciseTreeNode(
+                    exercise,
+                    'Ex1',
+                    0,
+                    subCategory,
+                    'ex1',
+                    'EqEx'
+                );
             });
         });
         /* eslint-enable jasmine/missing-expect */

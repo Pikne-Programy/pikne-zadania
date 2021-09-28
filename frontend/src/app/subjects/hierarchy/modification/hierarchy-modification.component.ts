@@ -8,10 +8,10 @@ import { getErrorCode, INTERNAL_ERROR } from 'src/app/helper/utils';
 import { HierarchyNode, HierarchyService } from '../service/hierarchy.service';
 
 enum Modal {
-    MOVE,
     ADD,
+    ADD_SUB,
     EDIT,
-    REORDER,
+    DELETE,
     DISCARD
 }
 
@@ -21,8 +21,13 @@ enum Modal {
     styleUrls: ['./hierarchy-modification.component.scss']
 })
 export class HierarchyModificationComponent implements OnInit, OnDestroy {
+    readonly EXERCISE_LIST_ID = 'unassigned-exercises-list';
+    readonly HIERARCHY_LIST_ID = 'hierarchy-list';
+
     subject?: string;
     hierarchy?: HierarchyNode[];
+    exercises?: HierarchyNode[];
+    selectedFolder: HierarchyNode | null = null;
 
     isLoading = true;
     errorCode: number | null = null;
@@ -53,8 +58,27 @@ export class HierarchyModificationComponent implements OnInit, OnDestroy {
                 this.hierarchyService
                     .getHierarchy(this.subject)
                     .then((tree) => (this.hierarchy = tree))
-                    .catch((error) => getErrorCode(error))
-                    .finally(() => (this.isLoading = false));
+                    .catch((error) => {
+                        const code = getErrorCode(error);
+                        if (this.errorCode === null) this.errorCode = code;
+                        console.error(`Hierarchy fetching error: ${code}`);
+                    })
+                    .finally(() => {
+                        if (this.exercises || this.errorCode !== null)
+                            this.isLoading = false;
+                    });
+                this.hierarchyService
+                    .getExercises(this.subject)
+                    .then((list) => (this.exercises = list))
+                    .catch((error) => {
+                        const code = getErrorCode(error);
+                        if (this.errorCode === null) this.errorCode = code;
+                        console.error(`Exercise fetching error: ${code}`);
+                    })
+                    .finally(() => {
+                        if (this.hierarchy || this.errorCode !== null)
+                            this.isLoading = false;
+                    });
                 this.param$?.unsubscribe();
             }
         });
@@ -65,97 +89,20 @@ export class HierarchyModificationComponent implements OnInit, OnDestroy {
     }
 
     selectNode(node: HierarchyNode, state?: boolean) {
-        if (state !== undefined) node.isSelected = state;
-        else node.isSelected = !node.isSelected;
+        if (!node.exerciseId) {
+            if (state !== undefined) node.isSelected = state;
+            else node.isSelected = !node.isSelected;
 
-        if (!node.isSelected)
-            for (const child of node.children) this.selectNode(child, false);
+            if (!node.isSelected) {
+                for (const child of node.children)
+                    this.selectNode(child, false);
+            }
+            this.selectedFolder = node.isSelected ? node : node.parent;
+        }
     }
 
     //#region Modals
     private editedNode: HierarchyNode | null = null;
-
-    //#region Move Modal
-    selectedNodes: HierarchyNode[] = [];
-    moveModalTagList: HierarchyNode[] = [];
-    get moveModalNodeList(): HierarchyNode[] | undefined {
-        const i = this.moveModalTagList.length - 1;
-        return this.filterMoveModalTags(
-            i >= 0 ? this.moveModalTagList[i].children : this.hierarchy
-        );
-    }
-    private filterMoveModalTags(
-        list: HierarchyNode[] | undefined
-    ): HierarchyNode[] {
-        if (!list) return [];
-        return list
-            .filter(
-                (node) => !node.exerciseId && !this.selectedNodes.includes(node)
-            )
-            .filter(
-                (node) =>
-                    node.name !== '' ||
-                    this.selectedNodes.every((selected) => selected.exerciseId)
-            );
-    }
-
-    move() {
-        if (this.hierarchy) {
-            this.isModified = true;
-            const selectedNodes = this.getSelectedNodes(this.hierarchy, true);
-            for (const node of selectedNodes)
-                this.collapseOldParents(node.parent);
-
-            const i = this.moveModalTagList.length - 1;
-            const newParent = i >= 0 ? this.moveModalTagList[i] : null;
-            for (const node of selectedNodes) node.parent = newParent;
-
-            const list = newParent ? newParent.children : this.hierarchy;
-            list.push(...selectedNodes);
-            this.expandNewParents(newParent);
-        }
-        else this.errorCode = INTERNAL_ERROR;
-        this.closeModal();
-    }
-
-    private getSelectedNodes(
-        tree: HierarchyNode[],
-        removeFromTree?: boolean
-    ): HierarchyNode[] {
-        let result: HierarchyNode[] = [];
-        for (const node of tree) {
-            if (node.isSelected) {
-                const selectedChildren = this.getSelectedNodes(
-                    node.children,
-                    removeFromTree
-                );
-                if (selectedChildren.length > 0)
-                    result = result.concat(selectedChildren);
-                else if (node.name !== '') {
-                    if (removeFromTree) {
-                        const i = tree.findIndex(
-                            (treeNode) => treeNode === node
-                        );
-                        if (i === -1) {
-                            this.errorCode = INTERNAL_ERROR;
-                            return [];
-                        }
-                        tree.splice(i, 1);
-                    }
-                    result.push(node);
-                }
-            }
-        }
-        return result;
-    }
-
-    isMoveEnabled(): boolean {
-        if (!this.hierarchy) return false;
-        const selected = this.hierarchy.filter((node) => node.isSelected);
-        if (selected.length === 1 && selected[0].name === '') return false;
-        return selected.length > 0;
-    }
-    //#endregion
 
     //#region Add Modal
     addForm = new FormGroup({
@@ -167,36 +114,16 @@ export class HierarchyModificationComponent implements OnInit, OnDestroy {
     get newName() {
         return this.addForm.get('newName');
     }
-    addModalTagList: HierarchyNode[] = [];
-    get addModalNodeList(): HierarchyNode[] | undefined {
-        const i = this.addModalTagList.length - 1;
-        return this.filterAddModalTags(
-            i >= 0 ? this.addModalTagList[i].children : this.hierarchy
-        );
-    }
-    private filterAddModalTags(
-        list: HierarchyNode[] | undefined
-    ): HierarchyNode[] {
-        if (!list) return [];
-        return list.filter((node) => !node.exerciseId && node.name !== '');
-    }
 
     add() {
         if (this.hierarchy) {
             const newName = (this.newName!.value as string).trim();
             if (newName !== '') {
                 this.isModified = true;
-                this.collapseAll();
-                const i = this.addModalTagList.length - 1;
-                const parent = i >= 0 ? this.addModalTagList[i] : null;
-                const list = parent ? parent.children : this.hierarchy;
-                list.push({
-                    name: newName,
-                    children: [],
-                    parent,
-                    isSelected: true
-                });
-                this.expandNewParents(parent);
+                this.selectedFolder = HierarchyService.addCategoryToHierarchy(
+                    newName,
+                    this.editedNode ?? this.hierarchy
+                );
             }
         }
         else this.errorCode = INTERNAL_ERROR;
@@ -218,87 +145,49 @@ export class HierarchyModificationComponent implements OnInit, OnDestroy {
     edit() {
         if (this.editedNode) {
             this.isModified = true;
-            this.collapseAll();
             this.editedNode.name = (this.editName!.value as string).trim();
-            this.editedNode.isSelected = true;
-            this.expandNewParents(this.editedNode.parent);
+            this.selectNode(this.editedNode, true);
         }
         else this.errorCode = INTERNAL_ERROR;
         this.closeModal();
     }
     //#endregion
 
-    //#region Reorder Modal
-    childrenToReorder: HierarchyNode[] | null = null;
+    //#region Delete Modal
+    delete() {
+        if (this.hierarchy && this.editedNode) {
+            this.isModified = true;
+            const result = HierarchyService.removeNodeFromHierarchy(
+                this.editedNode,
+                this.hierarchy
+            );
+            if (!result) this.errorCode = INTERNAL_ERROR;
+        }
+        else this.errorCode = INTERNAL_ERROR;
+    }
+    //#endregion
+    //#endregion
 
     drop(event: CdkDragDrop<HierarchyNode[]>) {
-        if (this.childrenToReorder) {
-            moveItemInArray(
-                this.childrenToReorder,
-                event.previousIndex,
-                event.currentIndex
-            );
-        }
-        else this.errorCode = INTERNAL_ERROR;
-    }
-
-    reorder() {
-        if (this.editedNode && this.childrenToReorder) {
+        if (this.hierarchy) {
             this.isModified = true;
-            this.editedNode.children = this.childrenToReorder;
-            this.collapseAll();
-            this.editedNode.isSelected = true;
-            this.expandNewParents(this.editedNode.parent);
-        }
-        else this.errorCode = INTERNAL_ERROR;
-        this.closeModal();
-    }
-    //#endregion
-
-    //#region Add/delete tag
-    addTag(node: HierarchyNode, modal: Modal.MOVE | Modal.ADD) {
-        switch (modal) {
-            case Modal.MOVE:
-                this.moveModalTagList.push(node);
-                break;
-            case Modal.ADD:
-                this.addModalTagList.push(node);
-                break;
+            if (event.previousContainer.id === this.EXERCISE_LIST_ID) {
+                const exercise: HierarchyNode = event.item.data;
+                HierarchyService.addExerciseToHierarchy(
+                    exercise,
+                    event.currentIndex,
+                    this.selectedFolder ?? this.hierarchy
+                );
+            }
+            else {
+                moveItemInArray(
+                    event.container.data,
+                    event.previousIndex,
+                    event.currentIndex
+                );
+            }
         }
     }
-
-    deleteTag(pos: number, modal: Modal.MOVE | Modal.ADD) {
-        switch (modal) {
-            case Modal.MOVE:
-                this.moveModalTagList.splice(pos);
-                break;
-            case Modal.ADD:
-                this.addModalTagList.splice(pos);
-                break;
-        }
-    }
-    //#endregion
-
-    //#region Expand/collapse nodes
-    private collapseAll() {
-        if (this.hierarchy)
-            for (const node of this.hierarchy) this.selectNode(node, false);
-        else this.errorCode = INTERNAL_ERROR;
-    }
-
-    private collapseOldParents(parent: HierarchyNode | null) {
-        if (!parent) return;
-        parent.isSelected = false;
-        this.collapseOldParents(parent.parent);
-    }
-
-    private expandNewParents(parent: HierarchyNode | null) {
-        if (!parent) return;
-        parent.isSelected = true;
-        this.expandNewParents(parent.parent);
-    }
-    //#endregion
-    //#endregion
 
     submit() {
         if (this.subject && this.hierarchy) {
@@ -320,14 +209,10 @@ export class HierarchyModificationComponent implements OnInit, OnDestroy {
     openModal(modal: Modal, editedNode?: HierarchyNode) {
         if (this.hierarchy) {
             switch (modal) {
-                case Modal.MOVE:
-                    this.selectedNodes = this.getSelectedNodes(this.hierarchy);
-                    this.moveModalTagList = [];
-                    break;
-
                 case Modal.ADD:
-                    this.addModalTagList = [];
+                case Modal.ADD_SUB:
                     this.addForm.reset();
+                    this.editedNode = editedNode ?? null;
                     break;
 
                 case Modal.EDIT:
@@ -339,10 +224,16 @@ export class HierarchyModificationComponent implements OnInit, OnDestroy {
                     else this.errorCode = INTERNAL_ERROR;
                     break;
 
-                case Modal.REORDER:
+                case Modal.DELETE:
                     if (editedNode) {
                         this.editedNode = editedNode;
-                        this.childrenToReorder = [...editedNode.children];
+                        if (
+                            this.editedNode.exerciseId ||
+                            this.editedNode.children.length === 0
+                        ) {
+                            this.delete();
+                            return;
+                        }
                     }
                     else this.errorCode = INTERNAL_ERROR;
                     break;
@@ -358,7 +249,10 @@ export class HierarchyModificationComponent implements OnInit, OnDestroy {
     closeModal() {
         this._openedModal = null;
         this.editedNode = null;
-        this.childrenToReorder = null;
+    }
+
+    getConnectedDropLists() {
+        return this.selectedFolder?.id ?? [this.HIERARCHY_LIST_ID];
     }
 
     navigateToDashboard() {
@@ -370,11 +264,12 @@ export class HierarchyModificationComponent implements OnInit, OnDestroy {
     //#region Theme
     isDarkTheme = false;
     getNodeActionStyle(node: HierarchyNode) {
+        const isSelected = node === this.selectedFolder;
         return {
-            'is-black': !node.isSelected && !this.isDarkTheme,
-            'is-light': !node.isSelected && this.isDarkTheme,
-            'is-inverted': !node.isSelected,
-            'is-link': node.isSelected
+            'is-black': !isSelected && !this.isDarkTheme,
+            'is-light': !isSelected && this.isDarkTheme,
+            'is-inverted': !isSelected,
+            'is-link': isSelected
         };
     }
     //#endregion

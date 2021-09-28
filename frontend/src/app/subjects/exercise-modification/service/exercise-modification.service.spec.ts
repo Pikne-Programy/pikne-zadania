@@ -79,7 +79,14 @@ describe('Service: ExerciseModification', () => {
                 //#region Mock objects
                 const exercises = ['pociagi-dwa', 'kat', 'atom', 'spotkanie'];
                 const resultSet = new Set(exercises);
-                const serverResponse = { exercises };
+                const serverResponse = {
+                    exercises: exercises.map((id) => ({
+                        id,
+                        type: 'EqEx',
+                        name: id.toUpperCase(),
+                        description: 'Test description'
+                    }))
+                };
                 //#endregion
 
                 service

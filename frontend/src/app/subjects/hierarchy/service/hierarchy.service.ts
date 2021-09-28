@@ -4,6 +4,7 @@ import { of, throwError } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { isObject, TYPE_ERROR } from 'src/app/helper/utils';
 import * as ServerRoutes from 'src/app/server-routes';
+import { isExerciseListType } from '../../exercise-modification/service/exercise-modification.utils';
 
 interface ServerHierarchyNode {
     name: string;
@@ -40,6 +41,7 @@ function mapToServerHierarchyTree(
 }
 
 export interface HierarchyNode {
+    id: string;
     name: string;
     children: HierarchyNode[];
     parent: HierarchyNode | null;
@@ -50,9 +52,10 @@ function mapToHierarchyTree(
     serverResponse: ServerHierarchyNode[],
     parent: HierarchyNode | null = null
 ): HierarchyNode[] {
-    return serverResponse.map((node) => {
+    return serverResponse.map((node, i) => {
         if (Array.isArray(node.children)) {
             const result: HierarchyNode = {
+                id: (parent ? `${parent.id}_` : '') + i.toString(),
                 name: node.name,
                 children: [],
                 parent,
@@ -62,6 +65,7 @@ function mapToHierarchyTree(
             return result;
         }
         return {
+            id: (parent ? `${parent.id}_` : '') + i.toString(),
             name: node.name,
             children: [],
             parent,
@@ -69,23 +73,6 @@ function mapToHierarchyTree(
             isSelected: false
         };
     });
-}
-
-function manageUnassigned(hierarchyTree: HierarchyNode[]): HierarchyNode[] {
-    const i = hierarchyTree.findIndex((node) => node.name === '');
-    if (i !== -1) {
-        const unassigned = hierarchyTree.splice(i, 1);
-        hierarchyTree.unshift(...unassigned);
-    }
-    else {
-        hierarchyTree.unshift({
-            name: '',
-            children: [],
-            parent: null,
-            isSelected: false
-        });
-    }
-    return hierarchyTree;
 }
 
 @Injectable({
@@ -117,14 +104,14 @@ export class HierarchyService {
         );
     }
 
-    getHierarchy(subject: string) {
+    getHierarchy(subject: string): Promise<HierarchyNode[]> {
         return this.http
             .post(ServerRoutes.hierarchyGet, { subject, raw: true })
             .pipe(
                 switchMap((response) =>
                     this.isServerHierarchyTree(response) &&
                     !this.hasEmptyNodes(response)
-                        ? of(manageUnassigned(mapToHierarchyTree(response)))
+                        ? of(mapToHierarchyTree(response))
                         : throwError({ status: TYPE_ERROR })
                 )
             )
@@ -142,7 +129,92 @@ export class HierarchyService {
             .toPromise();
     }
 
+    getExercises(subjectId: string): Promise<HierarchyNode[]> {
+        return this.http
+            .post(ServerRoutes.subjectExerciseList, { subject: subjectId })
+            .pipe(
+                switchMap((response) =>
+                    isExerciseListType(response)
+                        ? of(
+                              response.exercises
+                                  .map((exercise, i) => ({
+                                      id: `un-${i}`,
+                                      name: exercise.name,
+                                      children: [],
+                                      parent: null,
+                                      exerciseId: exercise.id,
+                                      isSelected: false
+                                  }))
+                                  .sort((a, b) => a.name.localeCompare(b.name))
+                          )
+                        : throwError({ status: TYPE_ERROR })
+                )
+            )
+            .toPromise();
+    }
+
     private removeNotAssigned(tree: HierarchyNode[]): HierarchyNode[] {
         return tree.filter((node) => node.name !== '');
     }
+
+    //#region Adding/removing nodes
+    static addCategoryToHierarchy(
+        name: string,
+        newParent: HierarchyNode | HierarchyNode[]
+    ): HierarchyNode {
+        const [list, parent] = Array.isArray(newParent)
+            ? [newParent, null]
+            : [newParent.children, newParent];
+        const newCategory = {
+            id: '',
+            name,
+            children: [],
+            parent,
+            isSelected: true
+        };
+        list.unshift(newCategory);
+        this.updateHierarchyIds(newParent);
+        if (parent) parent.isSelected = true;
+        return newCategory;
+    }
+
+    static addExerciseToHierarchy(
+        exercise: HierarchyNode,
+        position: number,
+        newParent: HierarchyNode | HierarchyNode[]
+    ) {
+        const [list, parent] = Array.isArray(newParent)
+            ? [newParent, null]
+            : [newParent.children, newParent];
+        const shifted = list.splice(position);
+        exercise.parent = parent;
+        list.push(exercise);
+        list.push(...shifted);
+        this.updateHierarchyIds(newParent);
+    }
+
+    static removeNodeFromHierarchy(
+        node: HierarchyNode,
+        hierarchy: HierarchyNode[]
+    ): boolean {
+        const list = node.parent?.children ?? hierarchy;
+        const i = list.findIndex((sibling) => sibling.id === node.id);
+        if (i === -1) return false;
+        const removed = list.splice(i);
+        removed.shift();
+        list.push(...removed);
+        return true;
+    }
+
+    private static updateHierarchyIds(parent: HierarchyNode | HierarchyNode[]) {
+        const [parentId, list] = !Array.isArray(parent)
+            ? [`${parent.id}_`, parent.children]
+            : ['', parent];
+        for (let i = 0; i < list.length; i++) {
+            const node = list[i];
+            node.id = parentId + i.toString();
+            this.updateHierarchyIds(node);
+        }
+    }
+    //#endregion
 }

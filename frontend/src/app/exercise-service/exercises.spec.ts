@@ -1,7 +1,63 @@
 import { getStringFromAny } from '../helper/tests/tests.utils';
-import { EqEx, Exercise, ExerciseType } from './exercises';
+import {
+    checkAndReplaceExerciseType,
+    EqEx,
+    Exercise,
+    ExerciseType,
+    ExerciseTypeFull,
+    isExerciseType
+} from './exercises';
 
 describe('Exercise types', () => {
+    describe('ExerciseType', () => {
+        const correctTypes: (ExerciseType | ExerciseTypeFull)[] = [
+            'EqEx',
+            'EquationExercise'
+        ];
+        const wrongTypes = ['eqex', 'equationExercise', 'TrashType'];
+
+        describe('isExerciseType', () => {
+            it('should return true', () => {
+                for (const value of correctTypes)
+                    expect(isExerciseType(value)).withContext(value).toBeTrue();
+            });
+
+            it('should return false', () => {
+                for (const value of wrongTypes) {
+                    expect(isExerciseType(value))
+                        .withContext(value)
+                        .toBeFalse();
+                }
+            });
+        });
+
+        describe('checkAndReplaceExerciseType', () => {
+            it('should return true & replace type', () => {
+                const mappedTypes: ExerciseType[] = ['EqEx', 'EqEx'];
+                if (mappedTypes.length !== correctTypes.length)
+                    fail('Missing mapped types');
+
+                const list: [{ type: string }, ExerciseType][] =
+                    correctTypes.map((type, i) => [{ type }, mappedTypes[i]]);
+                for (const [object, resultType] of list) {
+                    expect(checkAndReplaceExerciseType(object))
+                        .withContext(object.type)
+                        .toBeTrue();
+                    expect(object.type).toBe(resultType);
+                }
+            });
+
+            it('should return false', () => {
+                const list = wrongTypes.map((type) => ({ type }));
+                for (const object of list) {
+                    expect(checkAndReplaceExerciseType(object))
+                        .withContext(object.type)
+                        .toBeFalse();
+                }
+            });
+        });
+    });
+
     describe('Exercise', () => {
         describe('isExercise', () => {
             //#region Test objects
@@ -95,6 +151,27 @@ describe('Exercise types', () => {
                     problem: contentObj
                 };
                 expect(Exercise.isExercise(obj, id, subjectId)).toBeFalse();
+            });
+
+            it('should return true & replace type', () => {
+                const typeMap = new Map<string, string>([
+                    ['EqEx', 'EquationExercise']
+                ]);
+                const objects: { type: string }[] = list
+                    .filter(([_, result]) => result)
+                    .map(([obj, _]) => obj)
+                    .concat([]);
+                for (const exercise of objects) {
+                    const resultType = exercise.type;
+                    exercise.type =
+                        typeMap.get(exercise.type) ?? 'TYPE_NOT_FOUND';
+                    expect(Exercise.isExercise(exercise, id, subjectId))
+                        .withContext(exercise.type)
+                        .toBeTrue();
+                    expect(exercise.type)
+                        .withContext(exercise.type)
+                        .toBe(resultType);
+                }
             });
         });
 
@@ -263,9 +340,9 @@ describe('Exercise types', () => {
         });
     });
 
-
     xdescribe('PreviewEqEx', () => {
-        it('should ...', () => { // eslint-disable-line jasmine/no-spec-dupes
+        // eslint-disable-next-line jasmine/no-spec-dupes
+        it('should ...', () => {
             //FIXME Add tests
             expect(true).toBe(true);
         });

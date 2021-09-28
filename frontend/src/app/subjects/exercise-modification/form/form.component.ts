@@ -209,7 +209,7 @@ implements OnInit, AfterViewInit {
             control.warnings =
                 typeof control.value === 'string' &&
                 control.value.trim().length > 0 &&
-                !isExerciseType(control.value, false)
+                !isExerciseType(control.value)
                     ? { type: { value: control.value } }
                     : null;
             return null;

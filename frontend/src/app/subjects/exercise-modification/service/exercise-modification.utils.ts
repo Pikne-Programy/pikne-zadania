@@ -5,6 +5,30 @@ import {
 import { isObject, replaceAccents } from 'src/app/helper/utils';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 
+type ListedExerciseType = {
+    id: string;
+    type: ExerciseType;
+    name: string;
+    description: string;
+};
+type ExerciseListType = {
+    exercises: ListedExerciseType[];
+};
+export function isExerciseListType(object: any): object is ExerciseListType {
+    return (
+        isObject<ExerciseListType>(object, [['exercises', 'array']]) &&
+        object.exercises.every(
+            (exercise) =>
+                isObject<ListedExerciseType>(exercise, [
+                    ['id', ['string']],
+                    ['type', ['string']],
+                    ['name', ['string']],
+                    ['description', ['string']]
+                ]) && isExerciseType(exercise.type)
+        )
+    );
+}
+
 export class Exercise {
     constructor(
         public header: ExerciseHeader = new ExerciseHeader('', ''),
@@ -71,8 +95,10 @@ export class EqExHeader extends ExerciseHeader {
 
     static isEqExHeader(object: ExerciseHeader): object is EqExHeader {
         return (
-            isExerciseType(object.type, false) &&
-            isObject<EqExHeader>(object, [['img', ['string', 'undefined']]]) ||
+            (isExerciseType(object.type) &&
+                isObject<EqExHeader>(object, [
+                    ['img', ['string', 'undefined']]
+                ])) ||
             (isObject<EqExHeader>(object, [['img', 'array|undefined']]) &&
                 (object.img
                     ? (object.img as unknown[]).every(

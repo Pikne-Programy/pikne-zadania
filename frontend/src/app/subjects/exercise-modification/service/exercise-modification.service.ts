@@ -9,12 +9,8 @@ import {
     Exercise as RenderedExercise,
     PreviewExercise
 } from 'src/app/exercise-service/exercises';
-import { Exercise } from './exercise-modification.utils';
+import { Exercise, isExerciseListType } from './exercise-modification.utils';
 export { Exercise, ExerciseHeader } from './exercise-modification.utils';
-
-type ExerciseListType = {
-    exercises: string[];
-};
 
 @Injectable({
     providedIn: 'root'
@@ -38,11 +34,14 @@ export class ExerciseModificationService {
             .post(ServerRoutes.subjectExerciseList, { subject: subjectId })
             .pipe(
                 switchMap((response) =>
-                    isObject<ExerciseListType>(response, [
-                        ['exercises', 'array']
-                    ]) &&
-                    response.exercises.every((id) => typeof id === 'string')
-                        ? of(new Set(response.exercises))
+                    isExerciseListType(response)
+                        ? of(
+                              new Set(
+                                  response.exercises.map(
+                                      (exercise) => exercise.id
+                                  )
+                              )
+                          )
                         : throwError({ status: TYPE_ERROR })
                 )
             )

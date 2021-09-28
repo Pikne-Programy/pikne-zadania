@@ -1,11 +1,30 @@
-.menu-list li ul {
-    margin-right: 0;
+.menu-list li {
+    & a.is-selected {
+        background-color: var(--expanded-folder-background);
+    }
 
-    &.is-collapsed {
-        height: 0;
-        overflow: hidden;
-        margin-top: 0;
-        margin-bottom: 0;
+    & ul {
+        margin-right: 0;
+
+        &.is-collapsed {
+            height: 0;
+            overflow: hidden;
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+    }
+}
+
+.is-dragable {
+    cursor: move;
+}
+
+.drag-handle {
+    cursor: move;
+
+    &.is-disabled {
+        opacity: 0.25;
+        cursor: not-allowed;
     }
 }
 
@@ -13,9 +32,16 @@ li + li {
     margin-top: 0.25rem;
 }
 
-.box .hierarchy-box {
-    max-height: 100%;
-    padding: 1.75rem;
+.hierarchy-actions {
+    display: flex;
+    justify-content: space-between;
+    position: sticky;
+    top: -1.25rem;
+    margin: -1.25rem;
+    margin-bottom: 0;
+    padding: 1rem;
+    padding-bottom: 0.75rem;
+    z-index: 3;
 }
 
 .input.with-tags {
@@ -52,33 +78,36 @@ li + li {
     }
 }
 
-.reorder-list {
-    display: block;
-    overflow: hidden;
-
-    &.cdk-drop-list-dragging
-        .panel-block.is-drag-item:not(.cdk-drag-placeholder) {
-        transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
-    }
-}
-
-.panel-block.is-drag-item {
-    display: flex;
-    justify-content: space-between;
-    cursor: move;
-    background-color: var(--tooltip-background);
-    border-radius: 0;
+.cdk-drop-list-dragging li.is-drag-item:not(.cdk-drag-placeholder) {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
 
 .cdk-drag-preview {
     box-sizing: border-box;
-    border-radius: 4px;
+    border-radius: 2px;
+    background-color: var(--tooltip-background);
     box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
         0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12);
+    padding: 0.5em 0.75em;
+
+    & a button,
+    & ul {
+        display: none;
+    }
+
+    & a {
+        color: var(--text-color);
+        line-height: 1.25;
+    }
 }
 
 .cdk-drag-placeholder {
-    opacity: 0;
+    & a {
+        opacity: 0;
+    }
+    border-radius: 2px;
+    background-color: var(--text-selection-color);
+    opacity: 0.25;
 }
 
 .cdk-drag-animating {

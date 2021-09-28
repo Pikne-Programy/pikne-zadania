@@ -1,4 +1,3 @@
-@use "sass:math";
 @use "src/styles.variables.scss" as *;
 $mobile: nth($size_breakpoints, 1);
 $fullhd: nth($size_breakpoints, 5);
@@ -22,7 +21,7 @@ $fullhd: nth($size_breakpoints, 5);
         $special_sizes: 2, 10;
         @each $size in $special_sizes {
             &.is-#{$size}-bigscreen {
-                width: math.div($size, 12) * 100%;
+                width: ($size / 12) * 100%;
             }
         }
     }

@@ -11,15 +11,15 @@ const exerciseTypeMapList: [ExerciseType | ExerciseTypeFull, ExerciseType][] = [
     ['EquationExercise', 'EqEx']
 ];
 const exerciseTypeMap = new Map<string, ExerciseType>(exerciseTypeMapList);
-/**
- * @param replace If true (default), replaces input with corresponding ExerciseType
- */
-export function isExerciseType(
-    input: string,
-    replace: boolean = true
-): input is ExerciseType {
-    const type = exerciseTypeMap.get(input);
-    if (type && replace) input = type;
+export function isExerciseType(value: string): value is ExerciseType {
+    return exerciseTypeMap.has(value);
+}
+export function checkAndReplaceExerciseType(object: {
+    type?: string;
+}): object is { type: ExerciseType } {
+    if (!object.type) return false;
+    const type = exerciseTypeMap.get(object.type);
+    if (type) object.type = type;
     return type !== undefined;
 }
 //#endregion
@@ -53,7 +53,7 @@ export class Exercise {
                 ['name', ['string']],
                 ['problem', ['object']],
                 ['done', ['number', 'null', 'undefined']]
-            ]) && isExerciseType(object.type)
+            ]) && checkAndReplaceExerciseType(object)
         );
     }
 

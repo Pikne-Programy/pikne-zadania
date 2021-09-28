@@ -2,10 +2,103 @@ import { getToStringResult } from './exercise-modification.service.spec';
 import {
     EqExHeader,
     Exercise,
-    ExerciseHeader
+    ExerciseHeader,
+    isExerciseListType
 } from './exercise-modification.utils';
 
 describe('Exercise modification Utils', () => {
+    describe('ExerciseListType', () => {
+        it('should return false (wrong response object type)', () => {
+            expect(isExerciseListType([]))
+                .withContext('Not an object')
+                .toBeFalse();
+            expect(isExerciseListType({}))
+                .withContext('Missing `exercises` field')
+                .toBeFalse();
+            expect(isExerciseListType({ exercises: 2 }))
+                .withContext('Wrong `exercises` type')
+                .toBeFalse();
+        });
+
+        it(`should return false (wrong items' types)`, () => {
+            //#region Mock objects
+            const id = 'ex1';
+            const type = 'EqEx';
+            const name = 'Ex1';
+            const description = 'Test description';
+            const wrongObjects: [any, string][] = [
+                [{}, 'Missing fields'],
+                [
+                    {
+                        id,
+                        type: 1,
+                        name,
+                        description
+                    },
+                    'Wrong `type` type'
+                ],
+                [
+                    {
+                        id,
+                        type,
+                        name: false,
+                        description
+                    },
+                    'Wrong `name` type'
+                ],
+                [
+                    {
+                        id: 1,
+                        type,
+                        name,
+                        description: null
+                    },
+                    'Wrong `description` type'
+                ]
+            ];
+            //#endregion
+
+            for (const [object, testName] of wrongObjects) {
+                expect(isExerciseListType({ exercises: [object] }))
+                    .withContext(testName)
+                    .toBeFalse();
+            }
+        });
+
+        it('should return true', () => {
+            //#region Mock objects
+            const id = 'exId';
+            const description = 'Test description';
+            type TestType = {
+                id: string;
+                type: string;
+                name: string;
+                description: string;
+            };
+            const list: TestType[] = [
+                {
+                    id,
+                    type: 'EqEx',
+                    name: 'Ex1',
+                    description
+                },
+                {
+                    id,
+                    type: 'EquationExercise',
+                    name: 'Ex2',
+                    description
+                }
+            ];
+            //#endregion
+
+            for (const object of list) {
+                expect(isExerciseListType({ exercises: [object] }))
+                    .withContext(object.name)
+                    .toBeTrue();
+            }
+        });
+    });
+
     describe('Exercise', () => {
         const content =
             'Z miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n';

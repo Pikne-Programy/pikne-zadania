@@ -26,21 +26,21 @@ $sch-invert: $scheme-invert !default;
 $sch-invert-bis: $scheme-invert-bis !default;
 $sch-invert-ter: $scheme-invert-ter !default;
 
-$prim-dark: findDarkColor($prim);
+$prim-dark: darken($prim, 15%);
 $prim-dark-invert: findColorInvert($prim-dark) !default;
 
 $warn-dark: $warning-dark;
 $warn-dark-invert: findColorInvert($warning-dark) !default;
 
 $custom-col: (
-  "primary-dark": (
-    $prim-dark,
-    $prim-dark-invert,
-  ),
-  "warning-dark": (
-    $warn-dark,
-    $warn-dark-invert,
-  ),
+    "primary-dark": (
+        $prim-dark,
+        $prim-dark-invert,
+    ),
+    "warning-dark": (
+        $warn-dark,
+        $warn-dark-invert,
+    ),
 );
 
 $is-dark: false !default;
