@@ -18,7 +18,6 @@ import {
 } from '@angular/forms';
 import {
     Exercise,
-    ExerciseHeader,
     ExerciseModificationService
 } from '../service/exercise-modification.service';
 import {
@@ -97,8 +96,7 @@ implements OnInit, AfterViewInit {
     constructor(
         private exerciseService: ExerciseModificationService,
         public snippetService: SnippetService
-    ) {
-    }
+    ) {}
 
     ngOnInit() {
         this.isCreation = this.exerciseId === undefined;
@@ -129,27 +127,30 @@ implements OnInit, AfterViewInit {
         }, 20);
     }
 
-    createExercise(): Exercise {
+    updateExercise(): Exercise {
         //TODO Images
-        return new Exercise(
-            new ExerciseHeader(this.type!.value, this.name!.value),
-            this.content!.value
-        );
+        this.exercise.header.type = this.type!.value;
+        this.exercise.header.name = this.name!.value;
+        this.exercise.content = this.content!.value;
+        return this.exercise;
     }
 
     getPreview(fromTab: boolean = true) {
         this.snippetService.closeSnippet();
         if (!this.preview) {
             if (fromTab) this.isPreviewLoading = true;
+            this.previewErrorCode = null;
             this.exerciseService
-                .getExercisePreview(this.createExercise())
+                .getExercisePreview(this.updateExercise(), this.subjectId)
                 .then((preview) => (this.preview = preview))
                 .catch((error) => {
-                    this.isPreview = true;
                     this.previewErrorCode = getErrorCode(
                         error,
                         this.InternalError
                     );
+                })
+                .finally(() => {
+                    this.isPreview = true;
                     this.isPreviewLoading = false;
                 });
         }
@@ -168,7 +169,7 @@ implements OnInit, AfterViewInit {
                 this.onSuccess.emit();
             else {
                 this.isSubmitted = true;
-                const content = this.createExercise();
+                const content = this.updateExercise();
                 const promise = this.isCreation
                     ? this.exerciseService.addExercise(this.subjectId, content)
                     : this.exerciseService.updateExercise(

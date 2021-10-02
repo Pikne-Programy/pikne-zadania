@@ -223,6 +223,7 @@ describe('Service: ExerciseModification', () => {
             ),
             seed: undefined
         };
+        const subject = 'Sb1';
 
         //TODO Tests w/ seed
         it(
@@ -235,7 +236,7 @@ describe('Service: ExerciseModification', () => {
                         const errorCode = 500;
 
                         service
-                            .getExercisePreview(exercise)
+                            .getExercisePreview(exercise, subject)
                             .then(() => fail('should be rejected'))
                             .catch((error) =>
                                 expect(error.status).toBe(errorCode)
@@ -261,7 +262,7 @@ describe('Service: ExerciseModification', () => {
                         expect(service).toBeTruthy();
 
                         service
-                            .getExercisePreview(exercise)
+                            .getExercisePreview(exercise, subject)
                             .then(() => fail('should be rejected'))
                             .catch((error) =>
                                 expect(error.status).toBe(TYPE_ERROR)
@@ -290,7 +291,7 @@ describe('Service: ExerciseModification', () => {
                 };
 
                 service
-                    .getExercisePreview(exercise)
+                    .getExercisePreview(exercise, subject)
                     .then(() => fail('should be rejected'))
                     .catch((error) => expect(error.status).toBe(TYPE_ERROR));
                 const req = httpController.expectOne(
@@ -316,7 +317,7 @@ describe('Service: ExerciseModification', () => {
                 };
 
                 service
-                    .getExercisePreview(exercise)
+                    .getExercisePreview(exercise, subject)
                     .then((response) => expect(response).toEqual(result))
                     .catch(() => fail('should resolve'));
                 const req = httpController.expectOne(

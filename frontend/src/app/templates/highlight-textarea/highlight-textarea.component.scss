@@ -1,66 +1,71 @@
 :host {
-  display: block;
-  width: 100%;
-  height: 100%;
-  min-height: 8em;
-  -webkit-text-size-adjust: none;
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 8em;
+    -webkit-text-size-adjust: none;
 }
 
 .backdrop,
 textarea {
-  position: absolute;
-  height: 100%;
-  width: 100%;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    white-space: break-spaces;
+    word-wrap: break-word;
+    word-break: keep-all;
 }
 
 .backdrop {
-  white-space: pre;
-  overflow: hidden;
-  color: transparent;
-  border-color: transparent;
-  box-shadow: none;
-  z-index: 1;
+    overflow: hidden;
+    color: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    z-index: 1;
 }
 
 textarea {
-  background-color: transparent;
-  z-index: 2;
+    background-color: transparent;
+    z-index: 2;
 }
 
 mark {
-  color: transparent;
-  border-radius: 4px;
-  z-index: 2;
+    color: transparent;
+    border-radius: 4px;
+    z-index: 2;
+    white-space: inherit;
+    word-wrap: inherit;
+    word-break: inherit;
 
-  &.selection {
-    background-color: var(--text-selection-color);
-    border-radius: 0;
-  }
+    &.selection {
+        background-color: var(--text-selection-color);
+        border-radius: 0;
+    }
 
-  &.cursor {
-    display: inline-block;
-    width: 1px;
-    height: 1.25em;
+    &.cursor {
+        display: inline-block;
+        width: 1px;
+        height: 1.25em;
 
-    background-color: var(--text-color);
-    border-radius: 0;
+        background-color: var(--text-color);
+        border-radius: 0;
 
-    margin-right: -1px;
-    margin-top: -0.125em;
-    margin-bottom: -0.125em;
-  }
+        margin-right: -1px;
+        margin-top: -0.125em;
+        margin-bottom: -0.125em;
+    }
 }
 
 .textarea.has-toolbar {
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  border-top: none;
-  box-shadow: inset 0 0.5em 1em -0.75em var(--box-shadow-color);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-top: none;
+    box-shadow: inset 0 0.5em 1em -0.75em var(--box-shadow-color);
 
-  &.is-focused,
-  &:focus,
-  &:active {
-    box-shadow: inset 0 0.5em 1em -0.75em var(--box-shadow-color),
-      0 2px 2px 0.125em var(--primary-box-shadow);
-  }
+    &.is-focused,
+    &:focus,
+    &:active {
+        box-shadow: inset 0 0.5em 1em -0.75em var(--box-shadow-color),
+            0 2px 2px 0.125em var(--primary-box-shadow);
+    }
 }

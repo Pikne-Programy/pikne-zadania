@@ -12,6 +12,7 @@ import {
 import { FormControl, FormGroup } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { ThemeService } from 'src/app/helper/theme.service';
+import { SafeHtmlPipe } from './safe-html.pipe';
 
 @Component({
     selector: 'app-highlight-textarea',
@@ -72,12 +73,12 @@ implements OnInit, AfterViewInit, OnDestroy {
     }
 
     private applyHighLights(text: string) {
+        text = SafeHtmlPipe.escape(text.replace(/\n$/, '\n&nbsp;'));
         if (this.isComponentReady) text = this.setSelection(text);
-        text = text.replace(/\n$/g, '<br />&nbsp;').replace(/\n/g, '<br />');
         for (const [searchValue, backgroundColor, darkBackgroundColor] of this
             .toHighlight) {
             text = text.replace(
-                new RegExp(searchValue, 'g'),
+                searchValue,
                 `<mark style="background-color: ${
                     this.isDark ? darkBackgroundColor : backgroundColor
                 };" ${this.contentAttrs}>$&</mark>`

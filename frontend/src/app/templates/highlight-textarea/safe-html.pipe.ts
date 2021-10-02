@@ -10,4 +10,8 @@ export class SafeHtmlPipe implements PipeTransform {
     transform(html: string): SafeHtml {
         return this.sanitizer.bypassSecurityTrustHtml(html);
     }
+
+    static escape(text: string) {
+        return text.replace(/</g, '&lt;');
+    }
 }

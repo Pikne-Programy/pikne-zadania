@@ -113,7 +113,7 @@ export class ExerciseModificationService {
             .toPromise();
     }
 
-    getExercisePreview(content: Exercise, seed?: number) {
+    getExercisePreview(content: Exercise, subjectId: string, seed?: number) {
         return this.http
             .post(ServerRoutes.subjectExercisePreview, {
                 content: content.toString(),
@@ -121,7 +121,7 @@ export class ExerciseModificationService {
             })
             .pipe(
                 switchMap((response) =>
-                    RenderedExercise.isExercise(response, '', '') &&
+                    RenderedExercise.isExercise(response, '', subjectId) &&
                     PreviewExercise.isPreviewExercise(response)
                         ? of(response)
                         : throwError({ status: TYPE_ERROR })
