@@ -1,0 +1,50 @@
+<div class="field height-full is-flex is-flex-direction-column">
+    <div class="is-flex is-justify-content-space-between">
+        <label class="label">Załączniki</label>
+        <button type="button" class="button is-refresh" title="Odśwież listę plików" (click)="fetchFileList()" [disabled]="isUploadLoading">
+            <i class="fas fa-sync-alt" [class.is-spinning]="isLoading" aria-hidden="true"></i>
+        </button>
+    </div>
+    <!--#region Upload button -->
+    <div class="file is-primary is-header" [ngClass]="{
+        'is-loading': isUploadLoading,
+        'is-disabled': isLoading || isUploadLoading
+    }">
+        <label class="file-label">
+            <input class="file-input" type="file" name="resume" (change)="onFilesChange($event.target)" [disabled]="isLoading || isUploadLoading">
+            <span class="file-cta">
+                <span class="file-icon">
+                    <i class="fas fa-upload" aria-hidden="true"></i>
+                </span>
+                <span class="file-label">
+                    Wyślij plik
+                </span>
+            </span>
+        </label>
+    </div>
+    <!--#endregion-->
+    <!--#region Uploaded files -->
+    <nav class="panel is-primary has-border-primary is-flex-grow-1 scrollable">
+        <ng-container *ngIf="!isLoading && !isUploadLoading">
+            <label *ngFor="let file of files" class="panel-block" [title]="file" (change)="checkFile(file)">
+                <input type="checkbox" [checked]="isFileAdded(file)" style="cursor: pointer;" [disabled]="isLoading || isUploadLoading">
+                <span>{{ file }}</span>
+            </label>
+        </ng-container>
+    </nav>
+    <!--#endregion-->
+</div>
+
+<!--#region File override Modal -->
+<app-card-modal [title]="'Nadpisanie pliku'" [open]="modalFile !== null" (onClose)="modalFile = null">
+    <section>
+        <p class="has-text-justified">Plik <i class="has-text-weight-semibold">{{ modalFile?.name }}</i> już istnieje. Czy chcesz go nadpisać?</p>
+    </section>
+    <footer>
+        <div class="buttons">
+            <button type="button" class="button is-danger" (click)="uploadFile(modalFile)">Nadpisz</button>
+            <button type="button" class="button" (click)="modalFile = null">Anuluj</button>
+        </div>
+    </footer>
+</app-card-modal>
+<!--#endregion-->

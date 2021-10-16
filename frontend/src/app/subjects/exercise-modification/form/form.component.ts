@@ -31,6 +31,8 @@ import { getErrorCode } from 'src/app/helper/utils';
 import { highlightList } from './highlight-utils/highlight.utils';
 import { HighlightTextareaComponent } from 'src/app/templates/highlight-textarea/highlight-textarea.component';
 import { SnippetService } from './snippet.service/snippet.service';
+import { FileHeader, FileUploadService, isFileHeader } from '../../file-upload.service/file-upload.service';
+import { EqExHeader, ExerciseHeader } from '../service/exercise-modification.utils';
 
 interface AbstractControlWarn extends AbstractControl {
     warnings: ValidationErrors | null;
@@ -95,7 +97,8 @@ implements OnInit, AfterViewInit {
     private isCreation = true;
     constructor(
         private exerciseService: ExerciseModificationService,
-        public snippetService: SnippetService
+        public snippetService: SnippetService,
+        public fileService: FileUploadService
     ) {}
 
     ngOnInit() {
@@ -119,6 +122,7 @@ implements OnInit, AfterViewInit {
             startWith(this.exercise.header.type),
             map((value) => this._filter(value))
         );
+        this.fileService.resetAddedFiles();
     }
 
     ngAfterViewInit() {
@@ -128,10 +132,15 @@ implements OnInit, AfterViewInit {
     }
 
     updateExercise(): Exercise {
-        //TODO Images
         this.exercise.header.type = this.type!.value;
         this.exercise.header.name = this.name!.value;
         this.exercise.content = this.content!.value;
+
+        //#region ExT-dependent updates
+        if (EqExHeader.isEqExHeader(this.exercise.header))
+            this.exercise.header.img = this.fileService.addedFiles;
+        //#endregion
+
         return this.exercise;
     }
 
@@ -202,6 +211,10 @@ implements OnInit, AfterViewInit {
     toggleHighlighting() {
         this.isHighlightingEnabled = !this.isHighlightingEnabled;
         this.highlightList = this.isHighlightingEnabled ? highlightList : [];
+    }
+
+    hasFiles(header: ExerciseHeader): header is FileHeader {
+        return isFileHeader(header);
     }
 
     //#region Validators & filters

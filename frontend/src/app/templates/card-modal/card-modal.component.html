@@ -1,13 +1,13 @@
 <div class="modal-background"></div>
 <div class="modal-card">
-  <header class="modal-card-head">
-    <p class="modal-card-title">{{ title }}</p>
-    <button class="delete" aria-label="close" (click)="closeModal()"></button>
-  </header>
-  <section class="modal-card-body" [ngClass]="{ 'has-list': hasList }">
-    <ng-content select="section"></ng-content>
-  </section>
-  <footer class="modal-card-foot">
-    <ng-content select="footer"></ng-content>
-  </footer>
+    <header class="modal-card-head">
+        <p class="modal-card-title">{{ title }}</p>
+        <button type="button" class="delete" aria-label="close" (click)="closeModal()"></button>
+    </header>
+    <section class="modal-card-body" [ngClass]="{ 'has-list': hasList }">
+        <ng-content select="section"></ng-content>
+    </section>
+    <footer class="modal-card-foot">
+        <ng-content select="footer"></ng-content>
+    </footer>
 </div>

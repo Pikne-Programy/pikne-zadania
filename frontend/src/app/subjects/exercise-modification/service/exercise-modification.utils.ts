@@ -59,7 +59,7 @@ export class Exercise {
     }
 
     toString(): string {
-        return `---\n${stringifyYaml(this.header)}---\n${this.content}`;
+        return `---\n${stringifyYaml(JSON.parse(JSON.stringify(this.header)))}---\n${this.content}`;
     }
 
     generateId(): string {

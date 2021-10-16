@@ -76,7 +76,12 @@ export class TeamItemComponent implements OnInit {
                     (error) =>
                         (this.errorCode = getErrorCode(error, this.IdError))
                 )
-                .finally(() => (this.isLoading = false));
+                .finally(() => {
+                    this.isLoading = false;
+                    if (this.errorCode === null)
+                        setTimeout(() => (this.isRefreshing = false), 500);
+                    else this.isLoading = false;
+                });
         }
         else {
             this.errorCode = this.IdError;
@@ -87,7 +92,6 @@ export class TeamItemComponent implements OnInit {
     refreshTeam() {
         this.isRefreshing = true;
         this.fetchTeam();
-        setTimeout(() => (this.isRefreshing = false), 500);
     }
 
     copyInvitation() {

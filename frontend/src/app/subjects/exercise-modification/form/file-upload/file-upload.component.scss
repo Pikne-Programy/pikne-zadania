@@ -1,0 +1,50 @@
+.panel.has-border-primary {
+    box-shadow: none;
+    border: 1px solid var(--primary);
+}
+
+.button.is-refresh {
+    height: 1.5rem;
+    width: 1.5rem;
+    padding: 0;
+    border: none;
+
+    &:not(:focus):not(:hover):not(:active) {
+        background-color: transparent;
+    }
+
+    &:hover:not(:focus),
+    &:active:not(:focus) {
+        background-color: #00000012;
+    }
+
+    & i.fa-sync-alt.is-spinning {
+        animation: spinAround 1000ms infinite linear;
+    }
+}
+
+input[type="file"] {
+    max-width: 100%;
+}
+
+.file.is-header {
+    & .file-label {
+        width: 100%;
+
+        & .file-cta {
+            width: 100%;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+    }
+
+    & + .panel {
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+
+        & .panel-block:first-child {
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+    }
+}

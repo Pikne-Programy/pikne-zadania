@@ -137,8 +137,21 @@ $dark-box-background: bulmaDarken($background, 5%);
     flex: none;
 }
 
+.panel {
+    & .panel-tabs .is-active {
+        font-weight: 600;
+    }
+
+    & .panel-block span:not(.panel-icon) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+.panel + .panel,
 .panel-heading + .panel,
 .panel-tabs + .panel {
+    box-shadow: none;
     border-top-left-radius: 0;
     border-top-right-radius: 0;
 }
@@ -196,6 +209,41 @@ $dark-box-background: bulmaDarken($background, 5%);
     }
     & .delete {
         margin-left: 20px;
+    }
+}
+
+.file {
+    & .file-label {
+        font-weight: 600;
+    }
+
+    &.is-loading {
+        & .file-label .file-cta::after {
+            position: absolute;
+            top: 0.75em;
+            right: 0.75em;
+            z-index: 4;
+
+            display: block;
+            height: 1em;
+            width: 1em;
+            animation: spinAround 0.5s linear infinite;
+            border: 2px solid;
+            border-color: #0000 #0000 #dbdbdb #dbdbdb;
+            border-radius: 290486px;
+            content: "";
+        }
+
+        &.is-primary {
+            & .file-label .file-cta::after {
+                border-color: #0000 #0000 #fff #fff;
+            }
+        }
+    }
+
+    &.is-disabled .file-label {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
 }
 

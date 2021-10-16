@@ -158,7 +158,7 @@ export class EditorToolbarComponent implements OnInit, OnDestroy {
                     [640, 512]
                 )
             ],
-            ScreenSizes.DESKTOP
+            ScreenSizes.WIDESCREEN
         ],
         [
             [
@@ -190,7 +190,7 @@ export class EditorToolbarComponent implements OnInit, OnDestroy {
                     ]
                 )
             ],
-            ScreenSizes.TABLET
+            ScreenSizes.DESKTOP
         ]
     ];
 

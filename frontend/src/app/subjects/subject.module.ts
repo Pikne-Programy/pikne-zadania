@@ -20,6 +20,8 @@ import { SnippetService } from './exercise-modification/form/snippet.service/sni
 import { HierarchyService } from './hierarchy/service/hierarchy.service';
 import { HierarchyModificationComponent } from './hierarchy/modification/hierarchy-modification.component';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { FileUploadComponent } from './exercise-modification/form/file-upload/file-upload.component';
+import { FileUploadService } from './file-upload.service/file-upload.service';
 
 @NgModule({
     declarations: [
@@ -31,7 +33,8 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
         ExerciseCreationComponent,
         ExerciseModificationFormComponent,
         EditorToolbarComponent,
-        HierarchyModificationComponent
+        HierarchyModificationComponent,
+        FileUploadComponent
     ],
     imports: [
         CommonModule,
@@ -44,7 +47,12 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
         MatAutocompleteModule,
         DragDropModule
     ],
-    providers: [ExerciseModificationService, SnippetService, HierarchyService],
+    providers: [
+        ExerciseModificationService,
+        SnippetService,
+        HierarchyService,
+        FileUploadService
+    ],
     bootstrap: [SubjectComponent]
 })
 export class SubjectModule {}
