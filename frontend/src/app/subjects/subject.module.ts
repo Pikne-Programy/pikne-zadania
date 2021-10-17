@@ -22,6 +22,7 @@ import { HierarchyModificationComponent } from './hierarchy/modification/hierarc
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { FileUploadComponent } from './exercise-modification/form/file-upload/file-upload.component';
 import { FileUploadService } from './file-upload.service/file-upload.service';
+import { TeamService } from '../user/team.service/team.service';
 
 @NgModule({
     declarations: [
@@ -48,6 +49,7 @@ import { FileUploadService } from './file-upload.service/file-upload.service';
         DragDropModule
     ],
     providers: [
+        TeamService,
         ExerciseModificationService,
         SnippetService,
         HierarchyService,

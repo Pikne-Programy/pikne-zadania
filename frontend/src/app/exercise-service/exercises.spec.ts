@@ -5,8 +5,16 @@ import {
     Exercise,
     ExerciseType,
     ExerciseTypeFull,
-    isExerciseType
+    isExerciseType,
+    PreviewEqEx,
+    PreviewExercise
 } from './exercises';
+
+type EqExProblemType = {
+    main: string;
+    img?: string[];
+    unknown: [string, string][];
+};
 
 describe('Exercise types', () => {
     describe('ExerciseType', () => {
@@ -48,6 +56,9 @@ describe('Exercise types', () => {
             });
 
             it('should return false', () => {
+                expect(checkAndReplaceExerciseType({}))
+                    .withContext('_no-type_')
+                    .toBeFalse();
                 const list = wrongTypes.map((type) => ({ type }));
                 for (const object of list) {
                     expect(checkAndReplaceExerciseType(object))
@@ -231,6 +242,53 @@ describe('Exercise types', () => {
     });
 
     describe('EqEx', () => {
+        describe('constructor', () => {
+            //#region Mock values
+            const id = 'ex1';
+            const subjectId = 'Sb1';
+            const name = 'Ex1';
+            const problem: EqExProblemType = {
+                main: 'Description',
+                unknown: [
+                    ['x', 'km'],
+                    ['t', 's']
+                ]
+            };
+            const problemWithImg: EqExProblemType = {
+                main: 'Description',
+                img: ['1.png', '2.jpg'],
+                unknown: [
+                    ['x', 'km'],
+                    ['t', 's']
+                ]
+            };
+            const done = 0.15;
+            //#endregion
+
+            it('should create new instance', () => {
+                const obj = new EqEx(id, subjectId, name, problem);
+                expect(obj).toBeInstanceOf(EqEx);
+            });
+
+            it('should create new instance w/ done', () => {
+                const obj = new EqEx(id, subjectId, name, problem, done);
+                expect(obj).toBeInstanceOf(EqEx);
+                expect(obj.done).toBe(done);
+            });
+
+            it('should create new instance w/ done null', () => {
+                const obj = new EqEx(id, subjectId, name, problem, null);
+                expect(obj).toBeInstanceOf(EqEx);
+                expect(obj.done).toBeNull();
+            });
+
+            it('should create new instance w/ images', () => {
+                const obj = new EqEx(id, subjectId, name, problemWithImg);
+                expect(obj).toBeInstanceOf(EqEx);
+                expect(obj.problem).toEqual(problemWithImg);
+            });
+        });
+
         describe('isEqEx', () => {
             //#region Test objects
             const id = 'test-id';
@@ -330,21 +388,249 @@ describe('Exercise types', () => {
                 expect(EqEx.isEqExAnswer(undefined, 1)).toBe(false);
             });
         });
-    });
 
-    //#region Previews
-    xdescribe('PreviewExercise', () => {
-        it('should ...', () => {
-            //FIXME Add tests
-            expect(true).toBe(true);
+        describe('getAnswerObject', () => {
+            const list: [string, (number | null)[]][] = [
+                ['number', [1, 2, 3]],
+                ['null', [null, null, null]],
+                ['mixed', [1, null, 5.5, null]]
+            ];
+            for (const [arrayType, answers] of list) {
+                it(`should return object w/ ${arrayType} array`, () => {
+                    expect(EqEx.getAnswerObject(answers)).toEqual({ answers });
+                });
+            }
         });
     });
 
-    xdescribe('PreviewEqEx', () => {
-        // eslint-disable-next-line jasmine/no-spec-dupes
-        it('should ...', () => {
-            //FIXME Add tests
-            expect(true).toBe(true);
+    //#region Previews
+    describe('PreviewExercise', () => {
+        //#region Mock values
+        const id = 'ex1';
+        const subjectId = 'Sb1';
+        const type = 'EqEx';
+        const name = 'Ex1';
+        const problem = {};
+        //#endregion
+
+        describe('constructor', () => {
+            it('should create new instance', () => {
+                const obj = new PreviewExercise(
+                    id,
+                    subjectId,
+                    type,
+                    name,
+                    problem
+                );
+                expect(obj).toBeInstanceOf(PreviewExercise);
+                expect(obj.correctAnswer).toEqual({});
+            });
+        });
+
+        describe('isPreviewExercise', () => {
+            it('should return false', () => {
+                const obj = {
+                    id,
+                    subjectId,
+                    type,
+                    name,
+                    problem
+                };
+
+                expect(
+                    PreviewExercise.isPreviewExercise(obj as Exercise)
+                ).toBeFalse();
+            });
+
+            it('should return true', () => {
+                const obj = {
+                    id,
+                    subjectId,
+                    type,
+                    name,
+                    problem,
+                    correctAnswer: {}
+                };
+
+                expect(
+                    PreviewExercise.isPreviewExercise(obj as Exercise)
+                ).toBeTrue();
+            });
+        });
+    });
+
+    describe('PreviewEqEx', () => {
+        //#region Mock values
+        const id = 'ex1';
+        const subjectId = 'Sb1';
+        const name = 'Ex1';
+        const problem: EqExProblemType = {
+            main: 'Description',
+            unknown: [
+                ['x', 'km'],
+                ['t', 's']
+            ]
+        };
+        const correctAnswer = {
+            answers: [1.2, 3.4]
+        };
+        const done = 1.5;
+        //#endregion
+
+        describe('constructor', () => {
+            it('should create new instance', () => {
+                const obj = new PreviewEqEx(
+                    id,
+                    subjectId,
+                    name,
+                    problem,
+                    correctAnswer
+                );
+                expect(obj).toBeInstanceOf(PreviewEqEx);
+            });
+
+            it('should create new instance w/ done', () => {
+                const obj = new PreviewEqEx(
+                    id,
+                    subjectId,
+                    name,
+                    problem,
+                    correctAnswer,
+                    done
+                );
+                expect(obj).toBeInstanceOf(PreviewEqEx);
+                expect(obj.done).toBe(done);
+            });
+
+            it('should create new instance w/ done null', () => {
+                const obj = new PreviewEqEx(
+                    id,
+                    subjectId,
+                    name,
+                    problem,
+                    correctAnswer,
+                    null
+                );
+                expect(obj).toBeInstanceOf(PreviewEqEx);
+                expect(obj.done).toBeNull();
+            });
+
+            it('should create new instance w/ images', () => {
+                const problemWithImg: EqExProblemType = {
+                    main: 'Description',
+                    img: ['1.png', '2.jpg'],
+                    unknown: [
+                        ['x', 'km'],
+                        ['t', 's']
+                    ]
+                };
+
+                const obj = new PreviewEqEx(
+                    id,
+                    subjectId,
+                    name,
+                    problemWithImg,
+                    correctAnswer
+                );
+                expect(obj).toBeInstanceOf(PreviewEqEx);
+                expect(obj.problem).toEqual(problemWithImg);
+            });
+        });
+
+        describe('isPreviewExercise', () => {
+            const type = 'EqEx';
+
+            it('should return false (not an EqEx)', () => {
+                const obj = {
+                    id,
+                    subjectId,
+                    type,
+                    name,
+                    problem: {},
+                    correctAnswer
+                };
+
+                expect(
+                    PreviewEqEx.isPreviewExercise(obj as Exercise)
+                ).toBeFalse();
+            });
+
+            it('should return false (not a PreviewExercise)', () => {
+                const obj = {
+                    id,
+                    subjectId,
+                    type,
+                    name,
+                    problem
+                };
+
+                expect(
+                    PreviewEqEx.isPreviewExercise(obj as Exercise)
+                ).toBeFalse();
+            });
+
+            it("should return false (wrong 'correctAnswer' type)", () => {
+                const list: [string, any][] = [
+                    [
+                        "missing 'answers' field",
+                        {
+                            id,
+                            subjectId,
+                            type,
+                            name,
+                            problem,
+                            correctAnswer: {}
+                        }
+                    ],
+                    [
+                        "wrong 'answers' type",
+                        {
+                            id,
+                            subjectId,
+                            type,
+                            name,
+                            problem,
+                            correctAnswer: {
+                                answers: true
+                            }
+                        }
+                    ],
+                    [
+                        "wrong 'answers' items' type",
+                        {
+                            id,
+                            subjectId,
+                            type,
+                            name,
+                            problem,
+                            correctAnswer: {
+                                answers: [1.2, 'good', false]
+                            }
+                        }
+                    ]
+                ];
+
+                for (const [reason, obj] of list) {
+                    expect(PreviewEqEx.isPreviewExercise(obj as Exercise))
+                        .withContext(reason)
+                        .toBeFalse();
+                }
+            });
+
+            it('should return true', () => {
+                const obj = {
+                    id,
+                    subjectId,
+                    type,
+                    name,
+                    problem,
+                    correctAnswer
+                };
+
+                expect(
+                    PreviewEqEx.isPreviewExercise(obj as Exercise)
+                ).toBeTrue();
+            });
         });
     });
     //#endregion

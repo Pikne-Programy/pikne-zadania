@@ -25,12 +25,20 @@
     <!--#endregion-->
     <!--#region Uploaded files -->
     <nav class="panel is-primary has-border-primary is-flex-grow-1 scrollable">
-        <ng-container *ngIf="!isLoading && !isUploadLoading">
+        <ng-container *ngIf="!isLoading && !isUploadLoading && errorCode === null && uploadErrorCode === null">
             <label *ngFor="let file of files" class="panel-block" [title]="file" (change)="checkFile(file)">
                 <input type="checkbox" [checked]="isFileAdded(file)" style="cursor: pointer;" [disabled]="isLoading || isUploadLoading">
                 <span>{{ file }}</span>
             </label>
         </ng-container>
+        <p *ngIf="!isLoading && !isUploadLoading && uploadErrorCode !== null" class="panel-block is-flex-direction-column has-text-danger has-text-centered">
+            <span class="has-text-weight-semibold">Wystąpił błąd podczas wysyłania pliku na serwer</span><br />
+            <span class="is-size-6">(Kod błędu: {{ uploadErrorCode }})</span>
+        </p>
+        <p *ngIf="!isLoading && !isUploadLoading && errorCode !== null" class="panel-block is-flex-direction-column has-text-danger has-text-centered">
+            <span class="has-text-weight-semibold">Wystąpił błąd podczas ładowania listy plików</span><br />
+            <span class="is-size-6">(Kod błędu: {{ errorCode }})</span>
+        </p>
     </nav>
     <!--#endregion-->
 </div>

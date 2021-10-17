@@ -95,6 +95,7 @@ implements OnInit, AfterViewInit {
     isToolbarFocused = false;
 
     private isCreation = true;
+    isModified = false;
     constructor(
         private exerciseService: ExerciseModificationService,
         public snippetService: SnippetService,
@@ -122,6 +123,7 @@ implements OnInit, AfterViewInit {
             startWith(this.exercise.header.type),
             map((value) => this._filter(value))
         );
+        this.fileService.isNew = true;
         this.fileService.resetAddedFiles();
     }
 
@@ -173,7 +175,8 @@ implements OnInit, AfterViewInit {
             if (
                 this.type!.pristine &&
                 this.name!.pristine &&
-                this.content!.pristine
+                this.content!.pristine &&
+                !this.isModified
             )
                 this.onSuccess.emit();
             else {

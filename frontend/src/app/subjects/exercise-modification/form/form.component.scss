@@ -1,3 +1,6 @@
+@use "src/styles.variables.scss" as *;
+$tablet: nth($size_breakpoints, 2);
+
 :host {
     display: flex;
     flex-direction: column;
@@ -5,8 +8,12 @@
     height: 100%;
 }
 
-.is-hidden {
-    display: none;
+.field.content {
+    @media only screen and (min-width: nth($tablet, 2)) {
+        height: 80%;
+        min-height: 300px;
+        margin-bottom: 0;
+    }
 }
 
 .tabs.is-boxed.for-box {

@@ -29,7 +29,7 @@ export class FileUploadComponent implements OnInit {
     }
 
     fetchFileList(refresh: boolean = true, force: boolean = false) {
-        if (!this.isLoading || force) {
+        if ((!this.isLoading && !this.isUploadLoading) || force) {
             this.isLoading = true;
             this.fileService
                 .getFileList(this.exerciseHeader, refresh)

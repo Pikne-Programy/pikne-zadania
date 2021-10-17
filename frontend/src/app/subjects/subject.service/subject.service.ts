@@ -82,7 +82,9 @@ export class SubjectService {
             .get(ServerRoutes.subjectList)
             .pipe(
                 switchMap((response) =>
-                    isObject<{ subjects: string[] }>(response, [['subjects', 'array']]) &&
+                    isObject<{ subjects: string[] }>(response, [
+                        ['subjects', 'array']
+                    ]) &&
                     response.subjects.every((val) => typeof val === 'string')
                         ? of(this.createSubjectList(response.subjects))
                         : throwError({ status: TYPE_ERROR })
@@ -126,6 +128,19 @@ export class SubjectService {
                     else return throwError({ status: TYPE_ERROR });
                 })
             )
+            .toPromise();
+    }
+
+    addSubject(
+        name: string,
+        isPrivate: boolean,
+        assigneeList: string[]
+    ): Promise<string> {
+        const subject = isPrivate ? `_${name}` : name;
+        const assignees = assigneeList.length > 0 ? assigneeList : null;
+        return this.http
+            .post(ServerRoutes.subjectCreate, { subject, assignees })
+            .pipe(switchMap(() => of(subject)))
             .toPromise();
     }
 }

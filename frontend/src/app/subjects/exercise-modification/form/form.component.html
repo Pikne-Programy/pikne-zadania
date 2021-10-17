@@ -47,7 +47,7 @@
                 <!--#endregion-->
             </div>
         </div>
-        <div class="field height-80">
+        <div class="field content">
             <!--TODO ExT-dependent form -->
             <div class="columns height-full">
                 <!--#region Content -->
@@ -67,7 +67,7 @@
                 <!--#endregion-->
                 <!--#region File upload -->
                 <div *ngIf="hasFiles(exercise.header)" class="column is-2 is-3-fullhd">
-                    <app-file-upload [exerciseHeader]="exercise.header" [subject]="subjectId" (onCheck)="preview = undefined"></app-file-upload>
+                    <app-file-upload [exerciseHeader]="exercise.header" [subject]="subjectId" (onCheck)="preview = undefined; isModified = true"></app-file-upload>
                 </div>
                 <!--#endregion-->
             </div>

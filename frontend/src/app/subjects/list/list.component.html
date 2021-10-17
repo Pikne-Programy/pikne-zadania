@@ -1,11 +1,11 @@
 <app-select *ngIf="errorCode === null" [main-link]="'/subject/dashboard'" [items]="createList()" [header]="'Przedmioty'" [isLoading]="isLoading" [text-pipe]="'titlecase'" [suffix]="suffix">
     <div class="buttons is-right">
-        <a class="button is-primary is-flex is-align-items-baseline" routerLink="/subject/new">
+        <button type="button" class="button is-primary is-flex is-align-items-baseline" (click)="openModal()">
             <span class="icon">
                 <i class="fas fa-plus"></i>
             </span>
             <span>Dodaj nowy przedmiot</span>
-        </a>
+        </button>
     </div>
 </app-select>
 <app-error *ngIf="errorCode !== null" [code]="errorCode"></app-error>
@@ -13,3 +13,37 @@
 <ng-template #suffix>
     <i>&nbsp;(Prywatny)</i>
 </ng-template>
+
+<!--#region Add subject Modal -->
+<app-card-modal [title]="'Dodaj nowy przedmiot'" [open]="isModalOpen" (onClose)="closeModal()" [hasList]="true">
+    <section>
+        <div class="panel-block is-flex-direction-column">
+            <div class="width-full is-flex is-justify-content-flex-end pb-3">
+                <app-switch label="Przedmiot prywatny" cssClass="is-rounded" [checked]="modalPrivateState" (onChange)="modalPrivateState = !modalPrivateState"></app-switch>
+            </div>
+            <input class="input is-primary" [(ngModel)]="modalName" placeholder="Nazwa">
+        </div>
+        <label *ngFor="let user of modalAssigneeList" class="panel-block" (change)="user.isSelected = !user.isSelected">
+            <input type="checkbox" [checked]="user.isSelected" style="cursor: pointer;">
+            <span>{{ user.name | titlecase }}</span>
+        </label>
+        <app-loading *ngIf="!modalAssigneeList && modalAssigneeErrorCode === null"></app-loading>
+        <p *ngIf="modalAssigneeErrorCode !== null" class="panel-block is-flex-direction-column has-text-danger has-text-centered">
+            <span class="has-text-weight-semibold">Wystąpił błąd podczas ładowania listy nauczycieli</span><br />
+            <span class="is-size-6">(Kod błędu: {{ modalAssigneeErrorCode }})</span>
+        </p>
+        <p *ngIf="modalAssigneeErrorCode === null && modalAssigneeList && modalAssigneeList.length === 0" class="panel-block is-flex-direction-column has-text-info has-text-centered">
+            <span class="has-text-weight-semibold">Brak dostępnych użytkowników</span>
+        </p>
+    </section>
+    <footer class="width-full">
+        <div class="buttons width-full is-align-items-baseline">
+            <button type="submit" class="button is-success" [class.is-loading]="isModalLoading" [disabled]="!isModalValid()" (click)="addNewSubject()">Dodaj</button>
+            <button type="button" class="button" (click)="closeModal()">Anuluj</button>
+            <p *ngIf="modalErrorCode !== null" class="has-text-danger">
+                {{ getModalErrorMessage(modalErrorCode) }}
+            </p>
+        </div>
+    </footer>
+</app-card-modal>
+<!--#endregion-->

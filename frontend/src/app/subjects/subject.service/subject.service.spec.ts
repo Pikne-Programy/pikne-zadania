@@ -310,4 +310,117 @@ describe('Service: Subject', () => {
             )
         );
     });
+
+    describe('addSubject', () => {
+        //#region Mock objects
+        const subjectName = 'Sb1';
+        const assigneeList: string[] = [];
+        for (let i = 1; i <= 5; i++)
+            assigneeList.push(`User${i}Id`);
+        //#endregion
+
+        it('should throw error', inject(
+            [SubjectService, HttpClient],
+            (service: SubjectService) => {
+                expect(service).toBeTruthy();
+                const errorCode = 409;
+
+                service
+                    .addSubject(subjectName, false, assigneeList)
+                    .then(() => fail('should be rejected'))
+                    .catch((error) => expect(error.status).toBe(errorCode));
+                const req = httpController.expectOne(
+                    ServerRoutes.subjectCreate
+                );
+                expect(req.request.method).toEqual('POST');
+                req.error(new ErrorEvent('Id taken'), { status: errorCode });
+            }
+        ));
+
+        it('should create subject', inject(
+            [SubjectService, HttpClient],
+            (service: SubjectService) => {
+                expect(service).toBeTruthy();
+
+                service
+                    .addSubject(subjectName, false, assigneeList)
+                    .then((response) => expect(response).toBe(subjectName))
+                    .catch(() => fail('should resolve'));
+                const req = httpController.expectOne(
+                    ServerRoutes.subjectCreate
+                );
+                expect(req.request.method).toEqual('POST');
+                expect(req.request.body).toEqual({
+                    subject: subjectName,
+                    assignees: assigneeList
+                });
+                req.flush({});
+            }
+        ));
+
+        it('should create private subject', inject(
+            [SubjectService, HttpClient],
+            (service: SubjectService) => {
+                expect(service).toBeTruthy();
+                const privateName = `_${subjectName}`;
+
+                service
+                    .addSubject(subjectName, true, assigneeList)
+                    .then((response) => expect(response).toBe(privateName))
+                    .catch(() => fail('should resolve'));
+                const req = httpController.expectOne(
+                    ServerRoutes.subjectCreate
+                );
+                expect(req.request.method).toEqual('POST');
+                expect(req.request.body).toEqual({
+                    subject: privateName,
+                    assignees: assigneeList
+                });
+                req.flush({});
+            }
+        ));
+
+        it('should create public subject', inject(
+            [SubjectService, HttpClient],
+            (service: SubjectService) => {
+                expect(service).toBeTruthy();
+
+                service
+                    .addSubject(subjectName, false, [])
+                    .then((response) => expect(response).toBe(subjectName))
+                    .catch(() => fail('should resolve'));
+                const req = httpController.expectOne(
+                    ServerRoutes.subjectCreate
+                );
+                expect(req.request.method).toEqual('POST');
+                expect(req.request.body).toEqual({
+                    subject: subjectName,
+                    assignees: null
+                });
+                req.flush({});
+            }
+        ));
+
+        xit('should create admin-only subject', inject(
+            [SubjectService, HttpClient],
+            (service: SubjectService) => {
+                expect(service).toBeTruthy();
+
+                service
+                    //TODO Add logic for admin-only subjects
+                    .addSubject(subjectName, false, assigneeList)
+                    .then((response) => expect(response).toBe(subjectName))
+                    .catch(() => fail('should resolve'));
+                const req = httpController.expectOne(
+                    ServerRoutes.subjectCreate
+                );
+                expect(req.request.method).toEqual('POST');
+                expect(req.request.body).toEqual({
+                    subject: subjectName,
+                    assignees: []
+                });
+                req.flush({});
+            }
+        ));
+    });
 });

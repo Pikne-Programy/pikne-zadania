@@ -20,6 +20,7 @@ export function isFileHeader(header: ExerciseHeader): header is FileHeader {
 })
 export class FileUploadService {
     private allFiles?: string[];
+    isNew = true;
 
     constructor(private http: HttpClient) {}
 
@@ -66,7 +67,8 @@ export class FileUploadService {
         //TODO Error when header has file that does not exist on server
         this.addedFiles = exerciseHeader.img;
         const response = exerciseHeader.img ?? [];
-        if (!this.allFiles || refresh) {
+        if (!this.allFiles || this.isNew || refresh) {
+            this.isNew = false;
             this.allFiles = Array.isArray(response) ? response : [response];
             return Promise.resolve(this.allFiles);
         }

@@ -108,15 +108,14 @@ type EqExAnswer = boolean[];
 export class EqEx extends Exercise {
     problem: EqExContentType;
 
-    protected constructor(
+    constructor(
         id: string,
         subjectId: string,
-        type: ExerciseType,
         name: string,
         problem: EqExContentType,
         done?: number | null
     ) {
-        super(id, subjectId, type, name, problem, done);
+        super(id, subjectId, 'EqEx', name, problem, done);
         this.problem = problem;
     }
 
@@ -170,20 +169,20 @@ type CorrectEqExAnswersType = {
     answers: number[];
 };
 export class PreviewEqEx extends EqEx implements PreviewExerciseType {
-    protected constructor(
+    constructor(
         id: string,
         subjectId: string,
-        type: ExerciseType,
         name: string,
         problem: EqExContentType,
         public readonly correctAnswer: CorrectEqExAnswersType,
         done?: number | null
     ) {
-        super(id, subjectId, type, name, problem, done);
+        super(id, subjectId, name, problem, done);
     }
 
     static isPreviewExercise(exercise: Exercise): exercise is PreviewEqEx {
         return (
+            EqEx.isEqEx(exercise) &&
             isObject<PreviewEqEx>(exercise, [['correctAnswer', ['object']]]) &&
             isObject<CorrectEqExAnswersType>(exercise.correctAnswer, [
                 ['answers', 'array']
