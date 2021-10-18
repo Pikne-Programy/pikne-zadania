@@ -52,7 +52,6 @@ export class ExerciseStore implements IExerciseStore {
     private cfg: IConfigService,
   ) {
     this.exercisesPath = this.cfg.EXERCISES_PATH;
-    if (this.cfg.FRESH) this.drop();
     for (
       const { path, name: subject } of [
         ...walkSync(this.exercisesPath, { includeFiles: false, maxDepth: 1 }),

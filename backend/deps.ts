@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 // don't forget to update deno and denon in Dockerfile and denon.dockerfile
+// don;t forget to update test_deps.ts
 export { parse } from "https://deno.land/std@0.100.0/encoding/yaml.ts";
 export {
   emptyDirSync,
