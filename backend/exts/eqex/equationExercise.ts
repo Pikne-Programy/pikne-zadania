@@ -8,6 +8,7 @@ import { Range, RNG } from "../../utils/mod.ts";
 import {
   CustomDictError,
   Exercise,
+  isObject,
   JSONObject,
   JSONType,
 } from "../../types/mod.ts";
@@ -82,9 +83,9 @@ const imgSchema = {
     each: vs.string({ strictType: true }),
   }),
 };
-function isAnswer(what: unknown): what is (number | null)[] {
-  return Array.isArray(what) &&
-    what.every((e) => typeof e === "number" || e === null);
+function isAnswer(what: unknown): what is { answers: (number | null)[] } {
+  return isObject(what) && Array.isArray(what?.answers) &&
+    what?.answers.every((e) => typeof e === "number" || e === null);
 }
 
 export default class EquationExercise extends Exercise {
@@ -233,6 +234,8 @@ export default class EquationExercise extends Exercise {
     });
     this.ranges.reverse(); //reverse order so it's easier to parse
     this.description = this.parsedContent = parsingContent;
+
+    this.check(0, { answers: new Array(this.unknowns.length).fill(0) });
   }
 
   render(seed: number) {
@@ -272,22 +275,23 @@ export default class EquationExercise extends Exercise {
         description: "INVALID ANSWER FORMAT",
       });
     }
-    if (answer !== undefined && answer.length != this.unknowns.length) {
+    const answers = answer?.answers;
+    if (answers !== undefined && answers.length != this.unknowns.length) {
       return new CustomDictError("ExerciseBadAnswerFormat", {
         description: "INVALID ANSWER LENGTH",
       });
     }
-    const answerDict = answer !== undefined // TODO: refactor
+    const answerDict = answers !== undefined // TODO: refactor
       ? this.unknowns.reduce(
         (a: { [key: string]: number | null }, x, i) => {
-          a[x] = answer[i];
+          a[x] = answers[i];
           return a;
         },
         {},
       )
       : {};
     const rng = new RNG(seed, this.rngPrec);
-    const calculated: { [key: string]: number } = {};
+    const calculated: { [key: string]: number | undefined } = {};
     // add already calculated numbers to calculated variables
     for (const [name, val] of this.variables) {
       if (typeof val == "number") calculated[name] = val;
@@ -310,11 +314,10 @@ export default class EquationExercise extends Exercise {
     const correctAnswer: number[] = [];
     for (const name of this.unknowns) {
       const correctAns = calculated[name];
+      if (correctAns === undefined) throw new Error("UNKNOWN NOT CALCULATED");
       correctAnswer.push(correctAns);
-      if (answer !== undefined && !(name in answerDict)) {
-        return new CustomDictError("ExerciseBadAnswerFormat", {
-          description: "UNKNOWN IS NOT IN ANSWER",
-        });
+      if (answers !== undefined && !(name in answerDict)) {
+        throw new Error("never");
       }
       const ans = answerDict[name];
       info.push(
@@ -343,7 +346,7 @@ export default class EquationExercise extends Exercise {
       } else if (m[1] !== undefined) {
         parsedUnit += `^{${m[1]}}`;
       } else if (m[0] === "*") {
-        parsedUnit += "\\cdot";
+        parsedUnit += " \\cdot ";
       } else if (m[0] === "/") {
         parsedUnit = parsedUnit === "" ? "1" : parsedUnit;
         parsedUnit = `${parsedUnit}}{`;

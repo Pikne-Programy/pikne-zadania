@@ -24,20 +24,16 @@ import {
 import { IConfigService, IExerciseStore } from "../interfaces/mod.ts";
 import exts from "../exts/mod.ts";
 
-interface YAMLSection {
+type YAMLSection = {
   // we assume that there is only one key, feel free to tell TypeScript that
-  [key: string]: (YAMLSection | string)[];
-}
+  [key: string]: YAMLSection[];
+} | string;
 function isYAMLSection(what: unknown): what is YAMLSection {
-  return isObjectOf(
-    (x): x is (YAMLSection | string)[] =>
-      isArrayOf(
-        (y: unknown): y is YAMLSection | string =>
-          typeof y === "string" || isYAMLSection(y),
-        x,
-      ),
-    what,
-  ) && Object.keys(what).length == 1;
+  return typeof what === "string" ||
+    isObjectOf(
+        (x): x is YAMLSection[] => isArrayOf(isYAMLSection, x),
+        what,
+      ) && Object.keys(what).length == 1;
 }
 
 export class ExerciseStore implements IExerciseStore {

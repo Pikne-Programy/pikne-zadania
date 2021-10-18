@@ -3,14 +3,17 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { CustomDictError } from "../types/mod.ts";
+
 export function deepCopy<T>(arr: T): T {
   return JSON.parse(JSON.stringify(arr));
 }
 
 export function handleThrown(e: unknown, msg?: string) {
   if (msg) console.error("-------", msg);
-  if (e instanceof Error) console.trace(e.message, e.stack);
-  if (e instanceof ErrorEvent) console.trace("ErrorEvent:", e);
+  if (e instanceof CustomDictError) console.trace(e.message, e.info, e.stack);
+  else if (e instanceof Error) console.trace(e.message, e.stack);
+  else if (e instanceof ErrorEvent) console.trace("ErrorEvent:", e);
   else console.trace("UNDEFINED ERROR:", e);
 }
 
