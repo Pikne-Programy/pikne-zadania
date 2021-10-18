@@ -133,6 +133,7 @@ export class ExerciseStore implements IExerciseStore {
   ) {
     try {
       const content = this.getContent(subject, exerciseId);
+      if (content instanceof CustomDictError) throw content;
       const uid = this.uid(subject, exerciseId);
       const ex = this.parse(content);
       if (ex instanceof Exercise) {
@@ -257,6 +258,7 @@ export class ExerciseStore implements IExerciseStore {
     const uid = this.uid(subject, exerciseId);
     const path = join(this.exercisesPath, subject, exerciseId) + ".txt";
     const ex = this.parse(content);
+    if (ex instanceof CustomDictError) return ex;
     if (ex instanceof Exercise) this.exercises[uid][0] = ex;
     Deno.writeTextFileSync(path, content);
   }
@@ -264,8 +266,11 @@ export class ExerciseStore implements IExerciseStore {
   getContent(subject: string, exerciseId: string) {
     const uid = this.uid(subject, exerciseId);
     const path = join(this.exercisesPath, `${uid}.txt`);
-    return Deno.readTextFileSync(path);
-    // TODO Deno.readTextFileSync throws an error
+    try {
+      return Deno.readTextFileSync(path);
+    } catch (_) {
+      return new CustomDictError("ExerciseNotFound", { subject, exerciseId });
+    }
   }
 
   getStaticContentPath(subject: string) {

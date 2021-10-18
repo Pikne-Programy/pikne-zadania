@@ -21,7 +21,7 @@ export interface IExerciseStore {
     subject: string,
     id: string,
     content: string,
-  ): CustomDictError<"ExerciseAlreadyExists"> | void;
+  ): CustomDictError<"ExerciseAlreadyExists" | "ExerciseBadFormat"> | void;
   get(
     subject: string,
     id: string,
@@ -31,6 +31,9 @@ export interface IExerciseStore {
     id: string,
   ): boolean | CustomDictError<"ExerciseNotFound">;
   update(subject: string, id: string, content: string): void; // upsert
-  getContent(subject: string, id: string): string;
+  getContent(
+    subject: string,
+    id: string,
+  ): string | CustomDictError<"ExerciseNotFound">;
   getStaticContentPath(subject: string): string;
 }

@@ -41,7 +41,7 @@ export function translateErrors<T>(err: T | CustomDictError) {
   if (!(err instanceof CustomDictError)) return err;
   switch (err.type) {
     case "ExerciseBadAnswerFormat":
-    case "ExerciseBadFormat":
+    case "ExerciseBadFormat": // TODO Should it be a Conflict?
       throw new httpErrors["BadRequest"]();
     case "UserCredentialsInvalid":
     case "JWTNotFound":

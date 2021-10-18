@@ -314,7 +314,7 @@ export default class EquationExercise extends Exercise {
     const correctAnswer: number[] = [];
     for (const name of this.unknowns) {
       const correctAns = calculated[name];
-      if (correctAns === undefined) throw new Error("UNKNOWN NOT CALCULATED");
+      if (correctAns === undefined) throw new Error("UNKNOWN NOT CALCULATED"); // this should throw an error only when called in constructor
       correctAnswer.push(correctAns);
       if (answers !== undefined && !(name in answerDict)) {
         throw new Error("never");

@@ -27,8 +27,6 @@ import {
 } from "../interfaces/mod.ts";
 import { Authorizer } from "./mod.ts";
 
-// TODO: review the file and solve TODOs
-
 export class SubjectController extends Authorizer {
   constructor(
     protected cfg: IConfigService,
@@ -79,7 +77,7 @@ export class SubjectController extends Authorizer {
     if (!["teacher", "admin"].includes(await user.role.get())) { // TODO: isTeacher
       throw new httpErrors["Forbidden"]();
     } //! P
-    translateErrors(await this.ss.add(subject, assignees)); //! EVO // TODO: V - all assignees exit?
+    translateErrors(await this.ss.add(subject, assignees)); //! EVO // TODO: V - all assignees exist?
     ctx.response.status = 200; //! D
   }
 
@@ -199,7 +197,7 @@ export class SubjectController extends Authorizer {
       await send(ctx, filename, {
         root: this.parent.es.getStaticContentPath(subject),
       }); // there's a problem with no permission to element
-      //! ED -- TODO: check if it works
+      //! ED // TODO: check if it works
     },
 
     async put(ctx: RouterContext) {
@@ -235,11 +233,14 @@ export class SubjectController extends Authorizer {
     parent: this,
 
     async get(ctx: RouterContext) {
-      const user = await this.parent.authorize(ctx, false);
+      const user = await this.parent.authorize(ctx, false); //! A
       const req = await followSchema(ctx, {
         subject: schemas.exercise.subject,
         raw: vs.boolean({ strictType: true }),
-      });
+      }); //! R
+      if (!this.parent.es.listSubjects().includes(req.subject)) {
+        throw new httpErrors["NotFound"]();
+      } //! E
       const iterateSection = async (section: Section[]) => {
         const sectionArray: unknown[] = [];
         for (const el of section) {
@@ -288,19 +289,24 @@ export class SubjectController extends Authorizer {
         ...await iterateSection(this.parent.es.structure(req.subject).get()),
       ];
       ctx.response.status = 200;
+      //! D
     },
 
     async set(ctx: RouterContext) {
-      const user = await this.parent.authorize(ctx);
+      const user = await this.parent.authorize(ctx); //! A
       const req = await followSchema(ctx, {
         subject: schemas.exercise.subject,
         hierarchy: schemas.exercise.hierarchy,
-      });
+      }); //! R
       if (!await this.parent.isAssigneeOf(req.subject, user)) {
         throw new httpErrors["Forbidden"]();
       } //! P
-      this.parent.es.structure(req.subject).set(req.hierarchy);
+      if (!this.parent.es.listSubjects().includes(req.subject)) {
+        throw new httpErrors["NotFound"]();
+      } //! E
+      this.parent.es.structure(req.subject).set(req.hierarchy); //! O // TODO V what i exercise doesn't exist
       ctx.response.status = 200;
+      //! D
     },
   };
 
@@ -340,7 +346,7 @@ export class SubjectController extends Authorizer {
       if (!await this.parent.isAssigneeOf(subject, user)) {
         throw new httpErrors["Forbidden"]();
       } //! P
-      this.parent.es.add(subject, exerciseId, content); // TODO: EVO; await?
+      translateErrors(this.parent.es.add(subject, exerciseId, content)); //! EVO
       ctx.response.status = 200; //! D
     },
 
@@ -353,7 +359,10 @@ export class SubjectController extends Authorizer {
       if (!await this.parent.isAssigneeOf(subject, user)) {
         throw new httpErrors["Forbidden"]();
       } //! P
-      const content = this.parent.es.getContent(subject, exerciseId); // TODO: E
+      const content = this.parent.es.getContent(subject, exerciseId);
+      if (content instanceof CustomDictError) {
+        throw new httpErrors["NotFound"]();
+      } //! E
       ctx.response.body = { content };
       ctx.response.status = 200; //! D
     },
@@ -368,12 +377,12 @@ export class SubjectController extends Authorizer {
       if (!await this.parent.isAssigneeOf(subject, user)) {
         throw new httpErrors["Forbidden"]();
       } //! P
-      translateErrors(this.parent.es.update(subject, exerciseId, content)); // TODO: EVO; await?
+      translateErrors(this.parent.es.update(subject, exerciseId, content)); //! EVO
       ctx.response.status = 200; //! D
     },
 
     async preview(ctx: RouterContext) {
-      //! AP missing -- TODO: is it ok???
+      //! AP missing // TODO: is it ok???
       const { content, seed } = await followSchema(ctx, {
         content: schemas.exercise.content,
         seed: schemas.user.seedDefault,
