@@ -3,13 +3,13 @@ import { Router } from '@angular/router';
 import { getErrorCode } from 'src/app/helper/utils';
 import { SpecialPanelItem } from 'src/app/templates/panel/panel.component';
 import { TeamService } from 'src/app/user/team.service/team.service';
-import { User } from 'src/app/user/team.service/types';
+import { AssigneeUser } from 'src/app/user/team.service/types';
 import { Subject, SubjectService } from '../subject.service/subject.service';
 
-interface UserItem extends User {
+interface UserItem extends AssigneeUser {
     isSelected: boolean;
 }
-function mapUsers(list: User[]): UserItem[] {
+function mapUsers(list: AssigneeUser[]): UserItem[] {
     return list.map((user) => ({
         userId: user.userId,
         name: user.name,

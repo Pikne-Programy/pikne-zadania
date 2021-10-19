@@ -34,7 +34,7 @@ export class TeamService {
             .pipe(
                 switchMap((response) => {
                     if (Utils.isTeam(response)) {
-                        response.members?.sort((a, b) => {
+                        response.members.sort((a, b) => {
                             if (a.number !== null && b.number !== null)
                                 return a.number - b.number;
                             if (a.number === null && b.number !== null)
@@ -51,14 +51,14 @@ export class TeamService {
             .toPromise();
     }
 
-    getAssigneeList(): Promise<Utils.User[]> {
+    getAssigneeList(): Promise<Utils.AssigneeUser[]> {
         const TEACHER_TEAM_ID = 1;
         return this.http
             .post(ServerRoutes.teamInfo, { teamId: TEACHER_TEAM_ID })
             .pipe(
                 switchMap((response) =>
                     Utils.isTeam(response)
-                        ? response.members
+                        ? Utils.isAssigneeList(response.members)
                             ? of(response.members)
                             : throwError({ status: this.PERMISSION_ERROR })
                         : throwError({ status: TYPE_ERROR })

@@ -1,13 +1,11 @@
-import { AfterViewInit, Component, EventEmitter, Output } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, Output } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { AccountService } from 'src/app/account/account.service';
 import { ExerciseService } from 'src/app/exercise-service/exercise.service';
 import {
     EqEx,
     Exercise,
     PreviewEqEx
 } from 'src/app/exercise-service/exercises';
-import { Role, RoleGuardService } from 'src/app/guards/role-guard.service';
 import { serverMockEnabled } from 'src/app/helper/tests/tests.config';
 import { removeMathTabIndex } from 'src/app/helper/utils';
 import { staticFile } from 'src/app/server-routes';
@@ -61,6 +59,7 @@ class Unknown {
     styleUrls: ['./eqex.component.scss']
 })
 export class EqExComponent implements ExerciseComponentType, AfterViewInit {
+    @Input() isUser = true;
     @Output() loaded = new BehaviorSubject<number | null>(null);
     @Output() submitButtonState = new EventEmitter<SubmitButtonState>();
 
@@ -74,17 +73,10 @@ export class EqExComponent implements ExerciseComponentType, AfterViewInit {
     unknowns: Unknown[] = [];
     correct: Unknown[] | null = null;
 
-    private isUser: boolean;
     constructor(
         private inflationService: InflationService,
-        private exerciseService: ExerciseService,
-        accountService: AccountService
+        private exerciseService: ExerciseService
     ) {
-        const account = accountService.currentAccount.getValue();
-        this.isUser = account
-            ? RoleGuardService.getRole(account) === Role.USER
-            : true;
-
         this.exercise = inflationService.getExercise<EqEx>();
         if (!this.exercise) this.onLoaded(InflationService.InflationError);
         else {
@@ -135,7 +127,7 @@ export class EqExComponent implements ExerciseComponentType, AfterViewInit {
                 )
                 .then((results) => {
                     if (this.exercise && this.isUser)
-                        return this.setLocalDone(this.exercise.id, results);
+                        this.setLocalDone(this.exercise.id, results);
                     for (let i = 0; i < results.length; i++)
                         this.unknowns[i].setAnswerCorrectness(results[i]);
                 })

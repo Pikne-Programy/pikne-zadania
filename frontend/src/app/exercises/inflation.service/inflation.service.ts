@@ -5,6 +5,7 @@ import { Exercise } from 'src/app/exercise-service/exercises';
 export type SubmitButtonState = 'active' | 'loading' | 'disabled';
 
 export interface ExerciseComponentType {
+    isUser: boolean;
     loaded: BehaviorSubject<number | null>;
     exercise: Exercise | null;
     submitAnswers: () => Promise<any>;

@@ -22,6 +22,8 @@ import {
     ExerciseInflationService,
     SubmitButtonState
 } from './inflation.service/inflation.service';
+import { AccountService } from '../account/account.service';
+import { Role, RoleGuardService } from '../guards/role-guard.service';
 
 @Component({
     selector: 'app-exercise',
@@ -42,13 +44,20 @@ export class ExerciseComponent implements AfterViewInit, OnChanges, OnDestroy {
     @Output() onAnswers = new EventEmitter();
     @Output() onLoaded = new EventEmitter();
 
+    isUser = true;
     errorCode: number | null = null;
     isLoading = true;
     submitState: SubmitButtonState = 'disabled';
     constructor(
         private factoryResolver: ComponentFactoryResolver,
-        public inflationService: ExerciseInflationService
-    ) {}
+        public inflationService: ExerciseInflationService,
+        accountService: AccountService
+    ) {
+        const account = accountService.currentAccount.getValue();
+        this.isUser = account
+            ? RoleGuardService.getRole(account) === Role.USER
+            : true;
+    }
 
     ngAfterViewInit() {
         if (this.containers.length > 0)
@@ -102,6 +111,7 @@ export class ExerciseComponent implements AfterViewInit, OnChanges, OnDestroy {
         container.clear();
         const component = container.createComponent(factory);
         this.componentRef = component;
+        component.instance.isUser = this.isUser;
         this.loading$ = component.instance.loaded.subscribe((error) => {
             if (this.errorCode === null) this.errorCode = error;
             this.isLoading = false;

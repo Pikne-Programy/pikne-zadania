@@ -67,7 +67,6 @@ describe('Service: Team', () => {
                             const req = httpController.expectOne(
                                 ServerRoutes.teamList
                             );
-
                             expect(req.request.method).toEqual('GET');
                             req.error(new ErrorEvent('Server error'), {
                                 status: errorCode
@@ -101,7 +100,6 @@ describe('Service: Team', () => {
                             const req = httpController.expectOne(
                                 ServerRoutes.teamList
                             );
-
                             expect(req.request.method).toEqual('GET');
                             req.flush(teamList);
                         }
@@ -133,7 +131,6 @@ describe('Service: Team', () => {
                             const req = httpController.expectOne(
                                 ServerRoutes.teamList
                             );
-
                             expect(req.request.method).toEqual('GET');
                             req.flush(teamList);
                         }
@@ -166,7 +163,6 @@ describe('Service: Team', () => {
                             const req = httpController.expectOne(
                                 ServerRoutes.teamInfo
                             );
-
                             expect(req.request.method).toEqual('POST');
                             expect(req.request.body).toEqual(expectedBody);
                             req.error(new ErrorEvent('Server error'), {
@@ -194,7 +190,6 @@ describe('Service: Team', () => {
                             const req = httpController.expectOne(
                                 ServerRoutes.teamInfo
                             );
-
                             expect(req.request.method).toEqual('POST');
                             expect(req.request.body).toEqual(expectedBody);
                             req.flush({ abc: 'I am trash' });
@@ -204,7 +199,7 @@ describe('Service: Team', () => {
             );
 
             it(
-                'should return Team w/o members & invitation',
+                'should return Team for not assignee',
                 waitForAsync(
                     inject(
                         [TeamService, HttpClient],
@@ -225,15 +220,8 @@ describe('Service: Team', () => {
                         (service: TeamService) => {
                             expect(service).toBeTruthy();
                             const invitation = 'Qwerty';
-                            const [members, resultMembers] = getMembers();
 
-                            expectTeam(
-                                service,
-                                httpController,
-                                members,
-                                resultMembers,
-                                invitation
-                            );
+                            expectTeam(service, httpController, invitation);
                         }
                     )
                 )
@@ -263,7 +251,8 @@ describe('Service: Team', () => {
                         assignee: {
                             userId: 'rootId',
                             name: 'root'
-                        }
+                        },
+                        members: getMembers(false)[0]
                     },
                     PERMISSION_ERROR
                 ]
@@ -286,7 +275,6 @@ describe('Service: Team', () => {
                                 const req = httpController.expectOne(
                                     ServerRoutes.teamInfo
                                 );
-
                                 expect(req.request.method).toEqual('POST');
                                 expect(req.request.body).toEqual(expectedBody);
                                 if (response === null) {
@@ -308,7 +296,7 @@ describe('Service: Team', () => {
                         [TeamService, HttpClient],
                         (service: TeamService) => {
                             expect(service).toBeTruthy();
-                            const [members] = getMembers();
+                            const [members] = getMembers(true);
                             const result: Types.Team = {
                                 name: 'Teachers',
                                 assignee: {
@@ -322,7 +310,9 @@ describe('Service: Team', () => {
                             service
                                 .getAssigneeList()
                                 .then((response) =>
-                                    expect(response).toEqual(members)
+                                    expect(response).toEqual(
+                                        members as Types.AssigneeUser[]
+                                    )
                                 )
                                 .catch(() => fail('should resolve'));
                             const req = httpController.expectOne(
@@ -559,8 +549,6 @@ describe('Service: Team', () => {
 function expectTeam(
     service: TeamService,
     httpController: HttpTestingController,
-    members?: Types.User[],
-    resultMembers?: Types.User[],
     invitation?: string
 ) {
     const teamId = 2;
@@ -569,6 +557,8 @@ function expectTeam(
         userId: 'testUserId',
         name: 'Smith'
     };
+    const [members, resultMembers] = getMembers(invitation !== undefined);
+
     service
         .getTeam(teamId)
         .then((response) =>
@@ -613,33 +603,33 @@ function expectTeamModRequest(
 /**
  * @returns First - members; Second - sorted members
  */
-function getMembers(): [Types.User[], Types.User[]] {
+function getMembers(hasIds: boolean): [Types.User[], Types.User[]] {
     const members: Types.User[] = [];
     for (let i = 1; i <= 4; i++) {
         members.push({
-            userId: `User${i}Id`,
+            userId: hasIds ? `User${i}Id` : undefined,
             name: `User${i}`,
             number: i % 2 ? 4 - i : null
         });
     }
     const resultMembers: Types.User[] = [
         {
-            userId: 'User3Id',
+            userId: hasIds ? 'User3Id' : undefined,
             name: 'User3',
             number: 1
         },
         {
-            userId: 'User1Id',
+            userId: hasIds ? 'User1Id' : undefined,
             name: 'User1',
             number: 3
         },
         {
-            userId: 'User2Id',
+            userId: hasIds ? 'User2Id' : undefined,
             name: 'User2',
             number: null
         },
         {
-            userId: 'User4Id',
+            userId: hasIds ? 'User4Id' : undefined,
             name: 'User4',
             number: null
         }

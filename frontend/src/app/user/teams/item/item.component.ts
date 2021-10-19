@@ -7,7 +7,7 @@ import { Role, RoleGuardService } from 'src/app/guards/role-guard.service';
 import { getErrorCode } from 'src/app/helper/utils';
 import { INTERNAL_ERROR } from '../../dashboard/dashboard.utils';
 import { TeamService } from '../../team.service/team.service';
-import { Team, User } from '../../team.service/types';
+import { AssigneeUser, Team, User } from '../../team.service/types';
 
 enum ModalType {
     NAME,
@@ -55,23 +55,17 @@ export class TeamItemComponent implements OnInit {
         if (!isNaN(teamId)) {
             this.teamId = teamId;
             RoleGuardService.getPermissions(this.accountService)
-                .then(
-                    (role) => {
-                        this.isAdmin =
-                            role === Role.ADMIN &&
-                            RoleGuardService.canEditAssignee(teamId);
-                    }
-                )
+                .then((role) => {
+                    this.isAdmin =
+                        role === Role.ADMIN &&
+                        RoleGuardService.canEditAssignee(teamId);
+                })
                 .catch((error) => {
                     this.defaultErrorMessage = false;
                     throw { status: getErrorCode(error, this.AccountError) };
                 })
                 .then(() => this.teamService.getTeam(teamId))
-                .then((team) => {
-                    if (team.invitation !== undefined && team.members)
-                        this.team = team;
-                    else this.errorCode = this.AccountError;
-                })
+                .then((team) => (this.team = team))
                 .catch(
                     (error) =>
                         (this.errorCode = getErrorCode(error, this.IdError))
@@ -112,13 +106,13 @@ export class TeamItemComponent implements OnInit {
     modalErrorCode: number | null = null;
 
     //#region Error codes
-    private readonly NameError = 440;
-    private readonly OpenInvError = 441;
-    private readonly CloseInvError = 442;
-    private readonly FetchAssigneesError = 443;
-    private readonly AssigneeError = 445;
-    private readonly UserError = 446;
-    private readonly InputError = 447;
+    private readonly NameError = 40040;
+    private readonly OpenInvError = 40041;
+    private readonly CloseInvError = 40042;
+    private readonly FetchAssigneesError = 40043;
+    private readonly AssigneeError = 40045;
+    private readonly UserError = 40046;
+    private readonly InputError = 40047;
     //#endregion
 
     openModal(type: ModalType) {
@@ -229,7 +223,7 @@ export class TeamItemComponent implements OnInit {
     //#endregion
 
     //#region Change Assignee
-    assigneeList: User[] = [];
+    assigneeList: AssigneeUser[] = [];
     selectedAssignee: number | null = null;
 
     getAssignees() {
@@ -291,23 +285,28 @@ export class TeamItemComponent implements OnInit {
         if (newName.length === 0) this.modalErrorCode = this.InputError;
         else if (this.teamId === undefined) this.errorCode = this.InternalError;
         else if (this.selectedUser) {
-            this.isModalLoading = true;
-            this.teamService
-                .editUser(
-                    this.selectedUser.userId,
-                    newName !== this.selectedUser.name ? newName : undefined,
-                    isNaN(newNumber)
-                        ? null
-                        : newNumber !== this.selectedUser.number
-                            ? newNumber
-                            : undefined
-                )
-                .then(() => {
-                    this.onModalSuccess();
-                })
-                .catch((error) => {
-                    this.onModalError(error, this.UserError);
-                });
+            if (this.selectedUser.userId) {
+                this.isModalLoading = true;
+                this.teamService
+                    .editUser(
+                        this.selectedUser.userId,
+                        newName !== this.selectedUser.name
+                            ? newName
+                            : undefined,
+                        isNaN(newNumber)
+                            ? null
+                            : newNumber !== this.selectedUser.number
+                                ? newNumber
+                                : undefined
+                    )
+                    .then(() => {
+                        this.onModalSuccess();
+                    })
+                    .catch((error) => {
+                        this.onModalError(error, this.UserError);
+                    });
+            }
+            else this.errorCode = this.AccountError;
         }
         else this.modalErrorCode = this.UserError;
     }
@@ -315,11 +314,14 @@ export class TeamItemComponent implements OnInit {
     deleteUser() {
         if (this.teamId === undefined) this.errorCode = this.InternalError;
         else if (this.selectedUser) {
-            this.isModalLoading = true;
-            this.teamService
-                .removeUser(this.selectedUser.userId)
-                .then(() => this.onModalSuccess())
-                .catch((error) => this.onModalError(error, this.UserError));
+            if (this.selectedUser.userId) {
+                this.isModalLoading = true;
+                this.teamService
+                    .removeUser(this.selectedUser.userId)
+                    .then(() => this.onModalSuccess())
+                    .catch((error) => this.onModalError(error, this.UserError));
+            }
+            else this.errorCode = this.AccountError;
         }
         else this.modalErrorCode = this.UserError;
     }

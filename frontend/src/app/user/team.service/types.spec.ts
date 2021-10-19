@@ -1,4 +1,12 @@
-import { isTeam, isTeamItem, isTeamItemList, isUser, User } from './types';
+import {
+    AssigneeUser,
+    isAssigneeList,
+    isTeam,
+    isTeamItem,
+    isTeamItemList,
+    isUser,
+    User
+} from './types';
 
 describe('Team types', () => {
     //#region Mocks
@@ -9,6 +17,9 @@ describe('Team types', () => {
     const teamId = 1;
     const name = 'Teachers';
     const assignee = {
+        name: 'root'
+    };
+    const assigneeWithId = {
         userId: 'rootId',
         name: 'root'
     };
@@ -24,12 +35,18 @@ describe('Team types', () => {
     const userId = 'User1Id';
     const userName = 'User1';
     const user = {
+        name: userName,
+        number: 12
+    };
+    const userWithId = {
         userId,
         name: userName,
         number: 12
     };
     const members: User[] = [];
     for (let i = 0; i < 3; i++) members.push(user);
+    const assignees: AssigneeUser[] = [];
+    for (let i = 0; i < 3; i++) members.push(userWithId);
     //#endregion
     //#endregion
 
@@ -37,6 +54,11 @@ describe('Team types', () => {
         const list: [string, any, boolean][] = [
             ['wrong type', wrongItem, false],
             ['correct', teamItem, true],
+            [
+                'correct w/ assignee w/ id',
+                { teamId, name, assignee: assigneeWithId },
+                true
+            ],
             ['correct w/o invitation', { teamId, name, assignee }, true],
             [
                 'correct with invitation null',
@@ -78,8 +100,12 @@ describe('Team types', () => {
                 false
             ],
             ['correct', { name, assignee, invitation, members }, true],
-            ['correct w/o invitation', { name, assignee, members }, true],
-            ['correct w/o members', { name, assignee, invitation }, true]
+            [
+                'correct w/ assignee w/ id',
+                { name, assignee: assigneeWithId, invitation, members },
+                true
+            ],
+            ['correct w/o invitation', { name, assignee, members }, true]
         ];
         for (const [testMess, obj, result] of list) {
             it(`should return ${result} (${testMess})`, () => {
@@ -92,16 +118,26 @@ describe('Team types', () => {
         const list: [string, any, boolean][] = [
             ['wrong type', wrongItem, false],
             ['correct', user, true],
-            [
-                'correct w/ number null',
-                { userId, name: userName, number: null },
-                true
-            ]
+            ['correct w/ id', userWithId, true],
+            ['correct w/ number null', { name: userName, number: null }, true]
         ];
         for (const [testMess, obj, result] of list) {
             it(`should return ${result} (${testMess})`, () => {
                 expect(isUser(obj)).toBe(result);
             });
         }
+    });
+
+    describe('AssigneeUser', () => {
+        it('should return false', () => {
+            expect(isAssigneeList(members)).toBeFalse();
+            expect(isAssigneeList([userWithId, user]))
+                .withContext('mixed list')
+                .toBeFalse();
+        });
+
+        it('should return true', () => {
+            expect(isAssigneeList(assignees)).toBeTrue();
+        });
     });
 });
