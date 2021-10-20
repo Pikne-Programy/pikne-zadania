@@ -130,9 +130,10 @@ export class ExerciseStore implements IExerciseStore {
   private appendExerciseFile(
     subject: string,
     exerciseId: string,
+    _content?: string,
   ) {
     try {
-      const content = this.getContent(subject, exerciseId);
+      const content = _content ?? this.getContent(subject, exerciseId);
       if (content instanceof CustomDictError) throw content;
       const uid = this.uid(subject, exerciseId);
       const ex = this.parse(content);
@@ -147,7 +148,6 @@ export class ExerciseStore implements IExerciseStore {
       }
     }
   }
-
   private _buildSectionList(
     subject: string,
     elements: (YAMLSection | string)[],
@@ -255,11 +255,9 @@ export class ExerciseStore implements IExerciseStore {
     exerciseId: string,
     content: string,
   ) {
-    const uid = this.uid(subject, exerciseId);
     const path = join(this.exercisesPath, subject, exerciseId) + ".txt";
-    const ex = this.parse(content);
+    const ex = this.appendExerciseFile(subject, exerciseId, content);
     if (ex instanceof CustomDictError) return ex;
-    if (ex instanceof Exercise) this.exercises[uid][0] = ex;
     Deno.writeTextFileSync(path, content);
   }
 
