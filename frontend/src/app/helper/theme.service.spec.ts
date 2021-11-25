@@ -39,6 +39,20 @@ describe('Service: Theme', () => {
             'styles.css'
         );
     }));
+
+    it('should recognize dark themes', () => {
+        for (const theme of themes) {
+            switch (theme) {
+                case 'default':
+                    expect(ThemeService.isDarkTheme(theme)).toBeFalse();
+                    break;
+                case 'dark':
+                case 'dark-red':
+                    expect(ThemeService.isDarkTheme(theme)).toBeTrue();
+                    break;
+            }
+        }
+    });
 });
 
 function createThemeElement(): HTMLLinkElement {

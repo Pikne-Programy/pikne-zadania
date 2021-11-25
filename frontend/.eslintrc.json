@@ -294,7 +294,11 @@
                 ],
                 "@typescript-eslint/restrict-template-expressions": [
                     "error",
-                    { "allowNumber": true, "allowBoolean": true }
+                    {
+                        "allowNumber": true,
+                        "allowBoolean": true,
+                        "allowNullish": true
+                    }
                 ],
                 "no-return-await": "error",
                 "space-infix-ops": "off",

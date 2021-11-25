@@ -8,7 +8,8 @@ import {
     propertyTypes,
     pbkdf2,
     replaceAccents,
-    INTERNAL_ERROR
+    INTERNAL_ERROR,
+    removeMathTabIndex
 } from './utils';
 
 describe('Utils', () => {
@@ -327,6 +328,38 @@ describe('Utils', () => {
         it('should return false (null & undefined)', () => {
             expect(isObject<any>(null, [])).toBe(false);
             expect(isObject<any>(undefined, [])).toBe(false);
+        });
+    });
+
+    describe('removeMathTabIndex', () => {
+        const mathClass = 'MathJax';
+        let elements: HTMLElement[];
+
+        beforeEach(() => {
+            elements = [];
+            for (let i = 0; i < 5; i++) {
+                const element = document.createElement('p');
+                element.tabIndex = 1;
+                element.id = i.toString();
+                if (i % 2) element.className = mathClass;
+                elements.push(element);
+            }
+            document.querySelectorAll = jasmine
+                .createSpy('HTML Elements')
+                .and.returnValue(
+                    elements.filter(
+                        (element) => element.className === mathClass
+                    )
+                );
+        });
+
+        it('should set tabIndex of Math elements to -1', () => {
+            removeMathTabIndex();
+            for (const element of elements) {
+                expect(element.tabIndex)
+                    .withContext(element.id)
+                    .toBe(element.className === mathClass ? -1 : 1);
+            }
         });
     });
 

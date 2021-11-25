@@ -355,6 +355,103 @@ describe('Exercise Utils', () => {
                     'EqEx'
                 );
             });
+
+            it(`${testMess} w/ done from localStorage`, () => {
+                //#region Mocks & spies
+                const spy = spyOn(Storage.prototype, 'getItem');
+                const list: [string, string | null, number | null][] = [
+                    ['item not found', null, null],
+                    ["item 'null'", 'null', null],
+                    ['item is NaN', 'abc', null],
+                    ['item is valid', '0.15', 0.15]
+                ];
+                //#endregion
+                for (const [context, spyReturnValue, expectedResult] of list) {
+                    spy.and.returnValue(spyReturnValue);
+
+                    const subject = ExerciseTreeNode.createExerciseTree(
+                        true,
+                        obj1.name,
+                        obj1.children,
+                        obj1.name
+                    );
+                    expectToBeExerciseTreeNode(subject, 'Sb1', 1, null);
+                    const exercise = subject.children[0];
+                    expectToBeExerciseTreeNode(exercise, 'Ex1', 0, subject);
+
+                    if (expectedResult === null)
+                        expect(exercise.done).withContext(context).toBeNull();
+                    else {
+                        expect(exercise.done)
+                            .withContext(context)
+                            .toBeCloseTo(expectedResult);
+                    }
+                }
+            });
+
+            it(`${testMess} w/ saving done to localStorage`, () => {
+                //#region Mocks & spies
+                const spy = spyOn(Storage.prototype, 'setItem').and.stub();
+                const subjectId = 'Sb1';
+                const exerciseId = 'ex1';
+                const list: [any, number | null, string][] = [
+                    [
+                        {
+                            name: subjectId,
+                            children: [
+                                {
+                                    name: 'Ex1',
+                                    children: exerciseId,
+                                    done: null
+                                }
+                            ]
+                        },
+                        null,
+                        'null'
+                    ],
+                    [
+                        {
+                            name: subjectId,
+                            children: [
+                                {
+                                    name: 'Ex1',
+                                    children: exerciseId,
+                                    done: 0.15
+                                }
+                            ]
+                        },
+                        0.15,
+                        '0.15'
+                    ]
+                ];
+                //#endregion
+                for (const [obj, done, expectedSavedDone] of list) {
+                    const subject = ExerciseTreeNode.createExerciseTree(
+                        true,
+                        obj.name,
+                        obj.children,
+                        obj.name
+                    );
+                    expectToBeExerciseTreeNode(subject, subjectId, 1, null);
+                    const exercise = subject.children[0];
+                    expectToBeExerciseTreeNode(exercise, 'Ex1', 0, subject);
+
+                    if (done === null) {
+                        expect(exercise.done)
+                            .withContext(expectedSavedDone)
+                            .toBeNull();
+                    }
+                    else {
+                        expect(exercise.done)
+                            .withContext(expectedSavedDone)
+                            .toBeCloseTo(done);
+                    }
+                    expect(spy).toHaveBeenCalledWith(
+                        `${subjectId}/${exerciseId}`,
+                        expectedSavedDone
+                    );
+                }
+            });
         });
         /* eslint-enable jasmine/missing-expect */
     });
@@ -366,8 +463,7 @@ function expectToBeExerciseTreeNode(
     childrenSize: number,
     parent: ExerciseTreeNode | null,
     url: string | null = null,
-    type?: ExerciseType,
-    done?: number | null
+    type?: ExerciseType
 ) {
     expect(obj).toBeInstanceOf(ExerciseTreeNode);
 
@@ -396,6 +492,4 @@ function expectToBeExerciseTreeNode(
             fail('should be Exercise with no children (wrong test)');
         else expect(obj.children).toHaveSize(0);
     }
-
-    if (done !== undefined && done !== null) expect(obj.done).toBeCloseTo(done);
 }

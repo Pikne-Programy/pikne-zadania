@@ -1,3 +1,12 @@
+import { Component } from '@angular/core';
+
+@Component({
+    template: ''
+})
+export class TestComponent {
+    constructor() {}
+}
+
 export async function setAsyncTimeout(ms: number): Promise<void> {
     // eslint-disable-next-line no-promise-executor-return
     return new Promise((resolve) => setTimeout(() => resolve(), ms));

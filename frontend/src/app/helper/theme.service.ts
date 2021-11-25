@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Inject, Injectable } from '@angular/core';
+import { Inject, Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 //TODO More themes
@@ -9,7 +9,7 @@ export type Theme = typeof themes[number];
 @Injectable({
     providedIn: 'root'
 })
-export class ThemeService {
+export class ThemeService implements OnDestroy {
     private static readonly DarkThemes = new Set<Theme>(['dark', 'dark-red']);
 
     static isDarkTheme(name: Theme): boolean {
@@ -47,5 +47,9 @@ export class ThemeService {
     }
     private getStylesheet(theme: string): string {
         return `${theme === 'default' ? 'styles' : theme}.css`;
+    }
+
+    ngOnDestroy() {
+        this.themeChange.complete();
     }
 }

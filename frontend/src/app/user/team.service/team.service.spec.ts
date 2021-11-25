@@ -9,7 +9,7 @@ import { TestBed, inject, waitForAsync } from '@angular/core/testing';
 import { TeamService } from './team.service';
 import * as ServerRoutes from 'src/app/server-routes';
 import * as Types from './types';
-import { TYPE_ERROR } from 'src/app/helper/utils';
+import { ObjectType, TYPE_ERROR } from 'src/app/helper/utils';
 
 describe('Service: Team', () => {
     let httpController: HttpTestingController;
@@ -329,8 +329,51 @@ describe('Service: Team', () => {
         });
     });
 
-    describe('Team modification & Registration', () => {
+    describe('Team modification', () => {
         const teamId = 4;
+
+        describe('createTeam', () => {
+            const teamName = 'New Team';
+
+            for (const [testMess, errorCode] of testList) {
+                it(`should ${testMess}`, inject(
+                    [TeamService, HttpClient],
+                    (service: TeamService) => {
+                        expect(service).toBeTruthy();
+
+                        const promise = service.createTeam(teamName);
+                        expectTeamModRequest(
+                            promise,
+                            httpController,
+                            ServerRoutes.teamCreate,
+                            { name: teamName },
+                            errorCode,
+                            { teamId }
+                        );
+                    }
+                ));
+            }
+
+            it('should throw Type error', inject(
+                [TeamService, HttpClient],
+                (service: TeamService) => {
+                    expect(service).toBeTruthy();
+
+                    service
+                        .createTeam(teamName)
+                        .then(() => fail('should be rejected'))
+                        .catch((error) =>
+                            expect(error.status).toBe(TYPE_ERROR)
+                        );
+                    const req = httpController.expectOne(
+                        ServerRoutes.teamCreate
+                    );
+                    expect(req.request.method).toEqual('POST');
+                    expect(req.request.body).toEqual({ name: teamName });
+                    req.flush({ teamId: teamName });
+                }
+            ));
+        });
 
         describe('deleteTeam', () => {
             for (const [testMess, errorCode] of testList) {
@@ -414,6 +457,10 @@ describe('Service: Team', () => {
                 );
             }
         });
+    });
+
+    describe('Registration', () => {
+        const teamId = 4;
 
         describe('openTeam', () => {
             for (const [testMess, errorCode] of testList) {
@@ -581,7 +628,8 @@ function expectTeamModRequest(
     httpController: HttpTestingController,
     route: string,
     body: any,
-    errorCode: number | null
+    errorCode: number | null,
+    response?: ObjectType
 ) {
     promise
         .then(() => {
@@ -597,7 +645,7 @@ function expectTeamModRequest(
     expect(req.request.body).toEqual(body);
     if (errorCode !== null)
         req.error(new ErrorEvent('Error'), { status: errorCode });
-    else req.flush({});
+    else req.flush(response ? response : {});
 }
 
 /**

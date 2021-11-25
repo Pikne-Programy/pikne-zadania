@@ -148,10 +148,18 @@ describe('Service: Exercise', () => {
                 }${Role[role]} role)`,
                 waitForAsync(
                     inject(
-                        [ExerciseService, HttpClient],
-                        (service: ExerciseService) => {
+                        [ExerciseService, HttpClient, AccountService],
+                        (
+                            service: ExerciseService,
+                            _: HttpClient,
+                            accountService: AccountService
+                        ) => {
                             expect(service).toBeTruthy();
                             //#region Mocks
+                            spyOn(
+                                accountService.currentAccount,
+                                'getValue'
+                            ).and.returnValue(account as unknown as Account);
                             roleSpy.and.returnValue(role);
                             subjectValidSpy.and.returnValue(true);
                             subjectCreateSpy.and.callFake(
@@ -198,6 +206,90 @@ describe('Service: Exercise', () => {
                             expect(req.request.method).toEqual('POST');
                             expect(req.request.body).toEqual(expectedBody);
                             req.flush(subject.children);
+                        }
+                    )
+                )
+            );
+        }
+
+        for (const getUnassigned of [true, false]) {
+            it(
+                `should return Exercise tree w/${
+                    getUnassigned ? '' : 'o'
+                } unassigned`,
+                waitForAsync(
+                    inject(
+                        [ExerciseService, HttpClient, AccountService],
+                        (
+                            service: ExerciseService,
+                            _: HttpClient,
+                            accountService: AccountService
+                        ) => {
+                            expect(service).toBeTruthy();
+                            //#region Mocks
+                            spyOn(
+                                accountService.currentAccount,
+                                'getValue'
+                            ).and.returnValue(null);
+                            roleSpy.and.returnValue(Role.USER);
+                            subjectValidSpy.and.returnValue(true);
+                            subjectCreateSpy.and.callFake(
+                                (object) =>
+                                    object as unknown as ExerciseTreeNode
+                            );
+                            const children = [
+                                {
+                                    name: 'mechanika',
+                                    children: [
+                                        {
+                                            name: 'kinematyka',
+                                            children: [
+                                                {
+                                                    name: 'Pociągi dwa',
+                                                    children: 'pociagi-dwa'
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ];
+                            const subject = {
+                                name: subjectId,
+                                children
+                            };
+                            const unassigned: any[] = [];
+                            for (let i = 1; i <= 5; i++) {
+                                unassigned.push({
+                                    name: `Ex${i}`,
+                                    children: `ex${i}`
+                                });
+                            }
+                            const subjectWithUnassigned = {
+                                name: subjectId,
+                                children: children.concat(unassigned)
+                            };
+                            //#endregion
+
+                            service
+                                .getExerciseTree(subjectId, getUnassigned)
+                                .then((response) =>
+                                    expect(response).toEqual(
+                                        (getUnassigned
+                                            ? subjectWithUnassigned
+                                            : subject) as any
+                                    )
+                                )
+                                .catch(() => fail('should resolve'));
+                            const req = httpController.expectOne(
+                                ServerRoutes.exerciseList
+                            );
+                            expect(req.request.method).toEqual('POST');
+                            expect(req.request.body).toEqual(expectedBody);
+                            req.flush(
+                                getUnassigned
+                                    ? subjectWithUnassigned.children
+                                    : subject.children
+                            );
                         }
                     )
                 )

@@ -1,9 +1,5 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import {
-    Params,
-    QueryParamsHandling,
-    Router
-} from '@angular/router';
+import { Params, QueryParamsHandling, Router } from '@angular/router';
 import { BehaviorSubject, fromEvent, Subscription } from 'rxjs';
 import { Role, RoleGuardService } from 'src/app/guards/role-guard.service';
 import { AccountService } from '../../account/account.service';
@@ -19,10 +15,9 @@ export class MenuElement {
     ) {}
 
     getQueryParams(returnUrl?: string): Params | undefined {
-        if (this._queryParams && returnUrl) {
-            if (this._queryParams.includes('relative'))
-                return ({ returnUrl });
-        }
+        if (this._queryParams && returnUrl)
+            if (this._queryParams.includes('relative')) return { returnUrl };
+
         return undefined;
     }
 
@@ -73,9 +68,7 @@ export class NavService implements OnDestroy {
     /**
      * First - link; Second - text
      */
-    menuElements = new BehaviorSubject<MenuElement[]>(
-        menuElements
-    );
+    menuElements = new BehaviorSubject<MenuElement[]>(menuElements);
     buttonElements = new BehaviorSubject<ButtonElement[]>(loginButtons);
 
     private event$: Subscription;
@@ -87,7 +80,7 @@ export class NavService implements OnDestroy {
                     val
                         ? RoleGuardService.getRole(val) === Role.USER
                             ? userElements
-                            : teacherMenuElements
+                            : teacherElements
                         : menuElements
                 );
                 this.buttonElements.next(val ? accountButtons : loginButtons);
@@ -124,7 +117,7 @@ const userElements: MenuElement[] = [
     // ['/user/achievements', 'Osiągnięcia'], //TODO Add when ready
     new MenuElement('/about', 'O projekcie', ['relative'])
 ];
-const teacherMenuElements: MenuElement[] = [
+const teacherElements: MenuElement[] = [
     new MenuElement('/public-exercises', 'Baza zadań'),
     new MenuElement('/subject/list', 'Moje zadania'),
     new MenuElement('/user/teams', 'Klasy'),
@@ -176,3 +169,17 @@ export function executeButtonClick(
             break;
     }
 }
+
+//#region Export elements for testing
+/* eslint-disable @typescript-eslint/naming-convention */
+export const MenuElements = {
+    menuElements,
+    userElements,
+    teacherElements
+};
+export const ButtonElements = {
+    loginButtons,
+    accountButtons
+};
+/* eslint-enable @typescript-eslint/naming-convention */
+//#endregion
