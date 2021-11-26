@@ -1,5 +1,6 @@
 <div *ngIf="!isLoading && errorCode === null && exercise && subjectId && exerciseId !== undefined && exerciseSet !== undefined" class="width-full height-full p-5">
-  <app-exercise-form *ngIf="exercise !== undefined" [exercise]="exercise" [subjectId]="subjectId" [exerciseId]="exerciseId ? exerciseId : undefined" [exerciseSet]="exerciseSet ? exerciseSet : undefined" (onSuccess)="onSuccess()" (onCancel)="onCancel()"></app-exercise-form>
+    <app-exercise-form #formComponent *ngIf="exercise !== undefined" [exercise]="exercise" [subjectId]="subjectId" [exerciseId]="exerciseId ? exerciseId : undefined" [exerciseSet]="exerciseSet ? exerciseSet : undefined" (onSuccess)="onSuccess($event)" (onCancel)="onCancel()"></app-exercise-form>
 </div>
 <app-loading *ngIf="isLoading && errorCode !== null"></app-loading>
 <app-error *ngIf="errorCode !== null" [code]="errorCode" [message]="getErrorMessage(errorCode)"></app-error>
+<app-unsaved-changes-modal [open]="isConfirmExitModalOpen" (onSubmit)="onExitSubmit()" (onDiscard)="onExitDiscard()" (onCancel)="onExitCancel()"></app-unsaved-changes-modal>

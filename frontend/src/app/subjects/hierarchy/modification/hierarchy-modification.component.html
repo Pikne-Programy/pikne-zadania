@@ -56,6 +56,7 @@
 </div>
 <app-loading *ngIf="isLoading"></app-loading>
 <app-error *ngIf="errorCode !== null && !isLoading" [code]="errorCode"></app-error>
+<app-unsaved-changes-modal [open]="isConfirmExitModalOpen" (onSubmit)="onExitSubmit()" (onDiscard)="onExitDiscard()" (onCancel)="onExitCancel()"></app-unsaved-changes-modal>
 
 <!--#region Modal Add -->
 <app-card-modal [title]="openedModal === MODALS.ADD ? 'Dodaj kategorię' : 'Dodaj podkategorię'" [open]="openedModal === MODALS.ADD || openedModal === MODALS.ADD_SUB" (onClose)="closeModal()">
@@ -124,7 +125,7 @@
     </section>
     <footer>
         <div class="buttons">
-            <button class="button is-danger" (click)="closeModal(); navigateToDashboard()">Odrzuć</button>
+            <button class="button is-danger" (click)="closeModal(); onExitDiscard()">Odrzuć</button>
             <button class="button" (click)="closeModal()">Anuluj</button>
         </div>
     </footer>

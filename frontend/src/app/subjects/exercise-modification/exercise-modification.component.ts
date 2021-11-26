@@ -1,6 +1,8 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { ModificationComponent } from 'src/app/guards/progress-save-guard.service';
+import { ExerciseModificationFormComponent } from './form/form.component';
 import {
     Exercise,
     ExerciseModificationService
@@ -9,7 +11,9 @@ import {
 @Component({
     template: ''
 })
-export abstract class ExerciseModComponent implements OnInit, OnDestroy {
+export abstract class ExerciseModComponent
+    extends ModificationComponent
+    implements OnInit, OnDestroy {
     protected readonly SubjectError = 40020;
     protected readonly ExerciseError = 40021;
 
@@ -17,6 +21,8 @@ export abstract class ExerciseModComponent implements OnInit, OnDestroy {
     exerciseId?: string | null;
     exercise?: Exercise;
     exerciseSet?: Set<string> | null;
+    @ViewChild('formComponent')
+    private formComponent?: ExerciseModificationFormComponent;
 
     isLoading = true;
     protected _errorCode: number | null = null;
@@ -27,7 +33,9 @@ export abstract class ExerciseModComponent implements OnInit, OnDestroy {
         protected exerciseService: ExerciseModificationService,
         protected router: Router,
         protected route: ActivatedRoute
-    ) {}
+    ) {
+        super();
+    }
 
     abstract ngOnInit(): void;
 
@@ -37,12 +45,38 @@ export abstract class ExerciseModComponent implements OnInit, OnDestroy {
 
     abstract getErrorMessage(errorCode: number): string | undefined;
 
-    onSuccess() {
-        if (this.subjectId)
+    isModified(): boolean {
+        return this.formComponent?.isModified() ?? true;
+    }
+
+    onSuccess(route?: string) {
+        if (route) {
+            this.setSubmitFlag();
+            this.router.navigateByUrl(route);
+        }
+        else if (this.subjectId) {
+            this.setSubmitFlag();
             this.router.navigate(['/subject/dashboard', this.subjectId]);
+        }
     }
     onCancel() {
-        if (this.subjectId)
+        if (this.subjectId) {
+            this.confirmExit();
             this.router.navigate(['/subject/dashboard', this.subjectId]);
+        }
+    }
+
+    onExitSubmit() {
+        this.isConfirmExitModalOpen = false;
+        this.formComponent?.submit(this.nextState);
+        this.resetNavigation();
+    }
+    onExitDiscard() {
+        this.isConfirmExitModalOpen = false;
+        if (this.nextState) {
+            this.confirmExit();
+            this.router.navigateByUrl(this.nextState);
+        }
+        else this.onCancel();
     }
 }

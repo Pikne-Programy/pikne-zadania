@@ -3,6 +3,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { ModificationComponent } from 'src/app/guards/progress-save-guard.service';
 import { ThemeService } from 'src/app/helper/theme.service';
 import { getErrorCode, INTERNAL_ERROR } from 'src/app/helper/utils';
 import { HierarchyNode, HierarchyService } from '../service/hierarchy.service';
@@ -20,7 +21,9 @@ enum Modal {
     templateUrl: './hierarchy-modification.component.html',
     styleUrls: ['./hierarchy-modification.component.scss']
 })
-export class HierarchyModificationComponent implements OnInit, OnDestroy {
+export class HierarchyModificationComponent
+    extends ModificationComponent
+    implements OnInit, OnDestroy {
     readonly EXERCISE_LIST_ID = 'unassigned-exercises-list';
     readonly HIERARCHY_LIST_ID = 'hierarchy-list';
 
@@ -31,7 +34,7 @@ export class HierarchyModificationComponent implements OnInit, OnDestroy {
 
     isLoading = true;
     errorCode: number | null = null;
-    isModified = false;
+    private _isModified = false;
     isSubmitLoading = false;
     submitErrorCode: number | null = null;
 
@@ -48,7 +51,13 @@ export class HierarchyModificationComponent implements OnInit, OnDestroy {
         private themeService: ThemeService,
         private router: Router,
         private route: ActivatedRoute
-    ) {}
+    ) {
+        super();
+    }
+
+    isModified() {
+        return this._isModified;
+    }
 
     ngOnInit() {
         this.param$ = this.route.paramMap.subscribe((params) => {
@@ -119,7 +128,7 @@ export class HierarchyModificationComponent implements OnInit, OnDestroy {
         if (this.hierarchy) {
             const newName = (this.newName!.value as string).trim();
             if (newName !== '') {
-                this.isModified = true;
+                this._isModified = true;
                 this.selectedFolder = HierarchyService.addCategoryToHierarchy(
                     newName,
                     this.editedNode ?? this.hierarchy
@@ -144,7 +153,7 @@ export class HierarchyModificationComponent implements OnInit, OnDestroy {
 
     edit() {
         if (this.editedNode) {
-            this.isModified = true;
+            this._isModified = true;
             this.editedNode.name = (this.editName!.value as string).trim();
             this.selectNode(this.editedNode, true);
         }
@@ -156,7 +165,7 @@ export class HierarchyModificationComponent implements OnInit, OnDestroy {
     //#region Delete Modal
     delete() {
         if (this.hierarchy && this.editedNode) {
-            this.isModified = true;
+            this._isModified = true;
             const result = HierarchyService.removeNodeFromHierarchy(
                 this.editedNode,
                 this.hierarchy
@@ -170,7 +179,7 @@ export class HierarchyModificationComponent implements OnInit, OnDestroy {
 
     drop(event: CdkDragDrop<HierarchyNode[]>) {
         if (this.hierarchy) {
-            this.isModified = true;
+            this._isModified = true;
             if (event.previousContainer.id === this.EXERCISE_LIST_ID) {
                 const exercise: HierarchyNode = event.item.data;
                 HierarchyService.addExerciseToHierarchy(
@@ -189,20 +198,42 @@ export class HierarchyModificationComponent implements OnInit, OnDestroy {
         }
     }
 
-    submit() {
+    submit(nextRoute?: string) {
         if (this.subject && this.hierarchy) {
             this.isSubmitLoading = true;
             this.hierarchyService
                 .setHierarchy(this.subject, this.hierarchy)
-                .then(() => this.navigateToDashboard())
+                .then(() => {
+                    this.setSubmitFlag();
+                    if (nextRoute) this.router.navigateByUrl(nextRoute);
+                    else this.navigateToDashboard();
+                })
                 .catch((error) => (this.submitErrorCode = getErrorCode(error)))
-                .finally(() => (this.isSubmitLoading = false));
+                .finally(() => {
+                    this.isSubmitLoading = false;
+                    this.resetNavigation();
+                });
         }
         else this.submitErrorCode = INTERNAL_ERROR;
     }
 
     cancel() {
-        if (this.isModified) this.openModal(Modal.DISCARD);
+        if (this._isModified) this.openModal(Modal.DISCARD);
+        else {
+            this.confirmExit();
+            this.navigateToDashboard();
+        }
+    }
+
+    onExitSubmit() {
+        this.isConfirmExitModalOpen = false;
+        this.submit(this.nextState);
+    }
+
+    onExitDiscard() {
+        this.isConfirmExitModalOpen = false;
+        this.confirmExit();
+        if (this.nextState) this.router.navigateByUrl(this.nextState);
         else this.navigateToDashboard();
     }
 

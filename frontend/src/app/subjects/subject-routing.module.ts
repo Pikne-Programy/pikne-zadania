@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { ProgressSaveGuardService } from '../guards/progress-save-guard.service';
 import { NavComponent } from '../navigation/nav.component';
 import { SubjectDashboardComponent } from './dashboard/dashboard.component';
 import { ExerciseCreationComponent } from './exercise-modification/creation/creation.component';
@@ -27,15 +28,18 @@ const routes: Routes = [
             },
             {
                 path: 'exercise-edit/:subjectId/:exerciseId',
-                component: ExerciseModificationComponent
+                component: ExerciseModificationComponent,
+                canDeactivate: [ProgressSaveGuardService]
             },
             {
                 path: 'exercise-new/:subjectId',
-                component: ExerciseCreationComponent
+                component: ExerciseCreationComponent,
+                canDeactivate: [ProgressSaveGuardService]
             },
             {
                 path: 'categories/:subjectId',
-                component: HierarchyModificationComponent
+                component: HierarchyModificationComponent,
+                canDeactivate: [ProgressSaveGuardService]
             }
         ]
     }

@@ -25,6 +25,7 @@ import { ScreenSizeService } from './helper/screen-size.service';
 import { RoleGuardService } from './guards/role-guard.service';
 import { SubjectService } from './subjects/subject.service/subject.service';
 import { ExerciseModule } from './exercises/exercise.module';
+import { ProgressSaveGuardService } from './guards/progress-save-guard.service';
 
 @NgModule({
     declarations: [
@@ -57,6 +58,7 @@ import { ExerciseModule } from './exercises/exercise.module';
         UpNavService,
         AuthGuardService,
         RoleGuardService,
+        ProgressSaveGuardService,
         ScreenSizeService,
         ThemeService
     ],

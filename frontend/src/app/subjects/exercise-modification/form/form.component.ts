@@ -59,7 +59,7 @@ implements OnInit, AfterViewInit {
      * Set of exercise ids that are already present in the subject
      */
     @Input() exerciseSet?: Set<string>;
-    @Output() onSuccess = new EventEmitter();
+    @Output() onSuccess = new EventEmitter<string | undefined>();
     @Output() onCancel = new EventEmitter();
 
     @ViewChild('textareaComp')
@@ -95,7 +95,7 @@ implements OnInit, AfterViewInit {
     isToolbarFocused = false;
 
     private isCreation = true;
-    isModified = false;
+    hasNewFiles = false;
     constructor(
         private exerciseService: ExerciseModificationService,
         public snippetService: SnippetService,
@@ -168,17 +168,12 @@ implements OnInit, AfterViewInit {
         else this.isPreview = true;
     }
 
-    submit() {
+    submit(nextRoute?: string) {
         this.snippetService.closeSnippet();
         if (this.type!.warnings?.type) this.isUnknownTypeModalOpen = true;
         else {
-            if (
-                this.type!.pristine &&
-                this.name!.pristine &&
-                this.content!.pristine &&
-                !this.isModified
-            )
-                this.onSuccess.emit();
+            if (!this.isModified())
+                this.onSuccess.emit(nextRoute);
             else {
                 this.isSubmitted = true;
                 const content = this.updateExercise();
@@ -190,7 +185,7 @@ implements OnInit, AfterViewInit {
                           content
                       );
                 promise
-                    .then(() => this.onSuccess.emit())
+                    .then(() => this.onSuccess.emit(nextRoute))
                     .catch((error) => {
                         const code = getErrorCode(error);
                         if (code === this.IdError) {
@@ -221,6 +216,13 @@ implements OnInit, AfterViewInit {
     }
 
     //#region Validators & filters
+    isModified(): boolean {
+        return this.type!.dirty ||
+        this.name!.dirty ||
+        this.content!.dirty ||
+        this.hasNewFiles;
+    }
+
     private typeValidator() {
         return (control: AbstractControlWarn): ValidationErrors | null => {
             control.warnings =

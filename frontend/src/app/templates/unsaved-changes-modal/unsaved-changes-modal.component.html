@@ -1,0 +1,11 @@
+<app-card-modal [title]="'Niezapisane zmiany'" [open]="open" (onClose)="onCancel.emit()">
+    <section>
+        <p class="has-text-justified">Dokonane zmiany nie zostały zapisane! Czy chcesz je zapisać?</p>
+    </section>
+    <footer>
+        <div class="buttons">
+            <button class="button is-success" (click)="onSubmit.emit()">Zapisz</button>
+            <button class="button is-danger" (click)="onDiscard.emit()">Odrzuć</button>
+        </div>
+    </footer>
+</app-card-modal>

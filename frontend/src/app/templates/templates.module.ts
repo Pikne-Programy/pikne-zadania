@@ -11,6 +11,7 @@ import { HighlightTextareaComponent } from './highlight-textarea/highlight-texta
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SafeHtmlPipe } from './highlight-textarea/safe-html.pipe';
 import { SwitchComponent } from './switch/switch.component';
+import { UnsavedChangesModalComponent } from './unsaved-changes-modal/unsaved-changes-modal.component';
 
 @NgModule({
     imports: [
@@ -28,7 +29,8 @@ import { SwitchComponent } from './switch/switch.component';
         CollapsibleDirective,
         HighlightTextareaComponent,
         SafeHtmlPipe,
-        SwitchComponent
+        SwitchComponent,
+        UnsavedChangesModalComponent
     ],
     exports: [
         PanelComponent,
@@ -37,7 +39,8 @@ import { SwitchComponent } from './switch/switch.component';
         ImagePlaceholderComponent,
         CollapsibleDirective,
         HighlightTextareaComponent,
-        SwitchComponent
+        SwitchComponent,
+        UnsavedChangesModalComponent
     ]
 })
 export class TemplatesModule {}
