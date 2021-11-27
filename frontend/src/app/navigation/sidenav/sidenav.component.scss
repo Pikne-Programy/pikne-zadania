@@ -1,1 +1,10 @@
+a.navbar-item {
+    &.is-active {
+        color: var(--primary);
+    }
 
+    &:focus-within {
+        color: initial !important;
+        background-color: initial !important;
+    }
+}

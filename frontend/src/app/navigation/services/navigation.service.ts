@@ -1,6 +1,12 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { Params, QueryParamsHandling, Router } from '@angular/router';
+import {
+    NavigationEnd,
+    Params,
+    QueryParamsHandling,
+    Router
+} from '@angular/router';
 import { BehaviorSubject, fromEvent, Subscription } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
 import { Role, RoleGuardService } from 'src/app/guards/role-guard.service';
 import { AccountService } from '../../account/account.service';
 import { ScreenSizes, SIZES } from '../../helper/screen-size.service';
@@ -8,11 +14,18 @@ import { ScreenSizes, SIZES } from '../../helper/screen-size.service';
 type QueryParams = 'relative';
 
 export class MenuElement {
+    isSelected = false;
+
     constructor(
-        public link: string,
         public text: string,
+        private mainLink: string,
+        private secondaryLink?: string,
         private _queryParams?: QueryParams[]
     ) {}
+
+    get link() {
+        return this.mainLink + (this.secondaryLink ?? '');
+    }
 
     getQueryParams(returnUrl?: string): Params | undefined {
         if (this._queryParams && returnUrl)
@@ -23,6 +36,10 @@ export class MenuElement {
 
     get queryParamsHandling(): QueryParamsHandling | undefined {
         return this._queryParams ? 'merge' : undefined;
+    }
+
+    setSelection(currentUrl: string) {
+        this.isSelected = currentUrl.includes(this.mainLink);
     }
 }
 
@@ -73,7 +90,8 @@ export class NavService implements OnDestroy {
 
     private event$: Subscription;
     private account$?: Subscription;
-    constructor(private accountService: AccountService) {
+    private router$: Subscription;
+    constructor(private accountService: AccountService, router: Router) {
         this.accountService.getAccount().then((account) => {
             this.account$ = account.observable.subscribe((val) => {
                 this.menuElements.next(
@@ -83,6 +101,7 @@ export class NavService implements OnDestroy {
                             : teacherElements
                         : menuElements
                 );
+                this.setSelectedMenuElement(router.url);
                 this.buttonElements.next(val ? accountButtons : loginButtons);
             });
         });
@@ -93,11 +112,27 @@ export class NavService implements OnDestroy {
             )
                 this.toggleSidenav();
         });
+
+        this.setSelectedMenuElement(router.url);
+        this.router$ = router.events
+            .pipe(
+                filter((event) => event instanceof NavigationEnd),
+                map((event) => event as NavigationEnd)
+            )
+            .subscribe((event) => {
+                this.setSelectedMenuElement(event.urlAfterRedirects);
+            });
+    }
+
+    setSelectedMenuElement(url: string) {
+        const menu = this.menuElements.getValue();
+        for (const menuElement of menu) menuElement.setSelection(url);
     }
 
     ngOnDestroy() {
         this.account$?.unsubscribe();
         this.event$.unsubscribe();
+        this.router$.unsubscribe();
         this.sideNavOpened.complete();
         this.showTabs.complete();
         this.buttonElements.complete();
@@ -109,20 +144,20 @@ export class NavService implements OnDestroy {
 }
 
 const menuElements: MenuElement[] = [
-    new MenuElement('/public-exercises', 'Baza zadań'),
-    new MenuElement('/about', 'O projekcie', ['relative'])
+    new MenuElement('Baza zadań', '/public-exercises'),
+    new MenuElement('O projekcie', '/about', undefined, ['relative'])
 ];
 const userElements: MenuElement[] = [
-    new MenuElement('/public-exercises', 'Baza zadań'),
+    new MenuElement('Baza zadań', '/public-exercises'),
     // ['/user/achievements', 'Osiągnięcia'], //TODO Add when ready
-    new MenuElement('/about', 'O projekcie', ['relative'])
+    new MenuElement('O projekcie', '/about', undefined, ['relative'])
 ];
 const teacherElements: MenuElement[] = [
-    new MenuElement('/public-exercises', 'Baza zadań'),
-    new MenuElement('/subject/list', 'Moje zadania'),
-    new MenuElement('/user/teams', 'Klasy'),
+    new MenuElement('Baza zadań', '/public-exercises'),
+    new MenuElement('Moje zadania', '/subject', '/list'),
+    new MenuElement('Klasy', '/user/teams'),
     // ['/user/achievements', 'Osiągnięcia'], //TODO Add when ready
-    new MenuElement('/about', 'O projekcie', ['relative'])
+    new MenuElement('O projekcie', '/about', undefined, ['relative'])
 ];
 
 const loginButtons: ButtonElement[] = [

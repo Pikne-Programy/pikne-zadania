@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars, @typescript-eslint/no-unused-vars */
 
 import { TestBed, inject } from '@angular/core/testing';
-import { QueryParamsHandling, Router, Routes } from '@angular/router';
+import { QueryParamsHandling, Route, Router, Routes } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { BehaviorSubject } from 'rxjs';
 import {
@@ -14,7 +14,6 @@ import {
     setAsyncTimeout,
     TestComponent
 } from 'src/app/helper/tests/tests.utils';
-import { ObjectType } from 'src/app/helper/utils';
 import {
     ButtonElement,
     ButtonElements,
@@ -27,16 +26,34 @@ import {
 
 describe('Service: Navigation', () => {
     describe('MenuElement', () => {
-        const link = '/route1';
         const text = 'Test';
+        const link = '/route1';
+        const secondaryLink = '/route2';
         type QueryParams = 'relative';
         const queryParams: QueryParams[] = ['relative'];
+
+        describe('getLink', () => {
+            it('should return correct link', () => {
+                expect(new MenuElement(text, link).link)
+                    .withContext('Only main link')
+                    .toBe(link);
+
+                expect(new MenuElement(text, link, secondaryLink).link)
+                    .withContext('Has secondary link')
+                    .toBe(link + secondaryLink);
+            });
+        });
 
         describe('getQueryParams', () => {
             const returnUrl = '/route2';
 
             it('should return param object (returnUrl)', () => {
-                const element = new MenuElement(link, text, queryParams);
+                const element = new MenuElement(
+                    text,
+                    link,
+                    undefined,
+                    queryParams
+                );
                 expect(element.getQueryParams(returnUrl)).toEqual({
                     returnUrl
                 });
@@ -44,8 +61,11 @@ describe('Service: Navigation', () => {
 
             it('should return undefined (no query params)', () => {
                 const list: [string, MenuElement][] = [
-                    ['no query params', new MenuElement(link, text)],
-                    ['empty query params', new MenuElement(link, text, [])]
+                    ['no query params', new MenuElement(text, link)],
+                    [
+                        'empty query params',
+                        new MenuElement(link, text, undefined, [])
+                    ]
                 ];
                 for (const [context, element] of list) {
                     expect(element.getQueryParams(returnUrl))
@@ -55,7 +75,12 @@ describe('Service: Navigation', () => {
             });
 
             it('should return undefined (no return url)', () => {
-                const element = new MenuElement(link, text, queryParams);
+                const element = new MenuElement(
+                    text,
+                    link,
+                    undefined,
+                    queryParams
+                );
                 expect(element.getQueryParams()).toBeUndefined();
             });
         });
@@ -64,13 +89,40 @@ describe('Service: Navigation', () => {
             const handling = 'merge';
 
             it('should return handling', () => {
-                const element = new MenuElement(link, text, queryParams);
+                const element = new MenuElement(
+                    text,
+                    link,
+                    undefined,
+                    queryParams
+                );
                 expect(element.queryParamsHandling).toBe(handling);
             });
 
             it('should return undefined', () => {
-                const element = new MenuElement(link, text);
+                const element = new MenuElement(text, link);
                 expect(element.queryParamsHandling).toBeUndefined();
+            });
+        });
+
+        describe('setSelection', () => {
+            it('should set selection accordingly', () => {
+                const elementList: [MenuElement, boolean][] = [
+                    [new MenuElement(text, link), false],
+                    [new MenuElement(text, link, secondaryLink), true]
+                ];
+                for (const [element, hasSecondaryLink] of elementList) {
+                    const list: [string, string, boolean][] = [
+                        ['Exact match', link, true],
+                        ['Deeper route', link + secondaryLink, true],
+                        ['Unknown route', '/undefined', false]
+                    ];
+                    for (const [context, url, result] of list) {
+                        element.setSelection(url);
+                        expect(element.isSelected)
+                            .withContext(context + (hasSecondaryLink ? ' (w/ secondaryLink)' : ''))
+                            .toBe(result);
+                    }
+                }
             });
         });
     });
@@ -239,25 +291,47 @@ describe('Service: Navigation', () => {
     });
 
     describe('Service', () => {
+        //#region Mock objects
         const accountServiceMock = {
             getAccount: () => Promise.resolve({}),
             logout: () => {}
         };
+        let accountServiceSpy: jasmine.Spy;
         let account$: AccountReturnType | undefined;
+        const routeList = ['/public-exercises', '/subject', '/user', '/teams'];
+        const routes: Route[] = [];
+        for (const route of routeList) {
+            routes.push({
+                path: route.substring(1),
+                component: TestComponent
+            });
+        }
+        const undefinedRoute = '/undefined';
+        routes.push({
+            path: undefinedRoute.substring(1),
+            component: TestComponent
+        });
+        //#endregion
 
-        beforeEach(() => {
+        beforeEach(async () => {
             TestBed.configureTestingModule({
+                imports: [RouterTestingModule.withRoutes(routes)],
                 providers: [
                     NavService,
                     { provide: AccountService, useValue: accountServiceMock }
                 ]
             });
+            const router = TestBed.inject(Router);
+            router.initialNavigation();
+            await router.navigateByUrl(routeList[0]);
+
             account$ = {
                 observable: new BehaviorSubject(null)
             } as any;
-            spyOn(TestBed.inject(AccountService), 'getAccount').and.returnValue(
-                Promise.resolve(account$!)
-            );
+            accountServiceSpy = spyOn(
+                accountServiceMock,
+                'getAccount'
+            ).and.returnValue(Promise.resolve(account$!));
         });
 
         afterEach(() => {
@@ -267,7 +341,7 @@ describe('Service: Navigation', () => {
 
         describe('Menu & Button elements', () => {
             it('should display default elements on start', inject(
-                [NavService, AccountService],
+                [NavService, AccountService, Router],
                 (service: NavService) => {
                     expect(service).toBeTruthy();
 
@@ -281,7 +355,7 @@ describe('Service: Navigation', () => {
             ));
 
             it('should display user-specific elements', inject(
-                [NavService, AccountService],
+                [NavService, AccountService, Router],
                 async (service: NavService) => {
                     expect(service).toBeTruthy();
                     spyOn(RoleGuardService, 'getRole').and.returnValue(
@@ -308,7 +382,7 @@ describe('Service: Navigation', () => {
             ];
             for (const [roleName, role] of list) {
                 it(`should display teacher-specific elements (${roleName})`, inject(
-                    [NavService, AccountService],
+                    [NavService, AccountService, Router],
                     async (service: NavService) => {
                         expect(service).toBeTruthy();
                         spyOn(RoleGuardService, 'getRole').and.returnValue(
@@ -331,7 +405,7 @@ describe('Service: Navigation', () => {
             }
 
             it('should display default elements after logout', inject(
-                [NavService, AccountService],
+                [NavService, AccountService, Router],
                 async (service: NavService) => {
                     expect(service).toBeTruthy();
                     spyOn(RoleGuardService, 'getRole').and.returnValue(
@@ -362,6 +436,106 @@ describe('Service: Navigation', () => {
             ));
         });
 
+        describe('Menu element selection', () => {
+            beforeEach(() => {
+                account$ = {
+                    observable: new BehaviorSubject({})
+                } as any;
+                accountServiceSpy.and.returnValue(Promise.resolve(account$!));
+                spyOn(RoleGuardService, 'getRole').and.returnValue(
+                    Role.TEACHER
+                );
+            });
+
+            afterEach(() => {
+                account$?.observable.complete();
+            });
+
+            it('should have default element selected on start', inject(
+                [NavService, AccountService, Router],
+                async (service: NavService) => {
+                    expect(service).toBeTruthy();
+                    await setAsyncTimeout(20);
+
+                    const selected = service.menuElements
+                        .getValue()
+                        .map((val) => val.isSelected);
+                    expect(selected).toEqual([true, false, false, false]);
+                }
+            ));
+
+            it('should change selected element on navigation', inject(
+                [NavService, AccountService, Router],
+                async (
+                    service: NavService,
+                    _: AccountService,
+                    router: Router
+                ) => {
+                    expect(service).toBeTruthy();
+                    await setAsyncTimeout(20);
+
+                    let selected = service.menuElements
+                        .getValue()
+                        .map((val) => val.isSelected);
+                    expect(selected)
+                        .withContext('Initial state')
+                        .toEqual([true, false, false, false]);
+
+                    await router.navigateByUrl(routeList[1]);
+                    selected = service.menuElements
+                        .getValue()
+                        .map((val) => val.isSelected);
+                    expect(selected)
+                        .withContext('After navigation')
+                        .toEqual([false, true, false, false]);
+                }
+            ));
+
+            it('should have no selected elements', inject(
+                [NavService, AccountService, Router],
+                async (
+                    service: NavService,
+                    _: AccountService,
+                    router: Router
+                ) => {
+                    expect(service).toBeTruthy();
+                    await setAsyncTimeout(20);
+
+                    await router.navigateByUrl(undefinedRoute);
+                    const selected = service.menuElements
+                        .getValue()
+                        .map((val) => val.isSelected);
+                    expect(selected)
+                        .withContext('After navigation')
+                        .toEqual([false, false, false, false]);
+                }
+            ));
+
+            it('should change selected element on user change', inject(
+                [NavService, AccountService, Router],
+                async (service: NavService) => {
+                    expect(service).toBeTruthy();
+                    await setAsyncTimeout(20);
+
+                    let selected = service.menuElements
+                        .getValue()
+                        .map((val) => val.isSelected);
+                    expect(selected)
+                        .withContext('Initial state')
+                        .toEqual([true, false, false, false]);
+
+                    account$!.observable.next(null);
+                    await setAsyncTimeout(20);
+                    selected = service.menuElements
+                        .getValue()
+                        .map((val) => val.isSelected);
+                    expect(selected)
+                        .withContext('After user change')
+                        .toEqual([true, false]);
+                }
+            ));
+        });
+
         describe('toggleSidenav', () => {
             let windowSpy: jasmine.Spy;
             const toggleWidth = SIZES[ScreenSizes.TABLET][1] + 1;
@@ -371,7 +545,7 @@ describe('Service: Navigation', () => {
             });
 
             it('should open navigation drawer', inject(
-                [NavService, AccountService],
+                [NavService, AccountService, Router],
                 (service: NavService) => {
                     expect(service).toBeTruthy();
                     expect(service.sideNavOpened.getValue())
@@ -384,7 +558,7 @@ describe('Service: Navigation', () => {
             ));
 
             it('should close navigation drawer', inject(
-                [NavService, AccountService],
+                [NavService, AccountService, Router],
                 (service: NavService) => {
                     expect(service).toBeTruthy();
                     service.sideNavOpened.next(true);
@@ -398,7 +572,7 @@ describe('Service: Navigation', () => {
             ));
 
             it('should close navigation drawer on resize', inject(
-                [NavService, AccountService],
+                [NavService, AccountService, Router],
                 (service: NavService) => {
                     expect(service).toBeTruthy();
                     service.sideNavOpened.next(true);
@@ -413,7 +587,7 @@ describe('Service: Navigation', () => {
             ));
 
             it('should not close navigation drawer on resize', inject(
-                [NavService, AccountService],
+                [NavService, AccountService, Router],
                 (service: NavService) => {
                     expect(service).toBeTruthy();
                     service.sideNavOpened.next(true);
@@ -428,7 +602,7 @@ describe('Service: Navigation', () => {
             ));
 
             it('should not open navigation drawer on resize', inject(
-                [NavService, AccountService],
+                [NavService, AccountService, Router],
                 (service: NavService) => {
                     expect(service).toBeTruthy();
                     expect(service.sideNavOpened.getValue())

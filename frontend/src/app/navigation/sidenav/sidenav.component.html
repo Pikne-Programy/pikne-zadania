@@ -1,13 +1,16 @@
 <nav class="navbar height-full is-flex is-flex-direction-column" role="navigation" aria-label="main navigation">
-  <div class="navbar-start height-full scrollable">
-    <a *ngFor="let element of menuElements" class="navbar-item has-text-weight-semibold divider-bottom" [routerLink]="element.link" [queryParams]="getQueryParams(element)" [queryParamsHandling]="element.queryParamsHandling" (click)="closeSidenav()">{{ element.text }}</a>
-  </div>
-
-  <div *ngIf="buttonElements && buttonElements.length > 0" class="navbar-end divider-top">
-    <div class="navbar-item">
-      <div class="buttons">
-        <a *ngFor="let button of buttonElements" class="button" [class]="button.classes" (click)="closeSidenav(); execute(button)">{{ button.text }}</a>
-      </div>
+    <div class="navbar-start height-full scrollable">
+        <a *ngFor="let element of menuElements" class="navbar-item has-text-weight-semibold divider-bottom" [class.is-active]="element.isSelected" [routerLink]="element.link" [queryParams]="getQueryParams(element)" [queryParamsHandling]="element.queryParamsHandling" (click)="closeSidenav()">
+            {{ element.text }}
+        </a>
     </div>
-  </div>
+    <!--#region Buttons -->
+    <div *ngIf="buttonElements && buttonElements.length > 0" class="navbar-end divider-top">
+        <div class="navbar-item">
+            <div class="buttons">
+                <a *ngFor="let button of buttonElements" class="button" [class]="button.classes" (click)="closeSidenav(); execute(button)">{{ button.text }}</a>
+            </div>
+        </div>
+    </div>
+    <!--#endregion-->
 </nav>
