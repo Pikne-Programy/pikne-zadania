@@ -4,7 +4,7 @@ a.navbar-item {
     }
 
     &:focus-within {
-        color: initial !important;
-        background-color: initial !important;
+        color: inherit !important;
+        background-color: inherit !important;
     }
 }

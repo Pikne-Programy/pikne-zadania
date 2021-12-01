@@ -15,13 +15,16 @@ type QueryParams = 'relative';
 
 export class MenuElement {
     isSelected = false;
+    private selectionRegex: RegExp;
 
     constructor(
         public text: string,
         private mainLink: string,
         private secondaryLink?: string,
         private _queryParams?: QueryParams[]
-    ) {}
+    ) {
+        this.selectionRegex = new RegExp(`^${mainLink}`);
+    }
 
     get link() {
         return this.mainLink + (this.secondaryLink ?? '');
@@ -39,7 +42,8 @@ export class MenuElement {
     }
 
     setSelection(currentUrl: string) {
-        this.isSelected = currentUrl.includes(this.mainLink);
+        const res = this.selectionRegex.exec(currentUrl);
+        this.isSelected = res !== null && res.length === 1;
     }
 }
 

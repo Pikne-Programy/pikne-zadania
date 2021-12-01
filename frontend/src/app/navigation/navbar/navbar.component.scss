@@ -25,15 +25,17 @@
     &.menu-item {
         padding-bottom: 0.05rem;
     }
-
-    &:focus-within,
-    &:focus-within:not(:hover) {
-        color: initial !important;
-        background-color: initial !important;
-    }
 }
 
-.hero.is-primary a.navbar-item.is-active {
-    color: var(--primary) !important;
-    background-color: var(--background-color) !important;
+.hero.is-primary a.navbar-item {
+    &:focus-within,
+    &:focus-within:not(:hover) {
+        color: inherit !important;
+        background-color: inherit !important;
+    }
+
+    &.is-active {
+        color: var(--primary) !important;
+        background-color: var(--background-color) !important;
+    }
 }
