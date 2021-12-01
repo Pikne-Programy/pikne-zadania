@@ -37,6 +37,7 @@
     --tab-border-color: #dbdbdb;
     --box-shadow-color: #{rgba($scheme-invert, 0.1)};
     --text-color: #{$text};
+    --text-invert-color: white;
     --text-selection-color: lightgrey;
     --expanded-folder-background: whitesmoke;
     --box-background-color: #{$scheme-main};
@@ -44,6 +45,7 @@
         --tooltip-background: #{$background};
         --footer-color: #121212;
         --tab-border-color: #363636;
+        --text-invert-color: black;
         --text-selection-color: #303030;
         --expanded-folder-background: #101010;
     }

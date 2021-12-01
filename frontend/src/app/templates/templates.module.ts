@@ -12,6 +12,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SafeHtmlPipe } from './highlight-textarea/safe-html.pipe';
 import { SwitchComponent } from './switch/switch.component';
 import { UnsavedChangesModalComponent } from './unsaved-changes-modal/unsaved-changes-modal.component';
+import { ImagePreviewComponent } from './image-preview/image-preview.component';
 
 @NgModule({
     imports: [
@@ -30,7 +31,8 @@ import { UnsavedChangesModalComponent } from './unsaved-changes-modal/unsaved-ch
         HighlightTextareaComponent,
         SafeHtmlPipe,
         SwitchComponent,
-        UnsavedChangesModalComponent
+        UnsavedChangesModalComponent,
+        ImagePreviewComponent
     ],
     exports: [
         PanelComponent,
@@ -40,7 +42,8 @@ import { UnsavedChangesModalComponent } from './unsaved-changes-modal/unsaved-ch
         CollapsibleDirective,
         HighlightTextareaComponent,
         SwitchComponent,
-        UnsavedChangesModalComponent
+        UnsavedChangesModalComponent,
+        ImagePreviewComponent
     ]
 })
 export class TemplatesModule {}

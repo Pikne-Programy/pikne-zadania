@@ -6,7 +6,7 @@
             <div *ngFor="let img of images; index as i" class="column img-column">
                 <div class="height-full p-0">
                     <div class="height-full is-flex is-align-items-center is-justify-content-center">
-                        <img [src]="img" (load)="onImageLoaded()" (error)="onImageLoaded()" alt="{{ getImageAlt(i) }}">
+                        <img [src]="img" (load)="onImageLoaded()" (error)="onImageLoaded()" alt="{{ getImageAlt(i) }}" (click)="openImagePreview(img, i)">
                     </div>
                 </div>
             </div>
@@ -56,3 +56,4 @@
         </div>
     </div>
 </section>
+<app-image-preview></app-image-preview>

@@ -1,19 +1,20 @@
 .unknowns-width {
-  min-width: 2em;
+    min-width: 2em;
 }
 
 .hidden {
-  visibility: hidden;
+    visibility: hidden;
 }
 
 .view-loading {
-  display: none;
+    display: none;
 }
 
 .img-column {
-  min-width: 20vw;
+    min-width: 20vw;
 }
 
 img {
-  max-height: 20vh;
+    max-height: 20vh;
+    cursor: pointer;
 }

@@ -26,6 +26,7 @@ import { RoleGuardService } from './guards/role-guard.service';
 import { SubjectService } from './subjects/subject.service/subject.service';
 import { ExerciseModule } from './exercises/exercise.module';
 import { ProgressSaveGuardService } from './guards/progress-save-guard.service';
+import { ImagePreviewService } from './templates/image-preview/service/image-preview.service';
 
 @NgModule({
     declarations: [
@@ -60,7 +61,8 @@ import { ProgressSaveGuardService } from './guards/progress-save-guard.service';
         RoleGuardService,
         ProgressSaveGuardService,
         ScreenSizeService,
-        ThemeService
+        ThemeService,
+        ImagePreviewService
     ],
     bootstrap: [AppComponent]
 })

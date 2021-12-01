@@ -1,0 +1,23 @@
+$hero-size: 56px;
+
+.modal-content {
+    max-height: calc(100vh - 40px - #{$hero-size});
+    margin-top: $hero-size;
+
+    & .image {
+        width: 100%;
+        height: 100%;
+        object-position: center center;
+
+        & img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            color: var(--text-invert-color);
+        }
+    }
+}
+
+.modal-close {
+    margin-top: $hero-size;
+}

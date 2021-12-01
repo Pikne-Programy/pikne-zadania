@@ -1,0 +1,9 @@
+<div class="modal" [class.is-active]="image">
+    <div class="modal-background" (click)="close()"></div>
+    <div class="modal-content">
+        <p class="image">
+            <img *ngIf="image" [src]="image![0]" [alt]="image![1]">
+        </p>
+    </div>
+    <button class="modal-close is-large" aria-label="close" (click)="close()"></button>
+</div>

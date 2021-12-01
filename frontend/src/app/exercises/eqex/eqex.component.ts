@@ -1,4 +1,11 @@
-import { AfterViewInit, Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+    AfterViewInit,
+    Component,
+    EventEmitter,
+    Input,
+    OnDestroy,
+    Output
+} from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { ExerciseService } from 'src/app/exercise-service/exercise.service';
 import {
@@ -9,6 +16,7 @@ import {
 import { serverMockEnabled } from 'src/app/helper/tests/tests.config';
 import { removeMathTabIndex } from 'src/app/helper/utils';
 import { staticFile } from 'src/app/server-routes';
+import { ImagePreviewService } from 'src/app/templates/image-preview/service/image-preview.service';
 import {
     ExerciseComponentType,
     ExerciseInflationService as InflationService,
@@ -58,7 +66,8 @@ class Unknown {
     templateUrl: './eqex.component.html',
     styleUrls: ['./eqex.component.scss']
 })
-export class EqExComponent implements ExerciseComponentType, AfterViewInit {
+export class EqExComponent
+implements ExerciseComponentType, AfterViewInit, OnDestroy {
     @Input() isUser = true;
     @Output() loaded = new BehaviorSubject<number | null>(null);
     @Output() submitButtonState = new EventEmitter<SubmitButtonState>();
@@ -75,7 +84,8 @@ export class EqExComponent implements ExerciseComponentType, AfterViewInit {
 
     constructor(
         private inflationService: InflationService,
-        private exerciseService: ExerciseService
+        private exerciseService: ExerciseService,
+        private imagePreviewService: ImagePreviewService
     ) {
         this.exercise = inflationService.getExercise<EqEx>();
         if (!this.exercise) this.onLoaded(InflationService.InflationError);
@@ -194,5 +204,13 @@ export class EqExComponent implements ExerciseComponentType, AfterViewInit {
             this.inflationService.showAnswers &&
             this.correct !== null
         );
+    }
+
+    openImagePreview(url: string, i: number) {
+        this.imagePreviewService.openPreview(url, this.getImageAlt(i));
+    }
+
+    ngOnDestroy() {
+        this.imagePreviewService.closePreview();
     }
 }
