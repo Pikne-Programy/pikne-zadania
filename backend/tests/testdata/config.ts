@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { IConfigService } from "../../interfaces/mod.ts";
+import { ConfigService } from "../../services/mod.ts";
 import { sha256 } from "../../utils/mod.ts";
 
-export const lazyDefaultConfig: IConfigService = {
+export const lazyDefaultConfig: ConfigService = {
   MONGO_CONF: {
     db: "pikne-zadania--tests",
     url: "mongodb://mongo:27017",

@@ -3,57 +3,81 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { compare, create, getNumericDate, verify } from "../deps.ts";
-import { handleThrown } from "../utils/mod.ts";
 import { CustomDictError } from "../types/mod.ts";
-import { IConfigService, IJWTService, IUserStore } from "../interfaces/mod.ts";
+import { Logger } from "../services/mod.ts";
+import { UserRepository } from "../repositories/mod.ts";
+import { ConfigService } from "./mod.ts";
 
-export class JWTService implements IJWTService {
-  constructor(private cfg: IConfigService, private us: IUserStore) {}
-
-  private payload(login: string) {
-    return {
-      id: login,
-      exp: getNumericDate(this.cfg.JWT_CONF.exp),
-    };
-  }
+export class JWTService {
+  constructor(
+    private config: ConfigService,
+    private userRepository: UserRepository,
+    private logger: Logger
+  ) {}
 
   async create(login: string, hashedPassword: string) {
-    const userId = this.cfg.hash(login);
-    const user = this.us.get(userId);
+    const userId = this.config.hash(login);
+    const user = this.userRepository.get(userId);
+
     if (
-      !await user.exists() ||
-      !await compare(hashedPassword, await user.dhPassword.get())
+      !(
+        (await user.exists()) &&
+        (await user.dhPassword
+          .get()
+          .then((password) => compare(hashedPassword, password)))
+      )
     ) {
       return new CustomDictError("UserCredentialsInvalid", { userId });
     }
-    const payload = this.payload(userId);
-    const conf = this.cfg.JWT_CONF;
-    const jwt = await create(conf.header, payload, conf.key); // throwable
+
+    const { header, key, exp } = this.config.JWT_CONF;
+    const payload = {
+      id: userId,
+      exp: getNumericDate(exp),
+    };
+    const jwt = await create(header, payload, key); // throwable
+
     await user.tokens.add(jwt);
+
     return jwt;
   }
 
   async resolve(jwt?: string) {
     try {
-      if (jwt === undefined) throw undefined;
-      const conf = this.cfg.JWT_CONF;
-      const payload = await verify(jwt, conf.key, conf.header.alg); // TODO: throwable
-      const userId = payload.id;
-      if (typeof userId !== "string") throw undefined;
-      const user = this.us.get(userId);
-      if (!await user.exists() || !await user.tokens.exists(jwt)) {
-        throw undefined;
+      if (jwt === undefined) {
+        throw undefined; //TODO error
       }
+
+      const { header, key } = this.config.JWT_CONF;
+      const userId = await verify(jwt, key, header.alg).then(({ id }) => id); // TODO: throwable
+
+      if (typeof userId !== "string") {
+        throw undefined; //TODO error
+      }
+
+      const user = this.userRepository.get(userId);
+
+      if (!(await user.exists()) || !(await user.tokens.exists(jwt))) {
+        throw undefined; //TODO error
+      }
+
       return userId;
     } catch (e) {
-      if (e !== undefined && this.cfg.VERBOSITY >= 2) handleThrown(e);
+      if (e !== undefined) {
+        this.logger.recogniseAndTrace(e, { customVerbosity: 2 });
+      }
+      
+      return new CustomDictError("JWTNotFound", {});
     }
-    return new CustomDictError("JWTNotFound", {});
   }
 
   async revoke(userId: string, jwt: string) {
-    const user = this.us.get(userId);
-    if (!user.tokens.exists(jwt)) return new CustomDictError("JWTNotFound", {});
+    const user = this.userRepository.get(userId);
+
+    if (!user.tokens.exists(jwt)) {
+      return new CustomDictError("JWTNotFound", {});
+    }
+
     await user.tokens.remove(jwt);
   }
 }

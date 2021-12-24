@@ -9,86 +9,84 @@ import {
   JSONObject,
   JSONType,
 } from "../types/mod.ts";
-import { IExerciseService, IExerciseStore, IUser } from "../interfaces/mod.ts";
+import { User } from "../models/mod.ts";
+import { ExerciseRepository } from "../repositories/mod.ts";
 
-export class ExerciseService implements IExerciseService {
-  constructor(
-    private ex: IExerciseStore,
-  ) {}
+interface RenderResult {
+  type: string;
+  name: string;
+  done: number;
+  problem: JSONObject;
+  correctAnswer: JSONObject;
+}
+
+type UserOrSeed = User | { seed: number };
+export class ExerciseService {
+  constructor(private exerciseRepository: ExerciseRepository) {}
 
   private getExercise(
-    input: { content: string } | { subject: string; exerciseId: string },
+    input: { content: string } | { subject: string; exerciseId: string }
   ): Exercise | CustomDictError<"ExerciseBadFormat" | "ExerciseNotFound"> {
     return "exerciseId" in input
-      ? this.ex.get(input.subject, input.exerciseId)
-      : this.ex.parse(input.content);
+      ? this.exerciseRepository.get(input.subject, input.exerciseId)
+      : this.exerciseRepository.parse(input.content);
   }
-  private async getSeed(user: IUser | { seed: number }) {
-    return typeof user.seed === "number"
-      ? user.seed
-      : await user.seed.get() ?? 0;
+  private getSeed(userOrSeed: UserOrSeed) {
+    return typeof userOrSeed.seed === "number"
+      ? Promise.resolve(userOrSeed.seed)
+      : userOrSeed.seed.get().then((seed) => seed ?? 0);
   }
 
   async render(
     input: { content: string },
-    user: IUser | { seed: number },
-  ): Promise<
-    {
-      type: string;
-      name: string;
-      done: number;
-      problem: JSONObject;
-      correctAnswer: JSONObject;
-    } | CustomDictError<"ExerciseBadFormat">
-  >;
+    userOrSeed: UserOrSeed
+  ): Promise<RenderResult | CustomDictError<"ExerciseBadFormat">>;
   async render(
     input: { subject: string; exerciseId: string },
-    user: IUser | { seed: number },
-  ): Promise<
-    {
-      type: string;
-      name: string;
-      done: number;
-      problem: JSONObject;
-      correctAnswer: JSONObject;
-    } | CustomDictError<"ExerciseNotFound">
-  >;
+    userOrSeed: UserOrSeed
+  ): Promise<RenderResult | CustomDictError<"ExerciseNotFound">>;
   async render(
     input: { content: string } | { subject: string; exerciseId: string },
-    user: IUser | { seed: number },
+    userOrSeed: UserOrSeed
   ): Promise<
-    {
-      type: string;
-      name: string;
-      done: number;
-      problem: JSONObject;
-      correctAnswer: JSONObject;
-    } | CustomDictError<"ExerciseBadFormat" | "ExerciseNotFound">
+    RenderResult | CustomDictError<"ExerciseBadFormat" | "ExerciseNotFound">
   > {
-    const ex = this.getExercise(input);
-    if (ex instanceof CustomDictError) return ex;
-    const seed = await this.getSeed(user);
+    const exercise = this.getExercise(input);
+
+    if (exercise instanceof CustomDictError) {
+      return exercise;
+    }
+
+    const seed = await this.getSeed(userOrSeed);
+
     return {
-      ...ex.render(seed),
+      ...exercise.render(seed),
       done: 0,
-      correctAnswer: ex.getCorrectAnswer(seed),
+      correctAnswer: exercise.getCorrectAnswer(seed),
     };
   }
 
   async check(
     input: { content: string } | { subject: string; exerciseId: string },
     answer: JSONType,
-    user: IUser | { seed: number },
+    user: User | { seed: number }
   ) {
-    const ex = this.getExercise(input);
-    if (ex instanceof CustomDictError) return ex;
-    const r = ex.check(await this.getSeed(user), answer);
+    const exercise = this.getExercise(input);
+
+    if (exercise instanceof CustomDictError) {
+      return exercise;
+    }
+
+    const result = exercise.check(await this.getSeed(user), answer);
+
     if (
-      !(r instanceof CustomDictError) && "exercises" in user &&
+      !(result instanceof CustomDictError) &&
+      "exercises" in user &&
       "exerciseId" in input
     ) {
-      await user.exercises.set(input.exerciseId, r.done);
+      await user.exercises.set(input.exerciseId, result.done);
     }
-    return r;
+
+    return result;
   }
 }

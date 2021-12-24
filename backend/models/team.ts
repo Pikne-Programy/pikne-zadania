@@ -4,69 +4,91 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { TeamType } from "../types/mod.ts";
-import { IDatabaseService, ITeam } from "../interfaces/mod.ts";
+import { Collection } from "../deps.ts";
 
 // TODO: make an abstract Model class
-export class Team implements ITeam {
+export class Team {
   constructor(
-    private db: IDatabaseService,
-    public readonly id: number,
+    private teamsCollection: Collection<TeamType>,
+    public readonly id: number
   ) {}
 
   private async get<T extends keyof TeamType>(key: T): Promise<TeamType[T]> {
-    const team = await this.db.teams!.findOne({ id: this.id });
-    if (!team) throw new Error(); // TODO: error message
+    const team = await this.teamsCollection.findOne({ id: this.id });
+    if (!team) {
+      // TODO: error message
+      throw new Error();
+    }
     return team[key];
   }
+
   private async set<T extends keyof TeamType>(key: T, value: TeamType[T]) {
-    if (!await this.exists()) throw new Error(); // TODO: error message
-    if (value === undefined) {
-      await this.db.teams!.updateOne({ id: this.id }, {
-        $unset: { [key]: "" },
-      });
-    } else {
-      await this.db.teams!.updateOne({ id: this.id }, {
-        $set: { [key]: value },
-      });
+    if (!(await this.exists())) {
+      // TODO: error message
+      throw new Error();
     }
+
+    await this.teamsCollection.updateOne(
+      { id: this.id },
+      value === undefined
+        ? {
+            $unset: { [key]: "" },
+          }
+        : {
+            $set: { [key]: value },
+          }
+    );
   }
 
-  async exists() {
-    return (await this.db.teams!.findOne({ id: this.id })) !== undefined;
+  exists() {
+    return this.teamsCollection.findOne({ id: this.id }).then(Boolean);
   }
 
   readonly name = {
-    get: async () => await this.get("name"),
-    set: async (value: string) => await this.set("name", value),
+    get: () => this.get("name"),
+    set: (value: string) => this.set("name", value),
   };
 
   readonly assignee = {
-    get: async () => await this.get("assignee"),
-    set: async (value: string) => await this.set("assignee", value),
+    get: () => this.get("assignee"),
+    set: (value: string) => this.set("assignee", value),
   };
 
   readonly members = {
     add: async (uid: string) => {
-      await this.db.teams!.updateOne({ id: this.id }, {
-        $push: { members: uid },
-      });
+      await this.teamsCollection.updateOne(
+        { id: this.id },
+        {
+          $push: { members: uid },
+        }
+      );
     },
-    get: async () => await this.get("members"),
+    get: () => this.get("members"),
     remove: async (uid: string) => {
-      await this.db.teams!.updateOne({ id: this.id }, {
-        $pull: { members: uid },
-      });
+      await this.teamsCollection.updateOne(
+        { id: this.id },
+        {
+          $pull: { members: uid },
+        }
+      );
     },
   };
 
   readonly invitation = {
-    get: async () => await this.get("invitation"),
+    get: () => this.get("invitation"),
     set: async (invitation?: string) => {
-      if (invitation === undefined) await this.set("invitation", undefined);
-      else {
-        const existing = (await this.db.teams!.findOne({ invitation }))?.id;
+      if (invitation === undefined) {
+        await this.set("invitation", undefined);
+      } else {
+        const existing = await this.teamsCollection
+          .findOne({ invitation })
+          .then((team) => team?.id);
+
         // * assuming there were no two teams with same id; `findOne` not `find`
-        if (existing !== undefined && existing !== this.id) return false;
+        if (existing !== undefined && existing !== this.id) {
+          return false;
+        }
+
         await this.set("invitation", invitation);
       }
       return true;

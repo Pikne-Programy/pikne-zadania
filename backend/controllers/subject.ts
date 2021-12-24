@@ -4,259 +4,318 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { httpErrors, Router, RouterContext, send, vs } from "../deps.ts";
-import {
-  followSchema,
-  generateSeed,
-  joinThrowable,
-  translateErrors,
-} from "../utils/mod.ts";
+import { generateSeed, joinThrowable, translateErrors } from "../utils/mod.ts";
 import {
   CustomDictError,
   isSubSection,
   schemas,
   Section,
 } from "../types/mod.ts";
+import { User } from "../models/mod.ts";
+import { ExerciseService, ConfigService } from "../services/mod.ts";
 import {
-  IConfigService,
-  IExerciseService,
-  IExerciseStore,
-  IJWTService,
-  ISubjectStore,
-  IUser,
-  IUserStore,
-} from "../interfaces/mod.ts";
-import { Authorizer } from "./mod.ts";
+  UserRepository,
+  SubjectRepository,
+  ExerciseRepository,
+} from "../repositories/mod.ts";
+import { IAuthorizer } from "./mod.ts";
+import { ValidatorMiddleware } from "../middlewares/mod.ts";
 
-export class SubjectController extends Authorizer {
-  constructor(
-    protected cfg: IConfigService,
-    protected jwt: IJWTService,
-    protected us: IUserStore,
-    protected ss: ISubjectStore,
-    protected es: IExerciseStore,
-    protected ex: IExerciseService,
-  ) {
-    super(jwt, us);
-  }
-
+export function SubjectController(
+  authorize: IAuthorizer,
+  config: ConfigService,
+  userRepository: UserRepository,
+  subjectRepository: SubjectRepository,
+  excerciseRepository: ExerciseRepository,
+  exerciseService: ExerciseService
+) {
   /** check if the subject `s` exists and the user is an assignee of it */
-  private async isAssigneeOf(s: string, user?: IUser) {
-    if (user === undefined) return false;
-    const subject = this.ss.get(s);
-    if (!await subject.exists()) return false;
-    if (await user.role.get() === "admin") return true;
+  async function isAssigneeOf(s: string, user?: User) {
+    if (user === undefined) {
+      return false;
+    }
+    const subject = subjectRepository.get(s);
+
+    if (!(await subject.exists())) {
+      return false;
+    }
+    if ((await user.role.get()) === "admin") {
+      return true;
+    }
     const assignees = await subject.assignees.get();
-    if (assignees !== null && assignees.includes(user.id)) return true;
-    return await user.role.get() === "teacher" && assignees === null; // TODO: user.isTeacher
+
+    if (assignees !== null && assignees.includes(user.id)) {
+      return true;
+    }
+    return (await user.role.get()) === "teacher" && assignees === null; // TODO: user.isTeacher
   }
 
   /** check if the subject would be visible for the User */
-  private async isPermittedToView(s: string, user?: IUser) {
-    if (!/^_/.test(s)) return true; // if exercise is public
-    if (await user?.role.get() === "admin") return true;
-    return await this.isAssigneeOf(s, user);
+  async function isPermittedToView(s: string, user?: User) {
+    return !/^_/.test(s) || (await user?.role.get()) === "admin"
+      ? true
+      : isAssigneeOf(s, user);
   }
 
-  async list(ctx: RouterContext) {
-    const user = await this.authorize(ctx, false); //! A
-    const allSubjects = this.es.listSubjects();
+  async function list(ctx: RouterContext) {
+    const user = await authorize(ctx, false); //! A
+    const allSubjects = excerciseRepository.listSubjects();
     const selection = await Promise.all(
-      allSubjects.map((s) => this.isPermittedToView(s, user)),
+      allSubjects.map((s) => isPermittedToView(s, user))
     );
     const subjects = allSubjects.filter((_, i) => selection[i]); //! P
+
     ctx.response.body = { subjects };
     ctx.response.status = 200; //! D
   }
 
-  async create(ctx: RouterContext) {
-    const user = await this.authorize(ctx); //! A
-    const { subject, assignees } = await followSchema(ctx, {
+  const create = ValidatorMiddleware(
+    {
       subject: schemas.exercise.subject,
       assignees: schemas.subject.assignees,
-    }); //! R
-    if (!["teacher", "admin"].includes(await user.role.get())) { // TODO: isTeacher
-      throw new httpErrors["Forbidden"]();
-    } //! P
-    translateErrors(await this.ss.add(subject, assignees)); //! EVO // TODO: V - all assignees exist?
-    ctx.response.status = 200; //! D
-  }
+    },
+    async (ctx: RouterContext, { subject, assignees }) => {
+      const user = await authorize(ctx); //! A
 
-  async info(ctx: RouterContext) {
-    const user = await this.authorize(ctx); //! A
-    const { subject } = await followSchema(ctx, {
-      subject: schemas.exercise.subject,
-    }); //! R
-    if (
-      !["teacher", "admin"].includes(await user.role.get()) || // is not teacher // TODO: isTeacher
-      !await this.isPermittedToView(subject, user) // or is not permitted
-    ) {
-      throw new httpErrors["Forbidden"]();
-    } //! P
-    if (!await this.ss.get(subject).exists()) {
-      throw new httpErrors["NotFound"](); //! E
+      if (!["teacher", "admin"].includes(await user.role.get())) {
+        // TODO: isTeacher
+        throw new httpErrors["Forbidden"]();
+      } //! P
+
+      translateErrors(await subjectRepository.add(subject, assignees)); //! EVO // TODO: V - all assignees exist?
+
+      ctx.response.status = 200; //! D
     }
-    const raw = await this.ss.get(subject).assignees.get();
-    const assignees = raw === null // TODO: rework
-      ? null
-      : await Promise.all(raw.map(async (u) => ({
-        userId: u,
-        name: await this.us.get(u).name.get(),
-      })));
-    ctx.response.body = { assignees };
-    ctx.response.status = 200; //! D
-  }
+  );
 
-  async permit(ctx: RouterContext) {
-    const user = await this.authorize(ctx); //! A
-    const { subject, assignees } = await followSchema(ctx, {
+  const info = ValidatorMiddleware(
+    {
+      subject: schemas.exercise.subject,
+    },
+    async (ctx: RouterContext, { subject }) => {
+      const user = await authorize(ctx); //! A
+
+      if (
+        !["teacher", "admin"].includes(await user.role.get()) || // is not teacher // TODO: isTeacher
+        !(await isPermittedToView(subject, user)) // or is not permitted
+      ) {
+        throw new httpErrors["Forbidden"]();
+      } //! P
+
+      if (!(await subjectRepository.get(subject).exists())) {
+        throw new httpErrors["NotFound"](); //! E
+      }
+
+      const rawAssignees = await subjectRepository.get(subject).assignees.get();
+      const assignees =
+        rawAssignees === null // TODO: rework
+          ? null
+          : await Promise.all(
+              rawAssignees.map(async (userId) => ({
+                userId,
+                name: await userRepository.get(userId).name.get(),
+              }))
+            );
+
+      ctx.response.body = { assignees };
+      ctx.response.status = 200; //! D
+    }
+  );
+
+  const permit = ValidatorMiddleware(
+    {
       subject: schemas.exercise.subject,
       assignees: schemas.subject.assignees,
-    }); //! R
-    if (!await this.isAssigneeOf(subject, user)) {
-      throw new httpErrors["Forbidden"]();
-    } //! P
-    if (!this.ss.get(subject).exists()) throw new httpErrors["NotFound"](); //! E
-    // TODO: V
-    await this.ss.get(subject).assignees.set(assignees); //! O
-    ctx.response.status = 200; //! D
-  }
-
-  readonly problem = {
-    parent: this,
-
-    async getSeed(ctx: RouterContext, seed: number | null, user?: IUser) {
-      if (user !== undefined) {
-        return seed !== null &&
-            ["teacher", "admin"].includes(await user.role.get()) // TODO: isTeacher
-          ? { seed }
-          : user;
-      }
-      const s = ctx.cookies.get("seed") ?? `${generateSeed()}`;
-      ctx.cookies.set("seed", s, { maxAge: this.parent.cfg.SEED_AGE });
-      return { seed: +s };
     },
+    async (ctx: RouterContext, { subject, assignees }) => {
+      const user = await authorize(ctx); //! A
 
-    async get(ctx: RouterContext) {
-      const user = await this.parent.authorize(ctx, false); //! A
-      const { subject, exerciseId, seed } = await followSchema(ctx, {
-        subject: schemas.exercise.subject,
-        exerciseId: schemas.exercise.id,
-        seed: schemas.user.seedOptional,
-      }); //! R
-      if (!await this.parent.isPermittedToView(subject, user)) {
+      if (!(await isAssigneeOf(subject, user))) {
         throw new httpErrors["Forbidden"]();
       } //! P
-      const parsed = translateErrors(
-        await this.parent.ex.render(
-          { subject, exerciseId },
-          await this.getSeed(ctx, seed, user),
-        ),
-      ); //! EO
-      if (!this.parent.isAssigneeOf(subject, user)) {
-        const parsedCensored: Omit<typeof parsed, "correctAnswer"> & {
-          correctAnswer?: unknown;
-        } = parsed;
-        delete parsedCensored["correctAnswer"];
-        ctx.response.body = parsedCensored;
-      } else ctx.response.body = parsed;
-      ctx.response.status = 200; //! D
-    },
 
-    async update(ctx: RouterContext) {
-      const user = await this.parent.authorize(ctx, false); //! A
-      const { subject, exerciseId, answer } = await followSchema(ctx, {
-        subject: schemas.exercise.subject,
-        exerciseId: schemas.exercise.id,
-        answer: schemas.exercise.answer,
-      }); //! R
-      if (!await this.parent.isPermittedToView(subject, user)) {
-        throw new httpErrors["Forbidden"]();
-      } //! P
-      const { info } = translateErrors(
-        await this.parent.ex.check(
-          { subject, exerciseId },
-          answer,
-          await this.getSeed(ctx, null, user),
-        ),
-      ); //! EVO
-      ctx.response.body = { info }; // ? done, correctAnswer ?
-      ctx.response.status = 200; //! D
-    },
-  };
-
-  readonly static = {
-    parent: this,
-
-    async get(ctx: RouterContext) {
-      const user = await this.parent.authorize(ctx, false); //! A
-      const { subject, filename } = ctx.params;
-      if (!subject || !filename) throw new Error("never"); //! R
-      if (!await this.parent.isPermittedToView(subject, user)) {
-        throw new httpErrors["Forbidden"]();
-      } //! P
-      await send(ctx, filename, {
-        root: this.parent.es.getStaticContentPath(subject),
-      }); // there's a problem with no permission to element
-      //! ED // TODO: check if it works
-    },
-
-    async put(ctx: RouterContext) {
-      const user = await this.parent.authorize(ctx); //! A
-      const { subject, filename } = ctx.params;
-      if (!subject || !filename) throw new Error("never"); //! R
-      if (!await this.parent.isAssigneeOf(subject, user)) {
-        throw new httpErrors["Forbidden"]();
-      } //! P
-      let content: Uint8Array;
-      try {
-        const maxSize = 100 * 2 ** 20; // 100 MiB  // TODO: move to config
-        const body = await ctx.request.body({ type: "form-data" }).value.read({
-          maxFileSize: maxSize,
-          maxSize,
-        });
-        if (body.files === undefined || body.files.length != 1) throw "";
-        if (body.files[0].content === undefined) throw "";
-        content = body.files[0].content;
-      } catch (_) {
-        throw new httpErrors["BadRequest"]();
-      } //! R -- resource-intensive
-      Deno.writeFile( // TODO: move to the service
-        joinThrowable(this.parent.es.getStaticContentPath(subject), filename),
-        content,
-        { mode: 0o2664 },
-      ); //! O
-      ctx.response.status = 200; //! D
-    },
-  };
-
-  readonly hierarchy = {
-    parent: this,
-
-    async get(ctx: RouterContext) {
-      const user = await this.parent.authorize(ctx, false); //! A
-      const req = await followSchema(ctx, {
-        subject: schemas.exercise.subject,
-        raw: vs.boolean({ strictType: true }),
-      }); //! R
-      if (!this.parent.es.listSubjects().includes(req.subject)) {
+      if (!subjectRepository.get(subject).exists()) {
         throw new httpErrors["NotFound"]();
       } //! E
+      // TODO: V
+
+      await subjectRepository.get(subject).assignees.set(assignees); //! O
+
+      ctx.response.status = 200; //! D
+    }
+  );
+
+  const problemGetSeed = async (
+    ctx: RouterContext,
+    seed: number | null,
+    user?: User
+  ) => {
+    if (user !== undefined) {
+      return seed !== null &&
+        ["teacher", "admin"].includes(await user.role.get()) // TODO: isTeacher
+        ? { seed }
+        : user;
+    }
+
+    const _seed = ctx.cookies.get("seed") ?? `${generateSeed()}`;
+
+    ctx.cookies.set("seed", _seed, { maxAge: config.SEED_AGE });
+
+    return { seed: +_seed };
+  };
+
+  const getProblem = ValidatorMiddleware(
+    {
+      subject: schemas.exercise.subject,
+      exerciseId: schemas.exercise.id,
+      seed: schemas.user.seedOptional,
+    },
+    async (ctx: RouterContext, { subject, exerciseId, seed }) => {
+      const user = await authorize(ctx, false); //! A
+
+      if (!(await isPermittedToView(subject, user))) {
+        throw new httpErrors["Forbidden"]();
+      } //! P
+
+      const parsed = translateErrors(
+        await exerciseService.render(
+          { subject, exerciseId },
+          await problemGetSeed(ctx, seed, user)
+        )
+      ); //! EO
+
+      if (!isAssigneeOf(subject, user)) {
+        const { correctAnswer: _correctAnswer, ...parsedCensored } = parsed;
+
+        ctx.response.body = parsedCensored;
+      } else {
+        ctx.response.body = parsed;
+      }
+      ctx.response.status = 200; //! D
+    }
+  );
+
+  const updateProblem = ValidatorMiddleware(
+    {
+      subject: schemas.exercise.subject,
+      exerciseId: schemas.exercise.id,
+      answer: schemas.exercise.answer,
+    },
+    async (ctx: RouterContext, { subject, exerciseId, answer }) => {
+      const user = await authorize(ctx, false); //! A
+
+      if (!(await isPermittedToView(subject, user))) {
+        throw new httpErrors["Forbidden"]();
+      } //! P
+
+      const { info } = translateErrors(
+        await exerciseService.check(
+          { subject, exerciseId },
+          answer,
+          await problemGetSeed(ctx, null, user)
+        )
+      ); //! EVO
+
+      ctx.response.body = { info }; // ? done, correctAnswer ?
+      ctx.response.status = 200; //! D
+    }
+  );
+
+  const getStatic = async (ctx: RouterContext) => {
+    const user = await authorize(ctx, false); //! A
+    const { subject, filename } = ctx.params;
+
+    if (!subject || !filename) {
+      throw new Error("never");
+    } //! R
+    if (!(await isPermittedToView(subject, user))) {
+      throw new httpErrors["Forbidden"]();
+    } //! P
+
+    await send(ctx, filename, {
+      root: excerciseRepository.getStaticContentPath(subject),
+    }); // there's a problem with no permission to element
+    //! ED // TODO: check if it works
+  };
+
+  const putStatic = async (ctx: RouterContext) => {
+    const user = await authorize(ctx); //! A
+    const { subject, filename } = ctx.params;
+
+    if (!subject || !filename) {
+      throw new Error("never");
+    } //! R
+    if (!(await isAssigneeOf(subject, user))) {
+      throw new httpErrors["Forbidden"]();
+    } //! P
+
+    try {
+      const maxSize = 100 * 2 ** 20; // 100 MiB  // TODO: move to config
+      const body = await ctx.request.body({ type: "form-data" }).value.read({
+        maxFileSize: maxSize,
+        maxSize,
+      });
+
+      if (
+        body.files === undefined ||
+        body.files.length != 1 ||
+        body.files[0].content === undefined
+      ) {
+        throw "";
+      }
+
+      const { content } = body.files[0];
+
+      Deno.writeFile(
+        // TODO: move to the service
+        joinThrowable(
+          excerciseRepository.getStaticContentPath(subject),
+          filename
+        ),
+        content,
+        { mode: 0o2664 }
+      ); //! O
+
+      ctx.response.status = 200; //! D
+    } catch {
+      throw new httpErrors["BadRequest"]();
+    } //! R -- resource-intensive
+  };
+
+  const getHierarchy = ValidatorMiddleware(
+    {
+      subject: schemas.exercise.subject,
+      raw: vs.boolean({ strictType: true }),
+    },
+    async (ctx: RouterContext, req) => {
+      const user = await authorize(ctx, false); //! A
+
+      if (!excerciseRepository.listSubjects().includes(req.subject)) {
+        throw new httpErrors["NotFound"]();
+      } //! E
+
       const iterateSection = async (section: Section[]) => {
         const sectionArray: unknown[] = [];
+
         for (const el of section) {
           if (!isSubSection(el)) {
-            const exercise = this.parent.es.get(req.subject, el.children);
-            if (exercise instanceof Error) continue; // ignore not existing exercises
+            const exercise = excerciseRepository.get(req.subject, el.children);
+
+            if (exercise instanceof Error) {
+              continue; // ignore not existing exercises
+            }
+
             sectionArray.push({
               name: exercise.name,
               children: el.children,
               type: req.raw ? undefined : exercise.type,
               description: req.raw ? undefined : exercise.description,
-              done: (req.raw || user === undefined)
-                ? undefined
-                : await user.exercises.get(
-                  this.parent.es.uid(req.subject, el.children),
-                ) ?? null,
+              done:
+                req.raw || user === undefined
+                  ? undefined
+                  : (await user.exercises.get(
+                      excerciseRepository.uid(req.subject, el.children)
+                    )) ?? null,
             });
           } else {
             sectionArray.push({
@@ -265,66 +324,84 @@ export class SubjectController extends Authorizer {
             });
           }
         }
+
         return sectionArray;
       };
+
       ctx.response.body = [
-        ...(await this.parent.isAssigneeOf(req.subject, user) && !req.raw
-          ? [{
-            name: "",
-            children: this.parent.es.unlisted(req.subject).get().flatMap(
-              (x) => {
-                const exercise = this.parent.es.get(req.subject, x);
-                if (exercise instanceof Error) return []; // ignore not existing exercises
-                return {
-                  name: exercise.name,
-                  children: x,
-                  type: exercise.type,
-                  description: exercise.description,
-                  done: null,
-                };
-              },
-            ),
-          }]
-          : []),
-        ...await iterateSection(this.parent.es.structure(req.subject).get()),
-      ];
+        (await isAssigneeOf(req.subject, user)) &&
+          !req.raw && [
+            {
+              name: "",
+              children: excerciseRepository
+                .unlisted(req.subject)
+                .get()
+                .flatMap((x) => {
+                  const exercise = excerciseRepository.get(req.subject, x);
+                  if (exercise instanceof Error) return []; // ignore not existing exercises
+                  return {
+                    name: exercise.name,
+                    children: x,
+                    type: exercise.type,
+                    description: exercise.description,
+                    done: null,
+                  };
+                }),
+            },
+          ],
+        ...(await iterateSection(
+          excerciseRepository.structure(req.subject).get()
+        )),
+      ].filter(Boolean);
+
       ctx.response.status = 200;
       //! D
-    },
+    }
+  );
 
-    async set(ctx: RouterContext) {
-      const user = await this.parent.authorize(ctx); //! A
-      const req = await followSchema(ctx, {
-        subject: schemas.exercise.subject,
-        hierarchy: schemas.exercise.hierarchy,
-      }); //! R
-      if (!await this.parent.isAssigneeOf(req.subject, user)) {
+  const setHierarchy = ValidatorMiddleware(
+    {
+      subject: schemas.exercise.subject,
+      hierarchy: schemas.exercise.hierarchy,
+    },
+    async (ctx: RouterContext, { subject, hierarchy }) => {
+      const user = await authorize(ctx); //! A
+
+      if (!(await isAssigneeOf(subject, user))) {
         throw new httpErrors["Forbidden"]();
       } //! P
-      if (!this.parent.es.listSubjects().includes(req.subject)) {
+
+      if (!excerciseRepository.listSubjects().includes(subject)) {
         throw new httpErrors["NotFound"]();
       } //! E
-      this.parent.es.structure(req.subject).set(req.hierarchy); //! O // TODO V what i exercise doesn't exist
+
+      excerciseRepository.structure(subject).set(hierarchy); //! O // TODO V what i exercise doesn't exist
       ctx.response.status = 200;
       //! D
+    }
+  );
+
+  const listExercise = ValidatorMiddleware(
+    {
+      subject: schemas.exercise.subject,
     },
-  };
+    async (ctx: RouterContext, { subject }) => {
+      const user = await authorize(ctx); //! A -- the Unauthorized shouldn't see exercises not listed in hierarchy
 
-  readonly exercise = {
-    parent: this,
-
-    async list(ctx: RouterContext) {
-      const user = await this.parent.authorize(ctx); //! A -- the Unauthorized shouldn't see exercises not listed in hierarchy
-      const { subject } = await followSchema(ctx, {
-        subject: schemas.exercise.subject,
-      }); //! R
-      if (!await this.parent.isPermittedToView(subject, user)) {
+      if (!(await isPermittedToView(subject, user))) {
         throw new httpErrors["Forbidden"]();
       } //! P
-      const exercises = translateErrors(this.parent.es.listExercises(subject)) //! E // TODO: check if all exercises are listed after refactor
+
+      const exercises = translateErrors(
+        excerciseRepository.listExercises(subject)
+      ) //! E // TODO: check if all exercises are listed after refactor
         .map((id) => {
-          const ex = this.parent.es.get(subject, id);
-          if (ex instanceof CustomDictError) throw new Error("never");
+          const ex = excerciseRepository.get(subject, id);
+
+          if (ex instanceof CustomDictError) {
+            throw new Error("never");
+          }
+
           return {
             id,
             type: ex.type,
@@ -332,107 +409,125 @@ export class SubjectController extends Authorizer {
             description: ex.description,
           };
         });
+
       ctx.response.body = { exercises };
       ctx.response.status = 200; //! D
+    }
+  );
+  const addExercise = ValidatorMiddleware(
+    {
+      subject: schemas.exercise.subject,
+      exerciseId: schemas.exercise.id,
+      content: schemas.exercise.content,
     },
+    async (ctx: RouterContext, { subject, exerciseId, content }) => {
+      const user = await authorize(ctx); //! A
 
-    async add(ctx: RouterContext) {
-      const user = await this.parent.authorize(ctx); //! A
-      const { subject, exerciseId, content } = await followSchema(ctx, {
-        subject: schemas.exercise.subject,
-        exerciseId: schemas.exercise.id,
-        content: schemas.exercise.content,
-      }); //! R
-      if (!await this.parent.isAssigneeOf(subject, user)) {
+      if (!(await isAssigneeOf(subject, user))) {
         throw new httpErrors["Forbidden"]();
       } //! P
-      translateErrors(this.parent.es.add(subject, exerciseId, content)); //! EVO
+
+      translateErrors(excerciseRepository.add(subject, exerciseId, content)); //! EVO
+
       ctx.response.status = 200; //! D
-    },
+    }
+  );
 
-    async get(ctx: RouterContext) {
-      const user = await this.parent.authorize(ctx); //! A
-      const { subject, exerciseId } = await followSchema(ctx, {
-        subject: schemas.exercise.subject,
-        exerciseId: schemas.exercise.id,
-      }); //! R
-      if (!await this.parent.isAssigneeOf(subject, user)) {
+  const getExercise = ValidatorMiddleware(
+    {
+      subject: schemas.exercise.subject,
+      exerciseId: schemas.exercise.id,
+    },
+    async (ctx: RouterContext, { subject, exerciseId }) => {
+      const user = await authorize(ctx); //! A
+
+      if (!(await isAssigneeOf(subject, user))) {
         throw new httpErrors["Forbidden"]();
       } //! P
-      const content = this.parent.es.getContent(subject, exerciseId);
+
+      const content = excerciseRepository.getContent(subject, exerciseId);
+
       if (content instanceof CustomDictError) {
         throw new httpErrors["NotFound"]();
       } //! E
+
       ctx.response.body = { content };
       ctx.response.status = 200; //! D
-    },
+    }
+  );
 
-    async update(ctx: RouterContext) {
-      const user = await this.parent.authorize(ctx); //! A
-      const { subject, exerciseId, content } = await followSchema(ctx, {
-        subject: schemas.exercise.subject,
-        exerciseId: schemas.exercise.id,
-        content: schemas.exercise.content,
-      }); //! R
-      if (!await this.parent.isAssigneeOf(subject, user)) {
+  const updateExercise = ValidatorMiddleware(
+    {
+      subject: schemas.exercise.subject,
+      exerciseId: schemas.exercise.id,
+      content: schemas.exercise.content,
+    },
+    async (ctx: RouterContext, { subject, exerciseId, content }) => {
+      const user = await authorize(ctx); //! A
+
+      if (!(await isAssigneeOf(subject, user))) {
         throw new httpErrors["Forbidden"]();
       } //! P
-      translateErrors(this.parent.es.update(subject, exerciseId, content)); //! EVO
-      ctx.response.status = 200; //! D
-    },
 
-    async preview(ctx: RouterContext) {
+      translateErrors(excerciseRepository.update(subject, exerciseId, content)); //! EVO
+
+      ctx.response.status = 200; //! D
+    }
+  );
+
+  const previewExercise = ValidatorMiddleware(
+    {
+      content: schemas.exercise.content,
+      seed: schemas.user.seedDefault,
+    },
+    (ctx: RouterContext, { content, seed }) => {
       //! AP missing // TODO: is it ok???
-      const { content, seed } = await followSchema(ctx, {
-        content: schemas.exercise.content,
-        seed: schemas.user.seedDefault,
-      }); //! R
-      const ex = translateErrors(this.parent.es.parse(content)); //! VO
+      const ex = translateErrors(excerciseRepository.parse(content)); //! VO
+
       ctx.response.body = {
         ...ex.render(seed),
         correctAnswer: ex.getCorrectAnswer(seed),
       };
       ctx.response.status = 200; //! D
-    },
-  };
+    }
+  );
 
-  readonly router = new Router()
-    .get("/list", (ctx: RouterContext) => this.list(ctx))
-    .post("/create", (ctx: RouterContext) => this.create(ctx))
-    .post("/info", (ctx: RouterContext) => this.info(ctx))
-    .post("/permit", (ctx: RouterContext) => this.permit(ctx))
+  return new Router({
+    prefix: "/subject",
+  })
+    .get("/list", list)
+    .post("/create", create)
+    .post("/info", info)
+    .post("/permit", permit)
     .use(
       "/problem",
       new Router()
-        .post("/get", (ctx: RouterContext) => this.problem.get(ctx))
-        .post("/update", (ctx: RouterContext) => this.problem.update(ctx))
-        .routes(),
-    ).use(
+        .post("/get", getProblem)
+        .post("/update", updateProblem)
+        .routes()
+    )
+    .use(
       "/static",
       new Router()
-        .get(
-          "/:subject/:filename",
-          (ctx: RouterContext) => this.static.get(ctx),
-        )
-        .put(
-          "/:subject/:filename",
-          (ctx: RouterContext) => this.static.put(ctx),
-        )
-        .routes(),
-    ).use(
+        .get("/:subject/:filename", getStatic)
+        .put("/:subject/:filename", putStatic)
+        .routes()
+    )
+    .use(
       "/hierarchy",
       new Router()
-        .post("/get", (ctx: RouterContext) => this.hierarchy.get(ctx))
-        .post("/set", (ctx: RouterContext) => this.hierarchy.set(ctx))
-        .routes(),
-    ).use(
+        .post("/get", getHierarchy)
+        .post("/set", setHierarchy)
+        .routes()
+    )
+    .use(
       "/exercise",
       new Router()
-        .post("/list", (ctx: RouterContext) => this.exercise.list(ctx))
-        .post("/add", (ctx: RouterContext) => this.exercise.add(ctx))
-        .post("/get", (ctx: RouterContext) => this.exercise.get(ctx))
-        .post("/update", (ctx: RouterContext) => this.exercise.update(ctx))
-        .post("/preview", (ctx: RouterContext) => this.exercise.preview(ctx))
-        .routes(),
+        .post("/list", listExercise)
+        .post("/add", addExercise)
+        .post("/get", getExercise)
+        .post("/update", updateExercise)
+        .post("/preview", previewExercise)
+        .routes()
     );
 }

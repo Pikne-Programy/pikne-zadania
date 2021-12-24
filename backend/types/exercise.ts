@@ -9,16 +9,17 @@ import {
   JSONObject,
   JSONType,
 } from "./mod.ts";
-import { IConfigService } from "../interfaces/mod.ts";
+import { ConfigService } from "../services/mod.ts";
 
 export abstract class Exercise {
+  //FIXME interface maybe?
   public abstract readonly type: string;
   public abstract readonly description: string;
   constructor(
-    protected cfg: IConfigService,
+    protected config: ConfigService,
     readonly name: string,
     _content: string,
-    readonly properties: JSONObject,
+    readonly properties: JSONObject
   ) {}
   abstract render(seed: number): {
     type: string;
@@ -28,7 +29,7 @@ export abstract class Exercise {
   abstract getCorrectAnswer(seed: number): JSONObject;
   abstract check(
     seed: number,
-    answer: JSONType,
+    answer: JSONType
   ):
     | { done: number; info: JSONType }
     | CustomDictError<"ExerciseBadAnswerFormat">;
@@ -41,28 +42,42 @@ type SubSection = {
 export type Section = SubSection | { children: string };
 
 export function isSection(what: unknown): what is Section {
-  if (!isObject(what)) return false;
-  if (typeof what.children === "string") return true;
-  return typeof what.name === "string" && what.name !== "" &&
-    isArrayOf(isSection, what.children);
+  if (!isObject(what)) {
+    return false;
+  }
+  if (typeof what.children === "string") {
+    return true;
+  }
+  return (
+    typeof what.name === "string" &&
+    what.name !== "" &&
+    isArrayOf(isSection, what.children)
+  );
 }
-export function isSubSection(what: Section): what is SubSection {
-  return typeof what.children !== "string";
-}
+export const isSubSection = (what: Section): what is SubSection =>
+  typeof what.children !== "string";
 
 export function makeSection(
   what: unknown,
-  errorCallback: () => never,
+  errorCallback: () => never
 ): Section {
-  if (!isObject(what)) errorCallback();
-  if (!("children" in what)) errorCallback();
+  if (!isObject(what)) {
+    errorCallback();
+  }
+  if (!("children" in what)) {
+    errorCallback();
+  }
   if (typeof what.children === "string") {
     const { children } = what;
     return { children };
   }
-  if (typeof what.name !== "string") errorCallback();
+  if (typeof what.name !== "string") {
+    errorCallback();
+  }
   const { name, children } = what;
-  if (!Array.isArray(children)) errorCallback();
+  if (!Array.isArray(children)) {
+    errorCallback();
+  }
   return {
     name,
     children: children.map((e) => makeSection(e, errorCallback)),

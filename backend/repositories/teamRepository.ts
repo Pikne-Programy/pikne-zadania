@@ -4,99 +4,124 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { CustomDictError } from "../types/mod.ts";
-import {
-  IConfigService,
-  IDatabaseService,
-  ITeamStore,
-} from "../interfaces/mod.ts";
-import { StoreTarget } from "./mod.ts";
+import { TeamType } from "../types/mod.ts";
+import { Collection } from "../deps.ts";
+import { ConfigService } from "../services/mod.ts";
+import { CircularDependencies } from "./mod.ts";
 import { Team } from "../models/mod.ts"; // TODO: get rid off
 
-export class TeamStore implements ITeamStore {
+export class TeamRepository {
   constructor(
-    private cfg: IConfigService,
-    private db: IDatabaseService,
-    private target: StoreTarget,
+    private config: ConfigService,
+    private teamsCollection: Collection<TeamType>,
+    private target: CircularDependencies
   ) {}
 
   private handle<T>(x: T | CustomDictError): T {
-    if (x instanceof CustomDictError) throw x;
+    if (x instanceof CustomDictError) {
+      throw x;
+    }
+
     return x;
   }
 
   async init() {
     // create static teachers' team if not already created
-    if (!(await this.get(1).exists())) {
-      // teachers' team
-      const assignee = this.cfg.hash("root");
-      this.handle( // better safe than sorry
-        await this.add(1, { name: "Teachers", assignee }, true),
-      );
+    if (await this.get(1).exists()) {
+      return;
     }
+    // teachers' team
+    const assignee = this.config.hash("root");
+
+    this.handle(
+      // better safe than sorry
+      await this.add(1, { name: "Teachers", assignee }, true)
+    );
   }
 
   async nextTeamId() {
-    return Math.max(...(await this.list()).map((x) => x.id)) + 1;
+    return Math.max(...(await this.list()).map(({ id }) => id)) + 1;
   }
 
-  async list() {
-    return await this.db.teams!.find().toArray();
+  list() {
+    return this.teamsCollection.find().toArray();
   }
 
   get(id: number) {
-    return new Team(this.db, id);
+    return new Team(this.teamsCollection, id);
   }
 
   async add(
     teamId: number | null,
     options: { name: string; assignee: string },
-    force = false,
+    force = false
   ) {
-    if (!force && !await this.target.us.get(options.assignee).exists()) {
+    if (
+      !force &&
+      !(await this.target.userRepository.get(options.assignee).exists())
+    ) {
       return new CustomDictError("UserNotFound", { userId: options.assignee });
     }
+
     teamId ??= await this.nextTeamId();
-    if (!force && await this.get(teamId).exists()) {
+
+    if (!force && (await this.get(teamId).exists())) {
       return new CustomDictError("TeamAlreadyExists", { teamId });
     }
-    await this.db.teams!.insertOne({
+
+    await this.teamsCollection.insertOne({
       id: teamId,
       name: options.name,
       assignee: options.assignee,
       members: [],
       invitation: null,
     });
+
     return teamId;
   }
   async delete(teamId: number) {
     const team = this.get(teamId);
-    if (!await team.exists()) {
+
+    if (!(await team.exists())) {
       return new CustomDictError("TeamNotFound", { teamId });
     }
-    for (const uid of await team.members.get()) {
-      await this.target.us.delete(uid);
-    }
-    await this.db.teams!.deleteOne({ id: team.id });
+
+    await team.members
+      .get()
+      .then((uids) => uids.map((uid) => this.target.userRepository.delete(uid)))
+      .then(Promise.allSettled);
+
+    await this.teamsCollection.deleteOne({ id: team.id });
   }
 
   readonly invitation = {
     get: async (invitation: string) => {
-      const team = await this.db.teams!.findOne({ invitation });
-      if (!team) return null;
+      const team = await this.teamsCollection.findOne({ invitation });
+
+      if (!team) {
+        return null;
+      }
+
       return team.id;
     },
     create: (id: number) => {
       const ntob = (n: number): string => {
-        const base64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+        const base64 =
+          "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
           "abcdefghijklmnopqrstuvwxyz0123456789+/";
         return base64[n];
       };
+
       const randomArray = new Uint8Array(4);
-      window.crypto.getRandomValues(randomArray);
+
+      globalThis.crypto.getRandomValues(randomArray);
+
       let invitation = ntob(id);
+
       for (const n of randomArray) {
         invitation += ntob(n % 64);
       }
+
       return invitation;
     },
   };

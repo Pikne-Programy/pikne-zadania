@@ -21,10 +21,9 @@ export { normalize as _normalize } from "https://deno.land/std@0.100.0/path/mod.
 export { pbkdf2Sync } from "https://deno.land/std@0.100.0/node/crypto.ts";
 export { createHash } from "https://deno.land/std@0.100.0/hash/mod.ts";
 import { stringify as _stringify } from "https://deno.land/std@0.106.0/encoding/yaml.ts";
-export function stringify(x: unknown) {
+export const stringify = (x: unknown) =>
   // deno-lint-ignore no-explicit-any
-  return _stringify(x as any);
-}
+  _stringify(x as any);
 
 export type {
   Context,
@@ -50,6 +49,7 @@ export type {
 } from "https://deno.land/x/value_schema@v3.0.0/dist-deno/libs/types.ts";
 export { MongoClient } from "https://deno.land/x/mongo@v0.23.1/mod.ts";
 export type { Collection } from "https://deno.land/x/mongo@v0.23.1/src/collection/mod.ts";
+export type { Database } from "https://deno.land/x/mongo@v0.23.1/src/database.ts";
 export {
   create,
   getNumericDate,

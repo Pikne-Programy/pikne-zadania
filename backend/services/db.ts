@@ -3,46 +3,64 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Collection, MongoClient } from "../deps.ts";
+import { MongoClient, Database } from "../deps.ts";
 import { delay } from "../utils/mod.ts";
-import { SubjectType, TeamType, UserType } from "../types/mod.ts";
-import { IConfigService, IDatabaseService } from "../interfaces/mod.ts";
+import { ConfigService } from "../services/mod.ts";
 
-export class Database implements IDatabaseService {
+export class DatabaseService {
   private client?: MongoClient;
-  users?: Collection<UserType>;
-  teams?: Collection<TeamType>;
-  subjects?: Collection<SubjectType>;
+  /**
+   * ! call connect first
+   */
+  #db!: Database;
 
-  constructor(
-    private cfg: IConfigService,
-  ) {}
+  constructor(private config: ConfigService) {}
 
-  async connect() {
+  async connect(): Promise<this> {
     this.client = new MongoClient();
-    await delay(this.cfg.MONGO_CONF.time); // wait for database
-    await this.client.connect(this.cfg.MONGO_CONF.url); // throwable
-    const db = this.client.database(this.cfg.MONGO_CONF.db);
+    //FIXME does not connect do this?
+    await delay(this.config.MONGO_CONF.time); // wait for database
+    await this.client.connect(this.config.MONGO_CONF.url); // throwable
+    this.#db = this.client.database(this.config.MONGO_CONF.db);
 
-    this.users = db.collection("users");
-    this.teams = db.collection("teams");
-    this.subjects = db.collection("subjects");
+    if (this.config.FRESH) {
+      await this.drop();
+    }
 
-    if (this.cfg.FRESH) await this.drop();
+    return this;
   }
 
-  close() {
+  getCollection<T>(name: string) {
+    return this.#db.collection<T>(name);
+  }
+
+  close(): this {
     this.client?.close();
+    return this;
   }
 
   async drop() {
-    function filterUseless(e: unknown) {
-      if (!(e instanceof Error) || !/"NamespaceNotFound"/.test(e.message)) {
-        throw e;
-      }
-    }
-    await this.users!.drop().catch(filterUseless);
-    await this.teams!.drop().catch(filterUseless);
-    await this.subjects!.drop().catch(filterUseless);
+    const filterUseless = (e: unknown) =>
+      !(e instanceof Error) || !/"NamespaceNotFound"/.test(e.message);
+
+    const filterResolved = (
+      result: PromiseSettledResult<unknown>
+    ): result is PromiseRejectedResult => result.status === "rejected";
+
+    const collections = await this.#db!.listCollectionNames({});
+
+    const drops = collections.map((collection) =>
+      this.#db!.collection(collection).drop()
+    );
+
+    const results = await Promise.allSettled(drops);
+
+    return results
+      .filter(filterResolved)
+      .map(({ reason }) => reason)
+      .filter(filterUseless)
+      .forEach((e_2) => {
+        throw e_2;
+      });
   }
 }

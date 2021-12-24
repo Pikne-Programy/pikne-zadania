@@ -4,7 +4,6 @@
 
 import { Algorithm } from "../deps.ts";
 import { sha256 } from "../utils/mod.ts";
-import { IConfigService } from "../interfaces/mod.ts";
 
 const algos = [
   "none",
@@ -15,44 +14,45 @@ const algos = [
   "PS256",
   "PS512",
 ] as const;
+//FIXME pointless
 const _exhaustive: ReadonlyArray<Algorithm> = algos; // fails if algos contains unsupported algorithms
-function isJWTAlgo(x?: string): x is Algorithm {
-  return x != null && algos.includes(x as Algorithm); // fails if algos does not specifies all supported algorithms
-}
+const isJWTAlgo = (x?: string): x is Algorithm =>
+  x != null && algos.includes(x as Algorithm); // fails if algos does not specifies all supported algorithms
 
-function isFrom0To4(x: number): x is 0 | 1 | 2 | 3 | 4 {
-  return [0, 1, 2, 3, 4].includes(x);
-}
+const isCorrectVerbosity = (x: number): x is 0 | 1 | 2 | 3 | 4 =>
+  [0, 1, 2, 3, 4].includes(x);
 
-function get(type: "string", key: string, def?: string): string;
-function get(type: "number", key: string, def?: number): number;
-function get(type: "boolean", key: string, def?: boolean): boolean;
-function get(
+function getEnv(type: "string", key: string, def?: string): string;
+function getEnv(type: "number", key: string, def?: number): number;
+function getEnv(type: "boolean", key: string, def?: boolean): boolean;
+function getEnv(
   type: "string" | "number" | "boolean",
   key: string,
-  def?: string | number | boolean,
+  def?: string | number | boolean
 ): string | number | boolean {
   const env = Deno.env.get(key) ?? def;
-  let x;
-  switch (type) {
-    case "string":
-      x = env;
-      break;
-    case "number":
-      x = +(env ?? NaN);
-      if (isNaN(x)) x = null;
-      break;
-    case "boolean":
-      x = (typeof env == "string")
+
+  const parsers = {
+    string: () => env,
+    number: () => {
+      const number = +(env ?? NaN);
+      return isNaN(number) ? null : number;
+    },
+    boolean: () =>
+      typeof env == "string"
         ? ["true", "yes", "1"].includes(env.toLocaleLowerCase())
-        : env;
-      break;
+        : (env as undefined),
+  };
+  const result = parsers[type]();
+
+  if (result == null) {
+    throw new Error(`${key} must be present`);
   }
-  if (x == null) throw new Error(`${key} must be present`);
-  return x;
+
+  return result;
 }
 
-export class ConfigService implements IConfigService {
+export class ConfigService {
   readonly SEED_AGE: number;
   readonly LOGIN_TIME: number;
   readonly USER_SALT: string;
@@ -76,35 +76,41 @@ export class ConfigService implements IConfigService {
 
   constructor() {
     const alg = Deno.env.get("JWT_ALG");
-    if (!isJWTAlgo(alg)) throw new Error(`JWT_ALG must equal one of ${algos}.`);
+
+    if (!isJWTAlgo(alg)) {
+      throw new Error(`JWT_ALG must equal one of ${algos}.`);
+    }
+
     this.JWT_CONF = {
-      exp: get("number", "JWT_EXP"),
+      exp: getEnv("number", "JWT_EXP"),
       header: { alg, typ: "JWT" },
-      key: get("string", "JWT_KEY"),
+      key: getEnv("string", "JWT_KEY"),
     };
 
     this.MONGO_CONF = {
-      db: get("string", "MONGODB_NAME", "pikne-zadania"),
-      url: get("string", "MONGODB_URL", "mongodb://mongo:27017"),
-      time: get("number", "MONGODB_TIME", 5e3),
+      db: getEnv("string", "MONGODB_NAME", "pikne-zadania"),
+      url: getEnv("string", "MONGODB_URL", "mongodb://mongo:27017"),
+      time: getEnv("number", "MONGODB_TIME", 5e3),
     };
 
     this.ROOT_CONF = {
-      enable: get("boolean", "ROOT_ENABLE", false),
+      enable: getEnv("boolean", "ROOT_ENABLE", false),
       password: Deno.env.get("ROOT_PASS"),
       dhPassword: Deno.env.get("ROOT_DHPASS"),
     };
 
-    this.SEED_AGE = get("number", "SEED_AGE", 60 * 60 * 24 * 31 * 12 * 4);
-    this.LOGIN_TIME = get("number", "LOGIN_TIME", 2e3);
-    this.USER_SALT = get("string", "USER_SALT", "");
-    this.RNG_PREC = get("number", "RNG_PREC", 3);
-    this.ANSWER_PREC = get("number", "ANSWER_PREC", .01);
-    this.DECIMAL_POINT = get("boolean", "DECIMAL_POINT", true);
-    const VERBOSITY = get("number", "VERBOSITY", 3);
-    if (!isFrom0To4(VERBOSITY)) {
-      throw new Error("VERBOSITY must be from 0 to 4.");
+    this.SEED_AGE = getEnv("number", "SEED_AGE", 60 * 60 * 24 * 31 * 12 * 4);
+    this.LOGIN_TIME = getEnv("number", "LOGIN_TIME", 2e3);
+    this.USER_SALT = getEnv("string", "USER_SALT", "");
+    this.RNG_PREC = getEnv("number", "RNG_PREC", 3);
+    this.ANSWER_PREC = getEnv("number", "ANSWER_PREC", 0.01);
+    this.DECIMAL_POINT = getEnv("boolean", "DECIMAL_POINT", true);
+    const VERBOSITY = getEnv("number", "VERBOSITY", 3);
+
+    if (!isCorrectVerbosity(VERBOSITY)) {
+      throw new Error("VERBOSITY must be integer from 0 to 4.");
     }
+
     this.VERBOSITY = VERBOSITY;
     let fresh = Deno.env.get("FRESH");
     const safeWord =
@@ -113,13 +119,13 @@ export class ConfigService implements IConfigService {
     if (this.VERBOSITY >= 2) {
       if (fresh !== undefined) {
         console.warn(
-          `The FRESH is present. Set its value to "${safeWord}" to delete all collections.`,
+          `The FRESH is present. Set its value to "${safeWord}" to delete all collections.`
         );
       }
       fresh = this.FRESH ? "" : " NOT";
       console.warn(`The FRESH safe word was${fresh} triggered...`);
     }
-    this.EXERCISES_PATH = get("string", "EXERCISES_PATH", "./exercises/");
+    this.EXERCISES_PATH = getEnv("string", "EXERCISES_PATH", "./exercises/");
   }
 
   hash(login: string) {

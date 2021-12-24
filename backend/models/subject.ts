@@ -3,41 +3,56 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { SubjectType } from "../types/mod.ts";
-import { IDatabaseService, ISubject } from "../interfaces/mod.ts";
+import { Collection } from "../deps.ts";
 
 // TODO: make an abstract Model class [store's get with NotFound?]
-export class Subject implements ISubject {
+export class Subject {
   constructor(
-    private db: IDatabaseService,
-    public readonly id: string,
+    private subjectsCollection: Collection<SubjectType>,
+    public readonly id: string
   ) {}
 
   private async get<T extends keyof SubjectType>(
-    key: T,
+    key: T
   ): Promise<SubjectType[T]> {
-    const subject = await this.db.subjects!.findOne({ id: this.id });
-    if (!subject) throw new Error(); // TODO: error message
+    const subject = await this.subjectsCollection.findOne({ id: this.id });
+
+    if (!subject) {
+      // TODO: error message
+      throw new Error();
+    }
+
     return subject[key];
   }
 
   private async set<T extends keyof SubjectType>(
     key: T,
-    value: SubjectType[T],
+    value: SubjectType[T]
   ) {
-    if (!await this.exists()) throw new Error(); // TODO: error message
-    await this.db.teams!.updateOne({ id: this.id }, { $set: { [key]: value } });
+    if (!(await this.exists())) {
+      // TODO: error message
+      throw new Error();
+    }
+
+    await this.subjectsCollection.updateOne(
+      { id: this.id },
+      { $set: { [key]: value } }
+    );
   }
 
-  async exists() {
-    return (await this.db.subjects!.findOne({ id: this.id })) ? true : false;
+  exists() {
+    return this.subjectsCollection.findOne({ id: this.id }).then(Boolean);
   }
 
   readonly assignees = {
     get: () => this.get("assignees"),
     set: async (value: string[] | null) => {
-      await this.db.subjects!.updateOne({ id: this.id }, {
-        $set: { assignees: value },
-      });
+      await this.subjectsCollection.updateOne(
+        { id: this.id },
+        {
+          $set: { assignees: value },
+        }
+      );
     },
   };
 }
