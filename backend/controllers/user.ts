@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { httpErrors, Router, RouterContext } from "../deps.ts";
-import { translateErrors } from "../utils/mod.ts";
 import { schemas } from "../types/mod.ts";
 import { User } from "../models/mod.ts";
 import { IAuthorizer } from "./mod.ts";
@@ -109,7 +108,7 @@ export function UserController(
         throw new httpErrors["Forbidden"]();
       } //! P
 
-      translateErrors(await userRepository.delete(userId)); //! EO
+      await userRepository.delete(userId); //! EO
 
       ctx.response.status = 200; //! D
     }

@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { httpErrors, Router, RouterContext } from "../deps.ts";
-import { delay, translateErrors } from "../utils/mod.ts";
+import { Router, RouterContext } from "../deps.ts";
+import { delay } from "../utils/mod.ts";
 import { schemas } from "../types/mod.ts";
 import { JWTService, ConfigService, Logger } from "../services/mod.ts";
 import { UserRepository } from "../repositories/mod.ts";
@@ -23,15 +23,13 @@ export function AuthController(
       number: schemas.user.number,
       invitation: schemas.team.invitationRequired,
     },
-    async (ctx: RouterContext, { invitation, ...rest }) => {
-      translateErrors(
-        await userRepository.add(
-          { invitation },
-          {
-            ...rest,
-            number: isNaN(rest.number) ? undefined : rest.number,
-          }
-        )
+    async (ctx: RouterContext, { invitation, number, ...rest }) => {
+      await userRepository.add(
+        { invitation },
+        {
+          ...rest,
+          number: isNaN(number) ? undefined : number,
+        }
       ); //! PEVO
       ctx.response.status = 200; //! D
     }
@@ -43,21 +41,16 @@ export function AuthController(
       hashedPassword: schemas.user.hashedPassword,
     },
     async (ctx: RouterContext, req) => {
-      const jwt = await jwtService.create(req.login, req.hashedPassword);
-      const startTime = Date.now();
+      const { LOGIN_TIME: remainedTime } = config;
 
-      if (typeof jwt !== "string") {
-        const remainedTime = startTime + config.LOGIN_TIME - Date.now();
+      const jwt = await jwtService
+        .create(req.login, req.hashedPassword)
+        .catch(() => {
+          throw remainedTime > 0
+            ? delay(remainedTime) // * preventing timing attack *
+            : logger.warn(`WARN: Missed LOGIN_TIME by ${remainedTime} ms.`);
+        });
 
-        if (remainedTime > 0) {
-          await delay(remainedTime);
-        } else {
-          // * preventing timing attack *
-          logger.warn(`WARN: Missed LOGIN_TIME by ${remainedTime} ms.`);
-        }
-
-        throw new httpErrors["Unauthorized"]();
-      } //! PEVO
       ctx.cookies.set("jwt", jwt, { maxAge: config.JWT_CONF.exp });
       ctx.response.status = 200; //! D
     }
@@ -65,13 +58,13 @@ export function AuthController(
 
   async function logout(ctx: RouterContext) {
     const jwt = ctx.cookies.get("jwt");
-    const userId = translateErrors(await jwtService.resolve(jwt)); //! APE
+    const userId = await jwtService.resolve(jwt); //! APE
 
-    if (jwt === undefined) {
+    if (!jwt) {
       throw new Error("never");
-    } // * the above would throw *
+    }
 
-    translateErrors(await jwtService.revoke(userId, jwt)); //! O
+    await jwtService.revoke(userId, jwt);
 
     ctx.cookies.delete("jwt");
     ctx.response.status = 200; //! D

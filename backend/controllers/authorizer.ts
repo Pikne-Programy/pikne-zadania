@@ -3,8 +3,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { RouterContext } from "../deps.ts";
-import { assertUnreachable, translateErrors } from "../utils/mod.ts";
-import { CustomDictError } from "../types/mod.ts";
 import { User } from "../models/mod.ts";
 import { JWTService } from "../services/mod.ts";
 import { UserRepository } from "../repositories/mod.ts";
@@ -21,19 +19,16 @@ export const createAuthorize = (
 ) =>
   (async (ctx: RouterContext, req = true) => {
     const jwt = ctx.cookies.get("jwt");
-    const userId = await jwtService.resolve(jwt);
-
-    if (!(userId instanceof CustomDictError)) {
+    try {
+      const userId = await jwtService.resolve(jwt);
       return userRepository.get(userId);
-    }
+    } catch (error) {
+      ctx.cookies.delete("jwt");
 
-    if (userId.type !== "JWTNotFound") {
-      assertUnreachable(userId.type);
-    }
-
-    ctx.cookies.delete("jwt");
-
-    if (req) {
-      throw new Error(`never: ${translateErrors(userId)}`);
+      if (req) {
+        throw error;
+      } else {
+        return;
+      }
     }
   }) as IAuthorizer;

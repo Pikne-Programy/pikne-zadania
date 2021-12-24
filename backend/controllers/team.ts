@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { httpErrors, Router, RouterContext } from "../deps.ts";
-import { translateErrors } from "../utils/mod.ts";
 import { reservedTeamInvitation, schemas } from "../types/mod.ts";
 import { UserRepository, TeamRepository } from "../repositories/mod.ts";
 import { IAuthorizer } from "./mod.ts";
@@ -60,10 +59,10 @@ export function TeamController(
         throw new httpErrors["Forbidden"]();
       } //! P
 
-      const teamId = translateErrors(
-        await teamRepository.add(null, { name, assignee: user.id }) // ? 404 ?
-      ); //! EVO
-
+      const teamId = await teamRepository.add(null, {
+        name,
+        assignee: user.id,
+      }); // ? 404 ? //! EVO
       ctx.response.body = { teamId };
       ctx.response.status = 200; //! D
     }
@@ -192,7 +191,7 @@ export function TeamController(
         throw new httpErrors["Forbidden"]();
       } //! P of delete
 
-      await teamRepository.delete(teamId); // * Error not handled //! O
+      await teamRepository.delete(teamId);
 
       ctx.response.status = 200; //! D
     }

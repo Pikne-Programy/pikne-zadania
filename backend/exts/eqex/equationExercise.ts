@@ -267,21 +267,25 @@ export default class EquationExercise extends Exercise {
   }
 
   getCorrectAnswer(seed: number) {
-    const s = this.check(seed);
-    if ("correctAnswer" in s) return { answers: s.correctAnswer };
-    throw new Error("never"); // TODO: refactor, make it better
+    try {
+      const { correctAnswer: answers } = this.check(seed);
+
+      return { answers };
+    } catch {
+      throw new Error("never");
+    }
   }
 
   check(seed: number, answer?: JSONType) {
     // TODO: use value-schema
     if (answer !== undefined && !isAnswer(answer)) {
-      return new CustomDictError("ExerciseBadAnswerFormat", {
+      throw new CustomDictError("ExerciseBadAnswerFormat", {
         description: "INVALID ANSWER FORMAT",
       });
     }
     const answers = answer?.answers;
     if (answers !== undefined && answers.length != this.unknowns.length) {
-      return new CustomDictError("ExerciseBadAnswerFormat", {
+      throw new CustomDictError("ExerciseBadAnswerFormat", {
         description: "INVALID ANSWER LENGTH",
       });
     }

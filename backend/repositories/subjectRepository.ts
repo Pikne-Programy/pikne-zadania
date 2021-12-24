@@ -3,10 +3,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { CustomDictError } from "../types/mod.ts";
+import { CustomDictError, SubjectType } from "../types/mod.ts";
 import { ExerciseRepository } from "./mod.ts";
 import { Subject } from "../models/mod.ts"; // TODO: get rid off
-import { SubjectType } from "../types/mod.ts";
 import { Collection } from "../deps.ts";
 
 export class SubjectRepository {
@@ -49,7 +48,7 @@ export class SubjectRepository {
     const subject = this.get(id);
 
     if (await subject.exists()) {
-      return new CustomDictError("SubjectAlreadyExists", { subject: id });
+      throw new CustomDictError("SubjectAlreadyExists", { subject: id });
     }
 
     this.subjectsCollection.insertOne({ id, assignees });

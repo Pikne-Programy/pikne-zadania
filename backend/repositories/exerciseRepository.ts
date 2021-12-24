@@ -129,7 +129,7 @@ export class ExerciseRepository {
       }
       return new exts[type](this.config, name, exercise, props); // it can throw an error
     } catch (e) {
-      return new CustomDictError("ExerciseBadFormat", {
+      throw new CustomDictError("ExerciseBadFormat", {
         description: `${e instanceof Error ? e.message : e}`,
       });
     }
@@ -143,23 +143,14 @@ export class ExerciseRepository {
     try {
       const content = _content ?? this.getContent(subject, exerciseId);
 
-      if (content instanceof CustomDictError) {
-        throw content;
-      }
-
       const uid = this.uid(subject, exerciseId);
-      const ex = this.parse(content);
+      const exercise = this.parse(content);
 
-      if (ex instanceof Exercise) {
-        this.exercises[uid] = [ex, false];
+      if (exercise instanceof Exercise) {
+        this.exercises[uid] = [exercise, false];
       }
 
-      if (ex instanceof Error) {
-        // TODO
-        throw ex;
-      }
-
-      return ex;
+      return exercise;
     } catch (e) {
       this.logger.recogniseAndTrace(e, {
         msg: `exercise ${this.uid(subject, exerciseId)}`,
@@ -197,7 +188,7 @@ export class ExerciseRepository {
 
   listExercises(subject: string) {
     if (!this.listSubjects().includes(subject)) {
-      return new CustomDictError("SubjectNotFound", { subject });
+      throw new CustomDictError("SubjectNotFound", { subject });
     }
 
     const prefix = `${subject}/`;
@@ -261,32 +252,28 @@ export class ExerciseRepository {
   }
 
   get(subject: string, exerciseId: string) {
-    const ex = this.exercises[this.uid(subject, exerciseId)];
+    const exercise = this.exercises[this.uid(subject, exerciseId)];
 
-    if (ex === undefined) {
-      return new CustomDictError("ExerciseNotFound", { subject, exerciseId });
+    if (exercise === undefined) {
+      throw new CustomDictError("ExerciseNotFound", { subject, exerciseId });
     }
 
-    return ex[0];
+    return exercise[0];
   }
+  //FIXME unused
+  private inYaml(subject: string, exerciseId: string) {
+    const exercise = this.exercises[this.uid(subject, exerciseId)];
 
-  inYaml(subject: string, exerciseId: string) {
-    const ex = this.exercises[this.uid(subject, exerciseId)];
-
-    if (ex === undefined) {
-      return new CustomDictError("ExerciseNotFound", { subject, exerciseId });
+    if (exercise === undefined) {
+      throw new CustomDictError("ExerciseNotFound", { subject, exerciseId });
     }
 
-    return ex[1];
+    return exercise[1];
   }
 
   update(subject: string, exerciseId: string, content: string) {
     const path = join(this.exercisesPath, subject, exerciseId) + ".txt";
-    const ex = this.appendExerciseFile(subject, exerciseId, content);
-
-    if (ex instanceof CustomDictError) {
-      return ex;
-    }
+    this.appendExerciseFile(subject, exerciseId, content);
 
     Deno.writeTextFileSync(path, content);
   }
@@ -298,7 +285,7 @@ export class ExerciseRepository {
     try {
       return Deno.readTextFileSync(path);
     } catch {
-      return new CustomDictError("ExerciseNotFound", { subject, exerciseId });
+      throw new CustomDictError("ExerciseNotFound", { subject, exerciseId });
     }
   }
 

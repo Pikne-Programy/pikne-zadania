@@ -3,8 +3,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { CustomDictError } from "../types/mod.ts";
-import { TeamType } from "../types/mod.ts";
+import { CustomDictError, TeamType } from "../types/mod.ts";
 import { Collection } from "../deps.ts";
 import { ConfigService } from "../services/mod.ts";
 import { CircularDependencies } from "./mod.ts";
@@ -17,14 +16,6 @@ export class TeamRepository {
     private target: CircularDependencies
   ) {}
 
-  private handle<T>(x: T | CustomDictError): T {
-    if (x instanceof CustomDictError) {
-      throw x;
-    }
-
-    return x;
-  }
-
   async init() {
     // create static teachers' team if not already created
     if (await this.get(1).exists()) {
@@ -33,10 +24,7 @@ export class TeamRepository {
     // teachers' team
     const assignee = this.config.hash("root");
 
-    this.handle(
-      // better safe than sorry
-      await this.add(1, { name: "Teachers", assignee }, true)
-    );
+    await this.add(1, { name: "Teachers", assignee }, true);
   }
 
   async nextTeamId() {
@@ -60,13 +48,13 @@ export class TeamRepository {
       !force &&
       !(await this.target.userRepository.get(options.assignee).exists())
     ) {
-      return new CustomDictError("UserNotFound", { userId: options.assignee });
+      throw new CustomDictError("UserNotFound", { userId: options.assignee });
     }
 
     teamId ??= await this.nextTeamId();
 
     if (!force && (await this.get(teamId).exists())) {
-      return new CustomDictError("TeamAlreadyExists", { teamId });
+      throw new CustomDictError("TeamAlreadyExists", { teamId });
     }
 
     await this.teamsCollection.insertOne({
@@ -83,13 +71,16 @@ export class TeamRepository {
     const team = this.get(teamId);
 
     if (!(await team.exists())) {
-      return new CustomDictError("TeamNotFound", { teamId });
+      throw new CustomDictError("TeamNotFound", { teamId });
     }
 
     await team.members
       .get()
       .then((uids) => uids.map((uid) => this.target.userRepository.delete(uid)))
-      .then(Promise.allSettled);
+      .then(Promise.allSettled)
+      .catch(() => {
+        //FIXME no behaviour changes purpose
+      });
 
     await this.teamsCollection.deleteOne({ id: team.id });
   }

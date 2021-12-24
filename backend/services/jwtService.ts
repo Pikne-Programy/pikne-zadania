@@ -27,7 +27,7 @@ export class JWTService {
           .then((password) => compare(hashedPassword, password)))
       )
     ) {
-      return new CustomDictError("UserCredentialsInvalid", { userId });
+      throw new CustomDictError("UserCredentialsInvalid", { userId });
     }
 
     const { header, key, exp } = this.config.JWT_CONF;
@@ -66,18 +66,18 @@ export class JWTService {
       if (e !== undefined) {
         this.logger.recogniseAndTrace(e, { customVerbosity: 2 });
       }
-      
-      return new CustomDictError("JWTNotFound", {});
+
+      throw new CustomDictError("JWTNotFound", {});
     }
   }
 
-  async revoke(userId: string, jwt: string) {
+  revoke(userId: string, jwt: string) {
     const user = this.userRepository.get(userId);
 
     if (!user.tokens.exists(jwt)) {
-      return new CustomDictError("JWTNotFound", {});
+      throw new CustomDictError("JWTNotFound", {});
     }
 
-    await user.tokens.remove(jwt);
+    return user.tokens.remove(jwt);
   }
 }

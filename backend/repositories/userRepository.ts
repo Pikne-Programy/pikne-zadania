@@ -15,14 +15,6 @@ import { Collection } from "../deps.ts";
 import { CircularDependencies } from "./mod.ts";
 import { User } from "../models/mod.ts"; // TODO: get rid off
 
-type AddOptions = {
-  login: string;
-  name: string;
-  number?: number;
-  role?: RoleType;
-  seed?: number;
-} & ({ hashedPassword: string } | { dhPassword: string });
-
 export class UserRepository {
   constructor(
     private config: ConfigService,
@@ -30,14 +22,6 @@ export class UserRepository {
     private logger: Logger,
     private circularDependencyResolver: CircularDependencies
   ) {}
-
-  private handle<T>(x: T | CustomDictError): T {
-    if (x instanceof CustomDictError) {
-      throw x;
-    }
-
-    return x;
-  }
 
   async init() {
     const warn = (
@@ -62,7 +46,7 @@ export class UserRepository {
         warn("ROOT_DHPASS");
       }
       if (await root.exists()) {
-        this.handle(await this.delete(this.config.hash("root")));
+        await this.delete(this.config.hash("root"));
       }
       return;
     }
@@ -80,14 +64,12 @@ export class UserRepository {
       ) {
         this.logger.log("ROOT was not changed.");
       } else {
-        this.handle(
-          await this.add(
-            { teamId: 0 },
-            {
-              dhPassword: config.dhPassword,
-              ...rootType,
-            }
-          )
+        await this.add(
+          { teamId: 0 },
+          {
+            dhPassword: config.dhPassword,
+            ...rootType,
+          }
         );
 
         this.logger.warn("ROOT was registered with ROOT_DHPASS.");
@@ -108,7 +90,7 @@ export class UserRepository {
           `Please unset ROOT_PASS!\nSet ROOT_DHPASS=${dhPassword} if needed.`
         );
 
-        this.handle(await this.add({ teamId: 0 }, { dhPassword, ...rootType }));
+        await this.add({ teamId: 0 }, { dhPassword, ...rootType });
 
         this.logger.warn("ROOT was registered with ROOT_PASS.");
       }
@@ -124,21 +106,15 @@ export class UserRepository {
   }
 
   async add(
-    where: { invitation: string },
-    options: AddOptions
-  ): Promise<void | CustomDictError<
-    "UserAlreadyExists" | "TeamInvitationNotFound"
-  >>;
-  async add(
-    where: { teamId: number },
-    options: AddOptions
-  ): Promise<void | CustomDictError<"UserAlreadyExists" | "TeamNotFound">>;
-  async add(
     where: { invitation: string } | { teamId: number },
-    options: AddOptions
-  ): Promise<void | CustomDictError<
-    "UserAlreadyExists" | "TeamNotFound" | "TeamInvitationNotFound"
-  >> {
+    options: {
+      login: string;
+      name: string;
+      number?: number;
+      role?: RoleType;
+      seed?: number;
+    } & ({ hashedPassword: string } | { dhPassword: string })
+  ) {
     const teamId =
       "teamId" in where
         ? where.teamId
@@ -152,13 +128,13 @@ export class UserRepository {
 
     if (!isExisting) {
       if (!("teamId" in where)) {
-        return new CustomDictError("TeamInvitationNotFound", {});
+        throw new CustomDictError("TeamInvitationNotFound", {});
       }
       if (where.teamId === 0) {
         force = true;
       }
       if (!force) {
-        return new CustomDictError("TeamNotFound", { teamId });
+        throw new CustomDictError("TeamNotFound", { teamId });
       }
     }
 
@@ -185,7 +161,7 @@ export class UserRepository {
       });
     } else {
       if (await this.get(user.id).exists()) {
-        return new CustomDictError("UserAlreadyExists", { userId: user.id });
+        throw new CustomDictError("UserAlreadyExists", { userId: user.id });
       }
 
       await this.usersCollection.insertOne(user);
@@ -199,7 +175,7 @@ export class UserRepository {
   async delete(userId: string) {
     const user = this.get(userId);
     if (!(await user.exists())) {
-      return new CustomDictError("UserNotFound", { userId });
+      throw new CustomDictError("UserNotFound", { userId });
     }
     const team = this.circularDependencyResolver.teamRepository.get(
       await user.team.get()

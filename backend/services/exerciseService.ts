@@ -3,12 +3,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {
-  CustomDictError,
-  Exercise,
-  JSONObject,
-  JSONType,
-} from "../types/mod.ts";
+import { JSONObject, JSONType } from "../types/mod.ts";
 import { User } from "../models/mod.ts";
 import { ExerciseRepository } from "../repositories/mod.ts";
 
@@ -26,7 +21,7 @@ export class ExerciseService {
 
   private getExercise(
     input: { content: string } | { subject: string; exerciseId: string }
-  ): Exercise | CustomDictError<"ExerciseBadFormat" | "ExerciseNotFound"> {
+  ) {
     return "exerciseId" in input
       ? this.exerciseRepository.get(input.subject, input.exerciseId)
       : this.exerciseRepository.parse(input.content);
@@ -40,23 +35,16 @@ export class ExerciseService {
   async render(
     input: { content: string },
     userOrSeed: UserOrSeed
-  ): Promise<RenderResult | CustomDictError<"ExerciseBadFormat">>;
+  ): Promise<RenderResult>;
   async render(
     input: { subject: string; exerciseId: string },
     userOrSeed: UserOrSeed
-  ): Promise<RenderResult | CustomDictError<"ExerciseNotFound">>;
+  ): Promise<RenderResult>;
   async render(
     input: { content: string } | { subject: string; exerciseId: string },
     userOrSeed: UserOrSeed
-  ): Promise<
-    RenderResult | CustomDictError<"ExerciseBadFormat" | "ExerciseNotFound">
-  > {
+  ): Promise<RenderResult> {
     const exercise = this.getExercise(input);
-
-    if (exercise instanceof CustomDictError) {
-      return exercise;
-    }
-
     const seed = await this.getSeed(userOrSeed);
 
     return {
@@ -73,17 +61,9 @@ export class ExerciseService {
   ) {
     const exercise = this.getExercise(input);
 
-    if (exercise instanceof CustomDictError) {
-      return exercise;
-    }
-
     const result = exercise.check(await this.getSeed(user), answer);
 
-    if (
-      !(result instanceof CustomDictError) &&
-      "exercises" in user &&
-      "exerciseId" in input
-    ) {
+    if ("exercises" in user && "exerciseId" in input) {
       await user.exercises.set(input.exerciseId, result.done);
     }
 

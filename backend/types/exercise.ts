@@ -2,13 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {
-  CustomDictError,
-  isArrayOf,
-  isObject,
-  JSONObject,
-  JSONType,
-} from "./mod.ts";
+import { isArrayOf, isObject, JSONObject, JSONType } from "./mod.ts";
 import { ConfigService } from "../services/mod.ts";
 
 export abstract class Exercise {
@@ -27,12 +21,13 @@ export abstract class Exercise {
     problem: JSONObject;
   };
   abstract getCorrectAnswer(seed: number): JSONObject;
+  /**
+   * @throws {CustomDictError<"ExerciseBadAnswerFormat">}
+   */
   abstract check(
     seed: number,
     answer: JSONType
-  ):
-    | { done: number; info: JSONType }
-    | CustomDictError<"ExerciseBadAnswerFormat">;
+  ): { done: number; info: JSONType };
 }
 
 type SubSection = {

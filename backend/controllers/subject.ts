@@ -4,13 +4,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { httpErrors, Router, RouterContext, send, vs } from "../deps.ts";
-import { generateSeed, joinThrowable, translateErrors } from "../utils/mod.ts";
-import {
-  CustomDictError,
-  isSubSection,
-  schemas,
-  Section,
-} from "../types/mod.ts";
+import { generateSeed, joinThrowable } from "../utils/mod.ts";
+import { isSubSection, schemas, Section } from "../types/mod.ts";
 import { User } from "../models/mod.ts";
 import { ExerciseService, ConfigService } from "../services/mod.ts";
 import {
@@ -26,7 +21,7 @@ export function SubjectController(
   config: ConfigService,
   userRepository: UserRepository,
   subjectRepository: SubjectRepository,
-  excerciseRepository: ExerciseRepository,
+  exerciseRepository: ExerciseRepository,
   exerciseService: ExerciseService
 ) {
   /** check if the subject `s` exists and the user is an assignee of it */
@@ -59,7 +54,7 @@ export function SubjectController(
 
   async function list(ctx: RouterContext) {
     const user = await authorize(ctx, false); //! A
-    const allSubjects = excerciseRepository.listSubjects();
+    const allSubjects = exerciseRepository.listSubjects();
     const selection = await Promise.all(
       allSubjects.map((s) => isPermittedToView(s, user))
     );
@@ -82,7 +77,7 @@ export function SubjectController(
         throw new httpErrors["Forbidden"]();
       } //! P
 
-      translateErrors(await subjectRepository.add(subject, assignees)); //! EVO // TODO: V - all assignees exist?
+      await subjectRepository.add(subject, assignees); //! EVO // TODO: V - all assignees exist?
 
       ctx.response.status = 200; //! D
     }
@@ -177,13 +172,10 @@ export function SubjectController(
         throw new httpErrors["Forbidden"]();
       } //! P
 
-      const parsed = translateErrors(
-        await exerciseService.render(
-          { subject, exerciseId },
-          await problemGetSeed(ctx, seed, user)
-        )
+      const parsed = await exerciseService.render(
+        { subject, exerciseId },
+        await problemGetSeed(ctx, seed, user)
       ); //! EO
-
       if (!isAssigneeOf(subject, user)) {
         const { correctAnswer: _correctAnswer, ...parsedCensored } = parsed;
 
@@ -208,14 +200,11 @@ export function SubjectController(
         throw new httpErrors["Forbidden"]();
       } //! P
 
-      const { info } = translateErrors(
-        await exerciseService.check(
-          { subject, exerciseId },
-          answer,
-          await problemGetSeed(ctx, null, user)
-        )
+      const { info } = await exerciseService.check(
+        { subject, exerciseId },
+        answer,
+        await problemGetSeed(ctx, null, user)
       ); //! EVO
-
       ctx.response.body = { info }; // ? done, correctAnswer ?
       ctx.response.status = 200; //! D
     }
@@ -233,7 +222,7 @@ export function SubjectController(
     } //! P
 
     await send(ctx, filename, {
-      root: excerciseRepository.getStaticContentPath(subject),
+      root: exerciseRepository.getStaticContentPath(subject),
     }); // there's a problem with no permission to element
     //! ED // TODO: check if it works
   };
@@ -269,7 +258,7 @@ export function SubjectController(
       Deno.writeFile(
         // TODO: move to the service
         joinThrowable(
-          excerciseRepository.getStaticContentPath(subject),
+          exerciseRepository.getStaticContentPath(subject),
           filename
         ),
         content,
@@ -290,7 +279,7 @@ export function SubjectController(
     async (ctx: RouterContext, req) => {
       const user = await authorize(ctx, false); //! A
 
-      if (!excerciseRepository.listSubjects().includes(req.subject)) {
+      if (!exerciseRepository.listSubjects().includes(req.subject)) {
         throw new httpErrors["NotFound"]();
       } //! E
 
@@ -299,24 +288,23 @@ export function SubjectController(
 
         for (const el of section) {
           if (!isSubSection(el)) {
-            const exercise = excerciseRepository.get(req.subject, el.children);
-
-            if (exercise instanceof Error) {
-              continue; // ignore not existing exercises
+            try {
+              const exercise = exerciseRepository.get(req.subject, el.children);
+              sectionArray.push({
+                name: exercise.name,
+                children: el.children,
+                type: req.raw ? undefined : exercise.type,
+                description: req.raw ? undefined : exercise.description,
+                done:
+                  req.raw || user === undefined
+                    ? undefined
+                    : (await user.exercises.get(
+                        exerciseRepository.uid(req.subject, el.children)
+                      )) ?? null,
+              });
+            } catch {
+              // we really need this comment
             }
-
-            sectionArray.push({
-              name: exercise.name,
-              children: el.children,
-              type: req.raw ? undefined : exercise.type,
-              description: req.raw ? undefined : exercise.description,
-              done:
-                req.raw || user === undefined
-                  ? undefined
-                  : (await user.exercises.get(
-                      excerciseRepository.uid(req.subject, el.children)
-                    )) ?? null,
-            });
           } else {
             sectionArray.push({
               name: el.name,
@@ -333,24 +321,27 @@ export function SubjectController(
           !req.raw && [
             {
               name: "",
-              children: excerciseRepository
+              children: exerciseRepository
                 .unlisted(req.subject)
                 .get()
                 .flatMap((x) => {
-                  const exercise = excerciseRepository.get(req.subject, x);
-                  if (exercise instanceof Error) return []; // ignore not existing exercises
-                  return {
-                    name: exercise.name,
-                    children: x,
-                    type: exercise.type,
-                    description: exercise.description,
-                    done: null,
-                  };
+                  try {
+                    const exercise = exerciseRepository.get(req.subject, x);
+                    return {
+                      name: exercise.name,
+                      children: x,
+                      type: exercise.type,
+                      description: exercise.description,
+                      done: null,
+                    };
+                  } catch {
+                    return []; // ignore not existing exercises
+                  }
                 }),
             },
           ],
         ...(await iterateSection(
-          excerciseRepository.structure(req.subject).get()
+          exerciseRepository.structure(req.subject).get()
         )),
       ].filter(Boolean);
 
@@ -371,11 +362,11 @@ export function SubjectController(
         throw new httpErrors["Forbidden"]();
       } //! P
 
-      if (!excerciseRepository.listSubjects().includes(subject)) {
+      if (!exerciseRepository.listSubjects().includes(subject)) {
         throw new httpErrors["NotFound"]();
       } //! E
 
-      excerciseRepository.structure(subject).set(hierarchy); //! O // TODO V what i exercise doesn't exist
+      exerciseRepository.structure(subject).set(hierarchy); //! O // TODO V what i exercise doesn't exist
       ctx.response.status = 200;
       //! D
     }
@@ -392,21 +383,17 @@ export function SubjectController(
         throw new httpErrors["Forbidden"]();
       } //! P
 
-      const exercises = translateErrors(
-        excerciseRepository.listExercises(subject)
-      ) //! E // TODO: check if all exercises are listed after refactor
+      const exercises = exerciseRepository
+        .listExercises(subject)
+        //! E // TODO: check if all exercises are listed after refactor
         .map((id) => {
-          const ex = excerciseRepository.get(subject, id);
-
-          if (ex instanceof CustomDictError) {
-            throw new Error("never");
-          }
+          const exercise = exerciseRepository.get(subject, id);
 
           return {
             id,
-            type: ex.type,
-            name: ex.name,
-            description: ex.description,
+            type: exercise.type,
+            name: exercise.name,
+            description: exercise.description,
           };
         });
 
@@ -427,7 +414,7 @@ export function SubjectController(
         throw new httpErrors["Forbidden"]();
       } //! P
 
-      translateErrors(excerciseRepository.add(subject, exerciseId, content)); //! EVO
+      exerciseRepository.add(subject, exerciseId, content); //! EVO
 
       ctx.response.status = 200; //! D
     }
@@ -445,11 +432,7 @@ export function SubjectController(
         throw new httpErrors["Forbidden"]();
       } //! P
 
-      const content = excerciseRepository.getContent(subject, exerciseId);
-
-      if (content instanceof CustomDictError) {
-        throw new httpErrors["NotFound"]();
-      } //! E
+      const content = exerciseRepository.getContent(subject, exerciseId);
 
       ctx.response.body = { content };
       ctx.response.status = 200; //! D
@@ -469,7 +452,7 @@ export function SubjectController(
         throw new httpErrors["Forbidden"]();
       } //! P
 
-      translateErrors(excerciseRepository.update(subject, exerciseId, content)); //! EVO
+      exerciseRepository.update(subject, exerciseId, content); //! EVO
 
       ctx.response.status = 200; //! D
     }
@@ -482,11 +465,11 @@ export function SubjectController(
     },
     (ctx: RouterContext, { content, seed }) => {
       //! AP missing // TODO: is it ok???
-      const ex = translateErrors(excerciseRepository.parse(content)); //! VO
+      const exercise = exerciseRepository.parse(content); //! VO
 
       ctx.response.body = {
-        ...ex.render(seed),
-        correctAnswer: ex.getCorrectAnswer(seed),
+        ...exercise.render(seed),
+        correctAnswer: exercise.getCorrectAnswer(seed),
       };
       ctx.response.status = 200; //! D
     }
