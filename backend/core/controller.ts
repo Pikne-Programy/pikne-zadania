@@ -13,14 +13,14 @@ import {
   validateCookies,
 } from "./mod.ts";
 
+type props = keyof ValidationSchema;
+
 type defualt2Record<S> = S extends SchemaObject
   ? ObjectTypeOf<NonNullable<S>>
   : Record<string, never>;
 
 type mapSchema<S extends ValidationSchema> = {
-  [P in "body" | "headers" | "query" | "params" | "cookies"]: defualt2Record<
-    S[P]
-  >;
+  [P in props]: defualt2Record<S[P]>;
 };
 
 interface ValidationSchema<
@@ -55,39 +55,38 @@ export function controller(
   args: IController<Record<string, undefined>>
 ): OakMiddleware;
 export function controller<S extends ValidationSchema>({
-  schema: maybeSchema,
   status,
   handle,
+  schema = {} as S,
 }: IController<S> & { schema?: S | undefined }): OakMiddleware {
-  //
-  const schema = maybeSchema || ({} as S);
-
   return async (ctx: RouterContext) => {
     ctx.response.status = status!; //can be assigned anyway
 
-    const [body, headers, query, params, cookies] = await Promise.all(
-      [
-        schema.body && validateBody(ctx, schema.body),
-        schema.headers && validateHeaders(ctx, schema.headers),
-        schema.query && validateQuery(ctx, schema.query),
-        schema.params && validateParams(ctx, schema.params),
-        schema.cookies && validateCookies(ctx, schema.cookies),
-      ].map((validation) => validation || Promise.resolve({}))
-    )
-      .then(
-        (r) =>
-          r as [
-            defualt2Record<S["body"]>,
-            defualt2Record<S["headers"]>,
-            defualt2Record<S["query"]>,
-            defualt2Record<S["params"]>,
-            defualt2Record<S["cookies"]>
-          ]
-      )
-      .catch(() => {
-        throw new httpErrors["BadRequest"]();
-      });
+    const validators = {
+      body: validateBody,
+      headers: validateHeaders,
+      query: validateQuery,
+      params: validateParams,
+      cookies: validateCookies,
+    };
 
-    return handle(ctx, { body, headers, query, params, cookies });
+    const entries = Object.entries(validators) as [
+      props,
+      typeof validators[props]
+    ][];
+
+    const parsed = await Promise.all(
+      entries.map(
+        async ([prop, validator]) =>
+          [
+            prop,
+            schema[prop] ? await validator(ctx, schema[prop]!) : {},
+          ] as const
+      )
+    ).then<mapSchema<S>, never>(Object.fromEntries, () => {
+      throw new httpErrors["BadRequest"]();
+    });
+
+    return handle(ctx, parsed);
   };
 }

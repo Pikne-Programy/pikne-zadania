@@ -11,8 +11,7 @@ import {
 
 export const userSchema = {
   id: vs.string(userIdOptions), // please update subject.assignees below
-  /** `undefined` -> `null` */
-  idOptional: vs.string({ ...userIdOptions, ifUndefined: null }),
+  idOptional: vs.string({ ...userIdOptions }),
   login: vs.string({ strictType: true, pattern: comb(emailRegex, /|root/) }),
   loginEmail: vs.string({ strictType: true, pattern: emailRegex }),
   name: vs.string(userNameOptions),

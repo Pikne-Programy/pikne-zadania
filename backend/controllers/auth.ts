@@ -5,18 +5,20 @@
 import { Router, RouterContext } from "../deps.ts";
 import { delay } from "../utils/mod.ts";
 import {
+  cookieSchema,
   userSchema,
-  // line 27 only use
+  // only use
   //FIXME
   teamSchema,
 } from "../schemas/mod.ts";
 import { JWTService, ConfigService, Logger } from "../services/mod.ts";
-import { UserRepository } from "../repositories/mod.ts";
+import { UserRepository, TeamRepository } from "../repositories/mod.ts";
 import { controller } from "../core/mod.ts";
 
 export function AuthController(
   config: ConfigService,
   userRepository: UserRepository,
+  teamRepository: TeamRepository,
   jwtService: JWTService,
   logger: Logger
 ) {
@@ -31,12 +33,11 @@ export function AuthController(
       },
     },
     status: 200,
-    handle: async (
-      _ctx: RouterContext,
-      { body: { invitation, number, ...rest } }
-    ) => {
+    handle: async (_: unknown, { body: { invitation, number, ...rest } }) => {
       await userRepository.add(
-        { invitation },
+        teamRepository.get(
+          (await teamRepository.invitation.get(invitation)) ?? NaN
+        ),
         {
           ...rest,
           number: isNaN(number) ? undefined : number,
@@ -57,30 +58,34 @@ export function AuthController(
       const { LOGIN_TIME } = config;
       const startTime = Date.now();
 
-      const jwt = await jwtService.create(login, hashedPassword).catch(() => {
+      const delayOnFailure = () => {
         const remainedTime = startTime + LOGIN_TIME - Date.now();
-        throw remainedTime > 0
+        throw remainedTime > 0 //FIXME proxy responsability?
           ? delay(remainedTime) // * preventing timing attack *
           : logger.warn(`WARN: Missed LOGIN_TIME by ${remainedTime} ms.`);
-      });
+      };
 
-      ctx.cookies.set("jwt", jwt, { maxAge: config.JWT_CONF.exp });
+      const jwt = await jwtService
+        .create(login, hashedPassword)
+        .catch(delayOnFailure);
+
+      ctx.cookies.set("token", jwt, { maxAge: config.JWT_CONF.exp });
     },
   });
 
   const logout = controller({
+    schema: {
+      cookies: {
+        token: cookieSchema.token,
+      },
+    },
     status: 200,
-    handle: async (ctx: RouterContext) => {
-      const jwt = ctx.cookies.get("jwt");
-      const userId = await jwtService.resolve(jwt); //! APE
+    handle: async (ctx: RouterContext, { cookies: { token } }) => {
+      const userId = await jwtService.resolve(token);
 
-      if (!jwt) {
-        throw new Error("never"); //FIXME TODO jwt cookie schema
-      }
+      await jwtService.revoke(userId, token);
 
-      await jwtService.revoke(userId, jwt);
-
-      ctx.cookies.delete("jwt");
+      ctx.cookies.delete("token");
     },
   });
 

@@ -6,12 +6,12 @@
 import { TeamType, Team } from "../models/mod.ts";
 import { CustomDictError } from "../common/mod.ts";
 import { Collection } from "../deps.ts";
-import { ConfigService } from "../services/mod.ts";
+import { HashService } from "../services/mod.ts";
 
 export class TeamRepository {
   constructor(
-    private config: ConfigService,
-    private teamsCollection: Collection<TeamType>
+    private hashService: HashService,
+    public collection: Collection<TeamType>
   ) {}
 
   async init() {
@@ -20,7 +20,7 @@ export class TeamRepository {
       return;
     }
     // teachers' team
-    const assignee = this.config.hash("root");
+    const assignee = this.hashService.hash("root");
 
     await this.add(1, { name: "Teachers", assignee }, true);
   }
@@ -30,11 +30,11 @@ export class TeamRepository {
   }
 
   list() {
-    return this.teamsCollection.find().toArray();
+    return this.collection.find().toArray();
   }
 
   get(id: number) {
-    return new Team(this.teamsCollection, id);
+    return new Team(this, id);
   }
 
   async add(
@@ -48,7 +48,7 @@ export class TeamRepository {
       throw new CustomDictError("TeamAlreadyExists", { teamId });
     }
 
-    await this.teamsCollection.insertOne({
+    await this.collection.insertOne({
       id: teamId,
       name: options.name,
       assignee: options.assignee,
@@ -65,12 +65,12 @@ export class TeamRepository {
       throw new CustomDictError("TeamNotFound", { teamId });
     }
 
-    await this.teamsCollection.deleteOne({ id: team.id });
+    await this.collection.deleteOne({ id: team.id });
   }
 
   readonly invitation = {
     get: async (invitation: string) => {
-      const team = await this.teamsCollection.findOne({ invitation });
+      const team = await this.collection.findOne({ invitation });
 
       if (!team) {
         return null;

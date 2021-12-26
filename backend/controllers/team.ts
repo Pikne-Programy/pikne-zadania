@@ -24,8 +24,7 @@ export function TeamController(
     handle: async (ctx: RouterContext) => {
       const user = await authorize(ctx); //! A
 
-      if (!["admin", "teacher"].includes(await user.role.get())) {
-        // TODO: user.isTeacher
+      if (!(await user.isTeacher())) {
         throw new httpErrors["Forbidden"]();
       } //! P -- every and only teacher is able to view all teams !
 
@@ -57,8 +56,7 @@ export function TeamController(
     handle: async (ctx: RouterContext, { body: { name } }) => {
       const user = await authorize(ctx); //! A
 
-      if (!["admin", "teacher"].includes(await user.role.get())) {
-        // TODO: user.isTeacher
+      if (!(await user.isTeacher())) {
         throw new httpErrors["Forbidden"]();
       } //! P
 
@@ -78,13 +76,11 @@ export function TeamController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body: { teamId } }) => {
-      const user = await authorize(ctx); //! A
-      const role = await user.role.get();
+      const user = await authorize(ctx);
 
       let verbosity: 0 | 1 | 2;
 
-      if (!["admin", "teacher"].includes(role)) {
-        // TODO: user.isTeacher
+      if (!(await user.isTeacher())) {
         verbosity = 0;
 
         if ((await user.team.get()) != teamId) {
@@ -142,8 +138,7 @@ export function TeamController(
       const user = await authorize(ctx); //! A
       const team = teamRepository.get(teamId);
 
-      if (!["admin", "teacher"].includes(await user.role.get())) {
-        // TODO: user.isTeacher
+      if (!(await user.isTeacher())) {
         throw new httpErrors["Forbidden"]();
       } //! P of list
 
@@ -153,7 +148,7 @@ export function TeamController(
       if (!(await isAssignee(teamId, user.id))) {
         throw new httpErrors["Forbidden"]();
       } //! P of update
-      if (assignee !== null) {
+      if (typeof assignee === "string") {
         if (!(await userRepository.get(assignee).exists())) {
           throw new httpErrors["BadRequest"]("`assignee` doesn't exist");
         } //! V
@@ -189,8 +184,7 @@ export function TeamController(
       const user = await authorize(ctx); //! A
       const team = teamRepository.get(teamId);
 
-      if (!["admin", "teacher"].includes(await user.role.get())) {
-        // TODO: user.isTeacher
+      if (!(await user.isTeacher())) {
         throw new httpErrors["Forbidden"]();
       } //! P of list
 
@@ -203,7 +197,16 @@ export function TeamController(
 
       await team.members
         .get()
-        .then((uids) => uids.map((uid) => userRepository.delete(uid)))
+        .then((uids) =>
+          uids.map(async (uid) => {
+            await userRepository.delete(userRepository.get(uid));
+            const team = teamRepository.get(await user.team.get());
+
+            if (await team.exists()) {
+              await team.members.remove(user.id);
+            }
+          })
+        )
         .then(Promise.allSettled);
 
       await teamRepository.delete(teamId);

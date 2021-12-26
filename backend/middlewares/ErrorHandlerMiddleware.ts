@@ -1,11 +1,11 @@
 import { Logger } from "../services/mod.ts";
 import { Context, HttpError, httpErrors } from "../deps.ts";
-import { assertUnreachable } from "../utils/mod.ts";
 import { CustomDictError } from "../common/mod.ts";
 
 const errors = {
   ExerciseBadAnswerFormat: "BadRequest",
   ExerciseBadFormat: "BadRequest",
+  JWTNotPresented: "BadRequest",
 
   UserCredentialsInvalid: "Unauthorized",
   JWTNotFound: "Unauthorized",
@@ -35,8 +35,6 @@ function mapErrors<T>(err: T | CustomDictError) {
   if (httpErrorClass) {
     return new httpErrorClass(err.type);
   }
-
-  assertUnreachable(0 as never);
 }
 
 const sendError = (ctx: Context, { status, message }: HttpError) => {
@@ -67,11 +65,5 @@ export const ErrorHandlerMiddleware =
       if (error.status) {
         logger.recogniseAndTrace(e);
       }
-    } finally {
-      logger.log(
-        ctx.request.method,
-        ctx.request.url.pathname,
-        ctx.response.status
-      );
     }
   };

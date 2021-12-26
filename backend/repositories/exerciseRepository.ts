@@ -83,6 +83,7 @@ export class ExerciseRepository {
         this.logger.recogniseAndTrace(e, { msg: `${subject}` });
       }
     }
+
     for (const uid in this.exercises) {
       if (this.exercises[uid][1]) {
         continue;
@@ -104,28 +105,35 @@ export class ExerciseRepository {
   }
 
   parse(content: string) {
+    const re = /^---$/gm;
+    let occur;
+    // find 2nd occurrence of `---`
+    if (!re.exec(content) || !(occur = re.exec(content))) {
+      throw new CustomDictError("ExerciseBadFormat", {
+        description: "the header is necessary",
+      });
+    }
+
+    const properties = parse(content.substring(0, occur.index));
+
+    if (!isObjectOf(isJSONType, properties)) {
+      throw new CustomDictError("ExerciseBadFormat", { description: "never" });
+    }
+    const { type, name, ...props } = properties;
+    const exercise = content.substring(re.lastIndex);
+
+    if (typeof type !== "string" || typeof name !== "string") {
+      throw new CustomDictError("ExerciseBadFormat", {
+        description: "type and name are necessary",
+      });
+    }
+    if (!(type in exts)) {
+      throw new CustomDictError("ExerciseBadFormat", {
+        description: "unknown type",
+      });
+    }
+
     try {
-      const re = /^---$/gm;
-      let occur;
-      // find 2nd occurrence of `---`
-      if (!re.exec(content) || !(occur = re.exec(content))) {
-        throw new Error("the header is necessary");
-      }
-
-      const properties = parse(content.substring(0, occur.index));
-
-      if (!isObjectOf(isJSONType, properties)) {
-        throw new Error("never");
-      }
-      const { type, name, ...props } = properties;
-      const exercise = content.substring(re.lastIndex);
-
-      if (typeof type !== "string" || typeof name !== "string") {
-        throw new Error("type and name are necessary");
-      }
-      if (!(type in exts)) {
-        throw new Error("unknown type");
-      }
       return new exts[type](this.config, name, exercise, props); // it can throw an error
     } catch (e) {
       throw new CustomDictError("ExerciseBadFormat", {
@@ -137,12 +145,11 @@ export class ExerciseRepository {
   private appendExerciseFile(
     subject: string,
     exerciseId: string,
-    _content?: string
+    content: string = this.getContent(subject, exerciseId)
   ) {
-    try {
-      const content = _content ?? this.getContent(subject, exerciseId);
+    const uid = this.uid(subject, exerciseId);
 
-      const uid = this.uid(subject, exerciseId);
+    try {
       const exercise = this.parse(content);
 
       this.exercises[uid] = [exercise, false];
@@ -150,7 +157,7 @@ export class ExerciseRepository {
       return exercise;
     } catch (e) {
       this.logger.recogniseAndTrace(e, {
-        msg: `exercise ${this.uid(subject, exerciseId)}`,
+        msg: `exercise ${uid}`,
       });
     }
   }

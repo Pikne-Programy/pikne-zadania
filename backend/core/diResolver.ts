@@ -4,6 +4,7 @@ import {
   ExerciseService,
   JWTService,
   Logger,
+  HashService,
 } from "../services/mod.ts";
 import {
   ExerciseRepository,
@@ -16,6 +17,7 @@ import {
   SubjectController,
   TeamController,
   UserController,
+  ExerciseController,
 } from "../controllers/mod.ts";
 import { TeamType, SubjectType, UserType } from "../models/mod.ts";
 import { createAuthorize, createApiRoutes } from "./mod.ts";
@@ -23,40 +25,45 @@ import { createAuthorize, createApiRoutes } from "./mod.ts";
 export async function resolveIoC() {
   const config = new ConfigService();
   const logger = new Logger(config);
+  const hashService = new HashService(config);
 
   const dbService = await new DatabaseService(config).connect();
 
-  const usersCollection = dbService.getCollection<UserType>("users");
-  const teamsCollection = dbService.getCollection<TeamType>("teams");
-  const subjectsCollection = dbService.getCollection<SubjectType>("subjects");
-
-  const teamRepository = new TeamRepository(config, teamsCollection);
+  const teamRepository = new TeamRepository(
+    hashService,
+    dbService.getCollection<TeamType>("teams")
+  );
   const userRepository = new UserRepository(
     config,
-    usersCollection,
+    dbService.getCollection<UserType>("users"),
     logger,
-    teamRepository
+    hashService
   );
   const exerciseRepository = new ExerciseRepository(config, logger);
   const subjectRepository = new SubjectRepository(
-    subjectsCollection,
-    exerciseRepository
+    dbService.getCollection<SubjectType>("subjects")
   );
 
   await Promise.all([
-    userRepository.init(),
+    userRepository.init(teamRepository.get(0)),
     teamRepository.init(),
-    subjectRepository.init(),
+    subjectRepository.init(exerciseRepository.listSubjects()),
   ]);
 
   const exerciseService = new ExerciseService(exerciseRepository);
-  const jwtService = new JWTService(config, userRepository, logger);
+  const jwtService = new JWTService(
+    config,
+    userRepository,
+    logger,
+    hashService
+  );
 
   const authorizer = createAuthorize(jwtService, userRepository);
 
   const authController = AuthController(
     config,
     userRepository,
+    teamRepository,
     jwtService,
     logger
   );
@@ -78,10 +85,16 @@ export async function resolveIoC() {
     exerciseRepository,
     exerciseService
   );
+  const exerciseController = ExerciseController(
+    authorizer,
+    subjectRepository,
+    exerciseRepository
+  );
 
   const router = createApiRoutes(
     authController,
     subjectController,
+    exerciseController,
     teamController,
     userController
   );

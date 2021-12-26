@@ -5,10 +5,6 @@
 
 export const deepCopy = <T>(arr: T): T => JSON.parse(JSON.stringify(arr));
 
-export function assertUnreachable(_: never): never {
-  throw new Error("we reached the unreachable");
-}
-
 export function countdown(seconds: number): Promise<void> {
   if (seconds) {
     Deno.stdout.writeSync(new Uint8Array([126]));

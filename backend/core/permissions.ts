@@ -17,7 +17,7 @@ export async function isAssigneeOf(subject: Subject, user?: User) {
   if (assignees !== null && assignees.includes(user.id)) {
     return true;
   }
-  return (await user.role.get()) === "teacher" && assignees === null; // TODO: user.isTeacher
+  return (await user.isTeacher()) && assignees === null;
 }
 
 /** check if the subject would be visible for the User */

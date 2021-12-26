@@ -4,24 +4,20 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { CustomDictError } from "../common/mod.ts";
-import { ExerciseRepository } from "./mod.ts";
 import { Subject, SubjectType } from "../models/mod.ts"; // TODO: get rid off
 import { Collection } from "../deps.ts";
 
 export class SubjectRepository {
-  constructor(
-    private subjectsCollection: Collection<SubjectType>,
-    private exerciseRepository: ExerciseRepository
-  ) {}
+  constructor(public collection: Collection<SubjectType>) {}
 
   get(id: string) {
-    return new Subject(this.subjectsCollection, id);
+    return new Subject(this, id);
   }
 
-  async init() {
-    const diskSubjects = new Set(this.exerciseRepository.listSubjects());
+  async init(_diskSubjects: string[]) {
+    const diskSubjects = new Set(_diskSubjects);
     const dbSubjects = new Set(
-      (await this.subjectsCollection.find().toArray()).map(({ id }) => id)
+      (await this.collection.find().toArray()).map(({ id }) => id)
     );
 
     // TODO: see FindCursor (without .toArray())
@@ -32,15 +28,15 @@ export class SubjectRepository {
       const inDb = dbSubjects.has(id);
 
       if (inDisk && !inDb) {
-        await this.subjectsCollection.insertOne({ id, assignees: null });
+        await this.collection.insertOne({ id, assignees: null });
       } else if (!inDisk && inDb) {
-        await this.subjectsCollection.deleteOne({ id });
+        await this.collection.deleteOne({ id });
       }
     }
   }
 
   async list() {
-    const subjects = await this.subjectsCollection.find().toArray();
+    const subjects = await this.collection.find().toArray();
     return subjects.map(({ id }) => id);
   }
 
@@ -51,6 +47,6 @@ export class SubjectRepository {
       throw new CustomDictError("SubjectAlreadyExists", { subject: id });
     }
 
-    this.subjectsCollection.insertOne({ id, assignees });
+    this.collection.insertOne({ id, assignees });
   }
 }

@@ -33,14 +33,6 @@ export class ExerciseService {
   }
 
   async render(
-    input: { content: string },
-    userOrSeed: UserOrSeed
-  ): Promise<RenderResult>;
-  async render(
-    input: { subject: string; exerciseId: string },
-    userOrSeed: UserOrSeed
-  ): Promise<RenderResult>;
-  async render(
     input: { content: string } | { subject: string; exerciseId: string },
     userOrSeed: UserOrSeed
   ): Promise<RenderResult> {

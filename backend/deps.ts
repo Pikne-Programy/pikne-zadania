@@ -22,8 +22,7 @@ export { pbkdf2Sync } from "https://deno.land/std@0.100.0/node/crypto.ts";
 export { createHash } from "https://deno.land/std@0.100.0/hash/mod.ts";
 import { stringify as _stringify } from "https://deno.land/std@0.106.0/encoding/yaml.ts";
 export const stringify = (x: unknown) =>
-  // deno-lint-ignore no-explicit-any
-  _stringify(x as any);
+  _stringify(x as Record<string, unknown>);
 
 export type {
   Context,

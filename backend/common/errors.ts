@@ -13,6 +13,7 @@ type errors = {
   UserNotFound: user;
   UserCredentialsInvalid: user;
   JWTNotFound: whatever;
+  JWTNotPresented: description;
   TeamAlreadyExists: team;
   TeamNotFound: team;
   TeamInvitationNotFound: whatever;

@@ -6,4 +6,5 @@ export * from "./configService.ts";
 export * from "./jwtService.ts";
 export * from "./databaseService.ts";
 export * from "./exerciseService.ts";
+export * from "./hashService.ts";
 export * from "./logger.ts";

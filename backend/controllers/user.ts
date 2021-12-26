@@ -29,23 +29,19 @@ export function UserController(
   const info = controller({
     schema: {
       body: {
-        userId: userSchema.idOptional,
+        userId: userSchema.idOptional, //FIXME why it is even optional?
       },
     },
     status: 200,
     handle: async (ctx: RouterContext, { body }) => {
-      let { userId } = body;
       const user = await authorize(ctx); //! A
-
-      if (userId === null) {
-        userId = user.id;
-      } //! R
+      const { userId = user.id } = body;
 
       const who = userRepository.get(userId);
 
       if (
-        userId !== user.id && // not themself and
-        !(await isAssigneeOf(user, who)) // member of not their team // TODO: change when dealing with groups (but to what?)
+        userId === user.id || // themself or
+        (await isAssigneeOf(user, who)) // member of their team // TODO: change when dealing with groups (but to what?)
       ) {
         throw new httpErrors["Forbidden"]();
       } //! P
@@ -103,17 +99,20 @@ export function UserController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body: { userId } }) => {
-      const user = await authorize(ctx); //! A
+      const user = await authorize(ctx);
       const who = userRepository.get(userId);
 
-      // ? themself ?
-      // member of not their team
-      // TODO: change when dealing with groups (but to what? maybe add two Ps?)
       if (!(await isAssigneeOf(user, who))) {
+        // TODO: change when dealing with groups (but to what? maybe add two Ps?)
         throw new httpErrors["Forbidden"]();
-      } //! P
+      }
 
-      await userRepository.delete(userId); //! EO
+      await userRepository.delete(who);
+      const team = teamRepository.get(await user.team.get());
+
+      if (await team.exists()) {
+        await team.members.remove(user.id);
+      }
     },
   });
 

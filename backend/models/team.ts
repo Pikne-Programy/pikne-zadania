@@ -3,7 +3,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Collection } from "../deps.ts";
+import { TeamRepository } from "../repositories/mod.ts";
 
 export type TeamType = {
   id: number;
@@ -15,12 +15,12 @@ export type TeamType = {
 // TODO: make an abstract Model class
 export class Team {
   constructor(
-    private teamsCollection: Collection<TeamType>,
+    private teamRepository: TeamRepository,
     public readonly id: number
   ) {}
 
   private async get<T extends keyof TeamType>(key: T): Promise<TeamType[T]> {
-    const team = await this.teamsCollection.findOne({ id: this.id });
+    const team = await this.teamRepository.collection.findOne({ id: this.id });
     if (!team) {
       // TODO: error message
       throw new Error();
@@ -34,7 +34,7 @@ export class Team {
       throw new Error();
     }
 
-    await this.teamsCollection.updateOne(
+    await this.teamRepository.collection.updateOne(
       { id: this.id },
       value === undefined
         ? {
@@ -47,7 +47,9 @@ export class Team {
   }
 
   exists() {
-    return this.teamsCollection.findOne({ id: this.id }).then(Boolean);
+    return this.teamRepository.collection
+      .findOne({ id: this.id })
+      .then(Boolean);
   }
 
   readonly name = {
@@ -62,7 +64,7 @@ export class Team {
 
   readonly members = {
     add: async (uid: string) => {
-      await this.teamsCollection.updateOne(
+      await this.teamRepository.collection.updateOne(
         { id: this.id },
         {
           $push: { members: uid },
@@ -71,7 +73,7 @@ export class Team {
     },
     get: () => this.get("members"),
     remove: async (uid: string) => {
-      await this.teamsCollection.updateOne(
+      await this.teamRepository.collection.updateOne(
         { id: this.id },
         {
           $pull: { members: uid },
@@ -86,7 +88,7 @@ export class Team {
       if (invitation === undefined) {
         await this.set("invitation", undefined);
       } else {
-        const existing = await this.teamsCollection
+        const existing = await this.teamRepository.collection
           .findOne({ invitation })
           .then((team) => team?.id);
 

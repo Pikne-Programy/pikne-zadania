@@ -4,5 +4,6 @@
 
 export * from "./auth.ts";
 export * from "./subject.ts";
+export * from "./exerciseController.ts";
 export * from "./team.ts";
 export * from "./user.ts";

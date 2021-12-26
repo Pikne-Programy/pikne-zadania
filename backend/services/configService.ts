@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { Algorithm } from "../deps.ts";
-import { sha256 } from "../utils/mod.ts";
 
 const algos = [
   "none",
@@ -35,7 +34,7 @@ function getEnv(
   const parsers = {
     string: () => env,
     number: () => {
-      const number = +(env ?? NaN);
+      const number = Number(env);
       return isNaN(number) ? null : number;
     },
     boolean: () =>
@@ -52,6 +51,8 @@ function getEnv(
   return result;
 }
 
+//FIXME
+//TODO parse with vs?
 export class ConfigService {
   readonly SEED_AGE: number;
   readonly LOGIN_TIME: number;
@@ -126,9 +127,5 @@ export class ConfigService {
       console.warn(`The FRESH safe word was${fresh} triggered...`);
     }
     this.EXERCISES_PATH = getEnv("string", "EXERCISES_PATH", "./exercises/");
-  }
-
-  hash(login: string) {
-    return sha256(login, this.USER_SALT);
   }
 }

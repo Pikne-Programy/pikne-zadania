@@ -10,27 +10,25 @@ import {
   secondhashSync,
 } from "../utils/mod.ts";
 import { CustomDictError } from "../common/mod.ts";
-import { ConfigService, Logger } from "../services/mod.ts";
+import { ConfigService, Logger, HashService } from "../services/mod.ts";
 import { Collection } from "../deps.ts";
-import { TeamRepository } from "./mod.ts";
-import { User, RoleType, UserType } from "../models/mod.ts"; // TODO: get rid off
+import { User, RoleType, UserType, Team } from "../models/mod.ts";
 
 export class UserRepository {
   constructor(
     private config: ConfigService,
-    private usersCollection: Collection<UserType>,
+    public collection: Collection<UserType>,
     private logger: Logger,
-    private teamRepository: TeamRepository
+    private hashService: HashService
   ) {}
 
-  async init() {
+  async init(rootTeam: Team) {
     const warn = (
       what: string,
       why = "Please unset it or change ROOT_ENABLE."
-    ) => {
-      this.logger.warn(`WARN: ${what} is present. ${why}`);
-    };
-    const root = this.get(this.config.hash("root"));
+    ) => this.logger.warn(`WARN: ${what} is present. ${why}`);
+
+    const root = this.get(this.hashService.hash("root"));
     const rootType = {
       login: "root",
       name: "root",
@@ -46,7 +44,7 @@ export class UserRepository {
         warn("ROOT_DHPASS");
       }
       if (await root.exists()) {
-        await this.delete(this.config.hash("root"));
+        await this.delete(root);
       }
       return;
     }
@@ -64,13 +62,10 @@ export class UserRepository {
       ) {
         this.logger.log("ROOT was not changed.");
       } else {
-        await this.add(
-          { teamId: 0 },
-          {
-            dhPassword: config.dhPassword,
-            ...rootType,
-          }
-        );
+        await this.add(rootTeam, {
+          ...rootType,
+          dhPassword: config.dhPassword,
+        });
 
         this.logger.warn("ROOT was registered with ROOT_DHPASS.");
       }
@@ -90,7 +85,7 @@ export class UserRepository {
           `Please unset ROOT_PASS!\nSet ROOT_DHPASS=${dhPassword} if needed.`
         );
 
-        await this.add({ teamId: 0 }, { dhPassword, ...rootType });
+        await this.add(rootTeam, { ...rootType, dhPassword });
 
         this.logger.warn("ROOT was registered with ROOT_PASS.");
       }
@@ -98,11 +93,15 @@ export class UserRepository {
   }
 
   get(id: string) {
-    return new User(this.usersCollection, this.teamRepository, id);
+    return new User(this, id);
   }
-
+  /**
+   *
+   * @param team { invitation: string } | { teamId: number }
+   * @param options
+   */
   async add(
-    where: { invitation: string } | { teamId: number },
+    team: Team,
     options: {
       login: string;
       name: string;
@@ -111,46 +110,41 @@ export class UserRepository {
       seed?: number;
     } & ({ hashedPassword: string } | { dhPassword: string })
   ) {
-    const teamId =
-      "teamId" in where
-        ? where.teamId
-        : (await this.teamRepository.invitation.get(where.invitation)) ?? NaN;
-    const team = this.teamRepository.get(teamId); // teamId checked below
     const isExisting = await team.exists();
     /** admin team */
     let force = false;
 
     if (!isExisting) {
-      if (!("teamId" in where)) {
+      if (!("teamId" in team)) {
         throw new CustomDictError("TeamInvitationNotFound", {});
       }
-      if (where.teamId === 0) {
+      if (team.id === 0) {
         force = true;
       }
       if (!force) {
-        throw new CustomDictError("TeamNotFound", { teamId });
+        throw new CustomDictError("TeamNotFound", { teamId: team.id });
       }
     }
 
-    const special: { [key: number]: RoleType } = { 0: "admin", 1: "teacher" };
+    const special: Record<number, RoleType> = { 0: "admin", 1: "teacher" };
     const user: UserType = {
-      id: this.config.hash(options.login),
+      id: this.hashService.hash(options.login),
       login: options.login,
       name: options.name,
       number: options.number,
-      team: teamId,
+      team: team.id,
       dhPassword:
         "dhPassword" in options
           ? options.dhPassword
           : await secondhash(options.hashedPassword),
-      role: options.role ?? special[teamId] ?? "student",
+      role: options.role ?? special[team.id] ?? "student",
       tokens: [],
       seed: options.seed ?? generateSeed(),
       exercises: {},
     };
 
     if (options.role === "admin") {
-      await this.usersCollection.updateOne({ id: user.id }, user, {
+      await this.collection.updateOne({ id: user.id }, user, {
         upsert: true,
       });
     } else {
@@ -158,7 +152,7 @@ export class UserRepository {
         throw new CustomDictError("UserAlreadyExists", { userId: user.id });
       }
 
-      await this.usersCollection.insertOne(user);
+      await this.collection.insertOne(user);
 
       if (!force) {
         await team.members.add(user.id);
@@ -166,17 +160,11 @@ export class UserRepository {
     }
   }
 
-  async delete(userId: string) {
-    const user = this.get(userId);
+  async delete(user: User) {
     if (!(await user.exists())) {
-      throw new CustomDictError("UserNotFound", { userId });
-    }
-    const team = this.teamRepository.get(await user.team.get());
-
-    if (await team.exists()) {
-      await team.members.remove(user.id);
+      throw new CustomDictError("UserNotFound", { userId: user.id });
     }
 
-    await this.usersCollection.deleteOne({ id: user.id });
+    await this.collection.deleteOne({ id: user.id });
   }
 }

@@ -3,28 +3,29 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { Application } from "./deps.ts";
-import { ErrorHandlerMiddleware } from "./middlewares/mod.ts";
+import { ErrorHandlerMiddleware, LoggerMiddleware } from "./middlewares/mod.ts";
 import { resolveIoC } from "./core/mod.ts";
 
 export async function createApp() {
   const app = new Application();
-  const IoCContainer = await resolveIoC();
+  const ioCContainer = await resolveIoC();
 
   app.addEventListener("listen", () => {
-    IoCContainer.logger.log("Server started");
+    ioCContainer.logger.log("Server started");
   });
 
   app.addEventListener("error", (e) => {
-    IoCContainer.logger.recogniseAndTrace(e);
+    ioCContainer.logger.recogniseAndTrace(e);
   });
 
   app
-    .use(ErrorHandlerMiddleware(IoCContainer.logger))
-    .use(IoCContainer.router.routes())
-    .use(IoCContainer.router.allowedMethods());
+    .use(LoggerMiddleware(ioCContainer.logger))
+    .use(ErrorHandlerMiddleware(ioCContainer.logger))
+    .use(ioCContainer.router.routes())
+    .use(ioCContainer.router.allowedMethods());
 
   return {
     app,
-    ...IoCContainer,
+    ...ioCContainer,
   };
 }

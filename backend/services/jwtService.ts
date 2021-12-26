@@ -5,17 +5,18 @@
 import { compare, create, getNumericDate, verify } from "../deps.ts";
 import { CustomDictError } from "../common/mod.ts";
 import { UserRepository } from "../repositories/mod.ts";
-import { ConfigService, Logger } from "./mod.ts";
+import { ConfigService, Logger, HashService } from "./mod.ts";
 
 export class JWTService {
   constructor(
     private config: ConfigService,
     private userRepository: UserRepository,
-    private logger: Logger
+    private logger: Logger,
+    private hashService: HashService
   ) {}
 
   async create(login: string, hashedPassword: string) {
-    const userId = this.config.hash(login);
+    const userId = this.hashService.hash(login);
     const user = this.userRepository.get(userId);
 
     if (
@@ -42,11 +43,13 @@ export class JWTService {
   }
 
   async resolve(jwt?: string) {
-    try {
-      if (jwt === undefined) {
-        throw undefined; //TODO error
-      }
+    if (!jwt) {
+      throw new CustomDictError("JWTNotPresented", {
+        description: "Missing authorization token",
+      });
+    }
 
+    try {
       const { header, key } = this.config.JWT_CONF;
       const userId = await verify(jwt, key, header.alg).then(({ id }) => id); // TODO: throwable
 
