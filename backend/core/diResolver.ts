@@ -7,7 +7,6 @@ import {
 } from "../services/mod.ts";
 import {
   ExerciseRepository,
-  CircularDependencyResolver,
   SubjectRepository,
   TeamRepository,
   UserRepository,
@@ -31,13 +30,12 @@ export async function resolveIoC() {
   const teamsCollection = dbService.getCollection<TeamType>("teams");
   const subjectsCollection = dbService.getCollection<SubjectType>("subjects");
 
-  const { userRepository, teamRepository } = CircularDependencyResolver(
+  const teamRepository = new TeamRepository(config, teamsCollection);
+  const userRepository = new UserRepository(
     config,
     usersCollection,
-    teamsCollection,
     logger,
-    TeamRepository,
-    UserRepository
+    teamRepository
   );
   const exerciseRepository = new ExerciseRepository(config, logger);
   const subjectRepository = new SubjectRepository(

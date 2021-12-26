@@ -12,7 +12,7 @@ import {
 import { CustomDictError } from "../common/mod.ts";
 import { ConfigService, Logger } from "../services/mod.ts";
 import { Collection } from "../deps.ts";
-import { CircularDependencies } from "./mod.ts";
+import { TeamRepository } from "./mod.ts";
 import { User, RoleType, UserType } from "../models/mod.ts"; // TODO: get rid off
 
 export class UserRepository {
@@ -20,7 +20,7 @@ export class UserRepository {
     private config: ConfigService,
     private usersCollection: Collection<UserType>,
     private logger: Logger,
-    private circularDependencyResolver: CircularDependencies
+    private teamRepository: TeamRepository
   ) {}
 
   async init() {
@@ -98,11 +98,7 @@ export class UserRepository {
   }
 
   get(id: string) {
-    return new User(
-      this.usersCollection,
-      this.circularDependencyResolver.teamRepository,
-      id
-    );
+    return new User(this.usersCollection, this.teamRepository, id);
   }
 
   async add(
@@ -118,10 +114,8 @@ export class UserRepository {
     const teamId =
       "teamId" in where
         ? where.teamId
-        : (await this.circularDependencyResolver.teamRepository.invitation.get(
-            where.invitation
-          )) ?? NaN;
-    const team = this.circularDependencyResolver.teamRepository.get(teamId); // teamId checked below
+        : (await this.teamRepository.invitation.get(where.invitation)) ?? NaN;
+    const team = this.teamRepository.get(teamId); // teamId checked below
     const isExisting = await team.exists();
     /** admin team */
     let force = false;
@@ -177,9 +171,7 @@ export class UserRepository {
     if (!(await user.exists())) {
       throw new CustomDictError("UserNotFound", { userId });
     }
-    const team = this.circularDependencyResolver.teamRepository.get(
-      await user.team.get()
-    );
+    const team = this.teamRepository.get(await user.team.get());
 
     if (await team.exists()) {
       await team.members.remove(user.id);

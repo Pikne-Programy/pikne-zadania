@@ -201,6 +201,11 @@ export function TeamController(
         throw new httpErrors["Forbidden"]();
       } //! P of delete
 
+      await team.members
+        .get()
+        .then((uids) => uids.map((uid) => userRepository.delete(uid)))
+        .then(Promise.allSettled);
+
       await teamRepository.delete(teamId);
     },
   });

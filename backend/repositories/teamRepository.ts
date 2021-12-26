@@ -7,14 +7,12 @@ import { TeamType, Team } from "../models/mod.ts";
 import { CustomDictError } from "../common/mod.ts";
 import { Collection } from "../deps.ts";
 import { ConfigService } from "../services/mod.ts";
-import { CircularDependencies } from "./mod.ts";
 
 export class TeamRepository {
   constructor(
     private config: ConfigService,
-    private teamsCollection: Collection<TeamType>,
-    private target: CircularDependencies
-  ) {} //why mongo?
+    private teamsCollection: Collection<TeamType>
+  ) {}
 
   async init() {
     // create static teachers' team if not already created
@@ -44,13 +42,6 @@ export class TeamRepository {
     options: { name: string; assignee: string },
     force = false
   ) {
-    if (
-      !force &&
-      !(await this.target.userRepository.get(options.assignee).exists())
-    ) {
-      throw new CustomDictError("UserNotFound", { userId: options.assignee });
-    }
-
     teamId ??= await this.nextTeamId();
 
     if (!force && (await this.get(teamId).exists())) {
@@ -73,11 +64,6 @@ export class TeamRepository {
     if (!(await team.exists())) {
       throw new CustomDictError("TeamNotFound", { teamId });
     }
-
-    await team.members
-      .get()
-      .then((uids) => uids.map((uid) => this.target.userRepository.delete(uid)))
-      .then(Promise.allSettled);
 
     await this.teamsCollection.deleteOne({ id: team.id });
   }
