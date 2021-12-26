@@ -1,6 +1,6 @@
 import { ConfigService, Logger } from "../services/mod.ts";
 import { TeamRepository, UserRepository } from "../repositories/mod.ts";
-import { UserType, TeamType } from "../types/mod.ts";
+import { UserType, TeamType } from "../models/mod.ts";
 import { Collection } from "../deps.ts";
 
 export interface CircularDependencies {

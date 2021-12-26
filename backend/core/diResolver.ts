@@ -17,12 +17,11 @@ import {
   SubjectController,
   TeamController,
   UserController,
-  createAuthorize,
 } from "../controllers/mod.ts";
-import { TeamType, SubjectType, UserType } from "../types/mod.ts";
-import { createApiRoutes } from "./mod.ts";
+import { TeamType, SubjectType, UserType } from "../models/mod.ts";
+import { createAuthorize, createApiRoutes } from "./mod.ts";
 
-export async function resolveDI() {
+export async function resolveIoC() {
   const config = new ConfigService();
   const logger = new Logger(config);
 

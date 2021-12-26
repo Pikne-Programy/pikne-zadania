@@ -3,10 +3,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { compare, create, getNumericDate, verify } from "../deps.ts";
-import { CustomDictError } from "../types/mod.ts";
-import { Logger } from "../services/mod.ts";
+import { CustomDictError } from "../common/mod.ts";
 import { UserRepository } from "../repositories/mod.ts";
-import { ConfigService } from "./mod.ts";
+import { ConfigService, Logger } from "./mod.ts";
 
 export class JWTService {
   constructor(

@@ -3,10 +3,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { httpErrors, Router, RouterContext } from "../deps.ts";
-import { reservedTeamInvitation, schemas } from "../types/mod.ts";
+import { reservedTeamInvitation } from "../common/mod.ts";
+import { teamSchema, userSchema } from "../schemas/mod.ts";
 import { UserRepository, TeamRepository } from "../repositories/mod.ts";
-import { IAuthorizer } from "./mod.ts";
-import { ValidatorMiddleware } from "../middlewares/mod.ts";
+import { controller, IAuthorizer } from "../core/mod.ts";
 
 export function TeamController(
   authorize: IAuthorizer,
@@ -19,39 +19,42 @@ export function TeamController(
       (await teamRepository.get(teamId).assignee.get()) === userId
     );
   }
+  const list = controller({
+    status: 200,
+    handle: async (ctx: RouterContext) => {
+      const user = await authorize(ctx); //! A
 
-  async function list(ctx: RouterContext) {
-    const user = await authorize(ctx); //! A
+      if (!["admin", "teacher"].includes(await user.role.get())) {
+        // TODO: user.isTeacher
+        throw new httpErrors["Forbidden"]();
+      } //! P -- every and only teacher is able to view all teams !
 
-    if (!["admin", "teacher"].includes(await user.role.get())) {
-      // TODO: user.isTeacher
-      throw new httpErrors["Forbidden"]();
-    } //! P -- every and only teacher is able to view all teams !
-
-    ctx.response.body = await Promise.all(
-      (
-        await teamRepository.list()
-      ).map(async (e) => ({
-        teamId: e.id,
-        name: e.name,
-        assignee: {
-          userId: e.assignee,
-          name: await userRepository.get(e.assignee).name.get(),
-        },
-        invitation: (await isAssignee(e.id, user.id))
-          ? e.invitation ?? null //FIXME wtf?
-          : undefined,
-      }))
-    );
-
-    ctx.response.status = 200; //! D
-  }
-
-  const create = ValidatorMiddleware(
-    {
-      name: schemas.team.name,
+      ctx.response.body = await Promise.all(
+        (
+          await teamRepository.list()
+        ).map(async (e) => ({
+          teamId: e.id,
+          name: e.name,
+          assignee: {
+            userId: e.assignee,
+            name: await userRepository.get(e.assignee).name.get(),
+          },
+          invitation: (await isAssignee(e.id, user.id))
+            ? e.invitation ?? null //FIXME wtf?
+            : undefined,
+        }))
+      );
     },
-    async (ctx: RouterContext, { name }) => {
+  });
+
+  const create = controller({
+    schema: {
+      body: {
+        name: teamSchema.name,
+      },
+    },
+    status: 200,
+    handle: async (ctx: RouterContext, { body: { name } }) => {
       const user = await authorize(ctx); //! A
 
       if (!["admin", "teacher"].includes(await user.role.get())) {
@@ -64,15 +67,17 @@ export function TeamController(
         assignee: user.id,
       }); // ? 404 ? //! EVO
       ctx.response.body = { teamId };
-      ctx.response.status = 200; //! D
-    }
-  );
-
-  const info = ValidatorMiddleware(
-    {
-      teamId: schemas.team.id,
     },
-    async (ctx: RouterContext, { teamId }) => {
+  });
+
+  const info = controller({
+    schema: {
+      body: {
+        teamId: teamSchema.id,
+      },
+    },
+    status: 200,
+    handle: async (ctx: RouterContext, { body: { teamId } }) => {
       const user = await authorize(ctx); //! A
       const role = await user.role.get();
 
@@ -117,19 +122,23 @@ export function TeamController(
             }))
         ),
       };
-
-      ctx.response.status = 200; //! D
-    }
-  );
-
-  const update = ValidatorMiddleware(
-    {
-      teamId: schemas.team.id,
-      invitation: schemas.team.invitationGenerateOptional,
-      assignee: schemas.user.idOptional,
-      name: schemas.team.nameOptional,
     },
-    async (ctx: RouterContext, { teamId, invitation, assignee, name }) => {
+  });
+
+  const update = controller({
+    schema: {
+      body: {
+        teamId: teamSchema.id,
+        invitation: teamSchema.invitationGenerateOptional,
+        assignee: userSchema.idOptional,
+        name: teamSchema.nameOptional,
+      },
+    },
+    status: 200,
+    handle: async (
+      ctx: RouterContext,
+      { body: { teamId, invitation, assignee, name } }
+    ) => {
       const user = await authorize(ctx); //! A
       const team = teamRepository.get(teamId);
 
@@ -166,16 +175,17 @@ export function TeamController(
       if (name !== null) {
         await team.name.set(name);
       } //! O
-
-      ctx.response.status = 200; //! D
-    }
-  );
-
-  const remove = ValidatorMiddleware(
-    {
-      teamId: schemas.team.id,
     },
-    async (ctx: RouterContext, { teamId }) => {
+  });
+
+  const remove = controller({
+    schema: {
+      body: {
+        teamId: teamSchema.id,
+      },
+    },
+    status: 200,
+    handle: async (ctx: RouterContext, { body: { teamId } }) => {
       const user = await authorize(ctx); //! A
       const team = teamRepository.get(teamId);
 
@@ -192,10 +202,8 @@ export function TeamController(
       } //! P of delete
 
       await teamRepository.delete(teamId);
-
-      ctx.response.status = 200; //! D
-    }
-  );
+    },
+  });
 
   return new Router({
     prefix: "/team",

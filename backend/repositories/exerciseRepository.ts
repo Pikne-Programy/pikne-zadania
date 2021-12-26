@@ -11,16 +11,15 @@ import {
   stringify,
   walkSync,
 } from "../deps.ts";
-import { joinThrowable } from "../utils/mod.ts";
+import { CustomDictError, Exercise } from "../common/mod.ts";
 import {
-  CustomDictError,
-  Exercise,
+  joinThrowable,
+  isSubSection,
+  Section,
   isArrayOf,
   isJSONType,
   isObjectOf,
-  isSubSection,
-  Section,
-} from "../types/mod.ts";
+} from "../utils/mod.ts";
 import { ConfigService, Logger } from "../services/mod.ts";
 import exts from "../exts/mod.ts";
 
@@ -146,9 +145,7 @@ export class ExerciseRepository {
       const uid = this.uid(subject, exerciseId);
       const exercise = this.parse(content);
 
-      if (exercise instanceof Exercise) {
-        this.exercises[uid] = [exercise, false];
-      }
+      this.exercises[uid] = [exercise, false];
 
       return exercise;
     } catch (e) {
@@ -259,16 +256,6 @@ export class ExerciseRepository {
     }
 
     return exercise[0];
-  }
-  //FIXME unused
-  private inYaml(subject: string, exerciseId: string) {
-    const exercise = this.exercises[this.uid(subject, exerciseId)];
-
-    if (exercise === undefined) {
-      throw new CustomDictError("ExerciseNotFound", { subject, exerciseId });
-    }
-
-    return exercise[1];
   }
 
   update(subject: string, exerciseId: string, content: string) {

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Exercise } from "../types/mod.ts";
+import { Exercise } from "../common/mod.ts";
 import { ConfigService } from "../services/mod.ts";
 import EquationExercise from "./eqex/equationExercise.ts";
 
@@ -12,9 +12,9 @@ export default <
   {
     [key: string]: new (
       cfg: ConfigService,
-      name: typeof Exercise.prototype.name,
+      name: Exercise["name"],
       context: string,
-      properties: typeof Exercise.prototype.properties
+      properties: Exercise["properties"]
     ) => Exercise;
   }
 >{

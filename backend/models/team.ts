@@ -3,9 +3,15 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { TeamType } from "../types/mod.ts";
 import { Collection } from "../deps.ts";
 
+export type TeamType = {
+  id: number;
+  name: string;
+  assignee: string;
+  members: string[];
+  invitation?: string;
+};
 // TODO: make an abstract Model class
 export class Team {
   constructor(

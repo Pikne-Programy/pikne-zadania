@@ -3,18 +3,18 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { CustomDictError, TeamType } from "../types/mod.ts";
+import { TeamType, Team } from "../models/mod.ts";
+import { CustomDictError } from "../common/mod.ts";
 import { Collection } from "../deps.ts";
 import { ConfigService } from "../services/mod.ts";
 import { CircularDependencies } from "./mod.ts";
-import { Team } from "../models/mod.ts"; // TODO: get rid off
 
 export class TeamRepository {
   constructor(
     private config: ConfigService,
     private teamsCollection: Collection<TeamType>,
     private target: CircularDependencies
-  ) {}
+  ) {} //why mongo?
 
   async init() {
     // create static teachers' team if not already created
@@ -77,10 +77,7 @@ export class TeamRepository {
     await team.members
       .get()
       .then((uids) => uids.map((uid) => this.target.userRepository.delete(uid)))
-      .then(Promise.allSettled)
-      .catch(() => {
-        //FIXME no behaviour changes purpose
-      });
+      .then(Promise.allSettled);
 
     await this.teamsCollection.deleteOne({ id: team.id });
   }

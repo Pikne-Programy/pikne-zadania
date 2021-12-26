@@ -4,10 +4,15 @@
 
 import { Router, RouterContext } from "../deps.ts";
 import { delay } from "../utils/mod.ts";
-import { schemas } from "../types/mod.ts";
+import {
+  userSchema,
+  // line 27 only use
+  //FIXME
+  teamSchema,
+} from "../schemas/mod.ts";
 import { JWTService, ConfigService, Logger } from "../services/mod.ts";
 import { UserRepository } from "../repositories/mod.ts";
-import { ValidatorMiddleware } from "../middlewares/mod.ts";
+import { controller } from "../core/mod.ts";
 
 export function AuthController(
   config: ConfigService,
@@ -15,60 +20,69 @@ export function AuthController(
   jwtService: JWTService,
   logger: Logger
 ) {
-  const register = ValidatorMiddleware(
-    {
-      login: schemas.user.loginEmail,
-      name: schemas.user.name,
-      hashedPassword: schemas.user.hashedPassword,
-      number: schemas.user.number,
-      invitation: schemas.team.invitationRequired,
+  const register = controller({
+    schema: {
+      body: {
+        login: userSchema.loginEmail,
+        name: userSchema.name,
+        hashedPassword: userSchema.hashedPassword,
+        number: userSchema.number,
+        invitation: teamSchema.invitationRequired,
+      },
     },
-    async (ctx: RouterContext, { invitation, number, ...rest }) => {
+    status: 200,
+    handle: async (
+      _ctx: RouterContext,
+      { body: { invitation, number, ...rest } }
+    ) => {
       await userRepository.add(
         { invitation },
         {
           ...rest,
           number: isNaN(number) ? undefined : number,
         }
-      ); //! PEVO
-      ctx.response.status = 200; //! D
-    }
-  );
-
-  const login = ValidatorMiddleware(
-    {
-      login: schemas.user.login,
-      hashedPassword: schemas.user.hashedPassword,
+      );
     },
-    async (ctx: RouterContext, req) => {
-      const { LOGIN_TIME: remainedTime } = config;
+  });
 
-      const jwt = await jwtService
-        .create(req.login, req.hashedPassword)
-        .catch(() => {
-          throw remainedTime > 0
-            ? delay(remainedTime) // * preventing timing attack *
-            : logger.warn(`WARN: Missed LOGIN_TIME by ${remainedTime} ms.`);
-        });
+  const login = controller({
+    schema: {
+      body: {
+        login: userSchema.login,
+        hashedPassword: userSchema.hashedPassword,
+      },
+    },
+    status: 200,
+    handle: async (ctx: RouterContext, { body: { hashedPassword, login } }) => {
+      const { LOGIN_TIME } = config;
+      const startTime = Date.now();
+
+      const jwt = await jwtService.create(login, hashedPassword).catch(() => {
+        const remainedTime = startTime + LOGIN_TIME - Date.now();
+        throw remainedTime > 0
+          ? delay(remainedTime) // * preventing timing attack *
+          : logger.warn(`WARN: Missed LOGIN_TIME by ${remainedTime} ms.`);
+      });
 
       ctx.cookies.set("jwt", jwt, { maxAge: config.JWT_CONF.exp });
-      ctx.response.status = 200; //! D
-    }
-  );
+    },
+  });
 
-  async function logout(ctx: RouterContext) {
-    const jwt = ctx.cookies.get("jwt");
-    const userId = await jwtService.resolve(jwt); //! APE
+  const logout = controller({
+    status: 200,
+    handle: async (ctx: RouterContext) => {
+      const jwt = ctx.cookies.get("jwt");
+      const userId = await jwtService.resolve(jwt); //! APE
 
-    if (!jwt) {
-      throw new Error("never");
-    }
+      if (!jwt) {
+        throw new Error("never"); //FIXME TODO jwt cookie schema
+      }
 
-    await jwtService.revoke(userId, jwt);
+      await jwtService.revoke(userId, jwt);
 
-    ctx.cookies.delete("jwt");
-    ctx.response.status = 200; //! D
-  }
+      ctx.cookies.delete("jwt");
+    },
+  });
 
   return new Router({
     prefix: "/auth",

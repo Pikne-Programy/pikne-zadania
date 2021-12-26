@@ -2,10 +2,12 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { SubjectType } from "../types/mod.ts";
 import { Collection } from "../deps.ts";
 
-// TODO: make an abstract Model class [store's get with NotFound?]
+export type SubjectType = {
+    id: string;
+    assignees: string[] | null;
+  };
 export class Subject {
   constructor(
     private subjectsCollection: Collection<SubjectType>,
@@ -18,8 +20,7 @@ export class Subject {
     const subject = await this.subjectsCollection.findOne({ id: this.id });
 
     if (!subject) {
-      // TODO: error message
-      throw new Error();
+      throw new Error(`Subject with id: "${this.id}" does not exists`);
     }
 
     return subject[key];
@@ -30,8 +31,7 @@ export class Subject {
     value: SubjectType[T]
   ) {
     if (!(await this.exists())) {
-      // TODO: error message
-      throw new Error();
+      throw new Error(`Subject with id: "${this.id}" does not exists`);
     }
 
     await this.subjectsCollection.updateOne(

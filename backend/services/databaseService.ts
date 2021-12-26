@@ -47,7 +47,7 @@ export class DatabaseService {
       result: PromiseSettledResult<unknown>
     ): result is PromiseRejectedResult => result.status === "rejected";
 
-    const collections = await this.#db!.listCollectionNames({});
+    const collections = await this.#db.listCollectionNames({});
 
     const drops = collections.map((collection) =>
       this.#db!.collection(collection).drop()
@@ -59,8 +59,8 @@ export class DatabaseService {
       .filter(filterResolved)
       .map(({ reason }) => reason)
       .filter(filterUseless)
-      .forEach((e_2) => {
-        throw e_2;
+      .forEach((error) => {
+        throw error;
       });
   }
 }

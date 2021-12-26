@@ -1,7 +1,7 @@
 import { Logger } from "../services/mod.ts";
 import { Context, HttpError, httpErrors } from "../deps.ts";
 import { assertUnreachable } from "../utils/mod.ts";
-import { CustomDictError } from "../types/mod.ts";
+import { CustomDictError } from "../common/mod.ts";
 
 const errors = {
   ExerciseBadAnswerFormat: "BadRequest",

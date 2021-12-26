@@ -3,7 +3,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { JSONObject, JSONType } from "../types/mod.ts";
+import { JSONObject, JSONType } from "../utils/mod.ts";
 import { User } from "../models/mod.ts";
 import { ExerciseRepository } from "../repositories/mod.ts";
 

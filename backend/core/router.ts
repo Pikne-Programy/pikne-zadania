@@ -2,8 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Router } from "../deps.ts";
-import { RouterContext } from "../deps.ts";
+import { Router, RouterContext } from "../deps.ts";
 
 const entryPointController = (ctx: RouterContext): undefined => {
   ctx.response.status = 200;

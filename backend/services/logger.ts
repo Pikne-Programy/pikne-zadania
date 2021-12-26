@@ -1,5 +1,5 @@
 import { ConfigService } from "./mod.ts";
-import { CustomDictError } from "../types/mod.ts";
+import { CustomDictError } from "../common/mod.ts";
 
 type handler = (err: unknown) => void;
 export class Logger {

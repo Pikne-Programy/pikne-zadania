@@ -23,9 +23,9 @@ type errors = {
   SubjectAlreadyExists: subject;
   SubjectNotFound: subject;
 };
-type types = keyof errors;
-
-export class CustomDictError<T extends types = types> extends Error {
+export class CustomDictError<
+  T extends keyof errors = keyof errors
+> extends Error {
   constructor(public type: T, public info: whatever & errors[T]) {
     super(info ? type : `${type}: ${info}`);
   }

@@ -4,27 +4,27 @@
 
 import { Application } from "./deps.ts";
 import { ErrorHandlerMiddleware } from "./middlewares/mod.ts";
-import { resolveDI } from "./core/mod.ts";
+import { resolveIoC } from "./core/mod.ts";
 
 export async function createApp() {
   const app = new Application();
-  const DIContainer = await resolveDI();
+  const IoCContainer = await resolveIoC();
 
   app.addEventListener("listen", () => {
-    DIContainer.logger.log("Server started");
+    IoCContainer.logger.log("Server started");
   });
 
   app.addEventListener("error", (e) => {
-    DIContainer.logger.recogniseAndTrace(e);
+    IoCContainer.logger.recogniseAndTrace(e);
   });
 
   app
-    .use(ErrorHandlerMiddleware(DIContainer.logger))
-    .use(DIContainer.router.routes())
-    .use(DIContainer.router.allowedMethods());
+    .use(ErrorHandlerMiddleware(IoCContainer.logger))
+    .use(IoCContainer.router.routes())
+    .use(IoCContainer.router.allowedMethods());
 
   return {
     app,
-    ...DIContainer,
+    ...IoCContainer,
   };
 }

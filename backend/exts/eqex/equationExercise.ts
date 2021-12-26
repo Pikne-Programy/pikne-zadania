@@ -4,15 +4,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { vs } from "../../deps.ts";
-import { Range, RNG } from "../../utils/mod.ts";
-import {
-  CustomDictError,
-  Exercise,
-  isObject,
-  JSONObject,
-  JSONType,
-} from "../../types/mod.ts";
+import { Range, RNG, isObject, JSONObject, JSONType } from "../../utils/mod.ts";
+import { Exercise } from "../../common/mod.ts";
 import { ConfigService } from "../../services/mod.ts";
+import { CustomDictError } from "../../common/mod.ts";
 import RPN from "./RPN-parser/parser.ts";
 
 const greekAlphabet: { [key: string]: string } = {
@@ -88,7 +83,7 @@ const isAnswer = (what: unknown): what is { answers: (number | null)[] } =>
   Array.isArray(what?.answers) &&
   what?.answers.every((e) => typeof e === "number" || e === null);
 
-export default class EquationExercise extends Exercise {
+export default class EquationExercise implements Exercise {
   // regular expressions used to extract and parse content
   static readonly greekR = new RegExp(Object.keys(greekAlphabet).join("|"));
   static readonly equationR = new RegExp(
@@ -117,12 +112,11 @@ export default class EquationExercise extends Exercise {
 
   // content -> parse to latex, extract RPN, Range and number -> return parsed text
   constructor(
-    protected config: ConfigService,
+    public config: ConfigService,
     readonly name: string,
-    content: string,
+    public _content: string,
     readonly properties: JSONObject
   ) {
-    super(config, name, content, properties);
     this.answerPrecision = this.config.ANSWER_PREC;
     this.pointDecimalSeparator = this.config.DECIMAL_POINT;
     this.rngPrec = this.config.RNG_PREC;
@@ -136,7 +130,7 @@ export default class EquationExercise extends Exercise {
     let globalIndex = 0; // global index (different than the index of the current line)
     let parsingContent = ""; // content without ranges ([number;number]) and unknowns (=?unit)
     let parsedLine = ""; // line without ranges ([number;number]) and unknowns (=?unit)
-    content.split("\n").forEach((line: string) => {
+    _content.split("\n").forEach((line: string) => {
       if (line == "") {
         return;
       } else if (line == "---") {

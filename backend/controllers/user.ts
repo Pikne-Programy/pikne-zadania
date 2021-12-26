@@ -3,11 +3,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { httpErrors, Router, RouterContext } from "../deps.ts";
-import { schemas } from "../types/mod.ts";
+import { userSchema } from "../schemas/mod.ts";
 import { User } from "../models/mod.ts";
-import { IAuthorizer } from "./mod.ts";
 import { TeamRepository, UserRepository } from "../repositories/mod.ts";
-import { ValidatorMiddleware } from "../middlewares/mod.ts";
+import { IAuthorizer, controller } from "../core/mod.ts";
 
 export function UserController(
   authorize: IAuthorizer,
@@ -27,12 +26,15 @@ export function UserController(
     return (await team.exists()) && assignee.id === (await team.assignee.get());
   }
 
-  const info = ValidatorMiddleware(
-    {
-      userId: schemas.user.idOptional,
+  const info = controller({
+    schema: {
+      body: {
+        userId: userSchema.idOptional,
+      },
     },
-    async (ctx: RouterContext, req) => {
-      let { userId } = req;
+    status: 200,
+    handle: async (ctx: RouterContext, { body }) => {
+      let { userId } = body;
       const user = await authorize(ctx); //! A
 
       if (userId === null) {
@@ -57,17 +59,19 @@ export function UserController(
         teamId: await who.team.get(),
         number: (await who.number.get()) ?? null,
       };
-      ctx.response.status = 200; //! D
-    }
-  );
-
-  const update = ValidatorMiddleware(
-    {
-      userId: schemas.user.id,
-      number: schemas.user.numberOptional,
-      name: schemas.user.nameOptional,
     },
-    async (ctx: RouterContext, { userId, number, name }) => {
+  });
+
+  const update = controller({
+    schema: {
+      body: {
+        userId: userSchema.id,
+        number: userSchema.numberOptional,
+        name: userSchema.nameOptional,
+      },
+    },
+    status: 200,
+    handle: async (ctx: RouterContext, { body: { userId, number, name } }) => {
       const user = await authorize(ctx); //! A
       const who = userRepository.get(userId);
 
@@ -88,16 +92,17 @@ export function UserController(
       if (name !== null) {
         await who.name.set(name);
       } //! O
-
-      ctx.response.status = 200; //! D
-    }
-  );
-
-  const remove = ValidatorMiddleware(
-    {
-      userId: schemas.user.id,
     },
-    async (ctx: RouterContext, { userId }) => {
+  });
+
+  const remove = controller({
+    schema: {
+      body: {
+        userId: userSchema.id,
+      },
+    },
+    status: 200,
+    handle: async (ctx: RouterContext, { body: { userId } }) => {
       const user = await authorize(ctx); //! A
       const who = userRepository.get(userId);
 
@@ -109,10 +114,8 @@ export function UserController(
       } //! P
 
       await userRepository.delete(userId); //! EO
-
-      ctx.response.status = 200; //! D
-    }
-  );
+    },
+  });
 
   return new Router({
     prefix: "/user",

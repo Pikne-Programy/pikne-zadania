@@ -3,9 +3,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { CustomDictError, SubjectType } from "../types/mod.ts";
+import { CustomDictError } from "../common/mod.ts";
 import { ExerciseRepository } from "./mod.ts";
-import { Subject } from "../models/mod.ts"; // TODO: get rid off
+import { Subject, SubjectType } from "../models/mod.ts"; // TODO: get rid off
 import { Collection } from "../deps.ts";
 
 export class SubjectRepository {

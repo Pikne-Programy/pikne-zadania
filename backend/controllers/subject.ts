@@ -4,8 +4,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { httpErrors, Router, RouterContext, send, vs } from "../deps.ts";
-import { generateSeed, joinThrowable } from "../utils/mod.ts";
-import { isSubSection, schemas, Section } from "../types/mod.ts";
+import {
+  generateSeed,
+  joinThrowable,
+  isSubSection,
+  Section,
+} from "../utils/mod.ts";
+import { exerciseSchema, subjectSchema, userSchema } from "../schemas/mod.ts";
 import { User } from "../models/mod.ts";
 import { ExerciseService, ConfigService } from "../services/mod.ts";
 import {
@@ -13,8 +18,12 @@ import {
   SubjectRepository,
   ExerciseRepository,
 } from "../repositories/mod.ts";
-import { IAuthorizer } from "./mod.ts";
-import { ValidatorMiddleware } from "../middlewares/mod.ts";
+import {
+  IAuthorizer,
+  controller,
+  isAssigneeOf,
+  isPermittedToView,
+} from "../core/mod.ts";
 
 export function SubjectController(
   authorize: IAuthorizer,
@@ -24,52 +33,31 @@ export function SubjectController(
   exerciseRepository: ExerciseRepository,
   exerciseService: ExerciseService
 ) {
-  /** check if the subject `s` exists and the user is an assignee of it */
-  async function isAssigneeOf(s: string, user?: User) {
-    if (user === undefined) {
-      return false;
-    }
-    const subject = subjectRepository.get(s);
+  const list = controller({
+    status: 200,
+    handle: async (ctx: RouterContext) => {
+      const user = await authorize(ctx, false); //! A
+      const allSubjects = exerciseRepository.listSubjects();
+      const selection = await Promise.all(
+        allSubjects.map((s) =>
+          isPermittedToView(subjectRepository.get(s), user)
+        )
+      );
+      const subjects = allSubjects.filter((_, i) => selection[i]); //! P
 
-    if (!(await subject.exists())) {
-      return false;
-    }
-    if ((await user.role.get()) === "admin") {
-      return true;
-    }
-    const assignees = await subject.assignees.get();
-
-    if (assignees !== null && assignees.includes(user.id)) {
-      return true;
-    }
-    return (await user.role.get()) === "teacher" && assignees === null; // TODO: user.isTeacher
-  }
-
-  /** check if the subject would be visible for the User */
-  async function isPermittedToView(s: string, user?: User) {
-    return !/^_/.test(s) || (await user?.role.get()) === "admin"
-      ? true
-      : isAssigneeOf(s, user);
-  }
-
-  async function list(ctx: RouterContext) {
-    const user = await authorize(ctx, false); //! A
-    const allSubjects = exerciseRepository.listSubjects();
-    const selection = await Promise.all(
-      allSubjects.map((s) => isPermittedToView(s, user))
-    );
-    const subjects = allSubjects.filter((_, i) => selection[i]); //! P
-
-    ctx.response.body = { subjects };
-    ctx.response.status = 200; //! D
-  }
-
-  const create = ValidatorMiddleware(
-    {
-      subject: schemas.exercise.subject,
-      assignees: schemas.subject.assignees,
+      ctx.response.body = { subjects };
     },
-    async (ctx: RouterContext, { subject, assignees }) => {
+  });
+
+  const create = controller({
+    schema: {
+      body: {
+        subject: exerciseSchema.subject,
+        assignees: subjectSchema.assignees,
+      },
+    },
+    status: 200,
+    handle: async (ctx: RouterContext, { body: { subject, assignees } }) => {
       const user = await authorize(ctx); //! A
 
       if (!["teacher", "admin"].includes(await user.role.get())) {
@@ -78,21 +66,22 @@ export function SubjectController(
       } //! P
 
       await subjectRepository.add(subject, assignees); //! EVO // TODO: V - all assignees exist?
-
-      ctx.response.status = 200; //! D
-    }
-  );
-
-  const info = ValidatorMiddleware(
-    {
-      subject: schemas.exercise.subject,
     },
-    async (ctx: RouterContext, { subject }) => {
+  });
+
+  const info = controller({
+    schema: {
+      body: {
+        subject: exerciseSchema.subject,
+      },
+    },
+    status: 200,
+    handle: async (ctx: RouterContext, { body: { subject } }) => {
       const user = await authorize(ctx); //! A
 
       if (
         !["teacher", "admin"].includes(await user.role.get()) || // is not teacher // TODO: isTeacher
-        !(await isPermittedToView(subject, user)) // or is not permitted
+        !(await isPermittedToView(subjectRepository.get(subject), user)) // or is not permitted
       ) {
         throw new httpErrors["Forbidden"]();
       } //! P
@@ -113,19 +102,21 @@ export function SubjectController(
             );
 
       ctx.response.body = { assignees };
-      ctx.response.status = 200; //! D
-    }
-  );
-
-  const permit = ValidatorMiddleware(
-    {
-      subject: schemas.exercise.subject,
-      assignees: schemas.subject.assignees,
     },
-    async (ctx: RouterContext, { subject, assignees }) => {
+  });
+
+  const permit = controller({
+    schema: {
+      body: {
+        subject: exerciseSchema.subject,
+        assignees: subjectSchema.assignees,
+      },
+    },
+    status: 200,
+    handle: async (ctx: RouterContext, { body: { subject, assignees } }) => {
       const user = await authorize(ctx); //! A
 
-      if (!(await isAssigneeOf(subject, user))) {
+      if (!(await isAssigneeOf(subjectRepository.get(subject), user))) {
         throw new httpErrors["Forbidden"]();
       } //! P
 
@@ -135,10 +126,8 @@ export function SubjectController(
       // TODO: V
 
       await subjectRepository.get(subject).assignees.set(assignees); //! O
-
-      ctx.response.status = 200; //! D
-    }
-  );
+    },
+  });
 
   const problemGetSeed = async (
     ctx: RouterContext,
@@ -159,16 +148,22 @@ export function SubjectController(
     return { seed: +_seed };
   };
 
-  const getProblem = ValidatorMiddleware(
-    {
-      subject: schemas.exercise.subject,
-      exerciseId: schemas.exercise.id,
-      seed: schemas.user.seedOptional,
+  const getProblem = controller({
+    schema: {
+      body: {
+        subject: exerciseSchema.subject,
+        exerciseId: exerciseSchema.id,
+        seed: userSchema.seedOptional,
+      },
     },
-    async (ctx: RouterContext, { subject, exerciseId, seed }) => {
+    status: 200,
+    handle: async (
+      ctx: RouterContext,
+      { body: { subject, exerciseId, seed } }
+    ) => {
       const user = await authorize(ctx, false); //! A
 
-      if (!(await isPermittedToView(subject, user))) {
+      if (!(await isPermittedToView(subjectRepository.get(subject), user))) {
         throw new httpErrors["Forbidden"]();
       } //! P
 
@@ -176,27 +171,32 @@ export function SubjectController(
         { subject, exerciseId },
         await problemGetSeed(ctx, seed, user)
       ); //! EO
-      if (!isAssigneeOf(subject, user)) {
+      if (!isAssigneeOf(subjectRepository.get(subject), user)) {
         const { correctAnswer: _correctAnswer, ...parsedCensored } = parsed;
 
         ctx.response.body = parsedCensored;
       } else {
         ctx.response.body = parsed;
       }
-      ctx.response.status = 200; //! D
-    }
-  );
-
-  const updateProblem = ValidatorMiddleware(
-    {
-      subject: schemas.exercise.subject,
-      exerciseId: schemas.exercise.id,
-      answer: schemas.exercise.answer,
     },
-    async (ctx: RouterContext, { subject, exerciseId, answer }) => {
+  });
+
+  const updateProblem = controller({
+    schema: {
+      body: {
+        subject: exerciseSchema.subject,
+        exerciseId: exerciseSchema.id,
+        answer: exerciseSchema.answer,
+      },
+    },
+    status: 200,
+    handle: async (
+      ctx: RouterContext,
+      { body: { subject, exerciseId, answer } }
+    ) => {
       const user = await authorize(ctx, false); //! A
 
-      if (!(await isPermittedToView(subject, user))) {
+      if (!(await isPermittedToView(subjectRepository.get(subject), user))) {
         throw new httpErrors["Forbidden"]();
       } //! P
 
@@ -206,9 +206,8 @@ export function SubjectController(
         await problemGetSeed(ctx, null, user)
       ); //! EVO
       ctx.response.body = { info }; // ? done, correctAnswer ?
-      ctx.response.status = 200; //! D
-    }
-  );
+    },
+  });
 
   const getStatic = async (ctx: RouterContext) => {
     const user = await authorize(ctx, false); //! A
@@ -217,7 +216,7 @@ export function SubjectController(
     if (!subject || !filename) {
       throw new Error("never");
     } //! R
-    if (!(await isPermittedToView(subject, user))) {
+    if (!(await isPermittedToView(subjectRepository.get(subject), user))) {
       throw new httpErrors["Forbidden"]();
     } //! P
 
@@ -234,7 +233,7 @@ export function SubjectController(
     if (!subject || !filename) {
       throw new Error("never");
     } //! R
-    if (!(await isAssigneeOf(subject, user))) {
+    if (!(await isAssigneeOf(subjectRepository.get(subject), user))) {
       throw new httpErrors["Forbidden"]();
     } //! P
 
@@ -271,15 +270,18 @@ export function SubjectController(
     } //! R -- resource-intensive
   };
 
-  const getHierarchy = ValidatorMiddleware(
-    {
-      subject: schemas.exercise.subject,
-      raw: vs.boolean({ strictType: true }),
+  const getHierarchy = controller({
+    schema: {
+      body: {
+        subject: exerciseSchema.subject,
+        raw: vs.boolean({ strictType: true }),
+      },
     },
-    async (ctx: RouterContext, req) => {
+    status: 200,
+    handle: async (ctx: RouterContext, { body: { subject, raw } }) => {
       const user = await authorize(ctx, false); //! A
 
-      if (!exerciseRepository.listSubjects().includes(req.subject)) {
+      if (!exerciseRepository.listSubjects().includes(subject)) {
         throw new httpErrors["NotFound"]();
       } //! E
 
@@ -289,17 +291,17 @@ export function SubjectController(
         for (const el of section) {
           if (!isSubSection(el)) {
             try {
-              const exercise = exerciseRepository.get(req.subject, el.children);
+              const exercise = exerciseRepository.get(subject, el.children);
               sectionArray.push({
                 name: exercise.name,
                 children: el.children,
-                type: req.raw ? undefined : exercise.type,
-                description: req.raw ? undefined : exercise.description,
+                type: raw ? undefined : exercise.type,
+                description: raw ? undefined : exercise.description,
                 done:
-                  req.raw || user === undefined
+                  raw || user === undefined
                     ? undefined
                     : (await user.exercises.get(
-                        exerciseRepository.uid(req.subject, el.children)
+                        exerciseRepository.uid(subject, el.children)
                       )) ?? null,
               });
             } catch {
@@ -317,16 +319,16 @@ export function SubjectController(
       };
 
       ctx.response.body = [
-        (await isAssigneeOf(req.subject, user)) &&
-          !req.raw && [
+        (await isAssigneeOf(subjectRepository.get(subject), user)) &&
+          !raw && [
             {
               name: "",
               children: exerciseRepository
-                .unlisted(req.subject)
+                .unlisted(subject)
                 .get()
                 .flatMap((x) => {
                   try {
-                    const exercise = exerciseRepository.get(req.subject, x);
+                    const exercise = exerciseRepository.get(subject, x);
                     return {
                       name: exercise.name,
                       children: x,
@@ -340,25 +342,23 @@ export function SubjectController(
                 }),
             },
           ],
-        ...(await iterateSection(
-          exerciseRepository.structure(req.subject).get()
-        )),
+        ...(await iterateSection(exerciseRepository.structure(subject).get())),
       ].filter(Boolean);
-
-      ctx.response.status = 200;
-      //! D
-    }
-  );
-
-  const setHierarchy = ValidatorMiddleware(
-    {
-      subject: schemas.exercise.subject,
-      hierarchy: schemas.exercise.hierarchy,
     },
-    async (ctx: RouterContext, { subject, hierarchy }) => {
+  });
+
+  const setHierarchy = controller({
+    schema: {
+      body: {
+        subject: exerciseSchema.subject,
+        hierarchy: exerciseSchema.hierarchy,
+      },
+    },
+    status: 200,
+    handle: async (ctx: RouterContext, { body: { subject, hierarchy } }) => {
       const user = await authorize(ctx); //! A
 
-      if (!(await isAssigneeOf(subject, user))) {
+      if (!(await isAssigneeOf(subjectRepository.get(subject), user))) {
         throw new httpErrors["Forbidden"]();
       } //! P
 
@@ -367,19 +367,20 @@ export function SubjectController(
       } //! E
 
       exerciseRepository.structure(subject).set(hierarchy); //! O // TODO V what i exercise doesn't exist
-      ctx.response.status = 200;
-      //! D
-    }
-  );
-
-  const listExercise = ValidatorMiddleware(
-    {
-      subject: schemas.exercise.subject,
     },
-    async (ctx: RouterContext, { subject }) => {
+  });
+
+  const listExercise = controller({
+    schema: {
+      body: {
+        subject: exerciseSchema.subject,
+      },
+    },
+    status: 200,
+    handle: async (ctx: RouterContext, { body: { subject } }) => {
       const user = await authorize(ctx); //! A -- the Unauthorized shouldn't see exercises not listed in hierarchy
 
-      if (!(await isPermittedToView(subject, user))) {
+      if (!(await isPermittedToView(subjectRepository.get(subject), user))) {
         throw new httpErrors["Forbidden"]();
       } //! P
 
@@ -398,72 +399,83 @@ export function SubjectController(
         });
 
       ctx.response.body = { exercises };
-      ctx.response.status = 200; //! D
-    }
-  );
-  const addExercise = ValidatorMiddleware(
-    {
-      subject: schemas.exercise.subject,
-      exerciseId: schemas.exercise.id,
-      content: schemas.exercise.content,
     },
-    async (ctx: RouterContext, { subject, exerciseId, content }) => {
+  });
+  const addExercise = controller({
+    schema: {
+      body: {
+        subject: exerciseSchema.subject,
+        exerciseId: exerciseSchema.id,
+        content: exerciseSchema.content,
+      },
+    },
+    handle: async (
+      ctx: RouterContext,
+      { body: { subject, exerciseId, content } }
+    ) => {
       const user = await authorize(ctx); //! A
 
-      if (!(await isAssigneeOf(subject, user))) {
+      if (!(await isAssigneeOf(subjectRepository.get(subject), user))) {
         throw new httpErrors["Forbidden"]();
       } //! P
 
       exerciseRepository.add(subject, exerciseId, content); //! EVO
-
-      ctx.response.status = 200; //! D
-    }
-  );
-
-  const getExercise = ValidatorMiddleware(
-    {
-      subject: schemas.exercise.subject,
-      exerciseId: schemas.exercise.id,
     },
-    async (ctx: RouterContext, { subject, exerciseId }) => {
+  });
+
+  const getExercise = controller({
+    schema: {
+      body: {
+        subject: exerciseSchema.subject,
+        exerciseId: exerciseSchema.id,
+      },
+    },
+    status: 200,
+    handle: async (ctx: RouterContext, { body: { subject, exerciseId } }) => {
       const user = await authorize(ctx); //! A
 
-      if (!(await isAssigneeOf(subject, user))) {
+      if (!(await isAssigneeOf(subjectRepository.get(subject), user))) {
         throw new httpErrors["Forbidden"]();
       } //! P
 
       const content = exerciseRepository.getContent(subject, exerciseId);
 
       ctx.response.body = { content };
-      ctx.response.status = 200; //! D
-    }
-  );
-
-  const updateExercise = ValidatorMiddleware(
-    {
-      subject: schemas.exercise.subject,
-      exerciseId: schemas.exercise.id,
-      content: schemas.exercise.content,
     },
-    async (ctx: RouterContext, { subject, exerciseId, content }) => {
+  });
+
+  const updateExercise = controller({
+    schema: {
+      body: {
+        subject: exerciseSchema.subject,
+        exerciseId: exerciseSchema.id,
+        content: exerciseSchema.content,
+      },
+    },
+    status: 200,
+    handle: async (
+      ctx: RouterContext,
+      { body: { subject, exerciseId, content } }
+    ) => {
       const user = await authorize(ctx); //! A
 
-      if (!(await isAssigneeOf(subject, user))) {
+      if (!(await isAssigneeOf(subjectRepository.get(subject), user))) {
         throw new httpErrors["Forbidden"]();
       } //! P
 
       exerciseRepository.update(subject, exerciseId, content); //! EVO
-
-      ctx.response.status = 200; //! D
-    }
-  );
-
-  const previewExercise = ValidatorMiddleware(
-    {
-      content: schemas.exercise.content,
-      seed: schemas.user.seedDefault,
     },
-    (ctx: RouterContext, { content, seed }) => {
+  });
+
+  const previewExercise = controller({
+    schema: {
+      body: {
+        content: exerciseSchema.content,
+        seed: userSchema.seedDefault,
+      },
+    },
+    status: 200,
+    handle: (ctx: RouterContext, { body: { content, seed } }) => {
       //! AP missing // TODO: is it ok???
       const exercise = exerciseRepository.parse(content); //! VO
 
@@ -471,9 +483,8 @@ export function SubjectController(
         ...exercise.render(seed),
         correctAnswer: exercise.getCorrectAnswer(seed),
       };
-      ctx.response.status = 200; //! D
-    }
-  );
+    },
+  });
 
   return new Router({
     prefix: "/subject",

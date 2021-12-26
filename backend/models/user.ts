@@ -3,9 +3,23 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { RoleType, UserType } from "../types/mod.ts";
 import { Collection } from "../deps.ts";
 import { TeamRepository } from "../repositories/mod.ts";
+
+export type RoleType = "student" | "teacher" | "admin";
+
+export type UserType = {
+  id: string;
+  login: string;
+  name: string;
+  dhPassword: string; // double hashed password
+  team: number;
+  tokens: string[];
+  seed?: number;
+  role: RoleType;
+  number?: number;
+  exercises: { [key: string]: number };
+};
 
 export class User {
   constructor(

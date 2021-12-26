@@ -4,6 +4,7 @@
 
 export * from "./fs.ts";
 export * from "./hash.ts";
-export * from "./lock.ts";
 export * from "./rng.ts";
+export * from "./primitives.ts";
 export * from "./utils.ts";
+export * from "./section.ts";

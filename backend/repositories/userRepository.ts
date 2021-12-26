@@ -9,11 +9,11 @@ import {
   secondhash,
   secondhashSync,
 } from "../utils/mod.ts";
-import { CustomDictError, RoleType, UserType } from "../types/mod.ts";
+import { CustomDictError } from "../common/mod.ts";
 import { ConfigService, Logger } from "../services/mod.ts";
 import { Collection } from "../deps.ts";
 import { CircularDependencies } from "./mod.ts";
-import { User } from "../models/mod.ts"; // TODO: get rid off
+import { User, RoleType, UserType } from "../models/mod.ts"; // TODO: get rid off
 
 export class UserRepository {
   constructor(
@@ -31,10 +31,10 @@ export class UserRepository {
       this.logger.warn(`WARN: ${what} is present. ${why}`);
     };
     const root = this.get(this.config.hash("root"));
-    const rootType: { login: string; name: string; role: "admin" } = {
+    const rootType = {
       login: "root",
       name: "root",
-      role: "admin",
+      role: "admin" as const,
     };
     const config = this.config.ROOT_CONF;
 

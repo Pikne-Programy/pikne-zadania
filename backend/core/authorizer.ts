@@ -19,8 +19,10 @@ export const createAuthorize = (
 ) =>
   (async (ctx: RouterContext, req = true) => {
     const jwt = ctx.cookies.get("jwt");
+
     try {
       const userId = await jwtService.resolve(jwt);
+
       return userRepository.get(userId);
     } catch (error) {
       ctx.cookies.delete("jwt");
