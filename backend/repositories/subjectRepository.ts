@@ -4,14 +4,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { CustomDictError } from "../common/mod.ts";
-import { Subject, SubjectType } from "../models/mod.ts"; // TODO: get rid off
+import { Subject } from "../models/mod.ts"; // TODO: get rid off
 import { Collection } from "../deps.ts";
 
 export class SubjectRepository {
-  constructor(public collection: Collection<SubjectType>) {}
+  constructor(public collection: Collection<Subject>) {}
 
-  get(id: string) {
-    return new Subject(this, id);
+  async get(id: string) {
+    const subject = await this.collection.findOne({ id });
+    return subject ? new Subject(subject) : subject;
   }
 
   async init(_diskSubjects: string[]) {
@@ -36,17 +37,31 @@ export class SubjectRepository {
   }
 
   async list() {
-    const subjects = await this.collection.find().toArray();
-    return subjects.map(({ id }) => id);
+    const subjects = await this.collection
+      .find(undefined, {
+        projection: {
+          id: 1,
+        },
+      })
+      .toArray();
+    subjects.map(({ id }) => id);
   }
 
   async add(id: string, assignees: string[] | null) {
-    const subject = this.get(id);
+    const subject = await this.get(id);
 
-    if (await subject.exists()) {
+    if (!subject) {
       throw new CustomDictError("SubjectAlreadyExists", { subject: id });
     }
 
     this.collection.insertOne({ id, assignees });
+  }
+  setAssignees(id: string, value: string[] | null) {
+    return this.collection.updateOne(
+      { id },
+      {
+        $set: { assignees: value },
+      }
+    );
   }
 }

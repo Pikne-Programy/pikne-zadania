@@ -1,28 +1,13 @@
 import { User, Subject } from "../models/mod.ts";
 
 /** check if the subject `s` exists and the user is an assignee of it */
-export async function isAssigneeOf(subject: Subject, user?: User) {
-  if (user === undefined) {
-    return false;
-  }
-
-  if (!(await subject.exists())) {
-    return false;
-  }
-  if ((await user.role.get()) === "admin") {
-    return true;
-  }
-  const assignees = await subject.assignees.get();
-
-  if (assignees !== null && assignees.includes(user.id)) {
-    return true;
-  }
-  return (await user.isTeacher()) && assignees === null;
-}
+export const isAssigneeOf = (subject?: Subject, user?: User) =>
+  user &&
+  subject &&
+  (user.role === "admin" || subject.assignees?.includes(user.id)) &&
+  user.isTeacher() &&
+  !subject.assignees;
 
 /** check if the subject would be visible for the User */
-export async function isPermittedToView(s: Subject, user?: User) {
-  return !/^_/.test(s.id) || (await user?.role.get()) === "admin"
-    ? true
-    : isAssigneeOf(s, user);
-}
+export const isPermittedToView = (s?: Subject, user?: User) =>
+  !/^_/.test(s?.id || "") || user?.role === "admin" || isAssigneeOf(s, user);

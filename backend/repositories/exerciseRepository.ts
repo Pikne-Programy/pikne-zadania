@@ -3,14 +3,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {
-  emptyDirSync,
-  existsSync,
-  join,
-  parse,
-  stringify,
-  walkSync,
-} from "../deps.ts";
+import { emptyDir, exists, join, parse, stringify, walk } from "../deps.ts";
 import { CustomDictError, Exercise } from "../common/mod.ts";
 import {
   joinThrowable,
@@ -35,28 +28,30 @@ const isYAMLSection = (what: unknown): what is YAMLSection =>
     Object.keys(what).length == 1);
 
 export class ExerciseRepository {
-  private readonly _structure: { [key: string]: Section[] } = {}; // subject -> eid
+  readonly _structure: { [key: string]: Section[] } = {}; // subject -> eid
   private readonly _unlisted: { [key: string]: string[] } = {}; // subject -> eid
   private readonly exercises: {
     [key: string]: [Exercise, boolean]; // uid -> [Exercise, inYaml]
   } = {};
 
-  private readonly exercisesPath;
+  private exercisesPath!: string;
 
   readonly uid = (subject: string, exerciseId: string) =>
     `${subject}/${exerciseId}`;
 
-  constructor(private config: ConfigService, private logger: Logger) {
+  constructor(private config: ConfigService, private logger: Logger) {}
+
+  async init() {
     this.exercisesPath = this.config.EXERCISES_PATH;
 
-    for (const { path, name: subject } of [
-      ...walkSync(this.exercisesPath, { includeFiles: false, maxDepth: 1 }),
-    ].slice(1)) {
+    const ex = walk(this.exercisesPath, { includeFiles: false, maxDepth: 1 });
+    ex.next(); //replace slice(1) with using first result
+    for await (const { path, name: subject } of ex) {
       try {
         const index = join(path, "index.yml");
-        if (!existsSync(index)) continue;
+        if (!exists(index)) continue;
         this._unlisted[subject] = [];
-        for (const { name: file } of walkSync(
+        for await (const { name: file } of walk(
           join(this.exercisesPath, subject),
           {
             includeDirs: false,
@@ -69,10 +64,10 @@ export class ExerciseRepository {
             throw new Error("never");
           }
 
-          this.appendExerciseFile(subject, match[1]);
+          await this.appendExerciseFile(subject, match[1]);
         }
 
-        const content = parse(Deno.readTextFileSync(index));
+        const content = parse(await Deno.readTextFile(index));
 
         if (!isArrayOf(isYAMLSection, content)) {
           throw new Error("index not a YAMLSection[]");
@@ -101,7 +96,7 @@ export class ExerciseRepository {
   }
 
   drop() {
-    emptyDirSync(this.exercisesPath);
+    return emptyDir(this.exercisesPath);
   }
 
   parse(content: string) {
@@ -142,15 +137,17 @@ export class ExerciseRepository {
     }
   }
 
-  private appendExerciseFile(
+  private async appendExerciseFile(
     subject: string,
     exerciseId: string,
-    content: string = this.getContent(subject, exerciseId)
+    content?: string
   ) {
     const uid = this.uid(subject, exerciseId);
 
     try {
-      const exercise = this.parse(content);
+      const exercise = this.parse(
+        content ?? (await this.getContent(subject, exerciseId))
+      );
 
       this.exercises[uid] = [exercise, false];
 
@@ -198,7 +195,7 @@ export class ExerciseRepository {
     const prefix = `${subject}/`;
 
     return Object.keys(this.exercises)
-      .filter((e) => e.startsWith(prefix)) // TODO: refactor
+      .filter((e) => e.startsWith(prefix))
       .map((e) => e.slice(prefix.length));
   }
 
@@ -206,45 +203,42 @@ export class ExerciseRepository {
     return Object.keys(this._unlisted);
   }
 
-  readonly structure = (subject: string) => ({
-    get: () => this._structure[subject] ?? null, //FIXME ?? null xd?
-    set: (value: Section[]) => {
-      const index = joinThrowable(this.exercisesPath, subject, "index.yml");
-      const makeYAMLSection = (section: Section[]): (YAMLSection | string)[] =>
-        section.flatMap<YAMLSection | string>((x) => {
-          if (!isSubSection(x)) {
-            const exerciseId = x.children;
-            const uid = this.uid(subject, exerciseId);
+  readonly structureSet = async (subject: string, value: Section[]) => {
+    const index = joinThrowable(this.exercisesPath, subject, "index.yml");
+    const makeYAMLSection = (section: Section[]): (YAMLSection | string)[] =>
+      section.flatMap<YAMLSection | string>((x) => {
+        if (!isSubSection(x)) {
+          const exerciseId = x.children;
+          const uid = this.uid(subject, exerciseId);
 
-            if (!(uid in this.exercises)) {
-              return [];
-            }
-
-            if (!this.exercises[uid][1]) {
-              this.exercises[uid][1] = true;
-              this._unlisted[subject] = this._unlisted[subject].filter(
-                (x) => x !== exerciseId
-              );
-            }
-
-            return exerciseId;
+          if (!(uid in this.exercises)) {
+            return [];
           }
 
-          return {
-            [x.name]: makeYAMLSection(x.children),
-          };
-        });
+          if (!this.exercises[uid][1]) {
+            this.exercises[uid][1] = true;
+            this._unlisted[subject] = this._unlisted[subject].filter(
+              (x) => x !== exerciseId
+            );
+          }
 
-      Deno.writeTextFileSync(index, stringify(makeYAMLSection(value)));
-      this._structure[subject] = value;
-    },
-  });
+          return exerciseId;
+        }
+
+        return {
+          [x.name]: makeYAMLSection(x.children),
+        };
+      });
+
+    await Deno.writeTextFile(index, stringify(makeYAMLSection(value)));
+    this._structure[subject] = value;
+  };
 
   readonly unlisted = (subject: string) => ({
     get: () => this._unlisted[subject],
   });
 
-  add(subject: string, exerciseId: string, content: string) {
+  async add(subject: string, exerciseId: string, content: string) {
     const uid = this.uid(subject, exerciseId);
 
     return uid in this.exercises
@@ -252,32 +246,32 @@ export class ExerciseRepository {
           subject,
           exerciseId,
         })
-      : this.update(subject, exerciseId, content);
+      : await this.update(subject, exerciseId, content);
   }
 
   get(subject: string, exerciseId: string) {
     const exercise = this.exercises[this.uid(subject, exerciseId)];
 
-    if (exercise === undefined) {
+    if (!exercise) {
       throw new CustomDictError("ExerciseNotFound", { subject, exerciseId });
     }
 
     return exercise[0];
   }
 
-  update(subject: string, exerciseId: string, content: string) {
+  async update(subject: string, exerciseId: string, content: string) {
     const path = join(this.exercisesPath, subject, exerciseId) + ".txt";
-    this.appendExerciseFile(subject, exerciseId, content);
+    await this.appendExerciseFile(subject, exerciseId, content);
 
-    Deno.writeTextFileSync(path, content);
+    await Deno.writeTextFile(path, content);
   }
 
-  getContent(subject: string, exerciseId: string) {
+  async getContent(subject: string, exerciseId: string) {
     const uid = this.uid(subject, exerciseId);
     const path = join(this.exercisesPath, `${uid}.txt`);
 
     try {
-      return Deno.readTextFileSync(path);
+      return await Deno.readTextFile(path);
     } catch {
       throw new CustomDictError("ExerciseNotFound", { subject, exerciseId });
     }

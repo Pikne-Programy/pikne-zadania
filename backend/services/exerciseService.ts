@@ -3,21 +3,16 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { JSONObject, JSONType } from "../utils/mod.ts";
+import { JSONType } from "../utils/mod.ts";
 import { User } from "../models/mod.ts";
-import { ExerciseRepository } from "../repositories/mod.ts";
-
-interface RenderResult {
-  type: string;
-  name: string;
-  done: number;
-  problem: JSONObject;
-  correctAnswer: JSONObject;
-}
+import { ExerciseRepository, UserRepository } from "../repositories/mod.ts";
 
 type UserOrSeed = User | { seed: number };
 export class ExerciseService {
-  constructor(private exerciseRepository: ExerciseRepository) {}
+  constructor(
+    private exerciseRepository: ExerciseRepository,
+    private userRepository: UserRepository
+  ) {}
 
   private getExercise(
     input: { content: string } | { subject: string; exerciseId: string }
@@ -26,18 +21,13 @@ export class ExerciseService {
       ? this.exerciseRepository.get(input.subject, input.exerciseId)
       : this.exerciseRepository.parse(input.content);
   }
-  private getSeed(userOrSeed: UserOrSeed) {
-    return typeof userOrSeed.seed === "number"
-      ? Promise.resolve(userOrSeed.seed)
-      : userOrSeed.seed.get().then((seed) => seed ?? 0);
-  }
 
-  async render(
+  render(
     input: { content: string } | { subject: string; exerciseId: string },
     userOrSeed: UserOrSeed
-  ): Promise<RenderResult> {
+  ) {
     const exercise = this.getExercise(input);
-    const seed = await this.getSeed(userOrSeed);
+    const seed = userOrSeed.seed ?? 0;
 
     return {
       ...exercise.render(seed),
@@ -49,14 +39,16 @@ export class ExerciseService {
   async check(
     input: { content: string } | { subject: string; exerciseId: string },
     answer: JSONType,
-    user: User | { seed: number }
+    user: UserOrSeed
   ) {
     const exercise = this.getExercise(input);
 
-    const result = exercise.check(await this.getSeed(user), answer);
+    const result = exercise.check(user.seed ?? 0, answer);
 
     if ("exercises" in user && "exerciseId" in input) {
-      await user.exercises.set(input.exerciseId, result.done);
+      await this.userRepository
+        .exercisesFor(user)
+        .set(input.exerciseId, result.done);
     }
 
     return result;

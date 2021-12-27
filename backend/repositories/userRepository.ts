@@ -12,23 +12,103 @@ import {
 import { CustomDictError } from "../common/mod.ts";
 import { ConfigService, Logger, HashService } from "../services/mod.ts";
 import { Collection } from "../deps.ts";
-import { User, RoleType, UserType, Team } from "../models/mod.ts";
+import { User, RoleType, Team } from "../models/mod.ts";
 
 export class UserRepository {
   constructor(
     private config: ConfigService,
-    public collection: Collection<UserType>,
+    public collection: Collection<User>,
     private logger: Logger,
     private hashService: HashService
   ) {}
 
+  tokensFor(user: User) {
+    return {
+      add: async (value: string) => {
+        await this.collection.updateOne(
+          { id: user.id },
+          { $addToSet: { tokens: value } }
+        );
+      },
+      exists: async (value: string) => {
+        const tokens = await user.tokens;
+        return tokens.includes(value);
+      },
+      remove: async (value: string) => {
+        await this.collection.updateOne(
+          { id: user.id },
+          {
+            $pull: { tokens: value },
+          }
+        );
+      },
+    };
+  }
+
+  exercisesFor(user: User) {
+    const ex = {
+      add: async (id: string, value: number) => {
+        if ((await user.exercises[id]) !== undefined) {
+          throw new Error(`Exercise with id ${id} already exists`);
+        }
+        await this.collection.updateOne(
+          { id: user.id },
+          { $set: { [`exercises.${id}`]: value } }
+        );
+      },
+      set: async (id: string, value: number) => {
+        await this.collection.updateOne(
+          { id: user.id },
+          {
+            $set: { [`exercises.${id}`]: value },
+          }
+        );
+      },
+      update: async (id: string, value: number) => {
+        const oldValue = user.exercises[id];
+        if (oldValue === undefined) {
+          await ex.add(id, value);
+        } else if (oldValue < value) {
+          await this.collection.updateOne(
+            { id: user.id },
+            {
+              $set: { [`exercises.${id}`]: value },
+            }
+          );
+        }
+      },
+      remove: async (id: string) => {
+        await this.collection.updateOne(
+          { id: user.id },
+          { $unset: { [`exercises.${id}`]: "" } }
+        );
+      },
+    };
+    return ex;
+  }
+  async setKey<T extends keyof User>(user: User, key: T, value: User[T]) {
+    const { matchedCount } = await this.collection.updateOne(
+      { id: user.id },
+      value === undefined
+        ? {
+            $unset: { [key]: "" },
+          }
+        : {
+            $set: { [key]: value },
+          }
+    );
+
+    if (!matchedCount) {
+      throw new Error(`user with id: "${user.id}" does not exists`);
+    }
+  }
   async init(rootTeam: Team) {
     const warn = (
       what: string,
       why = "Please unset it or change ROOT_ENABLE."
     ) => this.logger.warn(`WARN: ${what} is present. ${why}`);
 
-    const root = this.get(this.hashService.hash("root"));
+    const root = await this.get(this.hashService.hash("root"));
     const rootType = {
       login: "root",
       name: "root",
@@ -43,7 +123,7 @@ export class UserRepository {
       if (config.dhPassword) {
         warn("ROOT_DHPASS");
       }
-      if (await root.exists()) {
+      if (root) {
         await this.delete(root);
       }
       return;
@@ -56,10 +136,7 @@ export class UserRepository {
         warn("ROOT_PASS");
       }
 
-      if (
-        (await root.exists()) &&
-        (await root.dhPassword.get()) == config.dhPassword
-      ) {
+      if (root?.dhPassword == config.dhPassword) {
         this.logger.log("ROOT was not changed.");
       } else {
         await this.add(rootTeam, {
@@ -70,7 +147,7 @@ export class UserRepository {
         this.logger.warn("ROOT was registered with ROOT_DHPASS.");
       }
     } else {
-      if (!(config.password || root)) {
+      if (!config.password && !root) {
         throw new Error("no credentials for root");
       }
 
@@ -92,14 +169,11 @@ export class UserRepository {
     }
   }
 
-  get(id: string) {
-    return new User(this, id);
+  async get(id: string) {
+    const user = await this.collection.findOne({ id });
+    return user ? new User(user) : user;
   }
-  /**
-   *
-   * @param team { invitation: string } | { teamId: number }
-   * @param options
-   */
+
   async add(
     team: Team,
     options: {
@@ -110,24 +184,8 @@ export class UserRepository {
       seed?: number;
     } & ({ hashedPassword: string } | { dhPassword: string })
   ) {
-    const isExisting = await team.exists();
-    /** admin team */
-    let force = false;
-
-    if (!isExisting) {
-      if (!("teamId" in team)) {
-        throw new CustomDictError("TeamInvitationNotFound", {});
-      }
-      if (team.id === 0) {
-        force = true;
-      }
-      if (!force) {
-        throw new CustomDictError("TeamNotFound", { teamId: team.id });
-      }
-    }
-
     const special: Record<number, RoleType> = { 0: "admin", 1: "teacher" };
-    const user: UserType = {
+    const user = new User({
       id: this.hashService.hash(options.login),
       login: options.login,
       name: options.name,
@@ -138,33 +196,30 @@ export class UserRepository {
           ? options.dhPassword
           : await secondhash(options.hashedPassword),
       role: options.role ?? special[team.id] ?? "student",
-      tokens: [],
       seed: options.seed ?? generateSeed(),
+      tokens: [],
       exercises: {},
-    };
+    });
 
     if (options.role === "admin") {
       await this.collection.updateOne({ id: user.id }, user, {
         upsert: true,
       });
     } else {
-      if (await this.get(user.id).exists()) {
+      if (await this.get(user.id)) {
         throw new CustomDictError("UserAlreadyExists", { userId: user.id });
       }
 
       await this.collection.insertOne(user);
-
-      if (!force) {
-        await team.members.add(user.id);
-      }
     }
+
+    return user;
   }
 
   async delete(user: User) {
-    if (!(await user.exists())) {
+    const deletedCount = await this.collection.deleteOne({ id: user.id });
+    if (!deletedCount) {
       throw new CustomDictError("UserNotFound", { userId: user.id });
     }
-
-    await this.collection.deleteOne({ id: user.id });
   }
 }

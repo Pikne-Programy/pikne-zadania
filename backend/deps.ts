@@ -8,9 +8,9 @@
 // don;t forget to update test_deps.ts
 export { parse } from "https://deno.land/std@0.100.0/encoding/yaml.ts";
 export {
-  emptyDirSync,
-  existsSync,
-  walkSync,
+  emptyDir,
+  exists,
+  walk,
 } from "https://deno.land/std@0.100.0/fs/mod.ts";
 export {
   basename,

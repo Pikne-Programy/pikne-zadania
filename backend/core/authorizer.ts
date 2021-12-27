@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { RouterContext } from "../deps.ts";
+import { RouterContext, httpErrors } from "../deps.ts";
 import { User } from "../models/mod.ts";
 import { JWTService } from "../services/mod.ts";
 import { UserRepository } from "../repositories/mod.ts";
@@ -22,8 +22,13 @@ export const createAuthorize = (
 
     try {
       const userId = await jwtService.resolve(jwt);
+      const user = await userRepository.get(userId);
 
-      return userRepository.get(userId);
+      if (user) {
+        return user;
+      } else {
+        throw new httpErrors["Unauthorized"]();
+      }
     } catch (error) {
       ctx.cookies.delete("token");
 

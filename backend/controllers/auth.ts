@@ -14,6 +14,7 @@ import {
 import { JWTService, ConfigService, Logger } from "../services/mod.ts";
 import { UserRepository, TeamRepository } from "../repositories/mod.ts";
 import { controller } from "../core/mod.ts";
+import { CustomDictError } from "../common/mod.ts";
 
 export function AuthController(
   config: ConfigService,
@@ -34,15 +35,20 @@ export function AuthController(
     },
     status: 200,
     handle: async (_: unknown, { body: { invitation, number, ...rest } }) => {
-      await userRepository.add(
-        teamRepository.get(
-          (await teamRepository.invitation.get(invitation)) ?? NaN
-        ),
-        {
-          ...rest,
-          number: isNaN(number) ? undefined : number,
-        }
-      );
+      const team = await teamRepository.getByInvitation(invitation);
+      if (!team) {
+        throw new CustomDictError("TeamInvitationNotFound", {});
+      }
+
+      const { id } = await userRepository.add(team, {
+        ...rest,
+        number: isNaN(number) ? undefined : number,
+      });
+
+      // admin team
+      if (team.id !== 0) {
+        await teamRepository.membersFor(team).add(id);
+      }
     },
   });
 

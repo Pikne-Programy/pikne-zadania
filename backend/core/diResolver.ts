@@ -19,7 +19,7 @@ import {
   UserController,
   ExerciseController,
 } from "../controllers/mod.ts";
-import { TeamType, SubjectType, UserType } from "../models/mod.ts";
+import { Team, Subject, User } from "../models/mod.ts";
 import { createAuthorize, createApiRoutes } from "./mod.ts";
 
 export async function resolveIoC() {
@@ -31,26 +31,30 @@ export async function resolveIoC() {
 
   const teamRepository = new TeamRepository(
     hashService,
-    dbService.getCollection<TeamType>("teams")
+    dbService.getCollection<Team>("teams")
   );
   const userRepository = new UserRepository(
     config,
-    dbService.getCollection<UserType>("users"),
+    dbService.getCollection<User>("users"),
     logger,
     hashService
   );
-  const exerciseRepository = new ExerciseRepository(config, logger);
   const subjectRepository = new SubjectRepository(
-    dbService.getCollection<SubjectType>("subjects")
+    dbService.getCollection<Subject>("subjects")
   );
+  const exerciseRepository = new ExerciseRepository(config, logger);
 
   await Promise.all([
-    userRepository.init(teamRepository.get(0)),
     teamRepository.init(),
+    userRepository.init((await teamRepository.get(0))!),
+    exerciseRepository.init(),
     subjectRepository.init(exerciseRepository.listSubjects()),
   ]);
 
-  const exerciseService = new ExerciseService(exerciseRepository);
+  const exerciseService = new ExerciseService(
+    exerciseRepository,
+    userRepository
+  );
   const jwtService = new JWTService(
     config,
     userRepository,

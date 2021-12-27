@@ -13,17 +13,17 @@ export function UserController(
   userRepository: UserRepository,
   teamRepository: TeamRepository
 ) {
-  async function isAssigneeOf(assignee: User, who: User) {
+  async function isAssigneeOf(assignee: User, who?: User) {
     // * assuming `assignee` exists
-    if ((await assignee.role.get()) === "admin") {
+    if (assignee.role === "admin") {
       return true;
     }
-    if (!(await who.exists())) {
+    if (!who) {
       return false;
     }
-    const team = teamRepository.get(await who.team.get());
+    const team = await teamRepository.get(who.team);
 
-    return (await team.exists()) && assignee.id === (await team.assignee.get());
+    return team && assignee.id === team.assignee;
   }
 
   const info = controller({
@@ -34,26 +34,26 @@ export function UserController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body }) => {
-      const user = await authorize(ctx); //! A
+      const user = await authorize(ctx);
       const { userId = user.id } = body;
 
-      const who = userRepository.get(userId);
+      const who = await userRepository.get(userId);
 
       if (
         userId === user.id || // themself or
         (await isAssigneeOf(user, who)) // member of their team // TODO: change when dealing with groups (but to what?)
       ) {
         throw new httpErrors["Forbidden"]();
-      } //! P
+      }
 
-      if (!(await who.exists())) {
+      if (!who) {
         throw new httpErrors["NotFound"]();
-      } //! E
+      }
 
       ctx.response.body = {
-        name: await who.name.get(),
-        teamId: await who.team.get(),
-        number: (await who.number.get()) ?? null,
+        name: who.name,
+        teamId: who.team,
+        number: who.number ?? null,
       };
     },
   });
@@ -69,25 +69,28 @@ export function UserController(
     status: 200,
     handle: async (ctx: RouterContext, { body: { userId, number, name } }) => {
       const user = await authorize(ctx); //! A
-      const who = userRepository.get(userId);
+      const who = await userRepository.get(userId);
 
-      if (
-        // ? themself ?
-        !(await isAssigneeOf(user, who)) // member of not their team // TODO: change when dealing with groups (but to what? maybe add two Ps?)
-      ) {
+      // member of not their team // TODO: change when dealing with groups (but to what? maybe add two Ps?)
+      if (!(await isAssigneeOf(user, who))) {
         throw new httpErrors["Forbidden"]();
-      } //! P
-
-      if (!(await who.exists())) {
-        throw new httpErrors["NotFound"]();
-      } //! E
-      if (number !== null) {
-        await who.number.set(isNaN(number) ? undefined : number);
       }
-      //! V already in schemas
+
+      if (!who) {
+        throw new httpErrors["NotFound"]();
+      }
+
+      if (number !== null) {
+        await userRepository.setKey(
+          who,
+          "number",
+          isNaN(number) ? undefined : number
+        );
+      }
+
       if (name !== null) {
-        await who.name.set(name);
-      } //! O
+        await userRepository.setKey(who, "name", name);
+      }
     },
   });
 
@@ -100,18 +103,22 @@ export function UserController(
     status: 200,
     handle: async (ctx: RouterContext, { body: { userId } }) => {
       const user = await authorize(ctx);
-      const who = userRepository.get(userId);
+      const who = await userRepository.get(userId);
 
       if (!(await isAssigneeOf(user, who))) {
         // TODO: change when dealing with groups (but to what? maybe add two Ps?)
         throw new httpErrors["Forbidden"]();
       }
+      if (!who) {
+        throw new httpErrors["NotFound"]();
+      }
 
       await userRepository.delete(who);
-      const team = teamRepository.get(await user.team.get());
 
-      if (await team.exists()) {
-        await team.members.remove(user.id);
+      const team = await teamRepository.get(user.team);
+
+      if (team) {
+        await teamRepository.membersFor(team).remove(user.id);
       }
     },
   });

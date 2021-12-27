@@ -34,8 +34,8 @@ export function SubjectController(
       const user = await authorize(ctx, false);
       const allSubjects = exerciseRepository.listSubjects();
       const selection = await Promise.all(
-        allSubjects.map((s) =>
-          isPermittedToView(subjectRepository.get(s), user)
+        allSubjects.map(async (s) =>
+          isPermittedToView(await subjectRepository.get(s), user)
         )
       );
       const subjects = allSubjects.filter((_, i) => selection[i]);
@@ -53,11 +53,11 @@ export function SubjectController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body: { subject, assignees } }) => {
-      const user = await authorize(ctx); //! A
+      const user = await authorize(ctx);
 
       if (!(await user.isTeacher())) {
         throw new httpErrors["Forbidden"]();
-      } //! P
+      }
 
       await subjectRepository.add(subject, assignees); //! EVO // TODO: V - all assignees exist?
     },
@@ -70,28 +70,25 @@ export function SubjectController(
       },
     },
     status: 200,
-    handle: async (ctx: RouterContext, { body: { subject } }) => {
+    handle: async (ctx: RouterContext, { body: { subject: subjectId } }) => {
       const user = await authorize(ctx);
+      const subject = await subjectRepository.get(subjectId);
 
-      if (
-        !user.isTeacher() ||
-        !(await isPermittedToView(subjectRepository.get(subject), user))
-      ) {
+      if (!subject) {
+        throw new httpErrors["NotFound"]();
+      }
+      if (!user.isTeacher() || !(await isPermittedToView(subject, user))) {
         throw new httpErrors["Forbidden"]();
       }
 
-      if (!(await subjectRepository.get(subject).exists())) {
-        throw new httpErrors["NotFound"]();
-      }
-
-      const rawAssignees = await subjectRepository.get(subject).assignees.get();
+      const rawAssignees = await subject.assignees;
       const assignees =
         rawAssignees === null // TODO: rework
           ? null
           : await Promise.all(
               rawAssignees.map(async (userId) => ({
                 userId,
-                name: await userRepository.get(userId).name.get(),
+                name: (await userRepository.get(userId))?.name, //FIXME n+1
               }))
             );
 
@@ -107,18 +104,17 @@ export function SubjectController(
       },
     },
     status: 200,
-    handle: async (ctx: RouterContext, { body: { subject, assignees } }) => {
-      const user = await authorize(ctx); //! A
+    handle: async (
+      ctx: RouterContext,
+      { body: { subject: subjectId, assignees } }
+    ) => {
+      const user = await authorize(ctx);
+      const subject = await subjectRepository.get(subjectId);
 
-      if (!(await isAssigneeOf(subjectRepository.get(subject), user))) {
+      if (!(await isAssigneeOf(subject, user))) {
         throw new httpErrors["Forbidden"]();
       }
-
-      if (!subjectRepository.get(subject).exists()) {
-        throw new httpErrors["NotFound"]();
-      }
-
-      await subjectRepository.get(subject).assignees.set(assignees);
+      await subjectRepository.setAssignees(subject!.id, assignees);
     },
   });
 
@@ -149,19 +145,20 @@ export function SubjectController(
     status: 200,
     handle: async (
       ctx: RouterContext,
-      { body: { subject, exerciseId, seed } }
+      { body: { subject: subjectId, exerciseId, seed } }
     ) => {
-      const user = await authorize(ctx, false); //! A
+      const user = await authorize(ctx, false);
+      const subject = await subjectRepository.get(subjectId);
 
-      if (!(await isPermittedToView(subjectRepository.get(subject), user))) {
+      if (!(await isPermittedToView(subject, user))) {
         throw new httpErrors["Forbidden"]();
-      } //! P
+      }
 
       const parsed = await exerciseService.render(
-        { subject, exerciseId },
+        { subject: subject!.id, exerciseId },
         await problemGetSeed(ctx, seed, user)
-      ); //! EO
-      if (!isAssigneeOf(subjectRepository.get(subject), user)) {
+      );
+      if (!(await isAssigneeOf(subject, user))) {
         const { correctAnswer: _correctAnswer, ...parsedCensored } = parsed;
 
         ctx.response.body = parsedCensored;
@@ -186,7 +183,9 @@ export function SubjectController(
     ) => {
       const user = await authorize(ctx, false); //! A
 
-      if (!(await isPermittedToView(subjectRepository.get(subject), user))) {
+      if (
+        !(await isPermittedToView(await subjectRepository.get(subject), user))
+      ) {
         throw new httpErrors["Forbidden"]();
       } //! P
 
@@ -209,7 +208,9 @@ export function SubjectController(
     handle: async (ctx: RouterContext, { params: { subject, filename } }) => {
       const user = await authorize(ctx, false);
 
-      if (!(await isPermittedToView(subjectRepository.get(subject), user))) {
+      if (
+        !(await isPermittedToView(await subjectRepository.get(subject), user))
+      ) {
         throw new httpErrors["Forbidden"]();
       }
 
@@ -230,7 +231,7 @@ export function SubjectController(
     handle: async (ctx: RouterContext, { params: { subject, filename } }) => {
       const user = await authorize(ctx);
 
-      if (!(await isAssigneeOf(subjectRepository.get(subject), user))) {
+      if (!(await isAssigneeOf(await subjectRepository.get(subject), user))) {
         throw new httpErrors["Forbidden"]();
       }
 
@@ -244,7 +245,7 @@ export function SubjectController(
         throw new httpErrors["BadRequest"]();
       }
 
-      Deno.writeFile(
+      await Deno.writeFile(
         joinThrowable(
           exerciseRepository.getStaticContentPath(subject),
           filename
@@ -271,14 +272,17 @@ export function SubjectController(
       }
 
       const response = await iterateSection(
-        exerciseRepository.structure(subject).get(),
+        exerciseRepository._structure[subject],
         subject,
         raw,
         exerciseRepository,
         user
       );
 
-      if ((await isAssigneeOf(subjectRepository.get(subject), user)) && !raw) {
+      if (
+        (await isAssigneeOf(await subjectRepository.get(subject), user)) &&
+        !raw
+      ) {
         response.unshift({
           name: "",
           children: exerciseRepository
@@ -319,15 +323,15 @@ export function SubjectController(
     handle: async (ctx: RouterContext, { body: { subject, hierarchy } }) => {
       const user = await authorize(ctx);
 
-      if (!(await isAssigneeOf(subjectRepository.get(subject), user))) {
+      if (!(await isAssigneeOf(await subjectRepository.get(subject), user))) {
         throw new httpErrors["Forbidden"]();
       }
 
       if (!exerciseRepository.listSubjects().includes(subject)) {
         throw new httpErrors["NotFound"]();
       }
-
-      exerciseRepository.structure(subject).set(hierarchy); // TODO V what if exercise doesn't exist
+      // TODO V what if exercise doesn't exist
+      exerciseRepository.structureSet(subject, hierarchy);
     },
   });
 

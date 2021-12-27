@@ -17,16 +17,9 @@ export class JWTService {
 
   async create(login: string, hashedPassword: string) {
     const userId = this.hashService.hash(login);
-    const user = this.userRepository.get(userId);
+    const user = await this.userRepository.get(userId);
 
-    if (
-      !(
-        (await user.exists()) &&
-        (await user.dhPassword
-          .get()
-          .then((password) => compare(hashedPassword, password)))
-      )
-    ) {
+    if (!user || !compare(hashedPassword, user.dhPassword)) {
       throw new CustomDictError("UserCredentialsInvalid", { userId });
     }
 
@@ -37,7 +30,7 @@ export class JWTService {
     };
     const jwt = await create(header, payload, key); // throwable
 
-    await user.tokens.add(jwt);
+    await this.userRepository.tokensFor(user).add(jwt);
 
     return jwt;
   }
@@ -57,9 +50,9 @@ export class JWTService {
         throw undefined; //TODO error
       }
 
-      const user = this.userRepository.get(userId);
+      const user = await this.userRepository.get(userId);
 
-      if (!(await user.exists()) || !(await user.tokens.exists(jwt))) {
+      if (!user || !(await this.userRepository.tokensFor(user).exists(jwt))) {
         throw undefined; //TODO error
       }
 
@@ -73,13 +66,17 @@ export class JWTService {
     }
   }
 
-  revoke(userId: string, jwt: string) {
-    const user = this.userRepository.get(userId);
+  async revoke(userId: string, jwt: string) {
+    const user = await this.userRepository.get(userId);
 
-    if (!user.tokens.exists(jwt)) {
+    if (!user) {
+      throw new CustomDictError("JWTNotFound", {});
+    }
+    const tokens = this.userRepository.tokensFor(user);
+    if (await tokens.exists(jwt)) {
       throw new CustomDictError("JWTNotFound", {});
     }
 
-    return user.tokens.remove(jwt);
+    return tokens.remove(jwt);
   }
 }

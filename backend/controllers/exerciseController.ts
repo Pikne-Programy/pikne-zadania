@@ -13,7 +13,7 @@ export function ExerciseController(
   subjectRepository: SubjectRepository,
   exerciseRepository: ExerciseRepository
 ) {
-  const listExercise = controller({
+  const list = controller({
     schema: {
       body: {
         subject: exerciseSchema.subject,
@@ -23,7 +23,9 @@ export function ExerciseController(
     handle: async (ctx: RouterContext, { body: { subject } }) => {
       const user = await authorize(ctx); //Unauthorized shouldn't see exercises not listed in hierarchy
 
-      if (!(await isPermittedToView(subjectRepository.get(subject), user))) {
+      if (
+        !(await isPermittedToView(await subjectRepository.get(subject), user))
+      ) {
         throw new httpErrors["Forbidden"]();
       }
 
@@ -40,7 +42,7 @@ export function ExerciseController(
       ctx.response.body = { exercises };
     },
   });
-  const addExercise = controller({
+  const add = controller({
     schema: {
       body: {
         subject: exerciseSchema.subject,
@@ -54,15 +56,15 @@ export function ExerciseController(
     ) => {
       const user = await authorize(ctx);
 
-      if (!(await isAssigneeOf(subjectRepository.get(subject), user))) {
+      if (!(await isAssigneeOf(await subjectRepository.get(subject), user))) {
         throw new httpErrors["Forbidden"]();
       }
 
-      exerciseRepository.add(subject, exerciseId, content);
+      await exerciseRepository.add(subject, exerciseId, content);
     },
   });
 
-  const getExercise = controller({
+  const get = controller({
     schema: {
       body: {
         subject: exerciseSchema.subject,
@@ -73,17 +75,17 @@ export function ExerciseController(
     handle: async (ctx: RouterContext, { body: { subject, exerciseId } }) => {
       const user = await authorize(ctx);
 
-      if (!(await isAssigneeOf(subjectRepository.get(subject), user))) {
+      if (!(await isAssigneeOf(await subjectRepository.get(subject), user))) {
         throw new httpErrors["Forbidden"]();
       }
 
-      const content = exerciseRepository.getContent(subject, exerciseId);
+      const content = await exerciseRepository.getContent(subject, exerciseId);
 
       ctx.response.body = { content };
     },
   });
 
-  const updateExercise = controller({
+  const update = controller({
     schema: {
       body: {
         subject: exerciseSchema.subject,
@@ -94,19 +96,19 @@ export function ExerciseController(
     status: 200,
     handle: async (
       ctx: RouterContext,
-      { body: { subject, exerciseId, content } }
+      { body: { subject: subjectId, exerciseId, content } }
     ) => {
       const user = await authorize(ctx);
-
-      if (!(await isAssigneeOf(subjectRepository.get(subject), user))) {
+      const subject = await subjectRepository.get(subjectId);
+      if (!(await isAssigneeOf(subject, user))) {
         throw new httpErrors["Forbidden"]();
       }
 
-      exerciseRepository.update(subject, exerciseId, content);
+      await exerciseRepository.update(subject!.id, exerciseId, content);
     },
   });
 
-  const previewExercise = controller({
+  const preview = controller({
     schema: {
       body: {
         content: exerciseSchema.content,
@@ -128,9 +130,9 @@ export function ExerciseController(
   return new Router({
     prefix: "/subject/exercise",
   })
-    .post("/list", listExercise)
-    .post("/add", addExercise)
-    .post("/get", getExercise)
-    .post("/update", updateExercise)
-    .post("/preview", previewExercise);
+    .post("/list", list)
+    .post("/add", add)
+    .post("/get", get)
+    .post("/update", update)
+    .post("/preview", preview);
 }

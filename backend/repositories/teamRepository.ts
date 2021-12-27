@@ -3,7 +3,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { TeamType, Team } from "../models/mod.ts";
+import { Team } from "../models/mod.ts";
 import { CustomDictError } from "../common/mod.ts";
 import { Collection } from "../deps.ts";
 import { HashService } from "../services/mod.ts";
@@ -11,12 +11,25 @@ import { HashService } from "../services/mod.ts";
 export class TeamRepository {
   constructor(
     private hashService: HashService,
-    public collection: Collection<TeamType>
+    public collection: Collection<Team>
   ) {}
+
+  async set<T extends keyof Team>(team: Team, key: T, value: Team[T]) {
+    await this.collection.updateOne(
+      { id: team.id },
+      value === undefined
+        ? {
+            $unset: { [key]: "" },
+          }
+        : {
+            $set: { [key]: value },
+          }
+    );
+  }
 
   async init() {
     // create static teachers' team if not already created
-    if (await this.get(1).exists()) {
+    if (await this.get(1)) {
       return;
     }
     // teachers' team
@@ -33,8 +46,9 @@ export class TeamRepository {
     return this.collection.find().toArray();
   }
 
-  get(id: number) {
-    return new Team(this, id);
+  async get(id: number) {
+    const team = await this.collection.findOne({ id });
+    return team ? new Team(team) : team;
   }
 
   async add(
@@ -44,7 +58,7 @@ export class TeamRepository {
   ) {
     teamId ??= await this.nextTeamId();
 
-    if (!force && (await this.get(teamId).exists())) {
+    if (!force && (await this.get(teamId))) {
       throw new CustomDictError("TeamAlreadyExists", { teamId });
     }
 
@@ -59,44 +73,70 @@ export class TeamRepository {
     return teamId;
   }
   async delete(teamId: number) {
-    const team = this.get(teamId);
+    const team = await this.get(teamId);
 
-    if (!(await team.exists())) {
+    if (!team) {
       throw new CustomDictError("TeamNotFound", { teamId });
     }
 
     await this.collection.deleteOne({ id: team.id });
   }
+  getByInvitation(invitation: string) {
+    return this.collection.findOne({ invitation });
+  }
 
-  readonly invitation = {
-    get: async (invitation: string) => {
-      const team = await this.collection.findOne({ invitation });
+  invitationFor(team: Team) {
+    return {
+      create: (id: number) => {
+        const ntob = (n: number): string => {
+          const base64 =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+            "abcdefghijklmnopqrstuvwxyz0123456789+/";
+          return base64[n];
+        };
 
-      if (!team) {
-        return null;
-      }
+        return globalThis.crypto
+          .getRandomValues(new Uint8Array(4))
+          .reduce((invitation, n) => invitation + ntob(n % 64), ntob(id));
+      },
+      set: async (invitation?: string) => {
+        if (invitation === undefined) {
+          await this.set(team, "invitation", undefined);
+        } else {
+          const existing = await this.collection
+            .findOne({ invitation })
+            .then((team) => team?.id);
 
-      return team.id;
-    },
-    create: (id: number) => {
-      const ntob = (n: number): string => {
-        const base64 =
-          "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-          "abcdefghijklmnopqrstuvwxyz0123456789+/";
-        return base64[n];
-      };
+          // * assuming there were no two teams with same id; `findOne` not `find`
+          if (existing !== undefined && existing !== team.id) {
+            return false;
+          }
 
-      const randomArray = new Uint8Array(4);
+          await this.set(team, "invitation", invitation);
+        }
+        return true;
+      },
+    };
+  }
 
-      globalThis.crypto.getRandomValues(randomArray);
-
-      let invitation = ntob(id);
-
-      for (const n of randomArray) {
-        invitation += ntob(n % 64);
-      }
-
-      return invitation;
-    },
-  };
+  membersFor(team: Team) {
+    return {
+      add: async (uid: string) => {
+        await this.collection.updateOne(
+          { id: team.id },
+          {
+            $push: { members: uid },
+          }
+        );
+      },
+      remove: async (uid: string) => {
+        await this.collection.updateOne(
+          { id: team.id },
+          {
+            $pull: { members: uid },
+          }
+        );
+      },
+    };
+  }
 }

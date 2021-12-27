@@ -63,9 +63,8 @@ export const iterateSection = async (
           done:
             raw || user === undefined
               ? undefined
-              : (await user.exercises.get(
-                  exerciseRepository.uid(subject, el.children)
-                )) ?? null,
+              : user.exercises[exerciseRepository.uid(subject, el.children)] ??
+                null,
         });
       } catch {
         // we really need this comment
