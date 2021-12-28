@@ -3,6 +3,12 @@ import {
   JWTService,
   Logger,
   HashService,
+  UserService,
+  TeamService,
+  SubjectService,
+  ProblemService,
+  ExerciseService,
+  AuthService,
 } from "../services/mod.ts";
 import {
   ExerciseRepository,
@@ -49,50 +55,44 @@ export async function resolveIoC() {
     subjectRepository.init(exerciseRepository.listSubjects()),
   ]);
 
-  const jwtService = new JWTService(
-    config,
+  const jwtService = new JWTService(config, userRepository, hashService);
+
+  const userService = new UserService(userRepository, teamRepository);
+  const teamService = new TeamService(userRepository, teamRepository);
+  const subjectService = new SubjectService(
     userRepository,
-    logger,
-    hashService
+    subjectRepository,
+    exerciseRepository
   );
-
-  const authorizer = createAuthorize(jwtService);
-
-  const authController = AuthController(
-    config,
+  const problemService = new ProblemService(
+    subjectRepository,
+    exerciseRepository,
+    userRepository
+  );
+  const exerciseService = new ExerciseService(
+    subjectRepository,
+    exerciseRepository
+  );
+  const authService = new AuthService(
     userRepository,
     teamRepository,
     jwtService,
     logger,
-    hashService
+    hashService,
+    config
   );
-  const teamController = TeamController(
-    authorizer,
-    userRepository,
-    teamRepository
-  );
-  const userController = UserController(
-    authorizer,
-    userRepository,
-    teamRepository
-  );
-  const subjectController = SubjectController(
-    authorizer,
-    userRepository,
-    subjectRepository,
-    exerciseRepository
-  );
-  const exerciseController = ExerciseController(
-    authorizer,
-    subjectRepository,
-    exerciseRepository
-  );
+
+  const authorizer = createAuthorize(jwtService);
+
+  const authController = AuthController(config, authService);
+  const teamController = TeamController(authorizer, teamService);
+  const userController = UserController(authorizer, userService);
+  const subjectController = SubjectController(authorizer, subjectService);
+  const exerciseController = ExerciseController(authorizer, exerciseService);
   const problemController = ProblemController(
     authorizer,
     config,
-    subjectRepository,
-    exerciseRepository,
-    userRepository
+    problemService
   );
 
   const router = createApiRoutes(

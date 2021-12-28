@@ -4,42 +4,32 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { httpErrors, Router, RouterContext, send, vs } from "../deps.ts";
-import { joinThrowable, iterateSection } from "../utils/mod.ts";
 import { exerciseSchema, subjectSchema } from "../schemas/mod.ts";
-import {
-  UserRepository,
-  SubjectRepository,
-  ExerciseRepository,
-} from "../repositories/mod.ts";
-import {
-  IAuthorizer,
-  controller,
-  isAssigneeOf,
-  isPermittedToView,
-} from "../core/mod.ts";
-import { CustomDictError } from "../common/mod.ts";
+import { SubjectService } from "../services/mod.ts";
+import { IAuthorizer, controller } from "../core/mod.ts";
 
 export function SubjectController(
   authorize: IAuthorizer,
-  userRepository: UserRepository,
-  subjectRepository: SubjectRepository,
-  exerciseRepository: ExerciseRepository
+  subjectService: SubjectService
 ) {
-  const list = controller({
+  const findOne = controller({
+    schema: {
+      body: {
+        subject: exerciseSchema.subject,
+      },
+    },
+    status: 200,
+    handle: async (ctx: RouterContext, { body }) => {
+      const user = await authorize(ctx);
+      ctx.response.body = await subjectService.findOne(user, body);
+    },
+  });
+
+  const findAll = controller({
     status: 200,
     handle: async (ctx: RouterContext) => {
       const user = await authorize(ctx, false);
-      const allSubjects = exerciseRepository.listSubjects();
-      const selection = await Promise.all(
-        allSubjects.map(async (subjectId) => {
-          //FIXME n+1
-          const subject = await subjectRepository.get(subjectId);
-          return subject && isPermittedToView(subject, user);
-        })
-      );
-      const subjects = allSubjects.filter((_, i) => selection[i]);
-
-      ctx.response.body = { subjects };
+      ctx.response.body = await subjectService.findAll(user);
     },
   });
 
@@ -51,52 +41,9 @@ export function SubjectController(
       },
     },
     status: 200,
-    handle: async (
-      ctx: RouterContext,
-      { body: { subject: id, assignees } }
-    ) => {
+    handle: async (ctx: RouterContext, { body }) => {
       const user = await authorize(ctx);
-
-      if (!user.isTeacher()) {
-        throw new httpErrors["Forbidden"]();
-      }
-      // TODO: all assignees exist?
-      const subject = await subjectRepository.get(id);
-
-      if (subject) {
-        throw new CustomDictError("SubjectAlreadyExists", { subject: id });
-      }
-
-      await subjectRepository.collection.insertOne({ id, assignees });
-    },
-  });
-
-  const info = controller({
-    schema: {
-      body: {
-        subject: exerciseSchema.subject,
-      },
-    },
-    status: 200,
-    handle: async (ctx: RouterContext, { body: { subject: subjectId } }) => {
-      const user = await authorize(ctx);
-      const subject = await subjectRepository.getOrFail(subjectId);
-
-      if (!user.isTeacher() || !isPermittedToView(subject, user)) {
-        throw new httpErrors["Forbidden"]();
-      }
-
-      const assignees = await Promise.all(
-        (subject.assignees || []).map(async (userId) => ({
-          userId,
-          name: (await userRepository.get(userId))?.name, //FIXME n+1
-        }))
-      );
-
-      ctx.response.body = {
-        // learn more: https://pikne-programy.github.io/pikne-zadania/API#:~:text=POST%20/api/subject/create%20%2D%20create%20a%20new%20subject
-        assignees: assignees.length ? assignees : null,
-      };
+      await subjectService.create(user, body);
     },
   });
 
@@ -108,22 +55,9 @@ export function SubjectController(
       },
     },
     status: 200,
-    handle: async (
-      ctx: RouterContext,
-      { body: { subject: subjectId, assignees } }
-    ) => {
+    handle: async (ctx: RouterContext, { body }) => {
       const user = await authorize(ctx);
-      const subject = await subjectRepository.get(subjectId);
-
-      if (!isAssigneeOf(subject, user)) {
-        throw new httpErrors["Forbidden"]();
-      }
-      await subjectRepository.collection.updateOne(
-        { id: subject!.id },
-        {
-          $set: { assignees },
-        }
-      );
+      await subjectService.permit(user, body);
     },
   });
 
@@ -134,18 +68,10 @@ export function SubjectController(
         filename: vs.string({ strictType: true }),
       },
     },
-    handle: async (ctx: RouterContext, { params: { subject, filename } }) => {
+    handle: async (ctx: RouterContext, { params }) => {
       const user = await authorize(ctx, false);
-
-      if (
-        !isPermittedToView(await subjectRepository.getOrFail(subject), user)
-      ) {
-        throw new httpErrors["Forbidden"]();
-      }
-
-      await send(ctx, filename, {
-        root: exerciseRepository.getStaticContentPath(subject),
-      }); // there's a problem with no permission to element
+      const path = await subjectService.getStaticPath(user, params);
+      await send(ctx, params.filename, path); // there's a problem with no permission to element
     },
   });
 
@@ -157,32 +83,20 @@ export function SubjectController(
       },
     },
     status: 200,
-    handle: async (ctx: RouterContext, { params: { subject, filename } }) => {
+    handle: async (ctx: RouterContext, { params }) => {
       const user = await authorize(ctx);
 
-      if (!isAssigneeOf(await subjectRepository.get(subject), user)) {
-        throw new httpErrors["Forbidden"]();
-      }
-
-      const maxSize = 100 * 2 ** 20; // 100 MiB  // TODO: move to config
+      const maxSize = 100 * 2 ** 20; // 100 MiB
       const body = await ctx.request.body({ type: "form-data" }).value.read({
         maxFileSize: maxSize,
         maxSize,
       });
-
+      //FIXME validate files
       if (!(body.files?.length == 1 && body.files[0].content)) {
         throw new httpErrors["BadRequest"]();
       }
 
-      //! resource-intensive
-      await Deno.writeFile(
-        joinThrowable(
-          exerciseRepository.getStaticContentPath(subject),
-          filename
-        ),
-        body.files[0].content,
-        { mode: 0o2664 }
-      );
+      await subjectService.putStatic(user, params, body.files[0].content);
     },
   });
 
@@ -194,42 +108,9 @@ export function SubjectController(
       },
     },
     status: 200,
-    handle: async (ctx: RouterContext, { body: { subject, raw } }) => {
+    handle: async (ctx: RouterContext, { body }) => {
       const user = await authorize(ctx, false);
-
-      if (!exerciseRepository.listSubjects().includes(subject)) {
-        throw new httpErrors["NotFound"]();
-      }
-
-      const response = await iterateSection(
-        exerciseRepository._structure[subject],
-        subject,
-        raw,
-        exerciseRepository,
-        user
-      );
-
-      if (isAssigneeOf(await subjectRepository.get(subject), user) && !raw) {
-        response.unshift({
-          name: "",
-          children: exerciseRepository.unlisted[subject]
-            .map((children) => {
-              const exercise = exerciseRepository.get(subject, children);
-
-              return (
-                exercise && {
-                  name: exercise.name,
-                  children,
-                  type: exercise.type,
-                  description: exercise.description,
-                  done: null,
-                }
-              );
-            })
-            .filter(Boolean),
-        });
-      }
-      ctx.response.body = response;
+      ctx.response.body = await subjectService.getHierarchy(user, body);
     },
   });
 
@@ -241,27 +122,18 @@ export function SubjectController(
       },
     },
     status: 200,
-    handle: async (ctx: RouterContext, { body: { subject, hierarchy } }) => {
+    handle: async (ctx: RouterContext, { body }) => {
       const user = await authorize(ctx);
-
-      if (!isAssigneeOf(await subjectRepository.get(subject), user)) {
-        throw new httpErrors["Forbidden"]();
-      }
-
-      if (!exerciseRepository.listSubjects().includes(subject)) {
-        throw new httpErrors["NotFound"]();
-      }
-      // TODO V what if exercise doesn't exist
-      exerciseRepository.structureSet(subject, hierarchy);
+      subjectService.setHierarchy(user, body);
     },
   });
 
   return new Router({
     prefix: "/subject",
   })
-    .get("/list", list)
+    .get("/list", findAll)
     .post("/create", create)
-    .post("/info", info)
+    .post("/info", findOne)
     .post("/permit", permit)
     .use(
       "/static",

@@ -6,3 +6,10 @@ export * from "./configService.ts";
 export * from "./jwtService.ts";
 export * from "./hashService.ts";
 export * from "./logger.ts";
+
+export * from "./userService.ts";
+export * from "./teamService.ts";
+export * from "./subjectService.ts";
+export * from "./problemService.ts";
+export * from "./exerciseService.ts";
+export * from "./authService.ts";

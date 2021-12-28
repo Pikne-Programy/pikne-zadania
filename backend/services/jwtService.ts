@@ -5,14 +5,13 @@
 import { compare, create, getNumericDate, verify } from "../deps.ts";
 import { CustomDictError } from "../common/mod.ts";
 import { UserRepository } from "../repositories/mod.ts";
-import { ConfigService, Logger, HashService } from "./mod.ts";
+import { ConfigService, HashService } from "./mod.ts";
 import { User } from "../models/mod.ts";
 
 export class JWTService {
   constructor(
     private config: ConfigService,
     private userRepository: UserRepository,
-    private logger: Logger,
     private hashService: HashService
   ) {}
 
@@ -44,28 +43,25 @@ export class JWTService {
       });
     }
 
-    try {
-      const { header, key } = this.config.JWT_CONF;
-      const userId = await verify(jwt, key, header.alg).then(({ id }) => id); // TODO: throwable
+    const { header, key } = this.config.JWT_CONF;
 
-      if (typeof userId !== "string") {
-        throw undefined; //TODO error
-      }
+    const userId = await verify(jwt, key, header.alg)
+      .then(({ id }) => id)
+      .catch(() => {
+        throw new CustomDictError("JWTNotFound", {});
+      });
 
-      const user = await this.userRepository.getOrFail(userId);
-
-      if (!user.tokens.includes(jwt)) {
-        throw undefined; //TODO error
-      }
-
-      return user;
-    } catch (e) {
-      if (e !== undefined) {
-        this.logger.recogniseAndTrace(e, { customVerbosity: 2 });
-      }
-
+    if (typeof userId !== "string") {
       throw new CustomDictError("JWTNotFound", {});
     }
+
+    const user = await this.userRepository.getOrFail(userId);
+
+    if (!user.tokens.includes(jwt)) {
+      throw new CustomDictError("JWTNotFound", {});
+    }
+
+    return user;
   }
 
   async revoke(user: User, jwt: string) {
