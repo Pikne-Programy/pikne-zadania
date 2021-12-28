@@ -15,6 +15,7 @@ const errors = {
   TeamNotFound: "NotFound",
   SubjectNotFound: "NotFound",
   ExerciseNotFound: "NotFound",
+  NotFound: "NotFound",
 
   UserAlreadyExists: "Conflict",
   TeamAlreadyExists: "Conflict",
@@ -32,9 +33,7 @@ function mapErrors<T>(err: T | CustomDictError) {
 
   const httpErrorClass = httpErrors[errors[err.type]];
 
-  if (httpErrorClass) {
-    return new httpErrorClass(err.type);
-  }
+  return httpErrorClass ? new httpErrorClass(err.type) : err;
 }
 
 const sendError = (ctx: Context, { status, message }: HttpError) => {

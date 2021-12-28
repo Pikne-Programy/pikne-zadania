@@ -28,11 +28,10 @@ const isYAMLSection = (what: unknown): what is YAMLSection =>
     Object.keys(what).length == 1);
 
 export class ExerciseRepository {
-  readonly _structure: { [key: string]: Section[] } = {}; // subject -> eid
-  private readonly _unlisted: { [key: string]: string[] } = {}; // subject -> eid
-  private readonly exercises: {
-    [key: string]: [Exercise, boolean]; // uid -> [Exercise, inYaml]
-  } = {};
+  readonly _structure: Record<string, Section[]> = {}; // subject -> eid
+  readonly unlisted: Record<string, string[]> = {}; // subject -> eid
+  private readonly exercises: Record<string, [Exercise, boolean] | undefined> =
+    {}; // uid -> [Exercise, inYaml]
 
   private exercisesPath!: string;
 
@@ -46,11 +45,15 @@ export class ExerciseRepository {
 
     const ex = walk(this.exercisesPath, { includeFiles: false, maxDepth: 1 });
     ex.next(); //replace slice(1) with using first result
+
     for await (const { path, name: subject } of ex) {
       try {
         const index = join(path, "index.yml");
-        if (!exists(index)) continue;
-        this._unlisted[subject] = [];
+        if (!exists(index)) {
+          continue;
+        }
+
+        this.unlisted[subject] = [];
         for await (const { name: file } of walk(
           join(this.exercisesPath, subject),
           {
@@ -67,7 +70,7 @@ export class ExerciseRepository {
           await this.appendExerciseFile(subject, match[1]);
         }
 
-        const content = parse(await Deno.readTextFile(index));
+        const content = await Deno.readTextFile(index).then(parse);
 
         if (!isArrayOf(isYAMLSection, content)) {
           throw new Error("index not a YAMLSection[]");
@@ -80,7 +83,7 @@ export class ExerciseRepository {
     }
 
     for (const uid in this.exercises) {
-      if (this.exercises[uid][1]) {
+      if (this.exercises[uid]![1]) {
         continue;
       }
 
@@ -91,7 +94,7 @@ export class ExerciseRepository {
       }
 
       const [subject, eid] = match.slice(1, 3);
-      this._unlisted[subject].push(eid);
+      this.unlisted[subject].push(eid);
     }
   }
 
@@ -166,7 +169,7 @@ export class ExerciseRepository {
 
     for (const el of elements) {
       if (typeof el === "string") {
-        const ex = this.get(subject, el);
+        const ex = this.getOrFail(subject, el);
 
         if (ex?.type === "ExerciseNotFound") {
           // TODO
@@ -174,8 +177,8 @@ export class ExerciseRepository {
           continue;
         }
 
-        structure.push({ name: ex.name, children: el }); // TODO: name should not be stored (add it dynamically in controller?)
-        this.exercises[this.uid(subject, el)][1] = true;
+        structure.push({ name: ex.name, children: el }); // TODO: name should not be stored
+        this.exercises[this.uid(subject, el)]![1] = true;
       } else {
         const name = Object.keys(el)[0];
         const children = this.buildSectionList(subject, el[name]);
@@ -200,10 +203,10 @@ export class ExerciseRepository {
   }
 
   listSubjects() {
-    return Object.keys(this._unlisted);
+    return Object.keys(this.unlisted);
   }
 
-  readonly structureSet = async (subject: string, value: Section[]) => {
+  async structureSet(subject: string, value: Section[]) {
     const index = joinThrowable(this.exercisesPath, subject, "index.yml");
     const makeYAMLSection = (section: Section[]): (YAMLSection | string)[] =>
       section.flatMap<YAMLSection | string>((x) => {
@@ -215,9 +218,9 @@ export class ExerciseRepository {
             return [];
           }
 
-          if (!this.exercises[uid][1]) {
-            this.exercises[uid][1] = true;
-            this._unlisted[subject] = this._unlisted[subject].filter(
+          if (!this.exercises[uid]![1]) {
+            this.exercises[uid]![1] = true;
+            this.unlisted[subject] = this.unlisted[subject].filter(
               (x) => x !== exerciseId
             );
           }
@@ -232,31 +235,30 @@ export class ExerciseRepository {
 
     await Deno.writeTextFile(index, stringify(makeYAMLSection(value)));
     this._structure[subject] = value;
-  };
+  }
 
-  readonly unlisted = (subject: string) => ({
-    get: () => this._unlisted[subject],
-  });
+  add(subject: string, exerciseId: string, content: string) {
+    if (this.uid(subject, exerciseId) in this.exercises) {
+      throw new CustomDictError("ExerciseAlreadyExists", {
+        subject,
+        exerciseId,
+      });
+    }
 
-  async add(subject: string, exerciseId: string, content: string) {
-    const uid = this.uid(subject, exerciseId);
-
-    return uid in this.exercises
-      ? new CustomDictError("ExerciseAlreadyExists", {
-          subject,
-          exerciseId,
-        })
-      : await this.update(subject, exerciseId, content);
+    return this.update(subject, exerciseId, content);
   }
 
   get(subject: string, exerciseId: string) {
-    const exercise = this.exercises[this.uid(subject, exerciseId)];
+    return this.exercises[this.uid(subject, exerciseId)]?.[0];
+  }
+  getOrFail(subject: string, exerciseId: string) {
+    const exercise = this.get(subject, exerciseId);
 
     if (!exercise) {
       throw new CustomDictError("ExerciseNotFound", { subject, exerciseId });
     }
 
-    return exercise[0];
+    return exercise;
   }
 
   async update(subject: string, exerciseId: string, content: string) {
@@ -266,15 +268,13 @@ export class ExerciseRepository {
     await Deno.writeTextFile(path, content);
   }
 
-  async getContent(subject: string, exerciseId: string) {
+  getContent(subject: string, exerciseId: string) {
     const uid = this.uid(subject, exerciseId);
     const path = join(this.exercisesPath, `${uid}.txt`);
 
-    try {
-      return await Deno.readTextFile(path);
-    } catch {
+    return Deno.readTextFile(path).catch(() => {
       throw new CustomDictError("ExerciseNotFound", { subject, exerciseId });
-    }
+    });
   }
 
   getStaticContentPath(subject: string) {

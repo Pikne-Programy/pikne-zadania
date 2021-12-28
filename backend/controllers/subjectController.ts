@@ -4,10 +4,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { httpErrors, Router, RouterContext, send, vs } from "../deps.ts";
-import { generateSeed, joinThrowable, iterateSection } from "../utils/mod.ts";
-import { exerciseSchema, subjectSchema, userSchema } from "../schemas/mod.ts";
-import { User } from "../models/mod.ts";
-import { ExerciseService, ConfigService } from "../services/mod.ts";
+import { joinThrowable, iterateSection } from "../utils/mod.ts";
+import { exerciseSchema, subjectSchema } from "../schemas/mod.ts";
 import {
   UserRepository,
   SubjectRepository,
@@ -19,14 +17,13 @@ import {
   isAssigneeOf,
   isPermittedToView,
 } from "../core/mod.ts";
+import { CustomDictError } from "../common/mod.ts";
 
 export function SubjectController(
   authorize: IAuthorizer,
-  config: ConfigService,
   userRepository: UserRepository,
   subjectRepository: SubjectRepository,
-  exerciseRepository: ExerciseRepository,
-  exerciseService: ExerciseService
+  exerciseRepository: ExerciseRepository
 ) {
   const list = controller({
     status: 200,
@@ -34,9 +31,11 @@ export function SubjectController(
       const user = await authorize(ctx, false);
       const allSubjects = exerciseRepository.listSubjects();
       const selection = await Promise.all(
-        allSubjects.map(async (s) =>
-          isPermittedToView(await subjectRepository.get(s), user)
-        )
+        allSubjects.map(async (subjectId) => {
+          //FIXME n+1
+          const subject = await subjectRepository.get(subjectId);
+          return subject && isPermittedToView(subject, user);
+        })
       );
       const subjects = allSubjects.filter((_, i) => selection[i]);
 
@@ -52,14 +51,23 @@ export function SubjectController(
       },
     },
     status: 200,
-    handle: async (ctx: RouterContext, { body: { subject, assignees } }) => {
+    handle: async (
+      ctx: RouterContext,
+      { body: { subject: id, assignees } }
+    ) => {
       const user = await authorize(ctx);
 
-      if (!(await user.isTeacher())) {
+      if (!user.isTeacher()) {
         throw new httpErrors["Forbidden"]();
       }
+      // TODO: all assignees exist?
+      const subject = await subjectRepository.get(id);
 
-      await subjectRepository.add(subject, assignees); //! EVO // TODO: V - all assignees exist?
+      if (subject) {
+        throw new CustomDictError("SubjectAlreadyExists", { subject: id });
+      }
+
+      await subjectRepository.collection.insertOne({ id, assignees });
     },
   });
 
@@ -72,27 +80,23 @@ export function SubjectController(
     status: 200,
     handle: async (ctx: RouterContext, { body: { subject: subjectId } }) => {
       const user = await authorize(ctx);
-      const subject = await subjectRepository.get(subjectId);
+      const subject = await subjectRepository.getOrFail(subjectId);
 
-      if (!subject) {
-        throw new httpErrors["NotFound"]();
-      }
-      if (!user.isTeacher() || !(await isPermittedToView(subject, user))) {
+      if (!user.isTeacher() || !isPermittedToView(subject, user)) {
         throw new httpErrors["Forbidden"]();
       }
 
-      const rawAssignees = await subject.assignees;
-      const assignees =
-        rawAssignees === null // TODO: rework
-          ? null
-          : await Promise.all(
-              rawAssignees.map(async (userId) => ({
-                userId,
-                name: (await userRepository.get(userId))?.name, //FIXME n+1
-              }))
-            );
+      const assignees = await Promise.all(
+        (subject.assignees || []).map(async (userId) => ({
+          userId,
+          name: (await userRepository.get(userId))?.name, //FIXME n+1
+        }))
+      );
 
-      ctx.response.body = { assignees };
+      ctx.response.body = {
+        // learn more: https://pikne-programy.github.io/pikne-zadania/API#:~:text=POST%20/api/subject/create%20%2D%20create%20a%20new%20subject
+        assignees: assignees.length ? assignees : null,
+      };
     },
   });
 
@@ -111,90 +115,15 @@ export function SubjectController(
       const user = await authorize(ctx);
       const subject = await subjectRepository.get(subjectId);
 
-      if (!(await isAssigneeOf(subject, user))) {
+      if (!isAssigneeOf(subject, user)) {
         throw new httpErrors["Forbidden"]();
       }
-      await subjectRepository.setAssignees(subject!.id, assignees);
-    },
-  });
-
-  const problemGetSeed = async (
-    ctx: RouterContext,
-    seed: number | null,
-    user?: User
-  ) => {
-    if (user) {
-      return seed !== null && (await user.isTeacher()) ? { seed } : user;
-    }
-
-    const _seed = ctx.cookies.get("seed") ?? `${generateSeed()}`;
-
-    ctx.cookies.set("seed", _seed, { maxAge: config.SEED_AGE });
-
-    return { seed: +_seed };
-  };
-
-  const getProblem = controller({
-    schema: {
-      body: {
-        subject: exerciseSchema.subject,
-        exerciseId: exerciseSchema.id,
-        seed: userSchema.seedOptional,
-      },
-    },
-    status: 200,
-    handle: async (
-      ctx: RouterContext,
-      { body: { subject: subjectId, exerciseId, seed } }
-    ) => {
-      const user = await authorize(ctx, false);
-      const subject = await subjectRepository.get(subjectId);
-
-      if (!(await isPermittedToView(subject, user))) {
-        throw new httpErrors["Forbidden"]();
-      }
-
-      const parsed = await exerciseService.render(
-        { subject: subject!.id, exerciseId },
-        await problemGetSeed(ctx, seed, user)
+      await subjectRepository.collection.updateOne(
+        { id: subject!.id },
+        {
+          $set: { assignees },
+        }
       );
-      if (!(await isAssigneeOf(subject, user))) {
-        const { correctAnswer: _correctAnswer, ...parsedCensored } = parsed;
-
-        ctx.response.body = parsedCensored;
-      } else {
-        ctx.response.body = parsed;
-      }
-    },
-  });
-
-  const updateProblem = controller({
-    schema: {
-      body: {
-        subject: exerciseSchema.subject,
-        exerciseId: exerciseSchema.id,
-        answer: exerciseSchema.answer,
-      },
-    },
-    status: 200,
-    handle: async (
-      ctx: RouterContext,
-      { body: { subject, exerciseId, answer } }
-    ) => {
-      const user = await authorize(ctx, false); //! A
-
-      if (
-        !(await isPermittedToView(await subjectRepository.get(subject), user))
-      ) {
-        throw new httpErrors["Forbidden"]();
-      } //! P
-
-      const { info } = await exerciseService.check(
-        { subject, exerciseId },
-        answer,
-        await problemGetSeed(ctx, null, user)
-      ); //! EVO
-      ctx.response.body = { info }; // ? done, correctAnswer ?
     },
   });
 
@@ -209,7 +138,7 @@ export function SubjectController(
       const user = await authorize(ctx, false);
 
       if (
-        !(await isPermittedToView(await subjectRepository.get(subject), user))
+        !isPermittedToView(await subjectRepository.getOrFail(subject), user)
       ) {
         throw new httpErrors["Forbidden"]();
       }
@@ -231,7 +160,7 @@ export function SubjectController(
     handle: async (ctx: RouterContext, { params: { subject, filename } }) => {
       const user = await authorize(ctx);
 
-      if (!(await isAssigneeOf(await subjectRepository.get(subject), user))) {
+      if (!isAssigneeOf(await subjectRepository.get(subject), user)) {
         throw new httpErrors["Forbidden"]();
       }
 
@@ -245,6 +174,7 @@ export function SubjectController(
         throw new httpErrors["BadRequest"]();
       }
 
+      //! resource-intensive
       await Deno.writeFile(
         joinThrowable(
           exerciseRepository.getStaticContentPath(subject),
@@ -252,7 +182,7 @@ export function SubjectController(
         ),
         body.files[0].content,
         { mode: 0o2664 }
-      ); //! resource-intensive
+      );
     },
   });
 
@@ -279,31 +209,22 @@ export function SubjectController(
         user
       );
 
-      if (
-        (await isAssigneeOf(await subjectRepository.get(subject), user)) &&
-        !raw
-      ) {
+      if (isAssigneeOf(await subjectRepository.get(subject), user) && !raw) {
         response.unshift({
           name: "",
-          children: exerciseRepository
-            .unlisted(subject)
-            .get()
-            .map((x) => {
-              try {
-                const { name, type, description } = exerciseRepository.get(
-                  subject,
-                  x
-                );
-                return {
-                  name: name,
-                  children: x,
-                  type: type,
-                  description: description,
+          children: exerciseRepository.unlisted[subject]
+            .map((children) => {
+              const exercise = exerciseRepository.get(subject, children);
+
+              return (
+                exercise && {
+                  name: exercise.name,
+                  children,
+                  type: exercise.type,
+                  description: exercise.description,
                   done: null,
-                };
-              } catch {
-                return; // ignore not existing exercises
-              }
+                }
+              );
             })
             .filter(Boolean),
         });
@@ -323,7 +244,7 @@ export function SubjectController(
     handle: async (ctx: RouterContext, { body: { subject, hierarchy } }) => {
       const user = await authorize(ctx);
 
-      if (!(await isAssigneeOf(await subjectRepository.get(subject), user))) {
+      if (!isAssigneeOf(await subjectRepository.get(subject), user)) {
         throw new httpErrors["Forbidden"]();
       }
 
@@ -342,13 +263,6 @@ export function SubjectController(
     .post("/create", create)
     .post("/info", info)
     .post("/permit", permit)
-    .use(
-      "/problem",
-      new Router()
-        .post("/get", getProblem)
-        .post("/update", updateProblem)
-        .routes()
-    )
     .use(
       "/static",
       new Router()

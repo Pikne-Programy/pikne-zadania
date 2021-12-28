@@ -1,7 +1,5 @@
 import {
   ConfigService,
-  DatabaseService,
-  ExerciseService,
   JWTService,
   Logger,
   HashService,
@@ -18,43 +16,39 @@ import {
   TeamController,
   UserController,
   ExerciseController,
+  ProblemController,
 } from "../controllers/mod.ts";
 import { Team, Subject, User } from "../models/mod.ts";
-import { createAuthorize, createApiRoutes } from "./mod.ts";
+import { DatabaseDriver, createAuthorize, createApiRoutes } from "./mod.ts";
 
 export async function resolveIoC() {
   const config = new ConfigService();
   const logger = new Logger(config);
   const hashService = new HashService(config);
 
-  const dbService = await new DatabaseService(config).connect();
+  const db = await new DatabaseDriver(config).connect();
 
   const teamRepository = new TeamRepository(
     hashService,
-    dbService.getCollection<Team>("teams")
+    db.getCollection<Team>("teams")
   );
   const userRepository = new UserRepository(
-    config,
-    dbService.getCollection<User>("users"),
+    db.getCollection<User>("users"),
     logger,
     hashService
   );
   const subjectRepository = new SubjectRepository(
-    dbService.getCollection<Subject>("subjects")
+    db.getCollection<Subject>("subjects")
   );
   const exerciseRepository = new ExerciseRepository(config, logger);
 
   await Promise.all([
     teamRepository.init(),
-    userRepository.init((await teamRepository.get(0))!),
+    userRepository.init(config),
     exerciseRepository.init(),
     subjectRepository.init(exerciseRepository.listSubjects()),
   ]);
 
-  const exerciseService = new ExerciseService(
-    exerciseRepository,
-    userRepository
-  );
   const jwtService = new JWTService(
     config,
     userRepository,
@@ -62,14 +56,15 @@ export async function resolveIoC() {
     hashService
   );
 
-  const authorizer = createAuthorize(jwtService, userRepository);
+  const authorizer = createAuthorize(jwtService);
 
   const authController = AuthController(
     config,
     userRepository,
     teamRepository,
     jwtService,
-    logger
+    logger,
+    hashService
   );
   const teamController = TeamController(
     authorizer,
@@ -83,16 +78,21 @@ export async function resolveIoC() {
   );
   const subjectController = SubjectController(
     authorizer,
-    config,
     userRepository,
     subjectRepository,
-    exerciseRepository,
-    exerciseService
+    exerciseRepository
   );
   const exerciseController = ExerciseController(
     authorizer,
     subjectRepository,
     exerciseRepository
+  );
+  const problemController = ProblemController(
+    authorizer,
+    config,
+    subjectRepository,
+    exerciseRepository,
+    userRepository
   );
 
   const router = createApiRoutes(
@@ -100,7 +100,8 @@ export async function resolveIoC() {
     subjectController,
     exerciseController,
     teamController,
-    userController
+    userController,
+    problemController
   );
 
   return {
@@ -108,7 +109,7 @@ export async function resolveIoC() {
     logger,
     config,
     dropExercises: () => exerciseRepository.drop(),
-    dropDb: () => dbService.drop(),
-    closeDb: () => dbService.close(),
+    dropDb: () => db.drop(),
+    closeDb: () => db.close(),
   };
 }

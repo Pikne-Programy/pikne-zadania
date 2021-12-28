@@ -1,6 +1,18 @@
 //import { isArrayOf, isObject, Section } from "./utils/mod.ts";
 
+// export function fileExists(path: string): boolean {
+//     try {
+//       const stat = Deno.statSync(path);
 
+//       return stat?.isFile;
+//     } catch (e) {
+//       if (e && e instanceof Deno.errors.NotFound) {
+//         return false;
+//       }
+
+//       throw e;
+//     }
+//   }
 
 // user.team.set = async (value: number) => {
 //     const oldTeam = this.teamRepository.get(await this.team.get());

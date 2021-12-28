@@ -8,6 +8,8 @@ const longestSupportedTeamNameLength = 42;
 
 const sha256Regex = /^[0-9a-f]{64}$/;
 
+export const reservedTeamInvitation = "\u0011";
+
 export const comb = (...args: ({ source: string } | string)[]) =>
   new RegExp(
     `^${args.reduce<string>(
@@ -57,10 +59,6 @@ export const teamNameOptions = {
   pattern: notControlRegex,
   maxLength: longestSupportedTeamNameLength,
 };
-export const reservedTeamInvitation = "\u0011";
-// if (notControlRegex.test(reservedTeamInvitation)) throw new Error("never");
-// TODO: move to unit test; should test vs.string.applySchema
-// TODO: test ""
 export const teamInvitationOptions = {
   strictType: true,
   pattern: notControlRegex,

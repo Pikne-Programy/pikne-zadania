@@ -23,6 +23,7 @@ type errors = {
   ExerciseAlreadyExists: exercise;
   SubjectAlreadyExists: subject;
   SubjectNotFound: subject;
+  NotFound: whatever;
 };
 export class CustomDictError<
   T extends keyof errors = keyof errors

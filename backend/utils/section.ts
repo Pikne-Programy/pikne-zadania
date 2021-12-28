@@ -54,7 +54,7 @@ export const iterateSection = async (
   for (const el of section) {
     if (!isSubSection(el)) {
       try {
-        const exercise = exerciseRepository.get(subject, el.children);
+        const exercise = exerciseRepository.getOrFail(subject, el.children);
         sectionArray.push({
           name: exercise.name,
           children: el.children,

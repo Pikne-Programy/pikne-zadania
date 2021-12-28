@@ -9,6 +9,7 @@ export class Team {
   assignee!: string;
   members!: string[];
   invitation?: string;
+  
   constructor(data: Team) {
     Object.assign(this, data);
   }

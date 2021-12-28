@@ -15,6 +15,7 @@ export class User {
   number?: number;
   tokens!: string[];
   exercises!: { [key: string]: number };
+  
   constructor(data: Omit<User, "isTeacher">) {
     Object.assign(this, data);
   }

@@ -6,6 +6,7 @@ import { compare, create, getNumericDate, verify } from "../deps.ts";
 import { CustomDictError } from "../common/mod.ts";
 import { UserRepository } from "../repositories/mod.ts";
 import { ConfigService, Logger, HashService } from "./mod.ts";
+import { User } from "../models/mod.ts";
 
 export class JWTService {
   constructor(
@@ -17,9 +18,9 @@ export class JWTService {
 
   async create(login: string, hashedPassword: string) {
     const userId = this.hashService.hash(login);
-    const user = await this.userRepository.get(userId);
+    const user = await this.userRepository.getOrFail(userId);
 
-    if (!user || !compare(hashedPassword, user.dhPassword)) {
+    if (!compare(hashedPassword, user.dhPassword)) {
       throw new CustomDictError("UserCredentialsInvalid", { userId });
     }
 
@@ -28,9 +29,10 @@ export class JWTService {
       id: userId,
       exp: getNumericDate(exp),
     };
+
     const jwt = await create(header, payload, key); // throwable
 
-    await this.userRepository.tokensFor(user).add(jwt);
+    await this.userRepository.arrayPush(user, "tokens", jwt);
 
     return jwt;
   }
@@ -50,13 +52,13 @@ export class JWTService {
         throw undefined; //TODO error
       }
 
-      const user = await this.userRepository.get(userId);
+      const user = await this.userRepository.getOrFail(userId);
 
-      if (!user || !(await this.userRepository.tokensFor(user).exists(jwt))) {
+      if (!user.tokens.includes(jwt)) {
         throw undefined; //TODO error
       }
 
-      return userId;
+      return user;
     } catch (e) {
       if (e !== undefined) {
         this.logger.recogniseAndTrace(e, { customVerbosity: 2 });
@@ -66,17 +68,11 @@ export class JWTService {
     }
   }
 
-  async revoke(userId: string, jwt: string) {
-    const user = await this.userRepository.get(userId);
-
-    if (!user) {
-      throw new CustomDictError("JWTNotFound", {});
-    }
-    const tokens = this.userRepository.tokensFor(user);
-    if (await tokens.exists(jwt)) {
+  async revoke(user: User, jwt: string) {
+    if (!user.tokens.includes(jwt)) {
       throw new CustomDictError("JWTNotFound", {});
     }
 
-    return tokens.remove(jwt);
+    await this.userRepository.arrayPull(user, "tokens", jwt);
   }
 }

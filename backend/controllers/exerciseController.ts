@@ -24,14 +24,17 @@ export function ExerciseController(
       const user = await authorize(ctx); //Unauthorized shouldn't see exercises not listed in hierarchy
 
       if (
-        !(await isPermittedToView(await subjectRepository.get(subject), user))
+        !isPermittedToView(await subjectRepository.getOrFail(subject), user)
       ) {
         throw new httpErrors["Forbidden"]();
       }
 
       const exercises = exerciseRepository
         .listExercises(subject)
-        .map((id) => ({ id, exercise: exerciseRepository.get(subject, id) }))
+        .map((id) => ({
+          id,
+          exercise: exerciseRepository.getOrFail(subject, id),
+        }))
         .map(({ id, exercise: { type, name, description } }) => ({
           id,
           type: type,
@@ -56,7 +59,7 @@ export function ExerciseController(
     ) => {
       const user = await authorize(ctx);
 
-      if (!(await isAssigneeOf(await subjectRepository.get(subject), user))) {
+      if (!isAssigneeOf(await subjectRepository.get(subject), user)) {
         throw new httpErrors["Forbidden"]();
       }
 
@@ -75,7 +78,7 @@ export function ExerciseController(
     handle: async (ctx: RouterContext, { body: { subject, exerciseId } }) => {
       const user = await authorize(ctx);
 
-      if (!(await isAssigneeOf(await subjectRepository.get(subject), user))) {
+      if (!isAssigneeOf(await subjectRepository.get(subject), user)) {
         throw new httpErrors["Forbidden"]();
       }
 
@@ -100,7 +103,8 @@ export function ExerciseController(
     ) => {
       const user = await authorize(ctx);
       const subject = await subjectRepository.get(subjectId);
-      if (!(await isAssigneeOf(subject, user))) {
+
+      if (!isAssigneeOf(subject, user)) {
         throw new httpErrors["Forbidden"]();
       }
 
@@ -117,7 +121,7 @@ export function ExerciseController(
     },
     status: 200,
     handle: (ctx: RouterContext, { body: { content, seed } }) => {
-      //! AP missing // TODO: is it ok???
+      // TODO: is it ok???
       const exercise = exerciseRepository.parse(content);
 
       ctx.response.body = {

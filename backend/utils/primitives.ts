@@ -26,7 +26,7 @@ export const isObjectOf = <T>(
   Reflect.ownKeys(what).length == Object.keys(what).length &&
   Object.values(what).every((v) => how(v));
 
-export const isObject = (what: unknown): what is { [key: string]: unknown } =>
+export const isObject = (what: unknown): what is Record<string, unknown> =>
   isObjectOf((_: unknown): _ is unknown => true, what);
 
 export const isJSONType = (what: unknown): what is JSONType =>

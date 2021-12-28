@@ -2,26 +2,26 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Router, RouterContext } from "../deps.ts";
-import { delay } from "../utils/mod.ts";
+import { Router, RouterContext, delay } from "../deps.ts";
+import { cookieSchema, userSchema, teamSchema } from "../schemas/mod.ts";
 import {
-  cookieSchema,
-  userSchema,
-  // only use
-  //FIXME
-  teamSchema,
-} from "../schemas/mod.ts";
-import { JWTService, ConfigService, Logger } from "../services/mod.ts";
+  JWTService,
+  ConfigService,
+  Logger,
+  HashService,
+} from "../services/mod.ts";
 import { UserRepository, TeamRepository } from "../repositories/mod.ts";
 import { controller } from "../core/mod.ts";
 import { CustomDictError } from "../common/mod.ts";
+import { generateSeed } from "../utils/mod.ts";
 
 export function AuthController(
   config: ConfigService,
   userRepository: UserRepository,
   teamRepository: TeamRepository,
   jwtService: JWTService,
-  logger: Logger
+  logger: Logger,
+  hashService: HashService
 ) {
   const register = controller({
     schema: {
@@ -34,20 +34,36 @@ export function AuthController(
       },
     },
     status: 200,
-    handle: async (_: unknown, { body: { invitation, number, ...rest } }) => {
-      const team = await teamRepository.getByInvitation(invitation);
+    handle: async (
+      _: unknown,
+      { body: { invitation, number, hashedPassword, login, name } }
+    ) => {
+      const team = await teamRepository.collection.findOne({ invitation });
       if (!team) {
         throw new CustomDictError("TeamInvitationNotFound", {});
       }
+      const id = hashService.hash(login);
+      const user = {
+        id,
+        login,
+        name,
+        number,
+        team: team.id,
+        dhPassword: await hashService.secondhash(hashedPassword),
+        role: "student", //? FIXME should it be teacher if admin team
+        seed: generateSeed(),
+        tokens: [],
+        exercises: {},
+      };
+      if (await userRepository.get(id)) {
+        throw new CustomDictError("UserAlreadyExists", { userId: id });
+      }
 
-      const { id } = await userRepository.add(team, {
-        ...rest,
-        number: isNaN(number) ? undefined : number,
-      });
+      await userRepository.collection.insertOne(user);
 
       // admin team
       if (team.id !== 0) {
-        await teamRepository.membersFor(team).add(id);
+        await teamRepository.arrayPush(team, "members", id);
       }
     },
   });
@@ -87,9 +103,9 @@ export function AuthController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { cookies: { token } }) => {
-      const userId = await jwtService.resolve(token);
+      const user = await jwtService.resolve(token);
 
-      await jwtService.revoke(userId, token);
+      await jwtService.revoke(user, token);
 
       ctx.cookies.delete("token");
     },

@@ -1,3 +1,4 @@
+export * from "./repository.ts";
 export * from "./exerciseRepository.ts";
 export * from "./teamRepository.ts";
 export * from "./userRepository.ts";

@@ -13,6 +13,7 @@ export function UserController(
   userRepository: UserRepository,
   teamRepository: TeamRepository
 ) {
+  //FIXME lol second version of this
   async function isAssigneeOf(assignee: User, who?: User) {
     // * assuming `assignee` exists
     if (assignee.role === "admin") {
@@ -37,17 +38,13 @@ export function UserController(
       const user = await authorize(ctx);
       const { userId = user.id } = body;
 
-      const who = await userRepository.get(userId);
+      const who = await userRepository.getOrFail(userId);
 
       if (
         userId === user.id || // themself or
         (await isAssigneeOf(user, who)) // member of their team // TODO: change when dealing with groups (but to what?)
       ) {
         throw new httpErrors["Forbidden"]();
-      }
-
-      if (!who) {
-        throw new httpErrors["NotFound"]();
       }
 
       ctx.response.body = {
@@ -68,28 +65,33 @@ export function UserController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body: { userId, number, name } }) => {
-      const user = await authorize(ctx); //! A
-      const who = await userRepository.get(userId);
+      const user = await authorize(ctx);
+      const who = await userRepository.getOrFail(userId);
 
       // member of not their team // TODO: change when dealing with groups (but to what? maybe add two Ps?)
       if (!(await isAssigneeOf(user, who))) {
         throw new httpErrors["Forbidden"]();
       }
 
-      if (!who) {
-        throw new httpErrors["NotFound"]();
-      }
+      const isNumber = number !== null;
+      const query = {
+        $set: Object.assign(
+          {},
+          isNumber && { number },
+          name !== null && { name }
+        ),
+        $unset: Object.assign({}, !isNumber && { number }),
+      };
 
-      if (number !== null) {
-        await userRepository.setKey(
-          who,
-          "number",
-          isNaN(number) ? undefined : number
-        );
-      }
+      const { matchedCount } = await userRepository.collection.updateOne(
+        {
+          id: userId,
+        },
+        query
+      );
 
-      if (name !== null) {
-        await userRepository.setKey(who, "name", name);
+      if (!matchedCount) {
+        throw new Error(`user with id: "${user.id}" does not exists`);
       }
     },
   });
@@ -103,23 +105,16 @@ export function UserController(
     status: 200,
     handle: async (ctx: RouterContext, { body: { userId } }) => {
       const user = await authorize(ctx);
-      const who = await userRepository.get(userId);
+      const who = await userRepository.getOrFail(userId);
 
       if (!(await isAssigneeOf(user, who))) {
         // TODO: change when dealing with groups (but to what? maybe add two Ps?)
         throw new httpErrors["Forbidden"]();
       }
-      if (!who) {
-        throw new httpErrors["NotFound"]();
-      }
 
       await userRepository.delete(who);
 
-      const team = await teamRepository.get(user.team);
-
-      if (team) {
-        await teamRepository.membersFor(team).remove(user.id);
-      }
+      await teamRepository.arrayPull({ id: user.team }, "members", user.id);
     },
   });
 

@@ -3,23 +3,16 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { httpErrors, Router, RouterContext } from "../deps.ts";
-import { reservedTeamInvitation } from "../common/mod.ts";
 import { teamSchema, userSchema } from "../schemas/mod.ts";
 import { UserRepository, TeamRepository } from "../repositories/mod.ts";
-import { controller, IAuthorizer } from "../core/mod.ts";
+import { controller, IAuthorizer, isAssignee } from "../core/mod.ts";
+import { reservedTeamInvitation } from "../common/mod.ts";
 
 export function TeamController(
   authorize: IAuthorizer,
   userRepository: UserRepository,
   teamRepository: TeamRepository
 ) {
-  async function isAssignee(teamId: number, userId: string) {
-    return (
-      (await userRepository.get(userId))?.role === "admin" ||
-      (await teamRepository.get(teamId))?.assignee === userId
-    );
-  }
-
   const list = controller({
     status: 200,
     handle: async (ctx: RouterContext) => {
@@ -29,21 +22,20 @@ export function TeamController(
         throw new httpErrors["Forbidden"]();
       } // every and only teacher is able to view all teams !
 
-      ctx.response.body = await Promise.all(
-        (
-          await teamRepository.list()
-        ).map(async (team) => ({
+      ctx.response.body = await teamRepository.collection
+        .find()
+        .map(async (team) => ({
           teamId: team.id,
           name: team.name,
           assignee: {
             userId: team.assignee,
             name: (await userRepository.get(team.assignee))?.name, //FIXME n+1
           },
-          invitation: (await isAssignee(team.id, user.id))
+          invitation: isAssignee(team, user)
             ? team.invitation ?? null //FIXME wtf?
             : undefined,
         }))
-      );
+        .then(Promise.all);
     },
   });
 
@@ -60,10 +52,19 @@ export function TeamController(
       if (!user.isTeacher()) {
         throw new httpErrors["Forbidden"]();
       }
+      const teamId = await teamRepository.collection
+        .findOne(undefined, {
+          sort: { id: -1 },
+          projection: { id: 1 },
+        })
+        .then((team) => team?.id! + 1)!;
 
-      const teamId = await teamRepository.add(null, {
+      await teamRepository.collection.insertOne({
+        id: teamId,
         name,
         assignee: user.id,
+        members: [],
+        invitation: null,
       });
 
       ctx.response.body = { teamId };
@@ -80,31 +81,23 @@ export function TeamController(
     handle: async (ctx: RouterContext, { body: { teamId } }) => {
       const user = await authorize(ctx);
 
-      let verbosity: 0 | 1 | 2;
-
-      if (!user.isTeacher()) {
-        verbosity = 0;
-
-        if (user.team != teamId) {
-          throw new httpErrors["Forbidden"]();
-        }
+      if (!user.isTeacher() && user.team !== teamId) {
+        throw new httpErrors["Forbidden"]();
       }
 
-      const team = await teamRepository.get(teamId);
+      const team = await teamRepository.getOrFail(teamId);
 
-      if (!team) {
-        throw new httpErrors["NotFound"]();
-      } //! E
-
-      verbosity ??= (await isAssignee(teamId, user.id)) ? 2 : 1;
-
-      const assignee = team.assignee;
+      const verbosity: 0 | 1 | 2 = !user.isTeacher()
+        ? 0
+        : isAssignee(team, user)
+        ? 2
+        : 1;
 
       ctx.response.body = {
         name: team.name,
         assignee: {
-          userId: verbosity >= 1 ? assignee : undefined,
-          name: (await userRepository.get(assignee))?.name,
+          userId: verbosity >= 1 ? team.assignee : undefined,
+          name: (await userRepository.get(team.assignee))?.name,
         },
         invitation: verbosity >= 2 ? team.invitation ?? null : undefined,
         members: await Promise.all(
@@ -137,39 +130,68 @@ export function TeamController(
       { body: { teamId, invitation, assignee, name } }
     ) => {
       const user = await authorize(ctx);
-      const team = await teamRepository.get(teamId);
+      const team = await teamRepository.getOrFail(teamId);
 
       if (!user.isTeacher()) {
         throw new httpErrors["Forbidden"]();
       }
 
-      if (!team) {
-        throw new httpErrors["NotFound"]();
-      }
-      if (!(await isAssignee(teamId, user.id))) {
+      if (!isAssignee(team, user)) {
         throw new httpErrors["Forbidden"]();
       }
+
       if (typeof assignee === "string") {
         if (!(await userRepository.get(assignee))) {
           throw new httpErrors["BadRequest"]("`assignee` doesn't exist");
         }
-        await teamRepository.set(team, "assignee", assignee);
+
+        await teamRepository.collection.updateOne(
+          { id: team.id },
+          {
+            $set: { assignee },
+          }
+        );
       }
 
-      if (invitation !== null) {
-        let inv = invitation === "" ? undefined : invitation;
-        const invits = teamRepository.invitationFor(team);
+      if (invitation === "") {
+        await teamRepository.collection.updateOne(
+          { id: team.id },
+          {
+            $unset: { invitation: "" },
+          }
+        );
+      } else {
+        const ntob = (n: number): string =>
+          "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[n];
+        const finalInvitation =
+          invitation === reservedTeamInvitation
+            ? globalThis.crypto
+                .getRandomValues(new Uint8Array(4))
+                .reduce((inv, n) => inv + ntob(n % 64), ntob(team.id))
+            : invitation;
+        const maybeTeam = await teamRepository.collection.findOne({
+          invitation: finalInvitation,
+        });
 
-        if (inv === reservedTeamInvitation) {
-          inv = invits.create(teamId);
-        }
-
-        if (!(await invits.set(inv))) {
+        if (invitation !== null && maybeTeam && maybeTeam.id !== team.id) {
           throw new httpErrors["Conflict"]();
         }
+
+        await teamRepository.collection.updateOne(
+          { id: team.id },
+          {
+            $set: { invitation: finalInvitation },
+          }
+        );
       }
+
       if (name !== null) {
-        await teamRepository.set(team, "name", "name");
+        await teamRepository.collection.updateOne(
+          { id: team.id },
+          {
+            $set: { name },
+          }
+        );
       }
     },
   });
@@ -183,35 +205,27 @@ export function TeamController(
     status: 200,
     handle: async (ctx: RouterContext, { body: { teamId } }) => {
       const user = await authorize(ctx);
-      const team = await teamRepository.get(teamId);
+      const team = await teamRepository.getOrFail(teamId);
 
       if (!user.isTeacher()) {
         throw new httpErrors["Forbidden"]();
       }
 
-      if (!team) {
-        throw new httpErrors["NotFound"]();
-      }
-      if (!(await isAssignee(teamId, user.id))) {
+      if (!isAssignee(team, user)) {
         throw new httpErrors["Forbidden"]();
       }
 
       await Promise.allSettled(
         team.members.map(async (uid) => {
-          const user = await userRepository.get(uid);
-          if (!user) {
-            return;
-          }
-          await userRepository.delete(user);
-          const team = await teamRepository.get(await user.team);
+          const user = await userRepository.getOrFail(uid); //FIXME n+1
 
-          if (team) {
-            teamRepository.membersFor(team).remove(user.id);
-          }
+          await userRepository.delete(user);
+
+          await teamRepository.arrayPull({ id: user.team }, "members", user.id);
         })
       );
 
-      await teamRepository.delete(teamId);
+      await teamRepository.delete(team);
     },
   });
 

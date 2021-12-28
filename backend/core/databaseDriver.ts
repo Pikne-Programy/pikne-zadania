@@ -3,11 +3,10 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { MongoClient, Database } from "../deps.ts";
-import { delay } from "../utils/mod.ts";
+import { MongoClient, Database, delay } from "../deps.ts";
 import { ConfigService } from "../services/mod.ts";
 
-export class DatabaseService {
+export class DatabaseDriver {
   private client?: MongoClient;
   /**
    * ! call connect first
@@ -41,6 +40,7 @@ export class DatabaseService {
 
   async drop() {
     const filterUseless = (e: unknown) =>
+      //? "NamespaceNotFound" is it mongo internall?
       !(e instanceof Error) || !/"NamespaceNotFound"/.test(e.message);
 
     const filterResolved = (

@@ -23,17 +23,3 @@ export function joinThrowable(base: string, ...path: string[]): string {
 
   return joinThrowable(requested, ...path.slice(1));
 }
-
-export function fileExists(path: string): boolean {
-  try {
-    const stat = Deno.statSync(path);
-
-    return stat?.isFile;
-  } catch (e) {
-    if (e && e instanceof Deno.errors.NotFound) {
-      return false;
-    }
-
-    throw e;
-  }
-}
