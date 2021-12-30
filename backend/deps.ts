@@ -7,6 +7,8 @@
 // don't forget to update deno and denon in Dockerfile and denon.dockerfile
 // don;t forget to update test_deps.ts
 
+// @deno-types="https://deno.land/x/chalk_deno@v4.1.1-deno/index.d.ts"
+export { default as chalk } from "https://deno.land/x/chalk_deno@v4.1.1-deno/source/index.js";
 export { assert } from "https://deno.land/std@0.119.0/testing/asserts.ts";
 export { TopologicalSort } from "https://esm.sh/topological-sort";
 export { Reflect } from "https://deno.land/x/reflect_metadata@v0.1.12/mod.ts";

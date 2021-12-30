@@ -1,5 +1,5 @@
 import { IocResolver, ServiceType, ModuleRef } from "./mod.ts";
-import { assert } from "../../deps.ts";
+import { assert, chalk } from "../../deps.ts";
 
 export class IoCContainer<
   Container extends Record<string, ServiceType[]>,
@@ -24,7 +24,10 @@ export class IoCContainer<
 
     this.#layersOrder.push(name);
 
-    assert(!nextThis.#layers[name], `layer: '${name}' already exists!`);
+    assert(
+      !nextThis.#layers[name],
+      chalk.red(`layer (${name}) already exists!`)
+    );
 
     //@ts-ignore idk why that
     nextThis.#layers[name] = elements;

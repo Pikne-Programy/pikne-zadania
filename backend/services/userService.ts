@@ -1,5 +1,5 @@
 import { UserRepository, TeamRepository } from "../repositories/mod.ts";
-import { User } from "../models/mod.ts";
+import { User, UserRole } from "../models/mod.ts";
 import { httpErrors } from "../deps.ts";
 import { Injectable } from "../core/ioc/mod.ts";
 import { generateSeed } from "../utils/mod.ts";
@@ -16,17 +16,12 @@ export class UserService {
   ) {}
 
   //FIXME lol second version of this
-  private async isAssigneeOf(assignee: User, who?: User) {
-    // * assuming `assignee` exists
-    if (assignee.role === "admin") {
-      return true;
-    }
-    if (!who) {
-      return false;
-    }
-    const team = await this.teamRepository.get(who.team);
-
-    return team && assignee.id === team.assignee;
+  private async isAssigneeOf(assignee: User, who: User) {
+    return (
+      assignee.role === UserRole.ADMIN ||
+      assignee.id ===
+        (await this.teamRepository.get(who.team).then((team) => team?.assignee))
+    );
   }
 
   async findOne(
@@ -38,8 +33,8 @@ export class UserService {
     const who = await this.userRepository.getOrFail(userId);
 
     if (
-      userId === currentUser.id || // themself or
-      (await this.isAssigneeOf(currentUser, who)) // member of their team // TODO: change when dealing with groups (but to what?)
+      who.id !== currentUser.id && // not themself and
+      !(await this.isAssigneeOf(currentUser, who)) // member of not their team // TODO: change when dealing with groups (but to what?)
     ) {
       throw new httpErrors["Forbidden"]();
     }
@@ -116,7 +111,7 @@ export class UserService {
         name: "root",
         team: 0,
         dhPassword,
-        role: "admin",
+        role: UserRole.ADMIN,
         seed: generateSeed(),
         tokens: [],
         exercises: {},

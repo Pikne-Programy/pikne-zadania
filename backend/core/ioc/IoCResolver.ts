@@ -1,5 +1,5 @@
 import { Type, onInit } from "../types/mod.ts";
-import { assert } from "../../deps.ts";
+import { assert, chalk } from "../../deps.ts";
 import { getMetadata, getOrRegisterToken, ModuleRef, Graph } from "./mod.ts";
 import { reThrow } from "../../utils/mod.ts";
 
@@ -54,7 +54,11 @@ export class IocResolver {
   }
 
   layer2ModuleRef({ services, name }: LayerData, previousRef?: ModuleRef) {
-    console.log("-------------------- ", name, " --------------------");
+    console.log(
+      chalk.green("-------------------- "),
+      chalk.yellow(name),
+      chalk.green("-------------------- ")
+    );
 
     const getToken = (dep: ServiceType | string) =>
       typeof dep === "function" ? getOrRegisterToken(dep) : dep;
@@ -96,7 +100,9 @@ export class IocResolver {
     );
     const sorted = reThrow(
       () => graph.sort().filter(([service]) => !prev.has(service)),
-      new Error(`circular dependency in (${name}) layer`)
+      new Error(
+        chalk.red(`circular dependency in ${chalk.yellow(`(${name})`)} layer`)
+      )
     );
 
     return this.initiate(this.resolveLayer(sorted, name, previousRef));
@@ -119,7 +125,11 @@ export class IocResolver {
 
       const instance = new service(...args);
 
-      console.log(`[${service.name}] instanciated on layer (${name})`);
+      console.log(
+        `${chalk.green(
+          `[${service.name}]`
+        )} instanciated on layer ${chalk.yellow(`(${name})`)}`
+      );
 
       moduleRef.setMapping([service, instance]);
     }
@@ -149,7 +159,9 @@ export class IocResolver {
         .map(async (instance: Required<onInit>) => {
           await instance.init();
           console.log(
-            `[${instance.constructor.name}] initialized on layer (${moduleRef.layer})`
+            `${chalk.green(
+              `[${instance.constructor.name}]`
+            )} initialized on layer ${chalk.yellow(`(${moduleRef.layer})`)}`
           );
         })
     );

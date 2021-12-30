@@ -21,7 +21,7 @@ export class TeamService {
 
     const team = await this.teamRepository.getOrFail(teamId);
 
-    const verbosity: 0 | 1 | 2 = !currentUser.isTeacher()
+    const verbosity = !currentUser.isTeacher()
       ? 0
       : isAssignee(team, currentUser)
       ? 2
@@ -117,6 +117,7 @@ export class TeamService {
 
     if (typeof assignee === "string") {
       if (!(await this.userRepository.get(assignee))) {
+          //FIXME ?404 instead?
         throw new httpErrors["BadRequest"]("`assignee` doesn't exist");
       }
 

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Application } from "./deps.ts";
+import { Application, chalk } from "./deps.ts";
 import { DatabaseDriver } from "./drivers/mod.ts";
 import { createApiRoutes } from "./core/mod.ts";
 import { ErrorHandlerMiddleware, LoggerMiddleware } from "./middlewares/mod.ts";
@@ -28,7 +28,7 @@ export async function createApp() {
   );
 
   app.addEventListener("listen", () => {
-    logger.log("Server started");
+    logger.log(chalk.green("Server started"));
   });
 
   app.addEventListener("error", (e) => {

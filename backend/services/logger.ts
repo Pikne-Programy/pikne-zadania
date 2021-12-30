@@ -4,6 +4,7 @@ import { Injectable } from "../core/ioc/mod.ts";
 
 type handler = (err: unknown) => void;
 
+//TODO add color logging
 @Injectable()
 export class Logger {
   /**

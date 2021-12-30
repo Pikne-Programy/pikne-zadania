@@ -1,4 +1,4 @@
-import { assert } from "../../deps.ts";
+import { assert, chalk } from "../../deps.ts";
 import { Type } from "../types/mod.ts";
 import { getOrRegisterToken } from "./mod.ts";
 
@@ -51,7 +51,9 @@ export class ModuleRef<V extends Type = Type> {
 
     assert(
       instance,
-      `There is no registered instance for class: ${clazz.name}`
+      chalk.red(
+        `There is no registered instance for class: ${chalk.yellow(clazz.name)}`
+      )
     );
 
     return instance;
