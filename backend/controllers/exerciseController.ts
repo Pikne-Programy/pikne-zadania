@@ -1,13 +1,18 @@
 import { RouterContext, Router } from "../deps.ts";
 import { exerciseSchema, userSchema } from "../schemas/mod.ts";
 import { ExerciseService } from "../services/mod.ts";
-import { IAuthorizer, controller } from "../core/mod.ts";
+import { controller } from "../core/mod.ts";
+import { Injectable } from "../core/ioc/mod.ts";
+import { Authorizer } from "./mod.ts";
 
-export function ExerciseController(
-  authorize: IAuthorizer,
-  exerciseService: ExerciseService
-) {
-  const findOne = controller({
+@Injectable()
+export class ExerciseController {
+  constructor(
+    private authorizer: Authorizer,
+    private exerciseService: ExerciseService
+  ) {}
+
+  findOne = controller({
     schema: {
       body: {
         subject: exerciseSchema.subject,
@@ -16,12 +21,12 @@ export function ExerciseController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body }) => {
-      const user = await authorize(ctx);
-      ctx.response.body = await exerciseService.findOne(user, body);
+      const user = await this.authorizer.auth(ctx);
+      ctx.response.body = await this.exerciseService.findOne(user, body);
     },
   });
 
-  const findAll = controller({
+  findAll = controller({
     schema: {
       body: {
         subject: exerciseSchema.subject,
@@ -29,26 +34,12 @@ export function ExerciseController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body }) => {
-      const user = await authorize(ctx); //Unauthorized shouldn't see exercises not listed in hierarchy
-      ctx.response.body = await exerciseService.findAll(user, body);
+      const user = await this.authorizer.auth(ctx); //Unauthorized shouldn't see exercises not listed in hierarchy
+      ctx.response.body = await this.exerciseService.findAll(user, body);
     },
   });
 
-  const create = controller({
-    schema: {
-      body: {
-        subject: exerciseSchema.subject,
-        exerciseId: exerciseSchema.id,
-        content: exerciseSchema.content,
-      },
-    },
-    handle: async (ctx: RouterContext, { body }) => {
-      const user = await authorize(ctx);
-      await exerciseService.create(user, body);
-    },
-  });
-
-  const update = controller({
+  create = controller({
     schema: {
       body: {
         subject: exerciseSchema.subject,
@@ -56,14 +47,28 @@ export function ExerciseController(
         content: exerciseSchema.content,
       },
     },
-    status: 200,
     handle: async (ctx: RouterContext, { body }) => {
-      const user = await authorize(ctx);
-      await exerciseService.update(user, body);
+      const user = await this.authorizer.auth(ctx);
+      await this.exerciseService.create(user, body);
     },
   });
 
-  const preview = controller({
+  update = controller({
+    schema: {
+      body: {
+        subject: exerciseSchema.subject,
+        exerciseId: exerciseSchema.id,
+        content: exerciseSchema.content,
+      },
+    },
+    status: 200,
+    handle: async (ctx: RouterContext, { body }) => {
+      const user = await this.authorizer.auth(ctx);
+      await this.exerciseService.update(user, body);
+    },
+  });
+
+  preview = controller({
     schema: {
       body: {
         content: exerciseSchema.content,
@@ -72,16 +77,16 @@ export function ExerciseController(
     },
     status: 200,
     handle: (ctx: RouterContext, { body }) => {
-      ctx.response.body = exerciseService.preview(body);
+      ctx.response.body = this.exerciseService.preview(body);
     },
   });
 
-  return new Router({
+  router = new Router({
     prefix: "/subject/exercise",
   })
-    .post("/get", findOne)
-    .post("/list", findAll)
-    .post("/add", create)
-    .post("/update", update)
-    .post("/preview", preview);
+    .post("/get", this.findOne)
+    .post("/list", this.findAll)
+    .post("/add", this.create)
+    .post("/update", this.update)
+    .post("/preview", this.preview);
 }

@@ -8,7 +8,9 @@ import {
 import { delay } from "../deps.ts";
 import { CustomDictError } from "../common/mod.ts";
 import { generateSeed } from "../utils/mod.ts";
+import { Injectable } from "../core/ioc/mod.ts";
 
+@Injectable()
 export class AuthService {
   constructor(
     private userRepository: UserRepository,

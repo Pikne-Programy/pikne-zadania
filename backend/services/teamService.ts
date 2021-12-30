@@ -2,10 +2,14 @@ import { UserRepository, TeamRepository } from "../repositories/mod.ts";
 import { User, Team } from "../models/mod.ts";
 import { httpErrors } from "../deps.ts";
 import { isAssignee } from "../core/mod.ts";
+import { Injectable } from "../core/ioc/mod.ts";
 import { reservedTeamInvitation } from "../common/mod.ts";
+import { HashService } from "./mod.ts";
 
+@Injectable()
 export class TeamService {
   constructor(
+    private hashService: HashService,
     private userRepository: UserRepository,
     private teamRepository: TeamRepository
   ) {}
@@ -199,5 +203,20 @@ export class TeamService {
     );
 
     await this.teamRepository.delete(team);
+  }
+  async init() {
+    // create static teachers' team if not already created
+    if (await this.teamRepository.get(1)) {
+      return;
+    }
+
+    await this.teamRepository.collection.insertOne({
+      id: 1,
+      name: "Teachers",
+      // teachers' team
+      assignee: this.hashService.hash("root"),
+      members: [],
+      invitation: null,
+    });
   }
 }

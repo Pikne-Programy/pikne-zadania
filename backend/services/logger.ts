@@ -1,7 +1,10 @@
 import { ConfigService } from "./mod.ts";
 import { CustomDictError } from "../common/mod.ts";
+import { Injectable } from "../core/ioc/mod.ts";
 
 type handler = (err: unknown) => void;
+
+@Injectable()
 export class Logger {
   /**
    * - 0 - quiet

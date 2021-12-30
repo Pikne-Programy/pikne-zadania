@@ -7,7 +7,9 @@ import { CustomDictError } from "../common/mod.ts";
 import { UserRepository } from "../repositories/mod.ts";
 import { ConfigService, HashService } from "./mod.ts";
 import { User } from "../models/mod.ts";
+import { Injectable } from "../core/ioc/mod.ts";
 
+@Injectable()
 export class JWTService {
   constructor(
     private config: ConfigService,

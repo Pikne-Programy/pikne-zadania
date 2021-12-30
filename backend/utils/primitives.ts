@@ -34,5 +34,3 @@ export const isJSONType = (what: unknown): what is JSONType =>
   isObjectOf(isJSONType, what) ||
   isArrayOf(isJSONType, what) ||
   what === null;
-
-export type Awaited<T> = T extends PromiseLike<infer U> ? U : T;

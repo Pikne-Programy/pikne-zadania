@@ -8,7 +8,9 @@ import { httpErrors } from "../deps.ts";
 import { isAssigneeOf, isPermittedToView } from "../core/mod.ts";
 import { CustomDictError } from "../common/mod.ts";
 import { joinThrowable, iterateSection, Section } from "../utils/mod.ts";
+import { Injectable } from "../core/ioc/mod.ts";
 
+@Injectable()
 export class SubjectService {
   constructor(
     private userRepository: UserRepository,
@@ -183,5 +185,30 @@ export class SubjectService {
     }
     // TODO V what if exercise doesn't exist
     await this.exerciseRepository.structureSet(subject, hierarchy);
+  }
+
+  async init() {
+    const diskSubjects = new Set(this.exerciseRepository.listSubjects());
+    const dbSubjects = new Set(
+      await this.subjectRepository.collection.find().map(({ id }) => id)
+    );
+
+    // TODO: see FindCursor (without .toArray())
+    const allSubjects = new Set([...diskSubjects, ...dbSubjects]);
+
+    for (const id of allSubjects) {
+      const inDisk = diskSubjects.has(id);
+      const inDb = dbSubjects.has(id);
+
+      if (inDisk && !inDb) {
+        //FIXME that sync db and disk but why?
+        await this.subjectRepository.collection.insertOne({
+          id,
+          assignees: null,
+        });
+      } else if (!inDisk && inDb) {
+        await this.subjectRepository.collection.deleteOne({ id });
+      }
+    }
   }
 }

@@ -1,6 +1,8 @@
 import { ConfigService } from "./mod.ts";
 import { createHash, pbkdf2Sync, hash, hashSync } from "../deps.ts";
+import { Injectable } from "../core/ioc/mod.ts";
 
+@Injectable()
 export class HashService {
   secondhash = hash;
   secondhashSync = hashSync;

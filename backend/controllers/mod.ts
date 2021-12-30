@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+export * from "./authorizer.ts";
+
 export * from "./authController.ts";
 export * from "./subjectController.ts";
 export * from "./problemController.ts";

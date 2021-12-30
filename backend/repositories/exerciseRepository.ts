@@ -15,6 +15,7 @@ import {
 } from "../utils/mod.ts";
 import { ConfigService, Logger } from "../services/mod.ts";
 import exts from "../exts/mod.ts";
+import { Injectable } from "../core/ioc/mod.ts";
 
 type YAMLSection =
   | {
@@ -27,6 +28,7 @@ const isYAMLSection = (what: unknown): what is YAMLSection =>
   (isObjectOf((x): x is YAMLSection[] => isArrayOf(isYAMLSection, x), what) &&
     Object.keys(what).length == 1);
 
+@Injectable()
 export class ExerciseRepository {
   readonly _structure: Record<string, Section[]> = {}; // subject -> eid
   readonly unlisted: Record<string, string[]> = {}; // subject -> eid
@@ -44,7 +46,7 @@ export class ExerciseRepository {
     this.exercisesPath = this.config.EXERCISES_PATH;
 
     const ex = walk(this.exercisesPath, { includeFiles: false, maxDepth: 1 });
-    ex.next(); //replace slice(1) with using first result
+    ex.next().catch(() => {}); //replace slice(1) with using first result
 
     for await (const { path, name: subject } of ex) {
       try {

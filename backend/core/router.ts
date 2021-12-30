@@ -10,14 +10,14 @@ const entryPointController = (ctx: RouterContext): undefined => {
   return undefined;
 };
 
-export const createApiRoutes = (...routers: Router[]) =>
+export const createApiRoutes = (routers: { router: Router }[]) =>
   new Router()
     .get("/api", entryPointController)
     .use(
       "/api",
       routers
         .reduce(
-          (accRouter, router) => accRouter.use(router.routes()),
+          (accRouter, { router }) => accRouter.use(router.routes()),
           new Router()
         )
         .routes()

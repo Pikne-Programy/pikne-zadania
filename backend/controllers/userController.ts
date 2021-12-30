@@ -5,13 +5,17 @@
 import { Router, RouterContext } from "../deps.ts";
 import { userSchema } from "../schemas/mod.ts";
 import { UserService } from "../services/mod.ts";
-import { IAuthorizer, controller } from "../core/mod.ts";
+import { controller } from "../core/mod.ts";
+import { Injectable } from "../core/ioc/mod.ts";
+import { Authorizer } from "./mod.ts";
 
-export function UserController(
-  authorize: IAuthorizer,
-  userService: UserService
-) {
-  const findOne = controller({
+@Injectable()
+export class UserController {
+  constructor(
+    private authorizer: Authorizer,
+    private userService: UserService
+  ) {}
+  findOne = controller({
     schema: {
       body: {
         //FIXME why it is even optional?
@@ -21,12 +25,12 @@ export function UserController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body }) => {
-      const user = await authorize(ctx);
-      ctx.response.body = await userService.findOne(user, body);
+      const user = await this.authorizer.auth(ctx);
+      ctx.response.body = await this.userService.findOne(user, body);
     },
   });
 
-  const update = controller({
+  update = controller({
     schema: {
       body: {
         userId: userSchema.id,
@@ -36,12 +40,12 @@ export function UserController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body }) => {
-      const user = await authorize(ctx);
-      userService.update(user, body);
+      const user = await this.authorizer.auth(ctx);
+      this.userService.update(user, body);
     },
   });
 
-  const remove = controller({
+  remove = controller({
     schema: {
       body: {
         userId: userSchema.id,
@@ -49,15 +53,15 @@ export function UserController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body: { userId } }) => {
-      const user = await authorize(ctx);
-      userService.delete(user, userId);
+      const user = await this.authorizer.auth(ctx);
+      this.userService.delete(user, userId);
     },
   });
 
-  return new Router({
+  router = new Router({
     prefix: "/user",
   })
-    .post("/info", findOne)
-    .post("/update", update)
-    .post("/delete", remove);
+    .post("/info", this.findOne)
+    .post("/update", this.update)
+    .post("/delete", this.remove);
 }

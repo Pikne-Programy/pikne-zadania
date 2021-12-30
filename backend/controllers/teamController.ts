@@ -5,21 +5,25 @@
 import { Router, RouterContext } from "../deps.ts";
 import { teamSchema, userSchema } from "../schemas/mod.ts";
 import { TeamService } from "../services/mod.ts";
-import { controller, IAuthorizer } from "../core/mod.ts";
+import { controller } from "../core/mod.ts";
+import { Injectable } from "../core/ioc/mod.ts";
+import { Authorizer } from "./mod.ts";
 
-export function TeamController(
-  authorize: IAuthorizer,
-  teamService: TeamService
-) {
-  const findAll = controller({
+@Injectable()
+export class TeamController {
+  constructor(
+    private authorizer: Authorizer,
+    private teamService: TeamService
+  ) {}
+  findAll = controller({
     status: 200,
     handle: async (ctx: RouterContext) => {
-      const user = await authorize(ctx);
-      ctx.response.body = await teamService.findAll(user);
+      const user = await this.authorizer.auth(ctx);
+      ctx.response.body = await this.teamService.findAll(user);
     },
   });
 
-  const create = controller({
+  create = controller({
     schema: {
       body: {
         name: teamSchema.name,
@@ -27,12 +31,12 @@ export function TeamController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body }) => {
-      const user = await authorize(ctx);
-      ctx.response.body = await teamService.create(user, body);
+      const user = await this.authorizer.auth(ctx);
+      ctx.response.body = await this.teamService.create(user, body);
     },
   });
 
-  const findOne = controller({
+  findOne = controller({
     schema: {
       body: {
         teamId: teamSchema.id,
@@ -40,12 +44,12 @@ export function TeamController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body }) => {
-      const user = await authorize(ctx);
-      ctx.response.body = await teamService.findOne(user, body);
+      const user = await this.authorizer.auth(ctx);
+      ctx.response.body = await this.teamService.findOne(user, body);
     },
   });
 
-  const update = controller({
+  update = controller({
     schema: {
       body: {
         teamId: teamSchema.id,
@@ -56,12 +60,12 @@ export function TeamController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body }) => {
-      const user = await authorize(ctx);
-      await teamService.update(user, body);
+      const user = await this.authorizer.auth(ctx);
+      await this.teamService.update(user, body);
     },
   });
 
-  const remove = controller({
+  remove = controller({
     schema: {
       body: {
         teamId: teamSchema.id,
@@ -69,17 +73,17 @@ export function TeamController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body }) => {
-      const user = await authorize(ctx);
-      await teamService.delete(user, body);
+      const user = await this.authorizer.auth(ctx);
+      await this.teamService.delete(user, body);
     },
   });
 
-  return new Router({
+  router = new Router({
     prefix: "/team",
   })
-    .get("/list", findAll)
-    .post("/create", create)
-    .post("/info", findOne)
-    .post("/update", update)
-    .post("/delete", remove);
+    .get("/list", this.findAll)
+    .post("/create", this.create)
+    .post("/info", this.findOne)
+    .post("/update", this.update)
+    .post("/delete", this.remove);
 }

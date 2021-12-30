@@ -3,29 +3,47 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { Application } from "./deps.ts";
+import { DatabaseDriver } from "./drivers/mod.ts";
+import { createApiRoutes } from "./core/mod.ts";
 import { ErrorHandlerMiddleware, LoggerMiddleware } from "./middlewares/mod.ts";
-import { resolveIoC } from "./core/mod.ts";
+import { Logger } from "./services/mod.ts";
+import { Authorizer } from "./controllers/mod.ts";
+import { module } from "./module.ts";
 
 export async function createApp() {
   const app = new Application();
-  const ioCContainer = await resolveIoC();
+  const ioCContainer = await module().resolve();
+
+  const logger = ioCContainer["global"].resolveOrFail(Logger);
+  const controllersRef = ioCContainer["controllers"];
+  const db = ioCContainer["drivers"].resolveOrFail(DatabaseDriver);
+
+  const router = createApiRoutes(
+    controllersRef
+      .listAvailable()
+      .map((controller) => controllersRef.resolveOrFail(controller))
+      .filter(
+        <T>(c: T): c is Exclude<T, Authorizer> => !(c instanceof Authorizer)
+      )
+  );
 
   app.addEventListener("listen", () => {
-    ioCContainer.logger.log("Server started");
+    logger.log("Server started");
   });
 
   app.addEventListener("error", (e) => {
-    ioCContainer.logger.recogniseAndTrace(e);
+    logger.recogniseAndTrace(e);
   });
 
   app
-    .use(LoggerMiddleware(ioCContainer.logger))
-    .use(ErrorHandlerMiddleware(ioCContainer.logger))
-    .use(ioCContainer.router.routes())
-    .use(ioCContainer.router.allowedMethods());
+    .use(LoggerMiddleware(logger))
+    .use(ErrorHandlerMiddleware(logger))
+    .use(router.routes())
+    .use(router.allowedMethods());
 
   return {
     app,
-    ...ioCContainer,
+    logger,
+    closeDb: () => db.close(), //FIXME app must have close event
   };
 }

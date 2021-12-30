@@ -6,13 +6,18 @@
 import { httpErrors, Router, RouterContext, send, vs } from "../deps.ts";
 import { exerciseSchema, subjectSchema } from "../schemas/mod.ts";
 import { SubjectService } from "../services/mod.ts";
-import { IAuthorizer, controller } from "../core/mod.ts";
+import { controller } from "../core/mod.ts";
+import { Injectable } from "../core/ioc/mod.ts";
+import { Authorizer } from "./mod.ts";
 
-export function SubjectController(
-  authorize: IAuthorizer,
-  subjectService: SubjectService
-) {
-  const findOne = controller({
+@Injectable()
+export class SubjectController {
+  constructor(
+    private authorizer: Authorizer,
+    private subjectService: SubjectService
+  ) {}
+
+  findOne = controller({
     schema: {
       body: {
         subject: exerciseSchema.subject,
@@ -20,20 +25,20 @@ export function SubjectController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body }) => {
-      const user = await authorize(ctx);
-      ctx.response.body = await subjectService.findOne(user, body);
+      const user = await this.authorizer.auth(ctx);
+      ctx.response.body = await this.subjectService.findOne(user, body);
     },
   });
 
-  const findAll = controller({
+  findAll = controller({
     status: 200,
     handle: async (ctx: RouterContext) => {
-      const user = await authorize(ctx, false);
-      ctx.response.body = await subjectService.findAll(user);
+      const user = await this.authorizer.auth(ctx, false);
+      ctx.response.body = await this.subjectService.findAll(user);
     },
   });
 
-  const create = controller({
+  create = controller({
     schema: {
       body: {
         subject: exerciseSchema.subject,
@@ -42,12 +47,12 @@ export function SubjectController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body }) => {
-      const user = await authorize(ctx);
-      await subjectService.create(user, body);
+      const user = await this.authorizer.auth(ctx);
+      await this.subjectService.create(user, body);
     },
   });
 
-  const permit = controller({
+  permit = controller({
     schema: {
       body: {
         subject: exerciseSchema.subject,
@@ -56,12 +61,12 @@ export function SubjectController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body }) => {
-      const user = await authorize(ctx);
-      await subjectService.permit(user, body);
+      const user = await this.authorizer.auth(ctx);
+      await this.subjectService.permit(user, body);
     },
   });
 
-  const getStatic = controller({
+  getStatic = controller({
     schema: {
       params: {
         subject: vs.string({ strictType: true }),
@@ -69,13 +74,13 @@ export function SubjectController(
       },
     },
     handle: async (ctx: RouterContext, { params }) => {
-      const user = await authorize(ctx, false);
-      const path = await subjectService.getStaticPath(user, params);
+      const user = await this.authorizer.auth(ctx, false);
+      const path = await this.subjectService.getStaticPath(user, params);
       await send(ctx, params.filename, path); // there's a problem with no permission to element
     },
   });
 
-  const putStatic = controller({
+  putStatic = controller({
     schema: {
       params: {
         subject: vs.string({ strictType: true }),
@@ -84,7 +89,7 @@ export function SubjectController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { params }) => {
-      const user = await authorize(ctx);
+      const user = await this.authorizer.auth(ctx);
 
       const maxSize = 100 * 2 ** 20; // 100 MiB
       const body = await ctx.request.body({ type: "form-data" }).value.read({
@@ -96,11 +101,11 @@ export function SubjectController(
         throw new httpErrors["BadRequest"]();
       }
 
-      await subjectService.putStatic(user, params, body.files[0].content);
+      await this.subjectService.putStatic(user, params, body.files[0].content);
     },
   });
 
-  const getHierarchy = controller({
+  getHierarchy = controller({
     schema: {
       body: {
         subject: exerciseSchema.subject,
@@ -109,12 +114,12 @@ export function SubjectController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body }) => {
-      const user = await authorize(ctx, false);
-      ctx.response.body = await subjectService.getHierarchy(user, body);
+      const user = await this.authorizer.auth(ctx, false);
+      ctx.response.body = await this.subjectService.getHierarchy(user, body);
     },
   });
 
-  const setHierarchy = controller({
+  setHierarchy = controller({
     schema: {
       body: {
         subject: exerciseSchema.subject,
@@ -123,30 +128,30 @@ export function SubjectController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body }) => {
-      const user = await authorize(ctx);
-      subjectService.setHierarchy(user, body);
+      const user = await this.authorizer.auth(ctx);
+      this.subjectService.setHierarchy(user, body);
     },
   });
 
-  return new Router({
+  router = new Router({
     prefix: "/subject",
   })
-    .get("/list", findAll)
-    .post("/create", create)
-    .post("/info", findOne)
-    .post("/permit", permit)
+    .get("/list", this.findAll)
+    .post("/create", this.create)
+    .post("/info", this.findOne)
+    .post("/permit", this.permit)
     .use(
       "/static",
       new Router()
-        .get("/:subject/:filename", getStatic)
-        .put("/:subject/:filename", putStatic)
+        .get("/:subject/:filename", this.getStatic)
+        .put("/:subject/:filename", this.putStatic)
         .routes()
     )
     .use(
       "/hierarchy",
       new Router()
-        .post("/get", getHierarchy)
-        .post("/set", setHierarchy)
+        .post("/get", this.getHierarchy)
+        .post("/set", this.setHierarchy)
         .routes()
     );
 }

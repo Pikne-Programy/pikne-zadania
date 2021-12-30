@@ -7,7 +7,9 @@ import { User } from "../models/mod.ts";
 import { httpErrors } from "../deps.ts";
 import { isAssigneeOf, isPermittedToView } from "../core/mod.ts";
 import { generateSeed, JSONType } from "../utils/mod.ts";
+import { Injectable } from "../core/ioc/mod.ts";
 
+@Injectable()
 export class ProblemService {
   constructor(
     private subjectRepository: SubjectRepository,

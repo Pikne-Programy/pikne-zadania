@@ -8,22 +8,23 @@ const { app, closeDb, logger } = await createApp();
 
 const abortController = new AbortController();
 
-Promise.race([
-  // this will not be executed in the development environment
-  // see https://github.com/denosaurs/denon/issues/126
-  // Deno.signal(Deno.Signal.SIGKILL),
-  Deno.signal(Deno.Signal.SIGINT),
-  Deno.signal(Deno.Signal.SIGQUIT),
-  Deno.signal(Deno.Signal.SIGTERM),
-])
-  .then(() => {
-    logger.log("The server is closing...");
+Deno.build.os !== "windows" &&
+  Promise.race([
+    // this will not be executed in the development environment
+    // see https://github.com/denosaurs/denon/issues/126
+    // Deno.signal(Deno.Signal.SIGKILL),
+    Deno.signal(Deno.Signal.SIGINT),
+    Deno.signal(Deno.Signal.SIGQUIT),
+    Deno.signal(Deno.Signal.SIGTERM),
+  ])
+    .then(() => {
+      logger.log("The server is closing...");
 
-    abortController.abort();
-    closeDb();
-  })
-  .then(() => countdown(5))
-  .finally(Deno.exit);
+      abortController.abort();
+      closeDb();
+    })
+    .then(() => countdown(5))
+    .finally(Deno.exit);
 
 await app.listen({ port: 8000, signal: abortController.signal });
 

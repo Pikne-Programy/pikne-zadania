@@ -6,12 +6,16 @@ import { Router, RouterContext } from "../deps.ts";
 import { cookieSchema, userSchema, teamSchema } from "../schemas/mod.ts";
 import { ConfigService, AuthService } from "../services/mod.ts";
 import { controller } from "../core/mod.ts";
+import { Injectable } from "../core/ioc/mod.ts";
 
-export function AuthController(
-  config: ConfigService,
-  authService: AuthService
-) {
-  const register = controller({
+@Injectable()
+export class AuthController {
+  constructor(
+    private config: ConfigService,
+    private authService: AuthService
+  ) {}
+
+  register = controller({
     schema: {
       body: {
         login: userSchema.loginEmail,
@@ -23,11 +27,11 @@ export function AuthController(
     },
     status: 200,
     handle: async (_: unknown, { body }) => {
-      await authService.register(body);
+      await this.authService.register(body);
     },
   });
 
-  const login = controller({
+  login = controller({
     schema: {
       body: {
         login: userSchema.login,
@@ -36,12 +40,12 @@ export function AuthController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body }) => {
-      const { token } = await authService.login(body);
-      ctx.cookies.set("token", token, { maxAge: config.JWT_CONF.exp });
+      const { token } = await this.authService.login(body);
+      ctx.cookies.set("token", token, { maxAge: this.config.JWT_CONF.exp });
     },
   });
 
-  const logout = controller({
+  logout = controller({
     schema: {
       cookies: {
         token: cookieSchema.token,
@@ -49,15 +53,16 @@ export function AuthController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { cookies }) => {
-      await authService.logout(cookies);
+      await this.authService.logout(cookies);
       ctx.cookies.delete("token");
     },
   });
 
-  return new Router({
+  //FIXME injectable router resolver
+  router = new Router({
     prefix: "/auth",
   })
-    .post("/register", register)
-    .post("/login", login)
-    .post("/logout", logout);
+    .post("/register", this.register)
+    .post("/login", this.login)
+    .post("/logout", this.logout);
 }

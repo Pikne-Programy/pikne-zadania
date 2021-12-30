@@ -4,8 +4,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { MongoClient, Database, delay } from "../deps.ts";
-import { ConfigService } from "../services/mod.ts";
+import type { ConfigService } from "../services/mod.ts";
+import { Injectable, Inject } from "../core/ioc/mod.ts";
 
+@Injectable()
 export class DatabaseDriver {
   private client?: MongoClient;
   /**
@@ -13,9 +15,14 @@ export class DatabaseDriver {
    */
   #db!: Database;
 
-  constructor(private config: ConfigService) {}
+  //FIXME
+  constructor(@Inject("config") private config: ConfigService) {}
 
-  async connect(): Promise<this> {
+  init() {
+    return this.connect();
+  }
+
+  async connect() {
     this.client = new MongoClient();
     //FIXME does not connect do this?
     await delay(this.config.MONGO_CONF.time); // wait for database
@@ -25,8 +32,6 @@ export class DatabaseDriver {
     if (this.config.FRESH) {
       await this.drop();
     }
-
-    return this;
   }
 
   getCollection<T>(name: string) {
@@ -43,7 +48,7 @@ export class DatabaseDriver {
       //? "NamespaceNotFound" is it mongo internall?
       !(e instanceof Error) || !/"NamespaceNotFound"/.test(e.message);
 
-    const filterResolved = (
+    const keepRejected = (
       result: PromiseSettledResult<unknown>
     ): result is PromiseRejectedResult => result.status === "rejected";
 
@@ -56,7 +61,7 @@ export class DatabaseDriver {
     const results = await Promise.allSettled(drops);
 
     return results
-      .filter(filterResolved)
+      .filter(keepRejected)
       .map(({ reason }) => reason)
       .filter(filterUseless)
       .forEach((error) => {

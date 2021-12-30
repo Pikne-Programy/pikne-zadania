@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 export * from "./configService.ts";
-export * from "./jwtService.ts";
 export * from "./hashService.ts";
 export * from "./logger.ts";
+export * from "./jwtService.ts";
 
 export * from "./userService.ts";
 export * from "./teamService.ts";

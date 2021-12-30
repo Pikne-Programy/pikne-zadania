@@ -2,7 +2,9 @@ import { User } from "../models/mod.ts";
 import { SubjectRepository, ExerciseRepository } from "../repositories/mod.ts";
 import { isAssigneeOf, isPermittedToView } from "../core/mod.ts";
 import { httpErrors } from "../deps.ts";
+import { Injectable } from "../core/ioc/mod.ts";
 
+@Injectable()
 export class ExerciseService {
   constructor(
     private subjectRepository: SubjectRepository,

@@ -7,3 +7,4 @@ export * from "./rng.ts";
 export * from "./primitives.ts";
 export * from "./utils.ts";
 export * from "./section.ts";
+export * from "./exceptions.ts";

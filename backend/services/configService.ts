@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { Algorithm } from "../deps.ts";
+import { Injectable } from "../core/ioc/mod.ts";
 
 const algos = [
   "none",
@@ -53,6 +54,7 @@ function getEnv(
 
 //FIXME
 //TODO parse with vs?
+@Injectable()
 export class ConfigService {
   readonly SEED_AGE: number;
   readonly LOGIN_TIME: number;

@@ -6,14 +6,19 @@
 import { Router, RouterContext } from "../deps.ts";
 import { exerciseSchema, userSchema } from "../schemas/mod.ts";
 import { ConfigService, ProblemService } from "../services/mod.ts";
-import { IAuthorizer, controller } from "../core/mod.ts";
+import { controller } from "../core/mod.ts";
+import { Injectable } from "../core/ioc/mod.ts";
+import { Authorizer } from "./mod.ts";
 
-export function ProblemController(
-  authorize: IAuthorizer,
-  config: ConfigService,
-  problemService: ProblemService
-) {
-  const get = controller({
+@Injectable()
+export class ProblemController {
+  constructor(
+    private authorizer: Authorizer,
+    private config: ConfigService,
+    private problemService: ProblemService
+  ) {}
+
+  get = controller({
     schema: {
       body: {
         subject: exerciseSchema.subject,
@@ -23,19 +28,19 @@ export function ProblemController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body }) => {
-      const user = await authorize(ctx, false);
-      const { seed, response } = await problemService.get(user, {
+      const user = await this.authorizer.auth(ctx, false);
+      const { seed, response } = await this.problemService.get(user, {
         ...body,
         otherSeed: ctx.cookies.get("seed"),
       });
       ctx.cookies.set("seed", seed?.toString() ?? null, {
-        maxAge: config.SEED_AGE,
+        maxAge: this.config.SEED_AGE,
       });
       ctx.response.body = response;
     },
   });
 
-  const update = controller({
+  update = controller({
     schema: {
       body: {
         subject: exerciseSchema.subject,
@@ -45,21 +50,21 @@ export function ProblemController(
     },
     status: 200,
     handle: async (ctx: RouterContext, { body }) => {
-      const user = await authorize(ctx, false);
-      const { seed, response } = await problemService.update(user, {
+      const user = await this.authorizer.auth(ctx, false);
+      const { seed, response } = await this.problemService.update(user, {
         ...body,
         otherSeed: ctx.cookies.get("seed"),
       });
       ctx.cookies.set("seed", seed?.toString() ?? null, {
-        maxAge: config.SEED_AGE,
+        maxAge: this.config.SEED_AGE,
       });
       ctx.response.body = response; // ? done, correctAnswer ?
     },
   });
 
-  return new Router({
+  router = new Router({
     prefix: "/subject/problem",
   })
-    .post("/get", get)
-    .post("/update", update);
+    .post("/get", this.get)
+    .post("/update", this.update);
 }

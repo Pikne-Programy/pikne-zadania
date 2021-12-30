@@ -6,6 +6,11 @@
 
 // don't forget to update deno and denon in Dockerfile and denon.dockerfile
 // don;t forget to update test_deps.ts
+
+export { assert } from "https://deno.land/std@0.119.0/testing/asserts.ts";
+export { TopologicalSort } from "https://esm.sh/topological-sort";
+export { Reflect } from "https://deno.land/x/reflect_metadata@v0.1.12/mod.ts";
+
 export { parse } from "https://deno.land/std@0.100.0/encoding/yaml.ts";
 export {
   emptyDir,

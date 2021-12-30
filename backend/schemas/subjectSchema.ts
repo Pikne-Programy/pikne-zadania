@@ -3,7 +3,7 @@ import { userIdOptions } from "../common/mod.ts";
 
 export const /** id in `schemas.user.subject` */
   subjectSchema = {
-    if: vs.string({ strictType: true }), //TODO
+    if: vs.string({ strictType: true }),
     assignees: vs.array({
       each: vs.string({ ...userIdOptions }),
       ifNull: null,
