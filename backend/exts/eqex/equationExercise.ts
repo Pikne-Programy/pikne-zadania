@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { vs } from "../../deps.ts";
-import { Range, RNG, isObject, JSONObject, JSONType } from "../../utils/mod.ts";
+import { isObject, JSONObject, JSONType, Range, RNG } from "../../utils/mod.ts";
 import { Exercise } from "../../common/mod.ts";
 import { ConfigService } from "../../services/mod.ts";
 import { CustomDictError } from "../../common/mod.ts";
@@ -87,14 +87,14 @@ export default class EquationExercise implements Exercise {
   // regular expressions used to extract and parse content
   static readonly greekR = new RegExp(Object.keys(greekAlphabet).join("|"));
   static readonly equationR = new RegExp(
-    `${RPN.variableR}=((?:[\\+\\-]?${RPN.trigonometryR}|${RPN.functionR}|${RPN.variableR}|${RPN.numberR}|[\\(\\)]|${RPN.operationR}\\s*)+)`
+    `${RPN.variableR}=((?:[\\+\\-]?${RPN.trigonometryR}|${RPN.functionR}|${RPN.variableR}|${RPN.numberR}|[\\(\\)]|${RPN.operationR}\\s*)+)`,
   );
   static readonly numberEqR = new RegExp(
-    `${RPN.variableR}=(${RPN.numberR})(${RPN.unitR})`
+    `${RPN.variableR}=(${RPN.numberR})(${RPN.unitR})`,
   );
   static readonly unknownEqR = new RegExp(`${RPN.variableR}=\\?(${RPN.unitR})`);
   static readonly rangeEqR = new RegExp(
-    `${RPN.variableR}=\\[(${RPN.numberR});(${RPN.numberR})(?:;(${RPN.numberR}))?\\](${RPN.unitR})`
+    `${RPN.variableR}=\\[(${RPN.numberR});(${RPN.numberR})(?:;(${RPN.numberR}))?\\](${RPN.unitR})`,
   );
 
   readonly type = "EqEx";
@@ -115,7 +115,7 @@ export default class EquationExercise implements Exercise {
     public config: ConfigService,
     readonly name: string,
     public _content: string,
-    readonly properties: JSONObject
+    readonly properties: JSONObject,
   ) {
     this.answerPrecision = this.config.ANSWER_PREC;
     this.pointDecimalSeparator = this.config.DECIMAL_POINT;
@@ -144,7 +144,7 @@ export default class EquationExercise implements Exercise {
         while ((m = EquationExercise.numberEqR.exec(line)) !== null) {
           const name = m[2] === undefined ? m[1] : `${m[1]}${m[2]}`;
           const formattedName = EquationExercise.convertToGreek(
-            m[2] === undefined ? m[1] : `${m[1]}_{${m[2].substring(1)}}`
+            m[2] === undefined ? m[1] : `${m[1]}_{${m[2].substring(1)}}`,
           );
           const index = [
             // {0} d= 300 km {1}
@@ -158,10 +158,12 @@ export default class EquationExercise implements Exercise {
           if (!this.pointDecimalSeparator) {
             sValue = sValue.replace(".", ",\\!");
           }
-          parsedLine += `${line.substring(
-            0,
-            index[0]
-          )}\\(${formattedName}= ${sValue}${unit}\\)`;
+          parsedLine += `${
+            line.substring(
+              0,
+              index[0],
+            )
+          }\\(${formattedName}= ${sValue}${unit}\\)`;
           line = line.substring(index[1]); // remove this match from line
           this.variables.push([name, value]);
         }
@@ -173,7 +175,7 @@ export default class EquationExercise implements Exercise {
         while ((m = EquationExercise.unknownEqR.exec(line)) !== null) {
           const name = m[2] === undefined ? m[1] : `${m[1]}${m[2]}`;
           const formattedName = EquationExercise.convertToGreek(
-            m[2] === undefined ? m[1] : `${m[1]}_{${m[2].substring(1)}}`
+            m[2] === undefined ? m[1] : `${m[1]}_{${m[2].substring(1)}}`,
           );
           const index = [
             // {0} x =? {1}
@@ -194,7 +196,7 @@ export default class EquationExercise implements Exercise {
         while ((m = EquationExercise.rangeEqR.exec(line)) !== null) {
           const name = m[2] === undefined ? m[1] : `${m[1]}${m[2]}`;
           const formattedName = EquationExercise.convertToGreek(
-            m[2] === undefined ? m[1] : `${m[1]}_{${m[2].substring(1)}}`
+            m[2] === undefined ? m[1] : `${m[1]}_{${m[2].substring(1)}}`,
           );
           const index = [
             // {0} v_a= [40;80;20] m/s {1}
@@ -206,10 +208,12 @@ export default class EquationExercise implements Exercise {
           const step = m[5] == null ? undefined : +m[5]; // TODO: rework
           const unit = EquationExercise.convertToLaTeX(m[6]);
           this.variables.push([name, new Range(rangeMin, rangeMax, step)]);
-          parsedLine += `${line.substring(
-            0,
-            index[0]
-          )}\\(${formattedName}= ${unit}\\)`;
+          parsedLine += `${
+            line.substring(
+              0,
+              index[0],
+            )
+          }\\(${formattedName}= ${unit}\\)`;
           line = line.substring(index[1]); // remove this match
           globalIndex += 2 + index[0] + formattedName.length + 2; // "\(" + name + "= ";
           this.ranges.push([this.variables.length - 1, globalIndex]); // [index in this.variables, index in this.parsedContent]
@@ -244,10 +248,12 @@ export default class EquationExercise implements Exercise {
       const value = range.rand(rng);
       let sValue = value.toString();
       if (!this.pointDecimalSeparator) sValue = sValue.replace(".", ",\\!");
-      parsingContent = `${parsingContent.substr(
-        0,
-        textIndex
-      )}${sValue}${parsingContent.substr(textIndex)}`;
+      parsingContent = `${
+        parsingContent.substr(
+          0,
+          textIndex,
+        )
+      }${sValue}${parsingContent.substr(textIndex)}`;
     }
     return {
       type: this.type,
@@ -283,13 +289,12 @@ export default class EquationExercise implements Exercise {
         description: "INVALID ANSWER LENGTH",
       });
     }
-    const answerDict =
-      answers !== undefined // TODO: refactor
-        ? this.unknowns.reduce((a: { [key: string]: number | null }, x, i) => {
-            a[x] = answers[i];
-            return a;
-          }, {})
-        : {};
+    const answerDict = answers !== undefined // TODO: refactor
+      ? this.unknowns.reduce((a: { [key: string]: number | null }, x, i) => {
+        a[x] = answers[i];
+        return a;
+      }, {})
+      : {};
     const rng = new RNG(seed, this.rngPrec);
     const calculated: { [key: string]: number | undefined } = {};
     // add already calculated numbers to calculated variables
@@ -322,7 +327,7 @@ export default class EquationExercise implements Exercise {
       const ans = answerDict[name];
       info.push(
         ans != null &&
-          Math.abs(ans - correctAns) <= this.answerPrecision * correctAns
+          Math.abs(ans - correctAns) <= this.answerPrecision * correctAns,
       );
     }
     const done = info.reduce((a: number, b) => a + +b, 0) / info.length;
@@ -362,9 +367,9 @@ export default class EquationExercise implements Exercise {
     let m: RegExpExecArray | null;
     let parsedName = "";
     while ((m = EquationExercise.greekR.exec(name)) !== null) {
-      parsedName += `${name.substring(0, m.index)}${
-        greekAlphabet[m[0]]
-      }${name.substring(m.index + m[0].length)}`;
+      parsedName += `${name.substring(0, m.index)}${greekAlphabet[m[0]]}${
+        name.substring(m.index + m[0].length)
+      }`;
       name = name.substring(m.index + m[0].length); // remove this match from the string
     }
     parsedName += name;

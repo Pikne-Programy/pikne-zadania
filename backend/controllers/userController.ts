@@ -13,8 +13,9 @@ import { Authorizer } from "./mod.ts";
 export class UserController {
   constructor(
     private authorizer: Authorizer,
-    private userService: UserService
+    private userService: UserService,
   ) {}
+
   findOne = controller({
     schema: {
       body: {

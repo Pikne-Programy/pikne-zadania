@@ -1,12 +1,12 @@
 import { vs } from "../deps.ts";
 import {
+  base64of256bitsRegex,
   comb,
   emailRegex,
-  base64of256bitsRegex,
   userIdOptions,
   userNameOptions,
-  userSeedOptions,
   userNumberOptions,
+  userSeedOptions,
 } from "../common/mod.ts";
 
 export const userSchema = {

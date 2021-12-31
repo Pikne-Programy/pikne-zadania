@@ -13,7 +13,7 @@ import { Authorizer } from "./mod.ts";
 export class TeamController {
   constructor(
     private authorizer: Authorizer,
-    private teamService: TeamService
+    private teamService: TeamService,
   ) {}
   findAll = controller({
     status: 200,

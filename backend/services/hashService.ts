@@ -1,5 +1,5 @@
 import { ConfigService } from "./mod.ts";
-import { createHash, pbkdf2Sync, hash, hashSync } from "../deps.ts";
+import { createHash, hash, hashSync, pbkdf2Sync } from "../deps.ts";
 import { Injectable } from "../core/ioc/mod.ts";
 
 @Injectable()
@@ -21,15 +21,15 @@ export class HashService {
     // SRC: https://gist.github.com/Nircek/bf06c93f8df36bf645534c10eb6305ca
     return btoa(
       String.fromCharCode(
-        ...new Uint8Array(pbkdf2Sync(password, user, 1e6, 256 / 8, "sha512"))
-      )
+        ...new Uint8Array(pbkdf2Sync(password, user, 1e6, 256 / 8, "sha512")),
+      ),
     );
   }
   sha256(data: string, salt = "") {
     return this.bufferToHex(
       createHash("sha256")
         .update(salt + data)
-        .digest()
+        .digest(),
     );
   }
 }

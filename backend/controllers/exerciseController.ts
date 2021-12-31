@@ -1,4 +1,4 @@
-import { RouterContext, Router } from "../deps.ts";
+import { Router, RouterContext } from "../deps.ts";
 import { exerciseSchema, userSchema } from "../schemas/mod.ts";
 import { ExerciseService } from "../services/mod.ts";
 import { controller } from "../core/mod.ts";
@@ -9,7 +9,7 @@ import { Authorizer } from "./mod.ts";
 export class ExerciseController {
   constructor(
     private authorizer: Authorizer,
-    private exerciseService: ExerciseService
+    private exerciseService: ExerciseService,
   ) {}
 
   findOne = controller({

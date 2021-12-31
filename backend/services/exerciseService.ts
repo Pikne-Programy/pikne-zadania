@@ -1,5 +1,5 @@
 import { User } from "../models/mod.ts";
-import { SubjectRepository, ExerciseRepository } from "../repositories/mod.ts";
+import { ExerciseRepository, SubjectRepository } from "../repositories/mod.ts";
 import { isAssigneeOf, isPermittedToView } from "../core/mod.ts";
 import { httpErrors } from "../deps.ts";
 import { Injectable } from "../core/ioc/mod.ts";
@@ -8,12 +8,12 @@ import { Injectable } from "../core/ioc/mod.ts";
 export class ExerciseService {
   constructor(
     private subjectRepository: SubjectRepository,
-    private exerciseRepository: ExerciseRepository
+    private exerciseRepository: ExerciseRepository,
   ) {}
 
   async findOne(
     currentUser: User,
-    { subject, exerciseId }: { subject: string; exerciseId: string }
+    { subject, exerciseId }: { subject: string; exerciseId: string },
   ) {
     if (!isAssigneeOf(await this.subjectRepository.get(subject), currentUser)) {
       throw new httpErrors["Forbidden"]();
@@ -21,7 +21,7 @@ export class ExerciseService {
 
     const content = await this.exerciseRepository.getContent(
       subject,
-      exerciseId
+      exerciseId,
     );
 
     return { content };
@@ -31,7 +31,7 @@ export class ExerciseService {
     if (
       !isPermittedToView(
         await this.subjectRepository.getOrFail(subject),
-        currentUser
+        currentUser,
       )
     ) {
       throw new httpErrors["Forbidden"]();
@@ -59,7 +59,7 @@ export class ExerciseService {
       subject,
       exerciseId,
       content,
-    }: { subject: string; exerciseId: string; content: string }
+    }: { subject: string; exerciseId: string; content: string },
   ) {
     if (!isAssigneeOf(await this.subjectRepository.get(subject), currentUser)) {
       throw new httpErrors["Forbidden"]();
@@ -74,7 +74,7 @@ export class ExerciseService {
       subject: subjectId,
       exerciseId,
       content,
-    }: { subject: string; exerciseId: string; content: string }
+    }: { subject: string; exerciseId: string; content: string },
   ) {
     const subject = await this.subjectRepository.get(subjectId);
 

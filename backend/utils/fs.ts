@@ -17,7 +17,7 @@ export function joinThrowable(base: string, ...path: string[]): string {
 
   if (normalize(commonPath) !== normalize(base)) {
     throw new Deno.errors.PermissionDenied(
-      `${base}, ${requested}, ${commonPath}`
+      `${base}, ${requested}, ${commonPath}`,
     );
   }
 

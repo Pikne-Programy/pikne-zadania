@@ -15,7 +15,7 @@ export class ProblemController {
   constructor(
     private authorizer: Authorizer,
     private config: ConfigService,
-    private problemService: ProblemService
+    private problemService: ProblemService,
   ) {}
 
   get = controller({

@@ -6,12 +6,12 @@
 import { emptyDir, exists, join, parse, stringify, walk } from "../deps.ts";
 import { CustomDictError, Exercise } from "../common/mod.ts";
 import {
-  joinThrowable,
-  isSubSection,
-  Section,
   isArrayOf,
   isJSONType,
   isObjectOf,
+  isSubSection,
+  joinThrowable,
+  Section,
 } from "../utils/mod.ts";
 import { ConfigService, Logger } from "../services/mod.ts";
 import exts from "../exts/mod.ts";
@@ -19,9 +19,9 @@ import { Injectable } from "../core/ioc/mod.ts";
 
 type YAMLSection =
   | {
-      // we assume that there is only one key, feel free to tell TypeScript that
-      [key: string]: YAMLSection[];
-    }
+    // we assume that there is only one key, feel free to tell TypeScript that
+    [key: string]: YAMLSection[];
+  }
   | string;
 const isYAMLSection = (what: unknown): what is YAMLSection =>
   typeof what === "string" ||
@@ -56,14 +56,16 @@ export class ExerciseRepository {
         }
 
         this.unlisted[subject] = [];
-        for await (const { name: file } of walk(
-          join(this.exercisesPath, subject),
-          {
-            includeDirs: false,
-            maxDepth: 1,
-            exts: [".txt"],
-          }
-        )) {
+        for await (
+          const { name: file } of walk(
+            join(this.exercisesPath, subject),
+            {
+              includeDirs: false,
+              maxDepth: 1,
+              exts: [".txt"],
+            },
+          )
+        ) {
           const match = file.match(/(.+)\.txt$/);
           if (match === null || match.length < 2) {
             throw new Error("never");
@@ -145,13 +147,13 @@ export class ExerciseRepository {
   private async appendExerciseFile(
     subject: string,
     exerciseId: string,
-    content?: string
+    content?: string,
   ) {
     const uid = this.uid(subject, exerciseId);
 
     try {
       const exercise = this.parse(
-        content ?? (await this.getContent(subject, exerciseId))
+        content ?? (await this.getContent(subject, exerciseId)),
       );
 
       this.exercises[uid] = [exercise, false];
@@ -165,7 +167,7 @@ export class ExerciseRepository {
   }
   private buildSectionList(
     subject: string,
-    elements: (YAMLSection | string)[]
+    elements: (YAMLSection | string)[],
   ) {
     const structure: Section[] = [];
 
@@ -223,7 +225,7 @@ export class ExerciseRepository {
           if (!this.exercises[uid]![1]) {
             this.exercises[uid]![1] = true;
             this.unlisted[subject] = this.unlisted[subject].filter(
-              (x) => x !== exerciseId
+              (x) => x !== exerciseId,
             );
           }
 

@@ -47,7 +47,7 @@ export class Range {
   constructor(
     readonly min: number,
     readonly max: number,
-    readonly step?: number
+    readonly step?: number,
   ) {}
 
   rand(rng: RNG): number {

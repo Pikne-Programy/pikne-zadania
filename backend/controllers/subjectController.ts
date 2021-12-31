@@ -14,7 +14,7 @@ import { Authorizer } from "./mod.ts";
 export class SubjectController {
   constructor(
     private authorizer: Authorizer,
-    private subjectService: SubjectService
+    private subjectService: SubjectService,
   ) {}
 
   findOne = controller({
@@ -145,13 +145,13 @@ export class SubjectController {
       new Router()
         .get("/:subject/:filename", this.getStatic)
         .put("/:subject/:filename", this.putStatic)
-        .routes()
+        .routes(),
     )
     .use(
       "/hierarchy",
       new Router()
         .post("/get", this.getHierarchy)
         .post("/set", this.setHierarchy)
-        .routes()
+        .routes(),
     );
 }

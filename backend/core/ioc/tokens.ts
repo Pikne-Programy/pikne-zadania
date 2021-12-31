@@ -7,7 +7,7 @@ export const registerToken = (target: Type, token?: string) => {
   assert(!tokens.has(target), `target (${target.name}) already registered!`);
   assert(
     !Object.values(tokens).includes(token),
-    `token (${token}) already registered!`
+    `token (${token}) already registered!`,
   );
 
   const hash = token || crypto.randomUUID();

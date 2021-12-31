@@ -32,7 +32,7 @@ export class Repository<T extends Entity> {
 
   init() {
     this.collection = this.db.getCollection<T>(
-      this.getCollectionName(this.type)
+      this.getCollectionName(this.type),
     );
   }
 
@@ -41,7 +41,7 @@ export class Repository<T extends Entity> {
   }
 
   #zeroMatch2notFound = (
-    result: Awaited<ReturnType<Collection<T>["updateOne"]>>
+    result: Awaited<ReturnType<Collection<T>["updateOne"]>>,
   ) => {
     if (!result.matchedCount) {
       throw new CustomDictError("NotFound", {});
@@ -72,28 +72,28 @@ export class Repository<T extends Entity> {
   arrayPush<P extends KeysMatching<T, unknown[]>>(
     team: PickId<T>,
     arrProp: P[0],
-    value: P[1][number]
+    value: P[1][number],
   ) {
     return this.collection
       .updateOne(
         { id: team.id },
         {
           $push: { [arrProp]: value },
-        }
+        },
       )
       .then(this.#zeroMatch2notFound);
   }
   arrayPull<P extends KeysMatching<T, unknown[]>>(
     team: PickId<T>,
     arrProp: P[0],
-    value: P[1][number]
+    value: P[1][number],
   ) {
     return this.collection
       .updateOne(
         { id: team.id },
         {
           $pull: { [arrProp]: value },
-        }
+        },
       )
       .then(this.#zeroMatch2notFound);
   }

@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { Router, RouterContext } from "../deps.ts";
-import { cookieSchema, userSchema, teamSchema } from "../schemas/mod.ts";
-import { ConfigService, AuthService } from "../services/mod.ts";
+import { cookieSchema, teamSchema, userSchema } from "../schemas/mod.ts";
+import { AuthService, ConfigService } from "../services/mod.ts";
 import { controller } from "../core/mod.ts";
 import { Injectable } from "../core/ioc/mod.ts";
 
@@ -12,7 +12,7 @@ import { Injectable } from "../core/ioc/mod.ts";
 export class AuthController {
   constructor(
     private config: ConfigService,
-    private authService: AuthService
+    private authService: AuthService,
   ) {}
 
   register = controller({

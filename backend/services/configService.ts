@@ -28,7 +28,7 @@ function getEnv(type: "boolean", key: string, def?: boolean): boolean;
 function getEnv(
   type: "string" | "number" | "boolean",
   key: string,
-  def?: string | number | boolean
+  def?: string | number | boolean,
 ): string | number | boolean {
   const env = Deno.env.get(key) ?? def;
 
@@ -122,7 +122,7 @@ export class ConfigService {
     if (this.VERBOSITY >= 2) {
       if (fresh !== undefined) {
         console.warn(
-          `The FRESH is present. Set its value to "${safeWord}" to delete all collections.`
+          `The FRESH is present. Set its value to "${safeWord}" to delete all collections.`,
         );
       }
       fresh = this.FRESH ? "" : " NOT";

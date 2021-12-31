@@ -23,8 +23,8 @@ export async function createApp() {
       .listAvailable()
       .map((controller) => controllersRef.resolveOrFail(controller))
       .filter(
-        <T>(c: T): c is Exclude<T, Authorizer> => !(c instanceof Authorizer)
-      )
+        <T>(c: T): c is Exclude<T, Authorizer> => !(c instanceof Authorizer),
+      ),
   );
 
   app.addEventListener("listen", () => {
@@ -44,6 +44,6 @@ export async function createApp() {
   return {
     app,
     logger,
-    closeDb: () => db.close(), //FIXME app must have close event
+    closeDb: () => db.close(),
   };
 }

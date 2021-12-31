@@ -1,9 +1,9 @@
-import { UserRepository, TeamRepository } from "../repositories/mod.ts";
+import { TeamRepository, UserRepository } from "../repositories/mod.ts";
 import {
+  ConfigService,
+  HashService,
   JWTService,
   Logger,
-  HashService,
-  ConfigService,
 } from "../services/mod.ts";
 import { UserRole } from "../models/mod.ts";
 import { delay } from "../deps.ts";
@@ -19,7 +19,7 @@ export class AuthService {
     private jwtService: JWTService,
     private logger: Logger,
     private hashService: HashService,
-    private config: ConfigService
+    private config: ConfigService,
   ) {}
 
   async register({

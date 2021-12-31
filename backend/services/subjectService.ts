@@ -1,13 +1,13 @@
 import {
-  UserRepository,
-  SubjectRepository,
   ExerciseRepository,
+  SubjectRepository,
+  UserRepository,
 } from "../repositories/mod.ts";
 import { User } from "../models/mod.ts";
 import { httpErrors } from "../deps.ts";
 import { isAssigneeOf, isPermittedToView } from "../core/mod.ts";
 import { CustomDictError } from "../common/mod.ts";
-import { joinThrowable, iterateSection, Section } from "../utils/mod.ts";
+import { iterateSection, joinThrowable, Section } from "../utils/mod.ts";
 import { Injectable } from "../core/ioc/mod.ts";
 
 @Injectable()
@@ -15,12 +15,12 @@ export class SubjectService {
   constructor(
     private userRepository: UserRepository,
     private subjectRepository: SubjectRepository,
-    private exerciseRepository: ExerciseRepository
+    private exerciseRepository: ExerciseRepository,
   ) {}
 
   async findOne(
     currentUser: User,
-    { subject: subjectId }: { subject: string }
+    { subject: subjectId }: { subject: string },
   ) {
     const subject = await this.subjectRepository.getOrFail(subjectId);
 
@@ -32,7 +32,7 @@ export class SubjectService {
       (subject.assignees || []).map(async (userId) => ({
         userId,
         name: (await this.userRepository.get(userId))?.name, //FIXME n+1
-      }))
+      })),
     );
 
     return {
@@ -48,7 +48,7 @@ export class SubjectService {
         //FIXME n+1
         const subject = await this.subjectRepository.get(subjectId);
         return subject && isPermittedToView(subject, currentUser);
-      })
+      }),
     );
     const subjects = allSubjects.filter((_, i) => selection[i]);
 
@@ -57,7 +57,7 @@ export class SubjectService {
 
   async create(
     currentUser: User,
-    { subject: id, assignees }: { subject: string; assignees: string[] | null }
+    { subject: id, assignees }: { subject: string; assignees: string[] | null },
   ) {
     if (!currentUser.isTeacher()) {
       throw new httpErrors["Forbidden"]();
@@ -77,29 +77,30 @@ export class SubjectService {
     {
       subject: subjectId,
       assignees,
-    }: { subject: string; assignees: string[] | null }
+    }: { subject: string; assignees: string[] | null },
   ) {
     const subject = await this.subjectRepository.get(subjectId);
 
     if (!isAssigneeOf(subject, currentUser)) {
       throw new httpErrors["Forbidden"]();
     }
+
     await this.subjectRepository.collection.updateOne(
       { id: subject!.id },
       {
         $set: { assignees },
-      }
+      },
     );
   }
 
   async getStaticPath(
     currentUser: User | undefined,
-    { subject }: { subject: string }
+    { subject }: { subject: string },
   ) {
     if (
       !isPermittedToView(
         await this.subjectRepository.getOrFail(subject),
-        currentUser
+        currentUser,
       )
     ) {
       throw new httpErrors["Forbidden"]();
@@ -108,10 +109,11 @@ export class SubjectService {
       root: this.exerciseRepository.getStaticContentPath(subject),
     };
   }
+
   async putStatic(
     currentUser: User | undefined,
     { subject, filename }: { subject: string; filename: string },
-    content: Uint8Array
+    content: Uint8Array,
   ) {
     if (!isAssigneeOf(await this.subjectRepository.get(subject), currentUser)) {
       throw new httpErrors["Forbidden"]();
@@ -121,16 +123,16 @@ export class SubjectService {
     await Deno.writeFile(
       joinThrowable(
         this.exerciseRepository.getStaticContentPath(subject),
-        filename
+        filename,
       ),
       content,
-      { mode: 0o2664 }
+      { mode: 0o2664 },
     );
   }
 
   async getHierarchy(
     currentUser: User | undefined,
-    { subject, raw }: { subject: string; raw: boolean }
+    { subject, raw }: { subject: string; raw: boolean },
   ) {
     if (!this.exerciseRepository.listSubjects().includes(subject)) {
       throw new httpErrors["NotFound"]();
@@ -142,7 +144,7 @@ export class SubjectService {
       subject,
       raw,
       this.exerciseRepository,
-      currentUser
+      currentUser,
     );
 
     if (
@@ -174,7 +176,7 @@ export class SubjectService {
 
   async setHierarchy(
     currentUser: User,
-    { subject, hierarchy }: { subject: string; hierarchy: Section[] }
+    { subject, hierarchy }: { subject: string; hierarchy: Section[] },
   ) {
     if (!isAssigneeOf(await this.subjectRepository.get(subject), currentUser)) {
       throw new httpErrors["Forbidden"]();
@@ -190,7 +192,7 @@ export class SubjectService {
   async init() {
     const diskSubjects = new Set(this.exerciseRepository.listSubjects());
     const dbSubjects = new Set(
-      await this.subjectRepository.collection.find().map(({ id }) => id)
+      await this.subjectRepository.collection.find().map(({ id }) => id),
     );
 
     // TODO: see FindCursor (without .toArray())

@@ -14,12 +14,12 @@ export type JSONObject = { [key: string]: JSONType };
 
 export const isArrayOf = <T>(
   how: (x: unknown) => x is T,
-  what: unknown
+  what: unknown,
 ): what is T[] => Array.isArray(what) && what.every(how);
 
 export const isObjectOf = <T>(
   how: (x: unknown) => x is T,
-  what: unknown
+  what: unknown,
 ): what is { [key: string]: T } =>
   typeof what === "object" &&
   what != null &&

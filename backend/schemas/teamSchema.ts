@@ -1,8 +1,8 @@
 import { vs } from "../deps.ts";
 import {
-  teamNameOptions,
   reservedTeamInvitation,
   teamInvitationOptions,
+  teamNameOptions,
 } from "../common/mod.ts";
 
 export const teamSchema = {

@@ -13,11 +13,11 @@ export class ModuleRef<V extends Type = Type> {
   setMapping(map: readonly [V, InstanceType<V>]): this;
 
   setMapping(
-    _map: readonly [V, InstanceType<V>] | (readonly [V, InstanceType<V>])[]
+    _map: readonly [V, InstanceType<V>] | (readonly [V, InstanceType<V>])[],
   ): this {
     const map = (Array.isArray(_map[0]) ? _map : [_map]) as (readonly [
       V,
-      InstanceType<V>
+      InstanceType<V>,
     ])[];
 
     map.forEach(([clazz, instance]) => this.#mapping.set(clazz, instance));
@@ -30,7 +30,7 @@ export class ModuleRef<V extends Type = Type> {
   }
   entries() {
     return this.listAvailable().map(
-      (service) => [getOrRegisterToken(service), service] as const
+      (service) => [getOrRegisterToken(service), service] as const,
     );
   }
   listAvailable() {
@@ -52,8 +52,10 @@ export class ModuleRef<V extends Type = Type> {
     assert(
       instance,
       chalk.red(
-        `There is no registered instance for class: ${chalk.yellow(clazz.name)}`
-      )
+        `There is no registered instance for class: ${
+          chalk.yellow(clazz.name)
+        }`,
+      ),
     );
 
     return instance;

@@ -3,7 +3,6 @@ import { User } from "../models/mod.ts";
 import { JWTService } from "../services/mod.ts";
 import { Injectable } from "../core/ioc/mod.ts";
 
-
 //FIXME move to controller
 @Injectable()
 export class Authorizer {

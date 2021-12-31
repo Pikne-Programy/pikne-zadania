@@ -26,7 +26,7 @@ type errors = {
   NotFound: whatever;
 };
 export class CustomDictError<
-  T extends keyof errors = keyof errors
+  T extends keyof errors = keyof errors,
 > extends Error {
   constructor(public type: T, public info: whatever & errors[T]) {
     super(info ? type : `${type}: ${info}`);

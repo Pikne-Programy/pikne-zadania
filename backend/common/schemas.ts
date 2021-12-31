@@ -12,14 +12,16 @@ export const reservedTeamInvitation = "\u0011";
 
 export const comb = (...args: ({ source: string } | string)[]) =>
   new RegExp(
-    `^${args.reduce<string>(
-      (l, e) =>
-        l +
-        (typeof e === "string" ? e : e.source)
-          .replace(/^\^/, "")
-          .replace(/(?<!\\)\$$/, ""),
-      ""
-    )}$`
+    `^${
+      args.reduce<string>(
+        (l, e) =>
+          l +
+          (typeof e === "string" ? e : e.source)
+            .replace(/^\^/, "")
+            .replace(/(?<!\\)\$$/, ""),
+        "",
+      )
+    }$`,
   );
 
 /** src: http://trac.webkit.org/browser/trunk/Source/WebCore/html/EmailInputType.cpp?rev=86298 \

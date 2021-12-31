@@ -43,7 +43,7 @@ export class Logger {
   private write(
     data: unknown[],
     verbosity: number,
-    method: (...data: unknown[]) => void
+    method: (...data: unknown[]) => void,
   ) {
     if (this.VERBOSITY >= verbosity) {
       method(...data);
@@ -80,7 +80,7 @@ export class Logger {
     {
       msg,
       customVerbosity = 1,
-    }: { msg?: string; customVerbosity?: number } = {}
+    }: { msg?: string; customVerbosity?: number } = {},
   ) {
     if (this.VERBOSITY < customVerbosity) {
       return;

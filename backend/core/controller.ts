@@ -7,16 +7,15 @@ import {
 } from "../deps.ts";
 import {
   validateBody,
-  validateHeaders,
-  validateQuery,
-  validateParams,
   validateCookies,
+  validateHeaders,
+  validateParams,
+  validateQuery,
 } from "./mod.ts";
 
 type props = keyof ValidationSchema;
 
-type defualt2Record<S> = S extends SchemaObject
-  ? ObjectTypeOf<NonNullable<S>>
+type defualt2Record<S> = S extends SchemaObject ? ObjectTypeOf<NonNullable<S>>
   : Record<string, never>;
 
 type mapSchema<S extends ValidationSchema> = {
@@ -28,7 +27,7 @@ interface ValidationSchema<
   Headers extends SchemaObject | undefined = SchemaObject | undefined,
   Query extends SchemaObject | undefined = SchemaObject | undefined,
   Params extends SchemaObject | undefined = SchemaObject | undefined,
-  Cookies extends SchemaObject | undefined = SchemaObject | undefined
+  Cookies extends SchemaObject | undefined = SchemaObject | undefined,
 > {
   body?: Body;
   headers?: Headers;
@@ -49,10 +48,10 @@ interface IController<S extends ValidationSchema> {
 export function controller<S extends ValidationSchema>(
   args: IController<S> & {
     schema: S;
-  }
+  },
 ): OakMiddleware;
 export function controller(
-  args: IController<Record<string, undefined>>
+  args: IController<Record<string, undefined>>,
 ): OakMiddleware;
 export function controller<S extends ValidationSchema>({
   status,
@@ -72,7 +71,7 @@ export function controller<S extends ValidationSchema>({
 
     const entries = Object.entries(validators) as [
       props,
-      typeof validators[props]
+      typeof validators[props],
     ][];
 
     const parsed = await Promise.all(
@@ -81,8 +80,8 @@ export function controller<S extends ValidationSchema>({
           [
             prop,
             schema[prop] ? await validator(ctx, schema[prop]!) : {},
-          ] as const
-      )
+          ] as const,
+      ),
     ).then<mapSchema<S>, never>(Object.fromEntries, () => {
       throw new httpErrors["BadRequest"]();
     });

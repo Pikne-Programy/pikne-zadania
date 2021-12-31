@@ -1,4 +1,4 @@
-import { Reflect, assert } from "../../deps.ts";
+import { assert, Reflect } from "../../deps.ts";
 import { isArrayOf } from "../../utils/mod.ts";
 import { Type } from "../types/mod.ts";
 
@@ -23,7 +23,7 @@ export const getMetadata = (target: unknown) => {
     isArrayOf(functionOrString, metadata),
     `invalid metadata! expected Function[] | string[], received: ${metadata} on ${
       typeof target === "function" ? target.name : target
-    }`
+    }`,
   );
 
   return metadata;

@@ -8,16 +8,14 @@ import EquationExercise from "./eqex/equationExercise.ts";
 
 // TODO: move it to the Config
 
-export default <
-  {
-    [key: string]: new (
-      cfg: ConfigService,
-      name: Exercise["name"],
-      context: string,
-      properties: Exercise["properties"]
-    ) => Exercise;
-  }
->{
+export default <{
+  [key: string]: new (
+    cfg: ConfigService,
+    name: Exercise["name"],
+    context: string,
+    properties: Exercise["properties"],
+  ) => Exercise;
+}> {
   "": EquationExercise,
   EqEx: EquationExercise,
   EquationExercise: EquationExercise,

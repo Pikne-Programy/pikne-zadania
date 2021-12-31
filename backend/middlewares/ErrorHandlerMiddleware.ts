@@ -45,15 +45,13 @@ const sendError = (ctx: Context, { status, message }: HttpError) => {
  * map non HttpErrors errors to InternalServerError
  */
 const normalize2HttpError = (e: unknown) =>
-  e instanceof HttpError
-    ? e
-    : new httpErrors["InternalServerError"](
-        //FIXME maybe dont show unknown errors to user?
-        e instanceof Error ? e.message : ""
-      );
+  e instanceof HttpError ? e : new httpErrors["InternalServerError"](
+    //FIXME maybe dont show unknown errors to user?
+    e instanceof Error ? e.message : "",
+  );
 
-export const ErrorHandlerMiddleware =
-  (logger: Logger) => async (ctx: Context, next: () => unknown) => {
+export const ErrorHandlerMiddleware = (logger: Logger) =>
+  async (ctx: Context, next: () => unknown) => {
     try {
       await next();
     } catch (e: unknown) {

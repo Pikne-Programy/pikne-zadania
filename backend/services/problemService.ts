@@ -1,7 +1,7 @@
 import {
-  UserRepository,
-  SubjectRepository,
   ExerciseRepository,
+  SubjectRepository,
+  UserRepository,
 } from "../repositories/mod.ts";
 import { User } from "../models/mod.ts";
 import { httpErrors } from "../deps.ts";
@@ -14,19 +14,17 @@ export class ProblemService {
   constructor(
     private subjectRepository: SubjectRepository,
     private exerciseRepository: ExerciseRepository,
-    private userRepository: UserRepository
+    private userRepository: UserRepository,
   ) {}
 
   //FIXME all this stuff with seeds
   private getSeed = (
     cookie: string | undefined,
     seed: number | null,
-    user?: User
+    user?: User,
   ) =>
     user
-      ? seed !== null && user.isTeacher()
-        ? seed
-        : user.seed ?? 0
+      ? seed !== null && user.isTeacher() ? seed : user.seed ?? 0
       : +(cookie ?? `${generateSeed()}`);
 
   async get(
@@ -41,7 +39,7 @@ export class ProblemService {
       exerciseId: string;
       seed: number | null;
       otherSeed?: string;
-    }
+    },
   ) {
     const subject = await this.subjectRepository.getOrFail(subjectId);
 
@@ -57,7 +55,7 @@ export class ProblemService {
       exercise.render(seed),
       isAssigneeOf(subject, currentUser) && {
         correctAnswer: exercise.getCorrectAnswer(seed),
-      }
+      },
     );
 
     return {
@@ -78,12 +76,12 @@ export class ProblemService {
       exerciseId: string;
       answer: JSONType;
       otherSeed?: string;
-    }
+    },
   ) {
     if (
       !isPermittedToView(
         await this.subjectRepository.getOrFail(subject),
-        currentUser
+        currentUser,
       )
     ) {
       throw new httpErrors["Forbidden"]();
@@ -100,7 +98,7 @@ export class ProblemService {
         { id: currentUser.id },
         {
           $set: { [`exercises.${exerciseId}`]: done },
-        }
+        },
       );
     }
 

@@ -1,9 +1,9 @@
-import { UserRepository, TeamRepository } from "../repositories/mod.ts";
+import { TeamRepository, UserRepository } from "../repositories/mod.ts";
 import { User, UserRole } from "../models/mod.ts";
 import { httpErrors } from "../deps.ts";
 import { Injectable } from "../core/ioc/mod.ts";
 import { generateSeed } from "../utils/mod.ts";
-import { Logger, HashService, ConfigService } from "./mod.ts";
+import { ConfigService, HashService, Logger } from "./mod.ts";
 
 @Injectable()
 export class UserService {
@@ -12,7 +12,7 @@ export class UserService {
     private hashService: HashService,
     private configService: ConfigService,
     private userRepository: UserRepository,
-    private teamRepository: TeamRepository
+    private teamRepository: TeamRepository,
   ) {}
 
   //FIXME lol second version of this
@@ -26,7 +26,7 @@ export class UserService {
 
   async findOne(
     currentUser: User,
-    { userId: targetId }: { userId?: User["id"] }
+    { userId: targetId }: { userId?: User["id"] },
   ) {
     const userId = targetId || currentUser.id;
 
@@ -51,7 +51,7 @@ export class UserService {
       userId,
       number,
       name,
-    }: { userId: User["id"]; number: number | null; name: string | null }
+    }: { userId: User["id"]; number: number | null; name: string | null },
   ) {
     const who = await this.userRepository.getOrFail(userId);
 
@@ -65,7 +65,7 @@ export class UserService {
       $set: Object.assign(
         {},
         isNumber && { number },
-        name !== null && { name }
+        name !== null && { name },
       ),
       $unset: Object.assign({}, !isNumber && { number }),
     };
@@ -74,7 +74,7 @@ export class UserService {
       {
         id: userId,
       },
-      query
+      query,
     );
 
     if (!matchedCount) {
@@ -95,13 +95,13 @@ export class UserService {
     await this.teamRepository.arrayPull(
       { id: currentUser.team },
       "members",
-      currentUser.id
+      currentUser.id,
     );
   }
   async init() {
     const warn = (
       what: string,
-      why = "Please unset it or change ROOT_ENABLE."
+      why = "Please unset it or change ROOT_ENABLE.",
     ) => this.logger.warn(`WARN: ${what} is present. ${why}`);
 
     const addRoot = async (dhPassword: string) => {
@@ -164,13 +164,13 @@ export class UserService {
       this.logger.log(new Date(), "Generating root password hash...");
 
       const dhPassword = this.hashService.secondhashSync(
-        this.hashService.firsthash("root", config.password)
+        this.hashService.firsthash("root", config.password),
       );
 
       this.logger
         .log(new Date(), "Generated!")
         .warn(
-          `Please unset ROOT_PASS!\nSet ROOT_DHPASS=${dhPassword} if needed.`
+          `Please unset ROOT_PASS!\nSet ROOT_DHPASS=${dhPassword} if needed.`,
         );
 
       await addRoot(dhPassword);

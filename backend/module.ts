@@ -7,25 +7,25 @@ import {
   UserRepository,
 } from "./repositories/mod.ts";
 import {
+  AuthService,
   ConfigService,
+  ExerciseService,
+  HashService,
   JWTService,
   Logger,
-  HashService,
-  UserService,
-  TeamService,
-  SubjectService,
   ProblemService,
-  ExerciseService,
-  AuthService,
+  SubjectService,
+  TeamService,
+  UserService,
 } from "./services/mod.ts";
 import {
   AuthController,
+  Authorizer,
+  ExerciseController,
+  ProblemController,
   SubjectController,
   TeamController,
   UserController,
-  ExerciseController,
-  ProblemController,
-  Authorizer,
 } from "./controllers/mod.ts";
 
 registerToken(ConfigService, "config"); //FIXME

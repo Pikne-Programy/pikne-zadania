@@ -14,7 +14,7 @@ export class JWTService {
   constructor(
     private config: ConfigService,
     private userRepository: UserRepository,
-    private hashService: HashService
+    private hashService: HashService,
   ) {}
 
   async create(login: string, hashedPassword: string) {

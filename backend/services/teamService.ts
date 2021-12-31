@@ -1,5 +1,5 @@
-import { UserRepository, TeamRepository } from "../repositories/mod.ts";
-import { User, Team } from "../models/mod.ts";
+import { TeamRepository, UserRepository } from "../repositories/mod.ts";
+import { Team, User } from "../models/mod.ts";
 import { httpErrors } from "../deps.ts";
 import { isAssignee } from "../core/mod.ts";
 import { Injectable } from "../core/ioc/mod.ts";
@@ -11,7 +11,7 @@ export class TeamService {
   constructor(
     private hashService: HashService,
     private userRepository: UserRepository,
-    private teamRepository: TeamRepository
+    private teamRepository: TeamRepository,
   ) {}
 
   async findOne(currentUser: User, { teamId }: { teamId: Team["id"] }) {
@@ -43,7 +43,7 @@ export class TeamService {
               name: user?.name,
               number: user?.number ?? null,
             }))
-        )
+        ),
       ),
     };
   }
@@ -103,7 +103,7 @@ export class TeamService {
       assignee: string;
       invitation: string | null;
       name: string | null;
-    }
+    },
   ) {
     const team = await this.teamRepository.getOrFail(teamId);
 
@@ -117,7 +117,7 @@ export class TeamService {
 
     if (typeof assignee === "string") {
       if (!(await this.userRepository.get(assignee))) {
-          //FIXME ?404 instead?
+        //FIXME ?404 instead?
         throw new httpErrors["BadRequest"]("`assignee` doesn't exist");
       }
 
@@ -125,7 +125,7 @@ export class TeamService {
         { id: team.id },
         {
           $set: { assignee },
-        }
+        },
       );
     }
 
@@ -134,17 +134,16 @@ export class TeamService {
         { id: team.id },
         {
           $unset: { invitation: "" },
-        }
+        },
       );
     } else {
       const ntob = (n: number): string =>
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[n];
-      const finalInvitation =
-        invitation === reservedTeamInvitation
-          ? globalThis.crypto
-              .getRandomValues(new Uint8Array(4))
-              .reduce((inv, n) => inv + ntob(n % 64), ntob(team.id))
-          : invitation;
+      const finalInvitation = invitation === reservedTeamInvitation
+        ? globalThis.crypto
+          .getRandomValues(new Uint8Array(4))
+          .reduce((inv, n) => inv + ntob(n % 64), ntob(team.id))
+        : invitation;
       const maybeTeam = await this.teamRepository.collection.findOne({
         invitation: finalInvitation,
       });
@@ -157,7 +156,7 @@ export class TeamService {
         { id: team.id },
         {
           $set: { invitation: finalInvitation },
-        }
+        },
       );
     }
 
@@ -166,7 +165,7 @@ export class TeamService {
         { id: team.id },
         {
           $set: { name },
-        }
+        },
       );
     }
   }
@@ -177,7 +176,7 @@ export class TeamService {
       teamId,
     }: {
       teamId: Team["id"];
-    }
+    },
   ) {
     const team = await this.teamRepository.getOrFail(teamId);
 
@@ -198,9 +197,9 @@ export class TeamService {
         await this.teamRepository.arrayPull(
           { id: user.team },
           "members",
-          user.id
+          user.id,
         );
-      })
+      }),
     );
 
     await this.teamRepository.delete(team);

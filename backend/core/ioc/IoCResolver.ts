@@ -1,6 +1,6 @@
-import { Type, onInit } from "../types/mod.ts";
+import { onInit, Type } from "../types/mod.ts";
 import { assert, chalk } from "../../deps.ts";
-import { getMetadata, getOrRegisterToken, ModuleRef, Graph } from "./mod.ts";
+import { getMetadata, getOrRegisterToken, Graph, ModuleRef } from "./mod.ts";
 import { reThrow } from "../../utils/mod.ts";
 
 //deno-lint-ignore ban-types no-explicit-any
@@ -35,7 +35,7 @@ export class IocResolver {
           name,
           services: layers[name],
         },
-        previousRef
+        previousRef,
       );
 
       previousRef = result[name] = ref;
@@ -57,7 +57,7 @@ export class IocResolver {
     console.log(
       chalk.green("-------------------- "),
       chalk.yellow(name),
-      chalk.green("-------------------- ")
+      chalk.green("-------------------- "),
     );
 
     const getToken = (dep: ServiceType | string) =>
@@ -71,7 +71,7 @@ export class IocResolver {
         ModuleRef.token,
         requestedDependencies,
         previousRef?.listAvailableTokens() || [],
-      ].flat()
+      ].flat(),
     );
 
     this.validate(requestedDependencies, availableDependencies);
@@ -89,20 +89,20 @@ export class IocResolver {
         getMetadata(service)
           .map(getToken)
           .map((to) => [token, to] as const)
-      )
+      ),
     );
 
     const prev = new Set(
       [
         previousRef?.listAvailable() || [],
         this.#globalRef?.listAvailable() || [],
-      ].flat()
+      ].flat(),
     );
     const sorted = reThrow(
       () => graph.sort().filter(([service]) => !prev.has(service)),
       new Error(
-        chalk.red(`circular dependency in ${chalk.yellow(`(${name})`)} layer`)
-      )
+        chalk.red(`circular dependency in ${chalk.yellow(`(${name})`)} layer`),
+      ),
     );
 
     return this.initiate(this.resolveLayer(sorted, name, previousRef));
@@ -111,7 +111,7 @@ export class IocResolver {
   private resolveLayer(
     services: [ServiceType, ServiceType[]][],
     name: string,
-    previousRef?: ModuleRef
+    previousRef?: ModuleRef,
   ) {
     const moduleRef = new ModuleRef(name);
 
@@ -120,15 +120,17 @@ export class IocResolver {
         (req: ServiceType) =>
           this.#globalRef?.resolve(req) ||
           previousRef?.resolve(req) ||
-          moduleRef.resolveOrFail(req)
+          moduleRef.resolveOrFail(req),
       );
 
       const instance = new service(...args);
 
       console.log(
-        `${chalk.green(
-          `[${service.name}]`
-        )} instanciated on layer ${chalk.yellow(`(${name})`)}`
+        `${
+          chalk.green(
+            `[${service.name}]`,
+          )
+        } instanciated on layer ${chalk.yellow(`(${name})`)}`,
       );
 
       moduleRef.setMapping([service, instance]);
@@ -142,7 +144,7 @@ export class IocResolver {
   private validate(
     requested: string[],
     available: Set<string>,
-    failureMessage?: string
+    failureMessage?: string,
   ) {
     assert(requested.every(available.has, available), failureMessage);
     return available;
@@ -159,11 +161,13 @@ export class IocResolver {
         .map(async (instance: Required<onInit>) => {
           await instance.init();
           console.log(
-            `${chalk.green(
-              `[${instance.constructor.name}]`
-            )} initialized on layer ${chalk.yellow(`(${moduleRef.layer})`)}`
+            `${
+              chalk.green(
+                `[${instance.constructor.name}]`,
+              )
+            } initialized on layer ${chalk.yellow(`(${moduleRef.layer})`)}`,
           );
-        })
+        }),
     );
 
     return moduleRef;

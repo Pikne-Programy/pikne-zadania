@@ -1,4 +1,4 @@
-import { User, UserRole, Subject, Team } from "../models/mod.ts";
+import { Subject, Team, User, UserRole } from "../models/mod.ts";
 export const isAssignee = (team: Team, user: User) =>
   user.role === UserRole.ADMIN || team.assignee === user.id;
 

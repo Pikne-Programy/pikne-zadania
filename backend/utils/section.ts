@@ -17,7 +17,7 @@ export const isSubSection = (what: Section): what is SubSection =>
 
 export function makeSection(
   what: unknown,
-  errorCallback: () => never
+  errorCallback: () => never,
 ): Section {
   if (!isObject(what)) {
     errorCallback();
@@ -47,7 +47,7 @@ export const iterateSection = async (
   subject: string,
   raw: boolean,
   exerciseRepository: ExerciseRepository,
-  user?: User
+  user?: User,
 ) => {
   const sectionArray: unknown[] = [];
 
@@ -60,11 +60,10 @@ export const iterateSection = async (
           children: el.children,
           type: raw ? undefined : exercise.type,
           description: raw ? undefined : exercise.description,
-          done:
-            raw || user === undefined
-              ? undefined
-              : user.exercises[exerciseRepository.uid(subject, el.children)] ??
-                null,
+          done: raw || user === undefined
+            ? undefined
+            : user.exercises[exerciseRepository.uid(subject, el.children)] ??
+              null,
         });
       } catch {
         // we really need this comment
@@ -77,7 +76,7 @@ export const iterateSection = async (
           subject,
           raw,
           exerciseRepository,
-          user
+          user,
         ),
       });
     }

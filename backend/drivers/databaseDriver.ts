@@ -3,9 +3,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { MongoClient, Database, delay } from "../deps.ts";
+import { Database, delay, MongoClient } from "../deps.ts";
 import type { ConfigService } from "../services/mod.ts";
-import { Injectable, Inject } from "../core/ioc/mod.ts";
+import { Inject, Injectable } from "../core/ioc/mod.ts";
 
 @Injectable()
 export class DatabaseDriver {
@@ -49,7 +49,7 @@ export class DatabaseDriver {
       !(e instanceof Error) || !/"NamespaceNotFound"/.test(e.message);
 
     const keepRejected = (
-      result: PromiseSettledResult<unknown>
+      result: PromiseSettledResult<unknown>,
     ): result is PromiseRejectedResult => result.status === "rejected";
 
     const collections = await this.#db.listCollectionNames({});

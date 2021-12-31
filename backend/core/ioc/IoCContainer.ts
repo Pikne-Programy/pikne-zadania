@@ -1,9 +1,9 @@
-import { IocResolver, ServiceType, ModuleRef } from "./mod.ts";
+import { IocResolver, ModuleRef, ServiceType } from "./mod.ts";
 import { assert, chalk } from "../../deps.ts";
 
 export class IoCContainer<
   Container extends Record<string, ServiceType[]>,
-  GlobalLayer extends ServiceType = ServiceType
+  GlobalLayer extends ServiceType = ServiceType,
 > {
   #layers = {} as Container;
   #layersOrder: (keyof Container)[] = [];
@@ -16,7 +16,7 @@ export class IoCContainer<
 
   registerLayer<Layer extends string, Elements extends ServiceType[]>(
     name: Layer,
-    elements: Elements
+    elements: Elements,
   ): IoCContainer<Container & { [P in Layer]: Elements }> {
     const nextThis = this as unknown as IoCContainer<
       Container & { [P in Layer]: Elements }
@@ -26,7 +26,7 @@ export class IoCContainer<
 
     assert(
       !nextThis.#layers[name],
-      chalk.red(`layer (${name}) already exists!`)
+      chalk.red(`layer (${name}) already exists!`),
     );
 
     //@ts-ignore idk why that
@@ -41,10 +41,12 @@ export class IoCContainer<
       layers: this.#layers,
     });
 
-    return result as {
-      [P in keyof Container]: ModuleRef<Container[P][number]>;
-    } & {
-      global: ModuleRef<GlobalLayer>;
-    };
+    return result as
+      & {
+        [P in keyof Container]: ModuleRef<Container[P][number]>;
+      }
+      & {
+        global: ModuleRef<GlobalLayer>;
+      };
   }
 }

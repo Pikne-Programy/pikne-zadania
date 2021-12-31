@@ -18,7 +18,7 @@ export const createApiRoutes = (routers: { router: Router }[]) =>
       routers
         .reduce(
           (accRouter, { router }) => accRouter.use(router.routes()),
-          new Router()
+          new Router(),
         )
-        .routes()
+        .routes(),
     );
