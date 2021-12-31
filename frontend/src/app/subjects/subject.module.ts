@@ -23,6 +23,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { FileUploadComponent } from './exercise-modification/form/file-upload/file-upload.component';
 import { FileUploadService } from './file-upload.service/file-upload.service';
 import { TeamService } from '../user/team.service/team.service';
+import { SubjectPermitComponent } from './dashboard/permit/permit.component';
 
 @NgModule({
     declarations: [
@@ -35,7 +36,8 @@ import { TeamService } from '../user/team.service/team.service';
         ExerciseModificationFormComponent,
         EditorToolbarComponent,
         HierarchyModificationComponent,
-        FileUploadComponent
+        FileUploadComponent,
+        SubjectPermitComponent
     ],
     imports: [
         CommonModule,

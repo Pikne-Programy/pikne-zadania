@@ -7,6 +7,7 @@ import {
 } from '@angular/common/http/testing';
 import { TestBed, inject, waitForAsync } from '@angular/core/testing';
 import {
+    Assignee,
     Subject,
     SubjectService,
     ViewExerciseTreeNode
@@ -17,6 +18,7 @@ import {
     ExerciseTreeNode,
     Subject as TreeSubject
 } from 'src/app/exercise-service/exercise.utils';
+import { AssigneeUser } from 'src/app/user/team.service/types';
 
 describe('Service: Subject', () => {
     let httpController: HttpTestingController;
@@ -315,8 +317,7 @@ describe('Service: Subject', () => {
         //#region Mock objects
         const subjectName = 'Sb1';
         const assigneeList: string[] = [];
-        for (let i = 1; i <= 5; i++)
-            assigneeList.push(`User${i}Id`);
+        for (let i = 1; i <= 5; i++) assigneeList.push(`User${i}Id`);
         //#endregion
 
         it('should throw error', inject(
@@ -418,6 +419,187 @@ describe('Service: Subject', () => {
                 expect(req.request.body).toEqual({
                     subject: subjectName,
                     assignees: []
+                });
+                req.flush({});
+            }
+        ));
+    });
+
+    describe('getAssignees', () => {
+        const subjectId = 'Sb1';
+        const teacherList: AssigneeUser[] = [];
+        const serverError = 500;
+
+        const list: [number, string, any][] = [
+            [serverError, 'server error', undefined],
+            [TYPE_ERROR, `Type error (no 'assignees' field)`, {}],
+            [
+                TYPE_ERROR,
+                `Type error (wrong 'assignees' type)`,
+                {
+                    assignees: [{ userId: 'abc', name: 'ABC' }, {}]
+                }
+            ]
+        ];
+        for (const [errorCode, testMess, returnObj] of list) {
+            it(`should throw ${testMess}`, inject(
+                [SubjectService, HttpClient],
+                (service: SubjectService) => {
+                    expect(service).toBeTruthy();
+
+                    service
+                        .getAssignees(subjectId, teacherList)
+                        .then(() => fail('should be rejected'))
+                        .catch((error) => expect(error.status).toBe(errorCode));
+                    const req = httpController.expectOne(
+                        ServerRoutes.subjectInfo
+                    );
+                    expect(req.request.method).toEqual('POST');
+                    expect(req.request.body).toEqual({ subject: subjectId });
+                    if (errorCode === serverError) {
+                        req.error(new ErrorEvent('Server error'), {
+                            status: errorCode
+                        });
+                    }
+                    else req.flush(returnObj);
+                }
+            ));
+        }
+
+        it('should return ALL_ASSIGNEES_SELECTED code', inject(
+            [SubjectService, HttpClient],
+            (service: SubjectService) => {
+                expect(service).toBeTruthy();
+
+                service
+                    .getAssignees(subjectId, teacherList)
+                    .then(() => fail('should return error'))
+                    .catch((error) =>
+                        expect(error.status).toBe(
+                            SubjectService.ALL_ASSIGNEES_SELECTED
+                        )
+                    );
+                const req = httpController.expectOne(ServerRoutes.subjectInfo);
+                expect(req.request.method).toEqual('POST');
+                expect(req.request.body).toEqual({ subject: subjectId });
+                req.flush({ assignees: null });
+            }
+        ));
+
+        it('should return list of assignees', inject(
+            [SubjectService, HttpClient],
+            (service: SubjectService) => {
+                expect(service).toBeTruthy();
+                const teachers = [];
+                for (let i = 5; i > 0; i--) {
+                    teachers.push({
+                        userId: `user${i}`,
+                        name: `User${i}`,
+                        number: 6 - i
+                    });
+                }
+                const assignees = [];
+                for (let i = 1; i <= 5; i += 2) {
+                    assignees.push({
+                        userId: `user${i}`,
+                        name: `User${i}`
+                    });
+                }
+                const result: Assignee[] = [];
+                for (let i = 1; i <= 5; i++) {
+                    result.push({
+                        userId: `user${i}`,
+                        name: `User${i}`,
+                        isSelected: i % 2 !== 0
+                    });
+                }
+
+                service
+                    .getAssignees(subjectId, teachers)
+                    .then((response) => expect(response).toEqual(result))
+                    .catch(() => fail('should resolve'));
+                const req = httpController.expectOne(ServerRoutes.subjectInfo);
+                expect(req.request.method).toEqual('POST');
+                expect(req.request.body).toEqual({ subject: subjectId });
+                req.flush({ assignees });
+            }
+        ));
+    });
+
+    describe('setAssignees', () => {
+        const subjectId = 'Sb1';
+
+        it('should throw error', inject(
+            [SubjectService, HttpClient],
+            (service: SubjectService) => {
+                expect(service).toBeTruthy();
+                const errorCode = 500;
+                const assignees: Assignee[] = [];
+
+                service
+                    .setAssignees(subjectId, assignees)
+                    .then(() => fail('should be rejected'))
+                    .catch((error) => expect(error.status).toBe(errorCode));
+                const req = httpController.expectOne(
+                    ServerRoutes.subjectPermit
+                );
+                expect(req.request.method).toEqual('POST');
+                expect(req.request.body).toEqual({
+                    subject: subjectId,
+                    assignees
+                });
+                req.error(new ErrorEvent('Server error'), {
+                    status: errorCode
+                });
+            }
+        ));
+
+        it('should set selected assignees', inject(
+            [SubjectService, HttpClient],
+            (service: SubjectService) => {
+                expect(service).toBeTruthy();
+                const assignees = [];
+                for (let i = 1; i <= 5; i++) {
+                    assignees.push({
+                        userId: `user${i}`,
+                        name: `User${i}`,
+                        isSelected: i % 2 !== 0
+                    });
+                }
+                const selectedAssignees = [];
+                for (const user of assignees)
+                    if (user.isSelected) selectedAssignees.push(user.userId);
+
+                service
+                    .setAssignees(subjectId, assignees)
+                    .catch(() => fail('should resolve'));
+                const req = httpController.expectOne(
+                    ServerRoutes.subjectPermit
+                );
+                expect(req.request.method).toEqual('POST');
+                expect(req.request.body).toEqual({
+                    subject: subjectId,
+                    assignees: selectedAssignees
+                });
+                req.flush({});
+            }
+        ));
+
+        it(`should set 'All Assignees Selected'`, inject(
+            [SubjectService, HttpClient],
+            (service: SubjectService) => {
+                expect(service).toBeTruthy();
+
+                service
+                    .setAssignees(subjectId, null)
+                    .catch(() => fail('should resolve'));
+                const req = httpController.expectOne(
+                    ServerRoutes.subjectPermit
+                );
+                expect(req.request.method).toEqual('POST');
+                expect(req.request.body).toEqual({
+                    subject: subjectId,
+                    assignees: null
                 });
                 req.flush({});
             }

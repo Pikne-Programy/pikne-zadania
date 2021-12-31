@@ -9,6 +9,7 @@ import {
 } from 'src/app/exercise-service/exercise.utils';
 import { isObject, TYPE_ERROR } from 'src/app/helper/utils';
 import * as ServerRoutes from 'src/app/server-routes';
+import { AssigneeUser } from 'src/app/user/team.service/types';
 
 export class Subject {
     readonly isPrivate: boolean;
@@ -18,7 +19,7 @@ export class Subject {
     }
 
     getName() {
-        return this.isPrivate ? this.id.substr(1) : this.id;
+        return this.isPrivate ? this.id.substring(1) : this.id;
     }
 
     static checkIfPrivate(name: string): boolean {
@@ -26,7 +27,7 @@ export class Subject {
     }
 
     static getSubjectName(name: string): string {
-        return Subject.checkIfPrivate(name) ? name.substr(1) : name;
+        return Subject.checkIfPrivate(name) ? name.substring(1) : name;
     }
 }
 
@@ -54,10 +55,47 @@ export class ViewExerciseTreeNode extends ExerciseTreeNode {
     }
 }
 
+interface AssigneeItem {
+    userId: string;
+    name: string;
+}
+export interface Assignee extends AssigneeItem {
+    isSelected: boolean;
+}
+function isAssigneeItemList(object: unknown[]): object is AssigneeItem[] {
+    return object.every((item) =>
+        isObject<AssigneeItem>(item, [
+            ['userId', ['string']],
+            ['name', ['string']]
+        ])
+    );
+}
+function mapAssignees(
+    teacherList: AssigneeUser[],
+    assigneeList: AssigneeItem[]
+): Assignee[] {
+    const assigneeSet = new Set<string>(assigneeList.map((val) => val.userId));
+    return teacherList
+        .map((user) => ({
+            userId: user.userId,
+            name: user.name,
+            isSelected: assigneeSet.has(user.userId)
+        }))
+        .sort((user1, user2) => user1.name.localeCompare(user2.name));
+}
+
 @Injectable({
     providedIn: 'root'
 })
 export class SubjectService {
+    static readonly ALL_ASSIGNEES_SELECTED = 20000;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    static readonly ASSIGNEE_MAP_FUNC = (user: AssigneeUser) => ({
+        userId: user.userId,
+        name: user.name,
+        isSelected: false
+    });
+
     constructor(private http: HttpClient) {}
 
     private createSubjectList(serverResponse: string[]): Subject[] {
@@ -141,6 +179,46 @@ export class SubjectService {
         return this.http
             .post(ServerRoutes.subjectCreate, { subject, assignees })
             .pipe(switchMap(() => of(subject)))
+            .toPromise();
+    }
+
+    getAssignees(
+        subjectId: string,
+        teacherList: AssigneeUser[]
+    ): Promise<Assignee[]> {
+        return this.http
+            .post(ServerRoutes.subjectInfo, { subject: subjectId })
+            .pipe(
+                switchMap((response) => {
+                    if (
+                        isObject<{ assignees: unknown[] | null }>(response, [
+                            ['assignees', 'array|null']
+                        ])
+                    ) {
+                        if (response.assignees === null) {
+                            return throwError({
+                                status: SubjectService.ALL_ASSIGNEES_SELECTED
+                            });
+                        }
+                        else if (isAssigneeItemList(response.assignees)) {
+                            return of(
+                                mapAssignees(teacherList, response.assignees)
+                            );
+                        }
+                    }
+                    return throwError({ status: TYPE_ERROR });
+                })
+            )
+            .toPromise();
+    }
+
+    setAssignees(subjectId: string, assigneeList: Assignee[] | null) {
+        const assignees =
+            assigneeList
+                ?.filter((user) => user.isSelected)
+                .map((user) => user.userId) ?? null;
+        return this.http
+            .post(ServerRoutes.subjectPermit, { subject: subjectId, assignees })
             .toPromise();
     }
 }

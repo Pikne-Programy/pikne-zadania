@@ -1,45 +1,45 @@
-<div *ngIf="!isLoading && errorCode === null" class="tile is-ancestor height-full width-full m-0 px-3 py-tablet-1 scrollable">
-  <!--#region Category tree -->
-  <div class="tile is-3 is-2-bigscreen is-vertical is-parent">
-    <div class="tile is-child height-full panel is-primary is-root">
-      <p class="panel-heading is-flex is-align-items-center">
-        <span class="is-flex-grow-1">{{ subject!.getName() | titlecase }}</span>
-        <a *ngIf="subject" class="button is-primary" title="Stwórz zadanie" [routerLink]="['/subject/exercise-new', subject.id]">
-          <i class="fas fa-plus"></i>
-        </a>
-        <a *ngIf="subject" class="button is-primary" title="Edytuj kategorie" [routerLink]="['/subject/categories', subject.id]">
-          <i class="fas fa-pen"></i>
-        </a>
-        <!--TODO Subject access management -->
-        <button class="button is-primary" title="Zarządzaj dostępem">
-          <i class="fas fa-user-cog"></i>
-        </button>
-      </p>
-      <div class="panel height-full scrollable">
-        <div class="panel-block">
-          <aside class="menu width-full">
-            <ng-container *ngIf="categoryTree">
-              <ng-container *ngTemplateOutlet="catList; context: { $implicit: categoryTree }"></ng-container>
-            </ng-container>
-          </aside>
+<div *ngIf="!isLoading && errorCode === null && subject" class="tile is-ancestor height-full width-full m-0 px-3 py-tablet-1 scrollable">
+    <!--#region Category tree -->
+    <div class="tile is-3 is-2-bigscreen is-vertical is-parent">
+        <div class="tile is-child height-full panel is-primary is-root">
+            <p class="panel-heading is-flex is-align-items-center">
+                <span class="is-flex-grow-1">{{ subject.getName() | titlecase }}</span>
+                <a class="button is-primary" title="Stwórz zadanie" [routerLink]="['/subject/exercise-new', subject.id]">
+                    <i class="fas fa-plus"></i>
+                </a>
+                <a class="button is-primary" title="Edytuj kategorie" [routerLink]="['/subject/categories', subject.id]">
+                    <i class="fas fa-pen"></i>
+                </a>
+                <!--TODO Subject access management -->
+                <a class="button is-primary" title="Zarządzaj dostępem" routerLink="permit">
+                    <i class="fas fa-user-cog"></i>
+                </a>
+            </p>
+            <div class="panel height-full scrollable">
+                <div class="panel-block">
+                    <aside class="menu width-full">
+                        <ng-container *ngIf="categoryTree">
+                            <ng-container *ngTemplateOutlet="catList; context: { $implicit: categoryTree }"></ng-container>
+                        </ng-container>
+                    </aside>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
-  <!--#endregion-->
-  <!--#region Exercise list -->
-  <div class="tile is-9 is-10-bigscreen is-parent">
-    <div class="tile is-child width-full box p-0 mobile-unscrollable">
-      <ng-container *ngIf="!exerciseError && subject">
-        <app-subject-ex-prev *ngFor="let exercise of exerciseList; index as i" class="panel-block" [ngClass]="{ 'is-hidden': isExerciseLoading }" [exercise]="exercise" [subjectId]="subject.id" [isLast]="isLast(i)" (ready)="isExerciseLoading = false">
-        </app-subject-ex-prev>
-      </ng-container>
-      <app-image-placeholder *ngIf="!exerciseList && !isExerciseLoading && !exerciseError"></app-image-placeholder>
-      <app-loading *ngIf="isExerciseLoading && !exerciseError"></app-loading>
-      <app-error *ngIf="exerciseError" [code]="exerciseError.code" [message]="getExerciseErrorMessage(exerciseError)"></app-error>
+    <!--#endregion-->
+    <!--#region Exercise list -->
+    <div class="tile is-9 is-10-bigscreen is-parent">
+        <div class="tile is-child width-full box p-0 mobile-unscrollable">
+            <ng-container *ngIf="!exerciseError">
+                <app-subject-ex-prev *ngFor="let exercise of exerciseList; index as i" class="panel-block" [class.is-hidden]="isExerciseLoading" [exercise]="exercise" [subjectId]="subject.id" [isLast]="isLast(i)" (ready)="isExerciseLoading = false">
+                </app-subject-ex-prev>
+            </ng-container>
+            <app-image-placeholder *ngIf="!exerciseList && !isExerciseLoading && !exerciseError"></app-image-placeholder>
+            <app-loading *ngIf="isExerciseLoading && !exerciseError"></app-loading>
+            <app-error *ngIf="exerciseError" [code]="exerciseError.code" [message]="getExerciseErrorMessage(exerciseError)"></app-error>
+        </div>
     </div>
-  </div>
-  <!--#endregion-->
+    <!--#endregion-->
 </div>
 
 <app-loading *ngIf="isLoading && errorCode === null"></app-loading>
@@ -47,15 +47,15 @@
 
 <!--#region Category template -->
 <ng-template #catList let-node>
-  <ul *ngIf="checkNodeChildren(node)" class="menu-list">
-    <ng-container *ngFor="let child of node.children">
-      <li *ngIf="child.children.length > 0">
-        <a [ngClass]="{ 'is-active': child.isSelected }" (click)="onTreeNodeClick(child)">{{ child.value | titlecase }}</a>
-        <div [appCollapsible]="!child.isSelected">
-          <ng-container *ngTemplateOutlet="catList; context: { $implicit: child }"></ng-container>
-        </div>
-      </li>
-    </ng-container>
-  </ul>
+    <ul *ngIf="checkNodeChildren(node)" class="menu-list">
+        <ng-container *ngFor="let child of node.children">
+            <li *ngIf="checkNodeIfIsCategory(child)">
+                <a [class.is-active]="child.isSelected" (click)="onTreeNodeClick(child)">{{ child.value | titlecase }}</a>
+                <div [appCollapsible]="!child.isSelected">
+                    <ng-container *ngTemplateOutlet="catList; context: { $implicit: child }"></ng-container>
+                </div>
+            </li>
+        </ng-container>
+    </ul>
 </ng-template>
 <!--#endregion-->

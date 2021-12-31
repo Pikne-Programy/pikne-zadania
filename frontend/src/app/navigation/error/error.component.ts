@@ -16,7 +16,7 @@ export class ErrorComponent {
     readonly defaultMessage = 'Ups, coś poszło nie tak!';
     readonly defaultLink = ['Powrót do wyboru przedmiotu', '/public-exercises'];
 
-    @Input() code?: number;
+    @Input() code?: number | string;
     @Input() message?: string;
     /**
      * Array with 2 elements: first - text, second - link.

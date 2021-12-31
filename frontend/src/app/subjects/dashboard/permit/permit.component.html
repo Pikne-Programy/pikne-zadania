@@ -1,0 +1,26 @@
+<div *ngIf="subjectId && assignees" class="columns height-full is-centered">
+    <div class="column is-flex is-flex-direction-column height-full is-half-tablet is-two-fifths-desktop is-one-third-widescreen is-one-forth-fullhd py-only-mobile-0">
+        <div class="panel is-flex is-flex-direction-column unscrollable">
+            <p class="panel-heading"></p>
+            <div *ngIf="!isLoading" class="panel height-full scrollable">
+                <label class="panel-block checkbox" (change)="checkAll()">
+                    <input type="checkbox" [checked]="allSelected">
+                    <span>Wszyscy</span>
+                </label>
+                <label *ngFor="let assignee of assignees" class="panel-block checkbox" [class.is-disabled]="allSelected" (change)="checkAssignee(assignee)">
+                    <input type="checkbox" [checked]="assignee.isSelected || allSelected" [disabled]="allSelected">
+                    <span>{{ assignee.name | titlecase }}</span>
+                </label>
+            </div>
+            <app-loading *ngIf="isLoading"></app-loading>
+        </div>
+        <div class="buttons is-right">
+            <button type="button" class="button is-success" (click)="submit()">Zapisz</button>
+            <button type="button" class="button is-danger" (click)="cancel()">Odrzuć</button>
+        </div>
+        <p *ngIf="submitErrorCode !== null" class="error-warning help is-danger">Coś poszło nie tak (kod błędu: {{ submitErrorCode }})</p>
+    </div>
+</div>
+
+<app-error *ngIf="errorCode !== null && !isLoading" [code]="errorCode"></app-error>
+<app-unsaved-changes-modal [open]="isConfirmExitModalOpen" (onSubmit)="onExitSubmit()" (onDiscard)="onExitDiscard()" (onCancel)="onExitCancel()"></app-unsaved-changes-modal>

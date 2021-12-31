@@ -78,6 +78,11 @@ li + li {
     }
 }
 
+.error-warning {
+    margin-top: -0.5rem;
+    margin-right: 0.5rem;
+}
+
 .cdk-drop-list-dragging li.is-drag-item:not(.cdk-drag-placeholder) {
     transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }

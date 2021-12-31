@@ -37,6 +37,7 @@
     --tab-border-color: #dbdbdb;
     --box-shadow-color: #{rgba($scheme-invert, 0.1)};
     --text-color: #{$text};
+    --text-disabled-color: #{$text-light};
     --text-invert-color: white;
     --text-selection-color: lightgrey;
     --expanded-folder-background: whitesmoke;

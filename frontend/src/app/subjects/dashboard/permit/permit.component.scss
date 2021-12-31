@@ -1,0 +1,30 @@
+:host {
+    display: block;
+    height: 100%;
+    padding: 1.5rem;
+    padding-bottom: 0;
+}
+
+label.checkbox {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+
+    & input[type="checkbox"] {
+        cursor: pointer;
+    }
+}
+
+.checkbox.is-disabled {
+    color: var(--text-disabled-color);
+    cursor: not-allowed;
+}
+
+.buttons + .error-warning {
+    margin-top: -1rem;
+    margin-bottom: 1rem;
+}
+
+.error-warning {
+    text-align: end;
+}

@@ -37,6 +37,7 @@
                         <span>Dodaj kategorię</span>
                     </button>
                     <div class="buttons is-right">
+                        <p *ngIf="submitErrorCode !== null" class="error-warning help is-danger">Coś poszło nie tak (kod błędu: {{ submitErrorCode }})</p>
                         <button class="button is-success" [class.is-loading]="isSubmitLoading" (click)="submit()">Zapisz</button>
                         <button class="button is-danger" (click)="cancel()" [disabled]="isSubmitLoading">Odrzuć</button>
                     </div>

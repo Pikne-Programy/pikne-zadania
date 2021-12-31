@@ -64,10 +64,11 @@ export class SubjectDashboardComponent implements OnInit, OnDestroy {
     }
 
     checkNodeChildren(node: ViewExerciseTreeNode): boolean {
-        return (
-            node.children.length > 0 &&
-            node.children.some((child) => child.children.length > 0)
-        );
+        return node.children.some((child) => child.url === null);
+    }
+
+    checkNodeIfIsCategory(node: ViewExerciseTreeNode): boolean {
+        return node.url === null;
     }
 
     onTreeNodeClick(node: ViewExerciseTreeNode) {

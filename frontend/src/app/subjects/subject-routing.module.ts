@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { ProgressSaveGuardService } from '../guards/progress-save-guard.service';
 import { NavComponent } from '../navigation/nav.component';
 import { SubjectDashboardComponent } from './dashboard/dashboard.component';
+import { SubjectPermitComponent } from './dashboard/permit/permit.component';
 import { ExerciseCreationComponent } from './exercise-modification/creation/creation.component';
 import { ExerciseModificationComponent } from './exercise-modification/modification/modification.component';
 import { HierarchyModificationComponent } from './hierarchy/modification/hierarchy-modification.component';
@@ -25,6 +26,11 @@ const routes: Routes = [
             {
                 path: 'dashboard/:subjectId',
                 component: SubjectDashboardComponent
+            },
+            {
+                path: 'dashboard/:subjectId/permit',
+                component: SubjectPermitComponent,
+                canDeactivate: [ProgressSaveGuardService]
             },
             {
                 path: 'exercise-edit/:subjectId/:exerciseId',
