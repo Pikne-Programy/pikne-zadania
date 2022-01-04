@@ -173,13 +173,13 @@ It has to be unique.
 [%collapsible]
 ====
 
-.It can be used by
-* all assignees of a subject.
-
 [sidebar]
 QUESTION: should we permit all teachers to use this request if a subject's `assignees` equals `null`?
-// add if so:
+// add to `It can be used by` if so:
 // or all teachers if a subject's `assignees` equals `null`.
+
+.It can be used by
+* all assignees of a subject.
 
 .Special status codes
 
@@ -435,13 +435,13 @@ The one shown above is the EquationExercise (EqEx) one.
 [%collapsible]
 ====
 
-.It can be used by
-* all assignees of a subject.
-
 [sidebar]
 QUESTION: should we permit all teachers to use this request if a subject's `assignees` equals `null`?
 // add if so:
 // or all teachers if a subject's `assignees` equals `null`.
+
+.It can be used by
+* all assignees of a subject.
 
 .Special status codes
 
@@ -476,8 +476,6 @@ QUESTION: should we permit all teachers to use this request if a subject's `assi
 ----
 
 .Notes
-
-* none
 
 ====
 
@@ -804,8 +802,6 @@ With this request, it is not possible to register hard-coded users (like `root`)
 
 .Notes
 
-* none
-
 ====
 
 === User
@@ -849,7 +845,7 @@ With this request, it is not possible to register hard-coded users (like `root`)
 
 ====
 
-.`POST /api/user/update` - update user's info[[POST_api_user_update]]
+.`POST /api/user/update` - update user's info [[POST_api_user_update]]
 [%collapsible]
 ====
 
@@ -908,8 +904,6 @@ With this request, it is not possible to register hard-coded users (like `root`)
 ----
 
 .Notes
-
-* none
 
 ====
 
@@ -1004,8 +998,6 @@ With this request, it is not possible to register hard-coded users (like `root`)
 ----
 
 .Notes
-
-* none
 
 ====
 
@@ -1122,40 +1114,14 @@ or `null` (in that case, registration will be closed).
 
 .Notes
 
-* none
-
 ====
 
 ////
 
-== Used phrases
+== Notes database
 
-.It can be used by
 [%collapsible]
 ====
-* anyone,
-* all teachers,
-* or all teachers if a subject's `assignees` equals `null`,
-* anyone if a subject is public and an exercise is listed in a subject's hierarchy,
-* all assignees of a subject,
-* anyone if a subject is public,
-* all authorized,
-* all authorized if a request is referring to the User,
-* all authorized if a request is referring to the User's team,
-* the assignee of the team of the requested user,
-* the assignee of the requested team,
-* all teachers,
-* anyone who has a valid invitation,
-====
-
-.Notes
-[%collapsible]
-====
-
-----
-get tags:
-(?<=\.Notes\n[^[]*)^// (.*)\n
-----
 
 // seed+?
 * The `seed` property is optional.
