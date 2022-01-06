@@ -203,7 +203,6 @@ export class SubjectService {
       const inDb = dbSubjects.has(id);
 
       if (inDisk && !inDb) {
-        //FIXME that sync db and disk but why?
         await this.subjectRepository.collection.insertOne({
           id,
           assignees: null,

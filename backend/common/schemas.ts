@@ -1,13 +1,6 @@
 // deno-lint-ignore no-control-regex
 const notControlRegex = /^[^\u0000-\u001f]*$/;
 
-const longestSupportedUserNameLength =
-  "Wierzchosława Achmistrowicz-Wachmistrowicz".length + 3; //FIXME ? maybe config
-
-const longestSupportedTeamNameLength = 42;
-
-const sha256Regex = /^[0-9a-f]{64}$/;
-
 export const reservedTeamInvitation = "\u0011";
 
 export const comb = (...args: ({ source: string } | string)[]) =>
@@ -37,11 +30,11 @@ export const kebabCase = /^[a-z-0-9]+$/;
 /** src: https://stackoverflow.com/a/21151612/6732111 */
 export const base64of256bitsRegex = /^[A-Za-z0-9+/]{42}[AEIMQUYcgkosw048]=$/;
 
-export const userIdOptions = { strictType: true, pattern: sha256Regex };
+export const userIdOptions = { strictType: true, pattern: /^[0-9a-f]{64}$/ };
 export const userNameOptions = {
   strictType: true,
   pattern: notControlRegex,
-  maxLength: longestSupportedUserNameLength,
+  maxLength: "Wierzchosława Achmistrowicz-Wachmistrowicz".length + 3,
 };
 export const userSeedOptions = {
   strictType: true,
@@ -59,7 +52,7 @@ export const userNumberOptions = {
 export const teamNameOptions = {
   strictType: true,
   pattern: notControlRegex,
-  maxLength: longestSupportedTeamNameLength,
+  maxLength: 42,
 };
 export const teamInvitationOptions = {
   strictType: true,

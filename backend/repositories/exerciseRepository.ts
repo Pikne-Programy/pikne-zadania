@@ -18,11 +18,10 @@ import exts from "../exts/mod.ts";
 import { Injectable } from "../core/ioc/mod.ts";
 
 type YAMLSection =
-  | {
-    // we assume that there is only one key, feel free to tell TypeScript that
-    [key: string]: YAMLSection[];
-  }
+  | // we assume that there is only one key, feel free to tell TypeScript that
+  Record<string, YAMLSection[]>
   | string;
+
 const isYAMLSection = (what: unknown): what is YAMLSection =>
   typeof what === "string" ||
   (isObjectOf((x): x is YAMLSection[] => isArrayOf(isYAMLSection, x), what) &&

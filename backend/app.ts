@@ -7,7 +7,7 @@ import { DatabaseDriver } from "./drivers/mod.ts";
 import { createApiRoutes } from "./core/mod.ts";
 import { ErrorHandlerMiddleware, LoggerMiddleware } from "./middlewares/mod.ts";
 import { Logger } from "./services/mod.ts";
-import { Authorizer } from "./controllers/mod.ts";
+import { TokenAuthController } from "./controllers/auth/mod.ts";
 import { module } from "./module.ts";
 
 export async function createApp() {
@@ -23,7 +23,8 @@ export async function createApp() {
       .listAvailable()
       .map((controller) => controllersRef.resolveOrFail(controller))
       .filter(
-        <T>(c: T): c is Exclude<T, Authorizer> => !(c instanceof Authorizer),
+        <T>(c: T): c is Exclude<T, TokenAuthController> =>
+          !(c instanceof TokenAuthController),
       ),
   );
 

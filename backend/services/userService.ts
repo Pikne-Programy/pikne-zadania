@@ -15,7 +15,7 @@ export class UserService {
     private teamRepository: TeamRepository,
   ) {}
 
-  //FIXME lol second version of this
+  //FIXME move to permissions
   private async isAssigneeOf(assignee: User, who: User) {
     return (
       assignee.role === UserRole.ADMIN ||

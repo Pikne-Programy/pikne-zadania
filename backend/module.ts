@@ -20,13 +20,13 @@ import {
 } from "./services/mod.ts";
 import {
   AuthController,
-  Authorizer,
   ExerciseController,
   ProblemController,
   SubjectController,
   TeamController,
   UserController,
 } from "./controllers/mod.ts";
+import { TokenAuthController } from "./controllers/auth/mod.ts";
 
 registerToken(ConfigService, "config"); //FIXME
 
@@ -52,7 +52,7 @@ export const module = () =>
       UserService,
     ])
     .registerLayer("controllers", [
-      Authorizer,
+      TokenAuthController, //this is routes factory
       //
       AuthController,
       TeamController,

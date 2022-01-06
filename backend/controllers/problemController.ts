@@ -6,65 +6,70 @@
 import { Router, RouterContext } from "../deps.ts";
 import { exerciseSchema, userSchema } from "../schemas/mod.ts";
 import { ConfigService, ProblemService } from "../services/mod.ts";
-import { controller } from "../core/mod.ts";
+import { TokenAuthController } from "./auth/mod.ts";
 import { Injectable } from "../core/ioc/mod.ts";
-import { Authorizer } from "./mod.ts";
 
 @Injectable()
 export class ProblemController {
   constructor(
-    private authorizer: Authorizer,
+    private controller: TokenAuthController,
     private config: ConfigService,
     private problemService: ProblemService,
   ) {}
 
-  get = controller({
-    schema: {
-      body: {
-        subject: exerciseSchema.subject,
-        exerciseId: exerciseSchema.id,
-        seed: userSchema.seedOptional,
+  //FIXME wrapping
+  get() {
+    return this.controller.route({
+      schema: {
+        body: {
+          subject: exerciseSchema.subject,
+          exerciseId: exerciseSchema.id,
+          seed: userSchema.seedOptional,
+        },
       },
-    },
-    status: 200,
-    handle: async (ctx: RouterContext, { body }) => {
-      const user = await this.authorizer.auth(ctx, false);
-      const { seed, response } = await this.problemService.get(user, {
-        ...body,
-        otherSeed: ctx.cookies.get("seed"),
-      });
-      ctx.cookies.set("seed", seed?.toString() ?? null, {
-        maxAge: this.config.SEED_AGE,
-      });
-      ctx.response.body = response;
-    },
-  });
-
-  update = controller({
-    schema: {
-      body: {
-        subject: exerciseSchema.subject,
-        exerciseId: exerciseSchema.id,
-        answer: exerciseSchema.answer,
+      auth: { isOptional: true },
+      status: 200,
+      handle: async (ctx: RouterContext, { body, user }) => {
+        const { seed, response } = await this.problemService.get(user, {
+          ...body,
+          otherSeed: ctx.cookies.get("seed"),
+        });
+        ctx.cookies.set("seed", seed?.toString() ?? null, {
+          maxAge: this.config.SEED_AGE,
+        });
+        ctx.response.body = response;
       },
-    },
-    status: 200,
-    handle: async (ctx: RouterContext, { body }) => {
-      const user = await this.authorizer.auth(ctx, false);
-      const { seed, response } = await this.problemService.update(user, {
-        ...body,
-        otherSeed: ctx.cookies.get("seed"),
-      });
-      ctx.cookies.set("seed", seed?.toString() ?? null, {
-        maxAge: this.config.SEED_AGE,
-      });
-      ctx.response.body = response; // ? done, correctAnswer ?
-    },
-  });
+    });
+  }
 
-  router = new Router({
-    prefix: "/subject/problem",
-  })
-    .post("/get", this.get)
-    .post("/update", this.update);
+  update() {
+    return this.controller.route({
+      schema: {
+        body: {
+          subject: exerciseSchema.subject,
+          exerciseId: exerciseSchema.id,
+          answer: exerciseSchema.answer,
+        },
+      },
+      auth: { isOptional: true },
+      status: 200,
+      handle: async (ctx: RouterContext, { body, user }) => {
+        const { seed, response } = await this.problemService.update(user, {
+          ...body,
+          otherSeed: ctx.cookies.get("seed"),
+        });
+        ctx.cookies.set("seed", seed?.toString() ?? null, {
+          maxAge: this.config.SEED_AGE,
+        });
+        ctx.response.body = response; // ? done, correctAnswer ?
+      },
+    });
+  }
+
+  router = () =>
+    new Router({
+      prefix: "/subject/problem",
+    })
+      .post("/get", this.get())
+      .post("/update", this.update());
 }

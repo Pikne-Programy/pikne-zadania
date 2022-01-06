@@ -16,6 +16,8 @@ export class DatabaseDriver {
   #db!: Database;
 
   //FIXME
+  // deno module resolution is order dependent
+  // that forces us to use custom token for this
   constructor(@Inject("config") private config: ConfigService) {}
 
   init() {
@@ -24,7 +26,7 @@ export class DatabaseDriver {
 
   async connect() {
     this.client = new MongoClient();
-    //FIXME does not connect do this?
+    //? does not connect do this?
     await delay(this.config.MONGO_CONF.time); // wait for database
     await this.client.connect(this.config.MONGO_CONF.url); // throwable
     this.#db = this.client.database(this.config.MONGO_CONF.db);
