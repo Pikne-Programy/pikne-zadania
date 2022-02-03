@@ -14,11 +14,11 @@ export class ProblemController {
   constructor(
     private controller: TokenAuthController,
     private config: ConfigService,
-    private problemService: ProblemService
+    private problemService: ProblemService,
   ) {}
 
   // FIXME wrapping
-  // probably updating TS version should work 4.3.2 -> 4.3.5
+  // probably updating TS version should work
   get() {
     return this.controller.route({
       schema: {

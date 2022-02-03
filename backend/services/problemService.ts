@@ -16,7 +16,6 @@ export class ProblemService {
     private userRepository: UserRepository,
   ) {}
 
-  //FIXME all this stuff with seeds
   private getSeed = (
     cookie: string | undefined,
     seed: number | null,
@@ -30,7 +29,7 @@ export class ProblemService {
       : +(cookie ?? `${generateSeed()}`);
 
   async get(
-    currentUser: User | Guest, //FIXME guest
+    currentUser: User | Guest,
     {
       subject: subjectId,
       exerciseId,
@@ -60,7 +59,7 @@ export class ProblemService {
 
     return {
       response,
-      seed: !currentUser ? seed : null, //FIXME guest
+      seed: !isUser(currentUser) ? seed : null,
     };
   }
 

@@ -7,7 +7,7 @@ import {
 } from "../services/mod.ts";
 import { UserRoles } from "../models/mod.ts";
 import { delay } from "../deps.ts";
-import { CustomDictError } from "../common/mod.ts";
+import { CustomDictError, ROOT_TEAM } from "../common/mod.ts";
 import { generateSeed } from "../utils/mod.ts";
 import { Injectable } from "../core/ioc/mod.ts";
 
@@ -59,7 +59,7 @@ export class AuthService {
     await this.userRepository.collection.insertOne(user);
 
     // admin team
-    if (team.id !== 0) {
+    if (team.id !== ROOT_TEAM) {
       await this.teamRepository.arrayPush(team, "members", id);
     }
   }

@@ -3,7 +3,11 @@ import { Team, User } from "../models/mod.ts";
 import { httpErrors } from "../deps.ts";
 import { Injectable } from "../core/ioc/mod.ts";
 import type { onInit } from "../core/types/mod.ts";
-import { Actions, reservedTeamInvitation } from "../common/mod.ts";
+import {
+  Actions,
+  reservedTeamInvitation,
+  TEACHER_TEAM,
+} from "../common/mod.ts";
 import { HashService } from "./mod.ts";
 
 @Injectable()
@@ -190,12 +194,12 @@ export class TeamService implements onInit {
   }
   async init() {
     // create static teachers' team if not already created
-    if (await this.teamRepository.get(1)) {
+    if (await this.teamRepository.get(TEACHER_TEAM)) {
       return;
     }
 
     await this.teamRepository.collection.insertOne({
-      id: 1,
+      id: TEACHER_TEAM,
       name: "Teachers",
       // teachers' team
       assignee: this.hashService.hash("root"),

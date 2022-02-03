@@ -5,6 +5,7 @@ import { Injectable } from "../core/ioc/mod.ts";
 import type { onInit } from "../core/types/mod.ts";
 import { generateSeed } from "../utils/mod.ts";
 import { ConfigService, HashService, Logger } from "./mod.ts";
+import { ROOT_TEAM } from "../common/mod.ts";
 
 @Injectable()
 export class UserService implements onInit {
@@ -106,11 +107,11 @@ export class UserService implements onInit {
     ) => this.logger.warn(`WARN: ${what} is present. ${why}`);
 
     const addRoot = async (dhPassword: string) => {
-      const user = {
+      const rootUser = {
         id: this.hashService.hash("root"),
         login: "root",
         name: "root",
-        team: 0,
+        team: ROOT_TEAM,
         dhPassword,
         role: UserRoles.ADMIN,
         seed: generateSeed(),
@@ -118,9 +119,13 @@ export class UserService implements onInit {
         exercises: {},
       };
 
-      await this.userRepository.collection.updateOne({ id: user.id }, user, {
-        upsert: true,
-      });
+      await this.userRepository.collection.updateOne(
+        { id: rootUser.id },
+        rootUser,
+        {
+          upsert: true,
+        },
+      );
     };
 
     const root = await this.userRepository.get(this.hashService.hash("root"));

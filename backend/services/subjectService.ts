@@ -131,7 +131,8 @@ export class SubjectService implements onInit {
     }
 
     const response = await iterateSection(
-      //FIXME
+      //FIXME we already pass both 'exerciseRepository' and 'subjectId'
+      //no need for this arg
       this.exerciseRepository._structure[subjectId],
       subjectId,
       raw,
@@ -185,7 +186,6 @@ export class SubjectService implements onInit {
       await this.subjectRepository.collection.find().map(({ id }) => id),
     );
 
-    // TODO: see FindCursor (without .toArray())
     const allSubjects = new Set([...diskSubjects, ...dbSubjects]);
 
     for (const id of allSubjects) {
