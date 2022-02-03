@@ -7,7 +7,7 @@ type team = { teamId: number };
 type exercise = { subject: string; exerciseId: string };
 type subject = { subject: string };
 type description = { description: string };
-type whatever = { [key: string]: unknown };
+type whatever = Record<string, unknown>;
 type errors = {
   UserAlreadyExists: user;
   UserNotFound: user;

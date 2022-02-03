@@ -12,6 +12,14 @@ export { default as chalk } from "https://deno.land/x/chalk_deno@v4.1.1-deno/sou
 export { assert } from "https://deno.land/std@0.100.0/testing/asserts.ts";
 export { KahnGraph } from "https://deno.land/x/didi_algorithms@v0.0.11/mod.ts";
 export { Reflect } from "https://deno.land/x/reflect_metadata@v0.1.12/mod.ts";
+export { Ability, AbilityBuilder } from "https://esm.sh/@casl/ability";
+import {
+  AbilityClass,
+  CanParameters,
+  ExtractSubjectType,
+  InferSubjects,
+} from "https://esm.sh/@casl/ability";
+export type { AbilityClass, CanParameters, ExtractSubjectType, InferSubjects };
 
 export { parse } from "https://deno.land/std@0.100.0/encoding/yaml.ts";
 export {

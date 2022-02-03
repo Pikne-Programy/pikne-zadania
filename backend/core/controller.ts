@@ -23,21 +23,22 @@ interface IController<
   S extends ValidationSchema | undefined | never,
   A extends IAuthOptions,
   U,
+  G,
 > {
   auth?: A;
   schema?: S;
   status?: Status;
   handle: (
     ctx: RouterContext,
-    payload: mapSchema<defaultSchema<S>> & { user: AuthOptions2User<A, U> },
+    payload: mapSchema<defaultSchema<S>> & { user: AuthOptions2User<A, U, G> },
   ) => unknown;
 }
 
-export abstract class Controller<U = never> {
-  abstract auth<A extends IAuthOptions>(
+export abstract class Controller<U = never, G = never> {
+  abstract auth<A extends IAuthOptions = IAuthOptions>(
     ctx: RouterContext,
     options: A,
-  ): AuthOptions2User<A, U> | Promise<AuthOptions2User<A, U>>;
+  ): AuthOptions2User<A, U, G> | Promise<AuthOptions2User<A, U, G>>;
 
   route<
     S extends ValidationSchema | undefined | never = undefined,
@@ -47,7 +48,7 @@ export abstract class Controller<U = never> {
     handle,
     schema = {},
     auth,
-  }: IController<S, A, U>): OakMiddleware {
+  }: IController<S, A, U, G>): OakMiddleware {
     return async (ctx: RouterContext) => {
       ctx.response.status = status!; //can be assigned anyway
 
@@ -76,7 +77,7 @@ export abstract class Controller<U = never> {
         throw new httpErrors["BadRequest"]();
       });
 
-      const user = await this.auth(ctx, auth);
+      const user = await this.auth<A>(ctx, auth!);
 
       return handle(ctx, { ...parsed, user: user! });
     };

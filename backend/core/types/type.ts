@@ -5,6 +5,3 @@ export interface Type<
 > extends Function {
   new (...a: A): T;
 }
-export interface SameType<T> extends Function {
-  new (a: T): T;
-}

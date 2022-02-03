@@ -1,6 +1,6 @@
 import { Collection } from "../deps.ts";
 import { CustomDictError } from "../common/mod.ts";
-import { Awaited, KeysMatching, SameType } from "../core/types/mod.ts";
+import { Awaited, KeysMatching, onInit, Type } from "../core/types/mod.ts";
 import { DatabaseDriver } from "../drivers/mod.ts";
 import { Injectable } from "../core/ioc/mod.ts";
 
@@ -12,8 +12,8 @@ type Id<T extends Entity> = T["id"];
 type PickId<T extends Entity> = Pick<T, "id">;
 
 @Injectable()
-export class Repository<T extends Entity> {
-  static registerFor = <S extends Entity>(e: SameType<S>) => {
+export class Repository<T extends Entity> implements onInit {
+  static registerFor = <S extends Entity>(e: Type<S>) => {
     @Injectable()
     class E extends Repository<S> {
       constructor(db: DatabaseDriver) {
@@ -28,7 +28,7 @@ export class Repository<T extends Entity> {
   };
 
   public collection!: Collection<T>;
-  constructor(public readonly type: SameType<T>, private db: DatabaseDriver) {}
+  constructor(public readonly type: Type<T>, private db: DatabaseDriver) {}
 
   init() {
     this.collection = this.db.getCollection<T>(
@@ -36,7 +36,7 @@ export class Repository<T extends Entity> {
     );
   }
 
-  protected getCollectionName(e: SameType<T>) {
+  protected getCollectionName(e: Type<T>) {
     return e.name.toLocaleLowerCase() + "s";
   }
 
@@ -52,8 +52,9 @@ export class Repository<T extends Entity> {
 
   async get(id: Id<T>) {
     const entity = await this.collection.findOne({ id });
-    return entity ? new this.type(entity) : entity;
+    return entity ? Object.assign(new this.type(), entity) : entity;
   }
+
   async getOrFail(id: Id<T>) {
     const entity = await this.get(id);
 
@@ -63,12 +64,14 @@ export class Repository<T extends Entity> {
 
     return entity;
   }
+
   async delete(user: PickId<T>) {
     const deletedCount = await this.collection.deleteOne({ id: user.id });
     if (!deletedCount) {
       throw new CustomDictError("NotFound", {});
     }
   }
+
   arrayPush<P extends KeysMatching<T, unknown[]>>(
     team: PickId<T>,
     arrProp: P[0],
@@ -83,6 +86,7 @@ export class Repository<T extends Entity> {
       )
       .then(this.#zeroMatch2notFound);
   }
+
   arrayPull<P extends KeysMatching<T, unknown[]>>(
     team: PickId<T>,
     arrProp: P[0],

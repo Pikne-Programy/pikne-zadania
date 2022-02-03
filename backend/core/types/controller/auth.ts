@@ -1,5 +1,11 @@
-export type IAuthOptions = undefined | boolean | { isOptional: boolean };
-
-export type AuthOptions2User<O extends IAuthOptions, U> = O extends true ? U
-  : O extends { isOptional: true } ? U | undefined
-  : undefined;
+export type IAuthOptions = undefined | boolean | "optional";
+/**
+ * undefined->false
+ *
+ * true -> U
+ * 'optional' -> U | G
+ * false -> G
+ */
+export type AuthOptions2User<O extends IAuthOptions, U, G> = O extends true ? U
+  : O extends "optional" ? U | G
+  : G;

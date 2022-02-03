@@ -14,7 +14,7 @@ const algos = [
   "PS256",
   "PS512",
 ] as const;
-//FIXME pointless
+
 const _exhaustive: ReadonlyArray<Algorithm> = algos; // fails if algos contains unsupported algorithms
 const isJWTAlgo = (x?: string): x is Algorithm =>
   x != null && algos.includes(x as Algorithm); // fails if algos does not specifies all supported algorithms

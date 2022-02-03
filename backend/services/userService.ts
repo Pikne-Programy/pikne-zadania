@@ -1,12 +1,13 @@
 import { TeamRepository, UserRepository } from "../repositories/mod.ts";
-import { User, UserRole } from "../models/mod.ts";
+import { User, UserRoles } from "../models/mod.ts";
 import { httpErrors } from "../deps.ts";
 import { Injectable } from "../core/ioc/mod.ts";
+import type { onInit } from "../core/types/mod.ts";
 import { generateSeed } from "../utils/mod.ts";
 import { ConfigService, HashService, Logger } from "./mod.ts";
 
 @Injectable()
-export class UserService {
+export class UserService implements onInit {
   constructor(
     private logger: Logger,
     private hashService: HashService,
@@ -18,7 +19,7 @@ export class UserService {
   //FIXME move to permissions
   private async isAssigneeOf(assignee: User, who: User) {
     return (
-      assignee.role === UserRole.ADMIN ||
+      assignee.role === UserRoles.ADMIN ||
       assignee.id ===
         (await this.teamRepository.get(who.team).then((team) => team?.assignee))
     );
@@ -26,7 +27,7 @@ export class UserService {
 
   async findOne(
     currentUser: User,
-    { userId: targetId }: { userId?: User["id"] },
+    { userId: targetId }: { userId: string | null },
   ) {
     const userId = targetId || currentUser.id;
 
@@ -111,7 +112,7 @@ export class UserService {
         name: "root",
         team: 0,
         dhPassword,
-        role: UserRole.ADMIN,
+        role: UserRoles.ADMIN,
         seed: generateSeed(),
         tokens: [],
         exercises: {},

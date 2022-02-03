@@ -3,15 +3,15 @@ import {
   SubjectRepository,
   UserRepository,
 } from "../repositories/mod.ts";
-import { User } from "../models/mod.ts";
+import { Guest, Subject, User } from "../models/mod.ts";
 import { httpErrors } from "../deps.ts";
-import { isAssigneeOf, isPermittedToView } from "../core/mod.ts";
-import { CustomDictError } from "../common/mod.ts";
+import { Actions, CustomDictError } from "../common/mod.ts";
 import { iterateSection, joinThrowable, Section } from "../utils/mod.ts";
 import { Injectable } from "../core/ioc/mod.ts";
+import type { onInit } from "../core/types/mod.ts";
 
 @Injectable()
-export class SubjectService {
+export class SubjectService implements onInit {
   constructor(
     private userRepository: UserRepository,
     private subjectRepository: SubjectRepository,
@@ -24,9 +24,7 @@ export class SubjectService {
   ) {
     const subject = await this.subjectRepository.getOrFail(subjectId);
 
-    if (!currentUser.isTeacher() || !isPermittedToView(subject, currentUser)) {
-      throw new httpErrors["Forbidden"]();
-    }
+    currentUser.assertCan(Actions.READ, subject);
 
     const assignees = await Promise.all(
       (subject.assignees || []).map(async (userId) => ({
@@ -36,18 +34,17 @@ export class SubjectService {
     );
 
     return {
-      // learn more: https://pikne-programy.github.io/pikne-zadania/API#:~:text=POST%20/api/subject/create%20%2D%20create%20a%20new%20subject
       assignees: assignees.length ? assignees : null,
     };
   }
 
-  async findAll(currentUser?: User) {
+  async findAll(currentUser: User | Guest) {
     const allSubjects = this.exerciseRepository.listSubjects();
     const selection = await Promise.all(
       allSubjects.map(async (subjectId) => {
         //FIXME n+1
         const subject = await this.subjectRepository.get(subjectId);
-        return subject && isPermittedToView(subject, currentUser);
+        return subject && currentUser.can(Actions.READ, subject);
       }),
     );
     const subjects = allSubjects.filter((_, i) => selection[i]);
@@ -59,9 +56,8 @@ export class SubjectService {
     currentUser: User,
     { subject: id, assignees }: { subject: string; assignees: string[] | null },
   ) {
-    if (!currentUser.isTeacher()) {
-      throw new httpErrors["Forbidden"]();
-    }
+    currentUser.assertCan(Actions.CREATE, Subject);
+
     // TODO: all assignees exist?
     const subject = await this.subjectRepository.get(id);
 
@@ -79,14 +75,12 @@ export class SubjectService {
       assignees,
     }: { subject: string; assignees: string[] | null },
   ) {
-    const subject = await this.subjectRepository.get(subjectId);
+    const subject = await this.subjectRepository.getOrFail(subjectId);
 
-    if (!isAssigneeOf(subject, currentUser)) {
-      throw new httpErrors["Forbidden"]();
-    }
+    currentUser.assertCan(Actions.UPDATE, subject);
 
     await this.subjectRepository.collection.updateOne(
-      { id: subject!.id },
+      { id: subject.id },
       {
         $set: { assignees },
       },
@@ -94,30 +88,28 @@ export class SubjectService {
   }
 
   async getStaticPath(
-    currentUser: User | undefined,
+    currentUser: User | Guest,
     { subject }: { subject: string },
   ) {
-    if (
-      !isPermittedToView(
-        await this.subjectRepository.getOrFail(subject),
-        currentUser,
-      )
-    ) {
-      throw new httpErrors["Forbidden"]();
-    }
+    currentUser.assertCan(
+      Actions.READ,
+      await this.subjectRepository.getOrFail(subject),
+    );
+
     return {
       root: this.exerciseRepository.getStaticContentPath(subject),
     };
   }
 
   async putStatic(
-    currentUser: User | undefined,
+    currentUser: User,
     { subject, filename }: { subject: string; filename: string },
     content: Uint8Array,
   ) {
-    if (!isAssigneeOf(await this.subjectRepository.get(subject), currentUser)) {
-      throw new httpErrors["Forbidden"]();
-    }
+    currentUser.assertCan(
+      Actions.UPDATE,
+      await this.subjectRepository.getOrFail(subject),
+    );
 
     //! resource-intensive
     await Deno.writeFile(
@@ -131,31 +123,28 @@ export class SubjectService {
   }
 
   async getHierarchy(
-    currentUser: User | undefined,
-    { subject, raw }: { subject: string; raw: boolean },
+    currentUser: User | Guest,
+    { subject: subjectId, raw }: { subject: string; raw: boolean },
   ) {
-    if (!this.exerciseRepository.listSubjects().includes(subject)) {
+    if (!this.exerciseRepository.listSubjects().includes(subjectId)) {
       throw new httpErrors["NotFound"]();
     }
 
     const response = await iterateSection(
       //FIXME
-      this.exerciseRepository._structure[subject],
-      subject,
+      this.exerciseRepository._structure[subjectId],
+      subjectId,
       raw,
       this.exerciseRepository,
       currentUser,
     );
-
-    if (
-      isAssigneeOf(await this.subjectRepository.get(subject), currentUser) &&
-      !raw
-    ) {
+    const subject = await this.subjectRepository.get(subjectId);
+    if (subject && currentUser.can(Actions.READ, subject) && !raw) {
       response.unshift({
         name: "",
-        children: this.exerciseRepository.unlisted[subject]
+        children: this.exerciseRepository.unlisted[subjectId]
           .map((children) => {
-            const exercise = this.exerciseRepository.get(subject, children);
+            const exercise = this.exerciseRepository.get(subjectId, children);
 
             return (
               exercise && {
@@ -178,9 +167,10 @@ export class SubjectService {
     currentUser: User,
     { subject, hierarchy }: { subject: string; hierarchy: Section[] },
   ) {
-    if (!isAssigneeOf(await this.subjectRepository.get(subject), currentUser)) {
-      throw new httpErrors["Forbidden"]();
-    }
+    currentUser.assertCan(
+      Actions.UPDATE,
+      await this.subjectRepository.getOrFail(subject),
+    );
 
     if (!this.exerciseRepository.listSubjects().includes(subject)) {
       throw new httpErrors["NotFound"]();

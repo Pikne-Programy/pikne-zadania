@@ -3,8 +3,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { isObject } from "../utils/mod.ts";
-import { User } from "../models/mod.ts";
+import { Guest, User } from "../models/mod.ts";
 import { ExerciseRepository } from "../repositories/mod.ts";
+import { isUser } from "../common/mod.ts";
 
 type SubSection = {
   name: string;
@@ -47,7 +48,7 @@ export const iterateSection = async (
   subject: string,
   raw: boolean,
   exerciseRepository: ExerciseRepository,
-  user?: User,
+  user: User | Guest,
 ) => {
   const sectionArray: unknown[] = [];
 
@@ -60,7 +61,7 @@ export const iterateSection = async (
           children: el.children,
           type: raw ? undefined : exercise.type,
           description: raw ? undefined : exercise.description,
-          done: raw || user === undefined
+          done: raw || !isUser(user)
             ? undefined
             : user.exercises[exerciseRepository.uid(subject, el.children)] ??
               null,

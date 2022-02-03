@@ -14,10 +14,11 @@ export class ProblemController {
   constructor(
     private controller: TokenAuthController,
     private config: ConfigService,
-    private problemService: ProblemService,
+    private problemService: ProblemService
   ) {}
 
-  //FIXME wrapping
+  // FIXME wrapping
+  // probably updating TS version should work 4.3.2 -> 4.3.5
   get() {
     return this.controller.route({
       schema: {
@@ -27,7 +28,7 @@ export class ProblemController {
           seed: userSchema.seedOptional,
         },
       },
-      auth: { isOptional: true },
+      auth: "optional",
       status: 200,
       handle: async (ctx: RouterContext, { body, user }) => {
         const { seed, response } = await this.problemService.get(user, {
@@ -51,7 +52,7 @@ export class ProblemController {
           answer: exerciseSchema.answer,
         },
       },
-      auth: { isOptional: true },
+      auth: "optional",
       status: 200,
       handle: async (ctx: RouterContext, { body, user }) => {
         const { seed, response } = await this.problemService.update(user, {

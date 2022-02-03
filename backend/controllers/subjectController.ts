@@ -34,7 +34,7 @@ export class SubjectController {
   findAll() {
     return this.controller.route({
       status: 200,
-      auth: { isOptional: true },
+      auth: "optional",
       handle: async (ctx: RouterContext, { user }) => {
         ctx.response.body = await this.subjectService.findAll(user);
       },
@@ -81,7 +81,7 @@ export class SubjectController {
           filename: vs.string({ strictType: true }),
         },
       },
-      auth: { isOptional: true },
+      auth: "optional",
       handle: async (ctx: RouterContext, { params, user }) => {
         const path = await this.subjectService.getStaticPath(user, params);
         await send(ctx, params.filename, path); // there's a problem with no permission to element
@@ -127,7 +127,7 @@ export class SubjectController {
           raw: vs.boolean({ strictType: true }),
         },
       },
-      auth: { isOptional: true },
+      auth: "optional",
       status: 200,
       handle: async (ctx: RouterContext, { body, user }) => {
         ctx.response.body = await this.subjectService.getHierarchy(user, body);

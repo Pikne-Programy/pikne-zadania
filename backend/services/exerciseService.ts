@@ -1,7 +1,6 @@
 import { User } from "../models/mod.ts";
 import { ExerciseRepository, SubjectRepository } from "../repositories/mod.ts";
-import { isAssigneeOf, isPermittedToView } from "../core/mod.ts";
-import { httpErrors } from "../deps.ts";
+import { Actions } from "../common/mod.ts";
 import { Injectable } from "../core/ioc/mod.ts";
 
 @Injectable()
@@ -15,9 +14,10 @@ export class ExerciseService {
     currentUser: User,
     { subject, exerciseId }: { subject: string; exerciseId: string },
   ) {
-    if (!isAssigneeOf(await this.subjectRepository.get(subject), currentUser)) {
-      throw new httpErrors["Forbidden"]();
-    }
+    currentUser.assertCan(
+      Actions.READ,
+      await this.subjectRepository.getOrFail(subject),
+    );
 
     const content = await this.exerciseRepository.getContent(
       subject,
@@ -28,14 +28,10 @@ export class ExerciseService {
   }
 
   async findAll(currentUser: User, { subject }: { subject: string }) {
-    if (
-      !isPermittedToView(
-        await this.subjectRepository.getOrFail(subject),
-        currentUser,
-      )
-    ) {
-      throw new httpErrors["Forbidden"]();
-    }
+    currentUser.assertCan(
+      Actions.READ,
+      await this.subjectRepository.getOrFail(subject),
+    );
 
     const exercises = this.exerciseRepository
       .listExercises(subject)
@@ -61,9 +57,10 @@ export class ExerciseService {
       content,
     }: { subject: string; exerciseId: string; content: string },
   ) {
-    if (!isAssigneeOf(await this.subjectRepository.get(subject), currentUser)) {
-      throw new httpErrors["Forbidden"]();
-    }
+    currentUser.assertCan(
+      Actions.CREATE,
+      await this.subjectRepository.getOrFail(subject),
+    );
 
     await this.exerciseRepository.add(subject, exerciseId, content);
   }
@@ -76,13 +73,11 @@ export class ExerciseService {
       content,
     }: { subject: string; exerciseId: string; content: string },
   ) {
-    const subject = await this.subjectRepository.get(subjectId);
+    const subject = await this.subjectRepository.getOrFail(subjectId);
 
-    if (!isAssigneeOf(subject, currentUser)) {
-      throw new httpErrors["Forbidden"]();
-    }
+    currentUser.assertCan(Actions.UPDATE, subject);
 
-    await this.exerciseRepository.update(subject!.id, exerciseId, content);
+    await this.exerciseRepository.update(subject.id, exerciseId, content);
   }
 
   preview({ content, seed }: { content: string; seed: number }) {

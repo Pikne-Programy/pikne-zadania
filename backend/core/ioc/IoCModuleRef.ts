@@ -28,14 +28,17 @@ export class ModuleRef<V extends Type = Type> {
   listInstances() {
     return Array.from(this.#mapping.values());
   }
+
   entries() {
     return this.listAvailable().map(
       (service) => [getOrRegisterToken(service), service] as const,
     );
   }
+
   listAvailable() {
     return Array.from(this.#mapping.keys());
   }
+
   listAvailableTokens() {
     return this.listAvailable().map(getOrRegisterToken);
   }

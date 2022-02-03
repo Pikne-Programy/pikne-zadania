@@ -1,13 +1,13 @@
 import { TeamRepository, UserRepository } from "../repositories/mod.ts";
 import { Team, User } from "../models/mod.ts";
 import { httpErrors } from "../deps.ts";
-import { isAssignee } from "../core/mod.ts";
 import { Injectable } from "../core/ioc/mod.ts";
-import { reservedTeamInvitation } from "../common/mod.ts";
+import type { onInit } from "../core/types/mod.ts";
+import { Actions, reservedTeamInvitation } from "../common/mod.ts";
 import { HashService } from "./mod.ts";
 
 @Injectable()
-export class TeamService {
+export class TeamService implements onInit {
   constructor(
     private hashService: HashService,
     private userRepository: UserRepository,
@@ -15,31 +15,29 @@ export class TeamService {
   ) {}
 
   async findOne(currentUser: User, { teamId }: { teamId: Team["id"] }) {
-    if (!currentUser.isTeacher() && currentUser.team !== teamId) {
-      throw new httpErrors["Forbidden"]();
-    }
+    currentUser.assertCan(Actions.READ, { id: teamId } as Team, "id");
 
     const team = await this.teamRepository.getOrFail(teamId);
 
-    const verbosity = !currentUser.isTeacher()
+    const verbosity = currentUser.cannot(Actions.READ_PARTIAL_INFO, new Team())
       ? 0
-      : isAssignee(team, currentUser)
+      : currentUser.can(Actions.READ_FULL_INFO, team)
       ? 2
       : 1;
 
     return {
       name: team.name,
       assignee: {
-        userId: verbosity >= 1 ? team.assignee : undefined,
+        userId: verbosity > 0 ? team.assignee : undefined,
         name: (await this.userRepository.get(team.assignee))?.name,
       },
-      invitation: verbosity >= 2 ? team.invitation ?? null : undefined,
+      invitation: verbosity === 2 ? team.invitation ?? null : undefined,
       members: await Promise.all(
         team.members.map((id) =>
           this.userRepository
             .get(id) //FIXME n+1
             .then((user) => ({
-              userId: verbosity >= 1 ? user?.id : undefined,
+              userId: verbosity > 0 ? user?.id : undefined,
               name: user?.name,
               number: user?.number ?? null,
             }))
@@ -49,9 +47,8 @@ export class TeamService {
   }
 
   findAll(currentUser: User) {
-    if (!currentUser.isTeacher()) {
-      throw new httpErrors["Forbidden"]();
-    } // every and only teacher is able to view all teams !
+    // every and only teacher is able to view all teams !
+    currentUser.assertCan(Actions.READ, new Team());
 
     return this.teamRepository.collection
       .find()
@@ -62,23 +59,22 @@ export class TeamService {
           userId: team.assignee,
           name: (await this.userRepository.get(team.assignee))?.name, //FIXME n+1
         },
-        invitation: isAssignee(team, currentUser)
-          ? team.invitation ?? null //FIXME wtf?
+        invitation: currentUser.can(Actions.READ_INVITATION, team)
+          ? team.invitation ?? null
           : undefined,
       }))
       .then(Promise.all);
   }
 
   async create(currentUser: User, { name }: { name: string }) {
-    if (!currentUser.isTeacher()) {
-      throw new httpErrors["Forbidden"]();
-    }
+    currentUser.assertCan(Actions.CREATE, new Team());
+
     const teamId = await this.teamRepository.collection
       .findOne(undefined, {
         sort: { id: -1 },
         projection: { id: 1 },
       })
-      .then((team) => team?.id! + 1)!;
+      .then((team) => team!.id + 1)!;
 
     await this.teamRepository.collection.insertOne({
       id: teamId,
@@ -100,20 +96,14 @@ export class TeamService {
       name,
     }: {
       teamId: Team["id"];
-      assignee: string;
+      assignee: string | null;
       invitation: string | null;
       name: string | null;
     },
   ) {
     const team = await this.teamRepository.getOrFail(teamId);
 
-    if (!currentUser.isTeacher()) {
-      throw new httpErrors["Forbidden"]();
-    }
-
-    if (!isAssignee(team, currentUser)) {
-      throw new httpErrors["Forbidden"]();
-    }
+    currentUser.assertCan(Actions.CREATE, team);
 
     if (typeof assignee === "string") {
       if (!(await this.userRepository.get(assignee))) {
@@ -180,13 +170,7 @@ export class TeamService {
   ) {
     const team = await this.teamRepository.getOrFail(teamId);
 
-    if (!currentUser.isTeacher()) {
-      throw new httpErrors["Forbidden"]();
-    }
-
-    if (!isAssignee(team, currentUser)) {
-      throw new httpErrors["Forbidden"]();
-    }
+    currentUser.assertCan(Actions.DELETE, team);
 
     await Promise.allSettled(
       team.members.map(async (uid) => {

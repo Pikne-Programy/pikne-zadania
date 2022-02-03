@@ -5,7 +5,7 @@ import {
   JWTService,
   Logger,
 } from "../services/mod.ts";
-import { UserRole } from "../models/mod.ts";
+import { UserRoles } from "../models/mod.ts";
 import { delay } from "../deps.ts";
 import { CustomDictError } from "../common/mod.ts";
 import { generateSeed } from "../utils/mod.ts";
@@ -47,7 +47,7 @@ export class AuthService {
       number,
       team: team.id,
       dhPassword: await this.hashService.secondhash(hashedPassword),
-      role: UserRole.STUDENT, //? FIXME should it be teacher if admin team
+      role: UserRoles.STUDENT, //FIXME ? should it be teacher if admin team
       seed: generateSeed(),
       tokens: [],
       exercises: {},

@@ -3,11 +3,10 @@ import {
   SubjectRepository,
   UserRepository,
 } from "../repositories/mod.ts";
-import { User } from "../models/mod.ts";
-import { httpErrors } from "../deps.ts";
-import { isAssigneeOf, isPermittedToView } from "../core/mod.ts";
+import { Guest, User, UserRoles } from "../models/mod.ts";
 import { generateSeed, JSONType } from "../utils/mod.ts";
 import { Injectable } from "../core/ioc/mod.ts";
+import { Actions, isUser } from "../common/mod.ts";
 
 @Injectable()
 export class ProblemService {
@@ -21,14 +20,17 @@ export class ProblemService {
   private getSeed = (
     cookie: string | undefined,
     seed: number | null,
-    user?: User,
+    user: User | Guest,
   ) =>
-    user
-      ? seed !== null && user.isTeacher() ? seed : user.seed ?? 0
+    isUser(user)
+      ? seed !== null &&
+          (user.role === UserRoles.ADMIN || user.role === UserRoles.TEACHER)
+        ? seed
+        : user.seed ?? 0
       : +(cookie ?? `${generateSeed()}`);
 
   async get(
-    currentUser: User | undefined,
+    currentUser: User | Guest, //FIXME guest
     {
       subject: subjectId,
       exerciseId,
@@ -43,29 +45,27 @@ export class ProblemService {
   ) {
     const subject = await this.subjectRepository.getOrFail(subjectId);
 
-    if (!isPermittedToView(subject, currentUser)) {
-      throw new httpErrors["Forbidden"]();
-    }
+    currentUser.assertCan(Actions.READ, subject);
 
-    const exercise = this.exerciseRepository.getOrFail(subject!.id, exerciseId);
+    const exercise = this.exerciseRepository.getOrFail(subject.id, exerciseId);
     const seed = this.getSeed(otherSeed, _seed, currentUser);
 
     const response = Object.assign(
       { done: 0 },
       exercise.render(seed),
-      isAssigneeOf(subject, currentUser) && {
+      currentUser.can(Actions.READ_CORRECT_ANSWER, subject) && {
         correctAnswer: exercise.getCorrectAnswer(seed),
       },
     );
 
     return {
       response,
-      seed: !currentUser ? seed : null,
+      seed: !currentUser ? seed : null, //FIXME guest
     };
   }
 
   async update(
-    currentUser: User | undefined,
+    currentUser: User | Guest,
     {
       subject,
       exerciseId,
@@ -78,14 +78,10 @@ export class ProblemService {
       otherSeed?: string;
     },
   ) {
-    if (
-      !isPermittedToView(
-        await this.subjectRepository.getOrFail(subject),
-        currentUser,
-      )
-    ) {
-      throw new httpErrors["Forbidden"]();
-    }
+    currentUser.assertCan(
+      Actions.UPDATE_PROBLEM,
+      await this.subjectRepository.getOrFail(subject),
+    );
 
     const seed = this.getSeed(otherSeed, null, currentUser);
 
@@ -93,7 +89,7 @@ export class ProblemService {
 
     const { done, info } = exercise.check(seed, answer);
 
-    if (currentUser) {
+    if (isUser(currentUser)) {
       await this.userRepository.collection.updateOne(
         { id: currentUser.id },
         {
@@ -104,7 +100,7 @@ export class ProblemService {
 
     return {
       response: { info },
-      seed: !currentUser ? seed : null,
+      seed: !isUser(currentUser) ? seed : null,
     };
   }
 }

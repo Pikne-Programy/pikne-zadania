@@ -91,9 +91,9 @@ export class TeamController {
     new Router({
       prefix: "/team",
     })
-      .get("/list", this.findAll)
-      .post("/create", this.create)
-      .post("/info", this.findOne)
-      .post("/update", this.update)
-      .post("/delete", this.remove);
+      .get("/list", this.findAll())
+      .post("/create", this.create())
+      .post("/info", this.findOne())
+      .post("/update", this.update())
+      .post("/delete", this.remove());
 }

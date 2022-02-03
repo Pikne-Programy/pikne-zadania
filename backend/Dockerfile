@@ -10,4 +10,4 @@ COPY deps.ts .
 RUN deno cache --unstable deps.ts
 ADD . .
 RUN deno cache --unstable server.ts
-CMD deno run --allow-net --unstable --allow-read=/app/exercises --allow-write=/app/exercises --allow-env --cached-only server.ts
+CMD deno run --allow-net --unstable --allow-read=/app/exercises --allow-write=/app/exercises --allow-env --cached-only --config=tsconfig.json server.ts

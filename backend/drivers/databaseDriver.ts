@@ -6,13 +6,12 @@
 import { Database, delay, MongoClient } from "../deps.ts";
 import type { ConfigService } from "../services/mod.ts";
 import { Inject, Injectable } from "../core/ioc/mod.ts";
+import type { onInit } from "../core/types/mod.ts";
 
 @Injectable()
-export class DatabaseDriver {
+export class DatabaseDriver implements onInit {
   private client?: MongoClient;
-  /**
-   * ! call connect first
-   */
+
   #db!: Database;
 
   //FIXME
@@ -20,9 +19,7 @@ export class DatabaseDriver {
   // that forces us to use custom token for this
   constructor(@Inject("config") private config: ConfigService) {}
 
-  init() {
-    return this.connect();
-  }
+  init = this.connect;
 
   async connect() {
     this.client = new MongoClient();

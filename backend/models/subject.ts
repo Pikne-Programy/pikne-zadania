@@ -5,8 +5,4 @@
 export class Subject {
   id!: string;
   assignees: string[] | null = null;
-
-  constructor(data: Subject) {
-    Object.assign(this, data);
-  }
 }

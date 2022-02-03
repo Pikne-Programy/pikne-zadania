@@ -21,7 +21,7 @@ export const getMetadata = (target: unknown) => {
 
   assert(
     isArrayOf(functionOrString, metadata),
-    `invalid metadata! expected Function[] | string[], received: ${metadata} on ${
+    `invalid metadata! expected (Function | string)[], received: ${metadata} on ${
       typeof target === "function" ? target.name : target
     }`,
   );

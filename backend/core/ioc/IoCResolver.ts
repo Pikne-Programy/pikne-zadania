@@ -116,21 +116,20 @@ export class IocResolver {
     const moduleRef = new ModuleRef(name);
 
     for (const [service, requested] of services) {
-      const args = requested.map(
-        (req: ServiceType) =>
-          this.#globalRef?.resolve(req) ||
+      const args = requested.map((req: ServiceType) =>
+        req === ModuleRef ? moduleRef : this.#globalRef?.resolve(req) ||
           previousRef?.resolve(req) ||
-          moduleRef.resolveOrFail(req),
+          moduleRef.resolveOrFail(req)
       );
 
       const instance = new service(...args);
 
       console.log(
-        `${
-          chalk.green(
-            `[${service.name}]`,
+        `${chalk.green(`[${service.name}]`)} created ${
+          chalk.yellow(
+            `(${name})`,
           )
-        } instanciated on layer ${chalk.yellow(`(${name})`)}`,
+        }`,
       );
 
       moduleRef.setMapping([service, instance]);
@@ -153,6 +152,7 @@ export class IocResolver {
   private isInitiable(instance: onInit): instance is Required<onInit> {
     return typeof instance?.init === "function";
   }
+
   private async initiate(moduleRef: ModuleRef) {
     await Promise.all(
       moduleRef
@@ -165,7 +165,7 @@ export class IocResolver {
               chalk.green(
                 `[${instance.constructor.name}]`,
               )
-            } initialized on layer ${chalk.yellow(`(${moduleRef.layer})`)}`,
+            } initialized ${chalk.yellow(`(${moduleRef.layer})`)}`,
           );
         }),
     );
