@@ -8,70 +8,73 @@
 $border: 0.1em solid white;
 
 app-about {
-  min-height: 100vh;
-  background-color: #333;
-  line-height: 1;
-  display: block;
-  padding: 0.5% 0px;
-
-  pre {
-    all: initial;
-    all: unset;
-  }
-
-  #photos {
-    width: 100vw;
+    min-height: 100vh;
+    background-color: #333;
+    line-height: 1;
     display: block;
-    margin: auto;
-    @media screen and (min-width: 1600px) {
-      width: 1600px;
-    }
-  }
+    padding: 0.5% 0px;
 
-  .main {
-    width: max-content;
-    margin: auto;
-    font-family: monospace, monospace;
-    border: $border;
-    padding: 0.1em;
-  }
+    pre {
+        all: initial;
+        all: unset;
+    }
 
-  p,
-  .main {
-    font-size: 1.9vw;
-    text-align: center;
-    color: white;
-    margin-top: 1.5%;
-    @media screen and (min-width: 768px) {
-      font-size: 0.9rem;
+    #photos {
+        width: 100vw;
+        display: block;
+        margin: auto;
+        @media screen and (min-width: 1600px) {
+            width: 1600px;
+        }
     }
-  }
 
-  .wrapper {
-    display: block;
-    border: $border;
-  }
+    .main {
+        width: max-content;
+        margin: auto;
+        font-family: monospace, monospace;
+        border: $border;
+        padding: 0.1em;
+    }
 
-  .segment {
-    padding: 0.5em;
-    &:not(:last-child) {
-      border-bottom: $border;
+    p,
+    .main {
+        font-size: 1.9vw;
+        text-align: center;
+        color: white;
+        margin-top: 1.5%;
+        @media screen and (min-width: 768px) {
+            font-size: 0.9rem;
+        }
     }
-  }
 
-  a {
-    color: aqua;
-    &:visited {
-      color: lime;
+    .wrapper {
+        display: block;
+        border: $border;
     }
-    &:hover {
-      color: violet;
+
+    .segment {
+        padding: 0.5em;
+        &:not(:last-child) {
+            border-bottom: $border;
+        }
     }
-    &.is-back-button {
-      width: 100%;
-      display: inline-block;
-      text-align: center;
-      text-decoration: underline;
+
+    a {
+        color: aqua;
+        &:visited {
+            color: lime;
+        }
+        &:hover {
+            color: violet;
+        }
     }
-  }
+
+    .is-back-button {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        & a {
+            text-decoration: underline;
+        }
+    }
 }

@@ -3,159 +3,170 @@
 @import "~bulma/sass/utilities/functions.sass";
 
 $mobile: nth(
-  $list: $size_breakpoints,
-  $n: 1,
+    $list: $size_breakpoints,
+    $n: 1,
 );
 $tablet: nth(
-  $list: $size_breakpoints,
-  $n: 2,
+    $list: $size_breakpoints,
+    $n: 2,
 );
 $widescreen: nth(
-  $list: $size_breakpoints,
-  $n: 4,
+    $list: $size_breakpoints,
+    $n: 4,
 );
 
 .is-only-mobile {
-  @media only screen and (min-width: nth($list: $tablet, $n: 2)) {
-    display: none;
-  }
+    @media only screen and (min-width: nth($list: $tablet, $n: 2)) {
+        display: none;
+    }
 }
 .is-tablet {
-  @media only screen and (max-width: nth($list: $mobile, $n: 3)) {
-    display: none;
-  }
+    @media only screen and (max-width: nth($list: $mobile, $n: 3)) {
+        display: none;
+    }
 }
 
 .panel.has-no-dividers .panel-block:not(:last-child) {
-  border-bottom: none;
+    border-bottom: none;
 }
 
 .has-hiding-buttons:not(:hover):not(:focus) {
-  & .button:not(:focus) {
-    background-color: transparent;
-    box-shadow: none;
+    & .button:not(:focus) {
+        background-color: transparent;
+        box-shadow: none;
 
-    & i.is-hiding {
-      @media only screen and (min-width: nth($list: $widescreen, $n: 2)) {
-        display: none;
-      }
+        & i.is-hiding {
+            @media only screen and (min-width: nth($list: $widescreen, $n: 2)) {
+                display: none;
+            }
+        }
     }
-  }
 }
 
 .button {
-  &.is-light:not(:hover):not(:focus):not(:active) {
-    background-color: transparent;
-  }
-  &.is-text {
-    text-decoration: none;
-  }
-  &.copy-to-clipboard {
-    height: 2rem;
-    width: 2rem;
-    padding: 0;
-    margin: -0.5rem;
-    margin-left: 0;
-    flex-shrink: 0;
-    &:focus {
-      box-shadow: none;
+    &.is-light:not(:hover):not(:focus):not(:active) {
+        background-color: transparent;
     }
-    &:focus,
-    &:hover,
-    &:active {
-      background-color: transparent;
+    &.is-text {
+        text-decoration: none;
     }
+    &.copy-to-clipboard {
+        height: 2rem;
+        width: 2rem;
+        padding: 0;
+        margin: -0.5rem;
+        margin-left: 0;
+        flex-shrink: 0;
 
-    &::before {
-      visibility: visible;
-      opacity: 1;
-      transition: 0.25s;
+        &:focus {
+            box-shadow: none;
+        }
+        &:focus,
+        &:hover,
+        &:active {
+            background-color: transparent;
+        }
 
-      color: var(--primary);
-      background-color: var(--tooltip-background);
+        &::before {
+            visibility: visible;
+            opacity: 1;
+            transition: 0.25s;
 
-      font-size: 0.8em;
-      font-weight: 700;
+            color: var(--primary);
+            background-color: var(--tooltip-background);
 
-      border: 2px solid var(--primary);
-      border-radius: 6px;
+            font-size: 0.8em;
+            font-weight: 700;
+
+            border: 2px solid var(--primary);
+            border-radius: 6px;
+        }
+
+        &.is-tooltip-hidden::before {
+            opacity: 0;
+            transition: 1s;
+        }
     }
-    &.is-tooltip-hidden::before {
-      opacity: 0;
-      transition: 1s;
-    }
-  }
 }
 
 .button-group {
-  display: flex;
-  flex-direction: column;
-  & .button {
-    flex-grow: 1;
-    margin-bottom: 0.5rem;
-  }
+    display: flex;
+    flex-direction: column;
+
+    & .button {
+        flex-grow: 1;
+        margin-bottom: 0.5rem;
+    }
 }
 
 .buttons {
-  &.is-vertical {
-    flex-direction: column;
-    flex-wrap: nowrap;
-    justify-content: center;
-    & .button {
-      width: 100%;
-      display: flex;
-      justify-content: flex-start;
-      &:not(:last-child):not(.is-fullwidth) {
-        margin-right: 0;
-      }
+    &.is-vertical {
+        flex-direction: column;
+        flex-wrap: nowrap;
+        justify-content: center;
+
+        & .button {
+            width: 100%;
+            display: flex;
+            justify-content: flex-start;
+
+            &:not(:last-child):not(.is-fullwidth) {
+                margin-right: 0;
+            }
+        }
     }
-  }
-  &.is-full .button {
-    flex-grow: 1;
-  }
-  &.actions {
-    &.small-margin {
-      margin-bottom: -0.75rem;
+    &.is-full .button {
+        flex-grow: 1;
     }
-    & .button {
-      width: 1.5em;
-      height: 1.5em;
-      padding: 0;
-      &:not(:last-child) {
-        margin-right: 1rem;
-      }
+    &.actions {
+        &.small-margin {
+            margin-bottom: -0.75rem;
+        }
+
+        & .button {
+            width: 1.5em;
+            height: 1.5em;
+            padding: 0;
+
+            &:not(:last-child) {
+                margin-right: 1rem;
+            }
+        }
     }
-  }
 }
 
 .panel-heading .button i.fa-sync-alt.is-spinning {
-  animation: spinAround 1000ms infinite linear;
+    animation: spinAround 1000ms infinite linear;
 }
 
 .fa-stack-1x {
-  top: 0;
+    top: 0;
 }
 
 .fa-stack {
-  width: 1em;
-  height: 1em;
-  line-height: 1em;
-  & .foreground {
-    overflow: hidden;
-    &.wide {
-      width: 1.5em;
-      margin-left: -3.5px;
+    width: 1em;
+    height: 1em;
+    line-height: 1em;
+    overflow: visible !important;
+
+    & .foreground {
+        overflow: hidden;
+
+        &.wide {
+            width: 1.5em;
+            margin-left: -3.5px;
+        }
     }
-  }
 }
 
 .fa-circle {
-  font-size: 21px;
-  margin-top: -3.5px;
-  margin-left: -3.5px;
-  &.wide {
-    font-size: 28px;
-    margin-top: -7px;
-    margin-left: -7px;
-  }
+    font-size: 21px;
+    margin-top: -3.5px;
+    margin-left: -3.5px;
+
+    &.wide {
+        font-size: 28px;
+        margin-top: -7px;
+        margin-left: -7px;
+    }
 }

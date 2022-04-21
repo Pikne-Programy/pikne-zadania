@@ -16,7 +16,8 @@ export const userShortcuts: [string, string, string][] = [
     ['user', '/public-exercises', 'fa-book']
 ];
 export const teacherShortcuts: [string, string, string][] = [
-    ['teacher', '/public-exercises', 'fa-book']
+    ['Stwórz nowe zadanie', `/user/subject-select/${encodeURIComponent('/subject/exercise-new')}`, 'fa-plus'],
+    ['Zadaj zadanie domowe', '/public-exercises', 'fa-book-open']
 ];
 //#endregion
 

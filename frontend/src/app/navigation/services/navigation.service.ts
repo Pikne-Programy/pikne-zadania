@@ -179,12 +179,12 @@ const loginButtons: ButtonElement[] = [
     )
 ];
 const accountButtons: ButtonElement[] = [
-    new ButtonElement(
+    /* new ButtonElement(
         'Moje konto',
         'is-primary is-inverted',
         ButtonFunctionType.DEFAULT,
         '/user'
-    ),
+    ), */
     new ButtonElement('Wyloguj', 'is-primary-dark', ButtonFunctionType.LOGOUT)
 ];
 

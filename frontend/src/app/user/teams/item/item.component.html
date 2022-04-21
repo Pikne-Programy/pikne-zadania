@@ -268,7 +268,7 @@
 
 <!--#region Action buttons -->
 <ng-template #buttonsTemplate>
-    <button *ngIf="team?.invitation !== undefined" class="button is-primary is-light" (click)="openModal(MODALS.NAME)" [disabled]="isRefreshing">
+    <button *ngIf="team?.invitation !== undefined" class="button is-primary is-light" (click)="openModal(MODALS.NAME, team?.name)" [disabled]="isRefreshing">
         <span class="icon">
             <i class="fas fa-pen"></i>
         </span>

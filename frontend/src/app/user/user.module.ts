@@ -14,6 +14,8 @@ import { TeamItemComponent } from './teams/item/item.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AchievementsComponent } from './achievements/achievements.component';
 import { TeamService } from './team.service/team.service';
+import { SubjectSelectComponent as ShortcutSubjectSelectComponent } from './dashboard/subject-select/subject-select.component';
+import { SubjectService } from '../subjects/subject.service/subject.service';
 
 @NgModule({
     declarations: [
@@ -23,7 +25,8 @@ import { TeamService } from './team.service/team.service';
         UserDashboardComponent,
         TeamsComponent,
         TeamItemComponent,
-        AchievementsComponent
+        AchievementsComponent,
+        ShortcutSubjectSelectComponent
     ],
     imports: [
         CommonModule,
@@ -34,7 +37,7 @@ import { TeamService } from './team.service/team.service';
         NavModule,
         TemplatesModule
     ],
-    providers: [TeamService],
+    providers: [TeamService, SubjectService],
     bootstrap: [UserComponent]
 })
 export class UserModule {}

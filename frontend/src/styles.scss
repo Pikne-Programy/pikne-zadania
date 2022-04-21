@@ -151,7 +151,7 @@ $dark-box-background: bulmaDarken($background, 5%);
     }
 }
 
-.panel + .panel,
+.panel:not(.tile) + .panel:not(.tile),
 .panel-heading + .panel,
 .panel-tabs + .panel {
     box-shadow: none;

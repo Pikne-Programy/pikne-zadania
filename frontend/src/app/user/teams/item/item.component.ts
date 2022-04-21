@@ -115,9 +115,35 @@ export class TeamItemComponent implements OnInit {
     private readonly InputError = 40047;
     //#endregion
 
-    openModal(type: ModalType) {
+    openModal(type: ModalType, text: string | undefined = undefined) {
         this.openedModal = type;
-        if (type === ModalType.EDIT_USER) this.userForm.reset();
+        switch (type) {
+            case ModalType.NAME:
+                this.nameForm.reset();
+                if (text) this.name!.setValue(text);
+                break;
+            case ModalType.OPEN_INV:
+                this.invitationForm.reset();
+                break;
+            case ModalType.EDIT_USER:
+                this.userForm.reset();
+                /* if (text1)
+                    this.userName?.setValue(text1);
+                if (text2)
+                    this.userNumber?.setValue(text2); */
+                if (this.selectedUser) {
+                    this.userName!.setValue(this.selectedUser.name);
+                    this.userNumber!.setValue(this.selectedUser.number);
+                }
+                break;
+
+            case null:
+            case ModalType.CLOSE_INV:
+            case ModalType.ASSIGNEE:
+            case ModalType.DELETE_USER:
+                // Do nothing
+                break;
+        }
     }
     closeModal() {
         if (!this.isModalLoading && !this.isModalSecondaryLoading) {
@@ -281,7 +307,9 @@ export class TeamItemComponent implements OnInit {
 
     editUser() {
         const newName = (this.userName!.value as string).trim();
-        const newNumber = Number(this.userNumber!.value);
+        const newNumber = this.userNumber!.value
+            ? Number(this.userNumber!.value)
+            : NaN;
         if (newName.length === 0) this.modalErrorCode = this.InputError;
         else if (this.teamId === undefined) this.errorCode = this.InternalError;
         else if (this.selectedUser) {

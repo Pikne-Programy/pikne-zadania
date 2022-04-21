@@ -1,0 +1,6 @@
+<app-select *ngIf="errorCode === null" [main-link]="mainLink" [items]="list" [header]="'Wybierz przedmiot'" [isLoading]="isLoading" [text-pipe]="'titlecase'" [suffix]="suffix"></app-select>
+<app-error *ngIf="errorCode !== null" [code]="errorCode"></app-error>
+
+<ng-template #suffix>
+    <i>&nbsp;(Prywatny)</i>
+</ng-template>

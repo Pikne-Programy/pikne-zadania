@@ -55,9 +55,9 @@
   <div class="column height-full hide-on-mobile when-null" [ngClass]="{ 'exercise': exercise }">
     <div class="box height-full is-flex is-flex-direction-column p-0">
       <!--#region Back button -->
-      <nav class="level divider-bottom is-hidden-tablet p-2 m-0" (click)="resetExercise()">
+      <nav class="level divider-bottom is-hidden-tablet p-2 m-0">
         <div class="level-left">
-          <button class="button is-rounded is-small">
+          <button class="button is-rounded is-small" (click)="resetExercise()">
             <span class="icon">
               <i class="fas fa-chevron-left"></i>
             </span>
