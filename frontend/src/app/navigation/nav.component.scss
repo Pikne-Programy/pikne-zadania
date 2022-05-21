@@ -1,43 +1,56 @@
 @use "~bulma/sass/utilities/derived-variables" as dv;
 
 .section-root {
-  position: relative;
-  overflow: hidden;
-  height: 100%;
-  width: 100%;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
 }
 
 .footer {
-  z-index: 10;
-  background-color: var(--footer-color);
-  a {
-    color: inherit;
-  }
+    z-index: 10;
+    background-color: var(--footer-color);
+    a {
+        color: inherit;
+    }
 }
 
-.box.warning {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  max-width: 100%;
-  margin: 1.5rem;
-  padding: 1rem;
-  z-index: 10;
+.notifications {
+    position: absolute;
+    bottom: 0;
+    right: 0;
 
-  & .button {
-    border: 1px solid dv.$warning-dark;
-    color: findColorInvert(dv.$warning);
-    &:not(:hover) {
-      background-color: transparent;
+    & .box {
+        width: fit-content;
+        max-width: 100%;
+        float: right;
+        margin: 1.5rem;
+        padding: 1rem;
+        z-index: 10;
+
+        &:not(:last-child) {
+            margin-bottom: 0;
+        }
+
+        &.is-primary-inverted {
+            border: 1px solid dv.$primary;
+        }
+
+        &.warning .button {
+            border: 1px solid dv.$warning-dark;
+            color: findColorInvert(dv.$warning);
+            &:not(:hover) {
+                background-color: transparent;
+            }
+        }
+        & .buttons {
+            & .button {
+                margin-left: 0.75rem;
+                margin-right: 0;
+            }
+            & p {
+                margin-bottom: 0.5rem;
+            }
+        }
     }
-  }
-  & .buttons {
-    & .button {
-      margin-left: 0.75rem;
-      margin-right: 0;
-    }
-    & p {
-      margin-bottom: 0.5rem;
-    }
-  }
 }

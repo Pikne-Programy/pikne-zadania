@@ -8,15 +8,32 @@ import { NavService } from './services/navigation.service';
     styleUrls: ['./nav.component.scss']
 })
 export class NavComponent {
-  isLoginWarningShown = false;
+    private cookiesKey = 'COOKIES_STATUS';
 
-  constructor(private navService: NavService, accountService: AccountService) {
-      accountService.getAccount().then((val) => {
-          if (!val.observable.getValue()) this.isLoginWarningShown = true;
-      });
-  }
+    isLoginWarningShown = false;
+    isCookiesNotificationShown = false;
 
-  toggleSidenav() {
-      this.navService.toggleSidenav();
-  }
+    constructor(
+        private navService: NavService,
+        accountService: AccountService
+    ) {
+        accountService.getAccount().then((val) => {
+            if (!val.observable.getValue()) this.isLoginWarningShown = true;
+        });
+        this.getCookiesStatus();
+    }
+
+    toggleSidenav() {
+        this.navService.toggleSidenav();
+    }
+
+    private getCookiesStatus() {
+        this.isCookiesNotificationShown =
+            localStorage.getItem(this.cookiesKey) !== 'true';
+    }
+
+    acceptCookies() {
+        this.isCookiesNotificationShown = false;
+        localStorage.setItem(this.cookiesKey, 'true');
+    }
 }

@@ -6,13 +6,18 @@
 
 import {
     ComponentFixture,
+    fakeAsync,
     inject,
     TestBed,
+    tick,
     waitForAsync
 } from '@angular/core/testing';
 
 import { AboutComponent } from './about.component';
 import { UpNavService } from '../navigation/services/up-navigation.service';
+import { setAsyncTimeout } from '../helper/tests/tests.utils';
+import { By } from '@angular/platform-browser';
+import { DebugElement } from '@angular/core';
 
 describe('AboutComponent', () => {
     let component: AboutComponent;
@@ -20,38 +25,48 @@ describe('AboutComponent', () => {
     const upNavServiceMock = {
         navigateBack: () => {}
     };
+    let service: UpNavService;
 
-    beforeEach(
-        waitForAsync(() => {
-            TestBed.configureTestingModule({
-                declarations: [AboutComponent],
-                providers: [
-                    { provide: UpNavService, useValue: upNavServiceMock }
-                ]
-            }).compileComponents();
+    beforeEach(waitForAsync(() => {
+        TestBed.configureTestingModule({
+            declarations: [AboutComponent],
+            providers: [{ provide: UpNavService, useValue: upNavServiceMock }]
+        }).compileComponents();
 
-            fixture = TestBed.createComponent(AboutComponent);
-            component = fixture.componentInstance;
-        })
-    );
+        fixture = TestBed.createComponent(AboutComponent);
+        component = fixture.componentInstance;
+        service = TestBed.inject(UpNavService);
+        fixture.detectChanges();
+    }));
 
     it('should create', inject([UpNavService], () => {
         expect(component).toBeTruthy();
     }));
 
-    it('should navigate back on button click', inject([UpNavService], (service: UpNavService) => {
-        const serviceSpy = spyOn(service, 'navigateBack');
-        const clickSpy = spyOn(component, 'back').and.callThrough();
-        const button = (
-            fixture.debugElement.nativeElement as HTMLElement
-        ).querySelector<HTMLElement>('.is-back-button');
+    /* it('should navigate back on button click', waitForAsync(
+        inject([UpNavService], fakeAsync((service: UpNavService) => {
+            spyOn(component, 'back').and.callThrough();
+            spyOn(service, 'navigateBack');
+            // const serviceSpy = spyOn(service, 'navigateBack');
+            // const clickSpy = spyOn(component, 'back').and.callThrough();
+            const button = (
+                fixture.debugElement.nativeElement as HTMLElement
+            ).querySelector<HTMLElement>('.is-back-button');
 
-        expect(button).withContext("can't find button").toBeTruthy();
-        button?.click();
+            expect(button).withContext("can't find button").toBeTruthy();
+            button?.dispatchEvent(new Event('click'));
 
-        fixture.whenStable().then(() => {
-            expect(clickSpy).toHaveBeenCalledWith();
-            expect(serviceSpy).toHaveBeenCalledWith();
-        });
-    }));
+            tick();
+            fixture.detectChanges();
+            // fixture.whenStable().then(() => {
+            expect(component.back).toHaveBeenCalledWith();
+            expect(service.navigateBack).toHaveBeenCalledWith();
+            // });
+        }))
+    )); */
+    it('should navigate back on button click', () => {
+        const spy = spyOn(service, 'navigateBack');
+        component.back();
+        expect(spy.calls.any()).toBeTrue();
+    });
 });
