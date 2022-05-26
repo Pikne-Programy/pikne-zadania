@@ -1,8 +1,8 @@
 API Endpoints of link:.[`pikne-zadania`]
 ========================================
 Marcin Zepp <nircek-2103@protonmail.com>
-v0.3, 2021-09-27: Revision 5
-:issue: https://github.com/Pikne-Programy/pikne-zadania/issues/34[#34]
+v0.5, 2022-05-27: Revision ⦲ (U+29B2)
+:issue: https://github.com/Pikne-Programy/pikne-zadania/issues/50[#50]
 :stylesheet: main.css
 :linkcss:
 :docinfo1:
@@ -314,6 +314,37 @@ The one shown above is the EquationExercise (EqEx) one.
 ====
 
 === Static files managing
+
+.`POST /api/subject/static/list` - list static files [[POST_api_subject_static_list]]
+[%collapsible]
+====
+
+.It can be used by
+* all assignees of a subject.
+
+.Special status codes
+
+.Request
+
+[source,json]
+----
+{
+“subject”: “fizyka”
+}
+----
+
+.Response
+
+[source,json]
+----
+{
+    “filenames”: [“rzeka.jpg”]
+}
+----
+
+.Notes
+
+====
 
 .`GET /api/subject/static/:subject/:filename` - get a static file [[GET_api_subject_static_.subject_.filename]]
 [%collapsible]
@@ -1116,6 +1147,276 @@ or `null` (in that case, registration will be closed).
 
 ====
 
+=== Session
+
+.`POST /api/session/reset` - drop and create a session [[POST_api_session_reset]]
+[%collapsible]
+====
+
+NOTE: ask to save a report
+
+.It can be used by
+* all assignees.
+
+.Special status codes
+
+.Request
+
+[source,json]
+----
+{
+“team”: 2
+}
+----
+
+.Response
+
+[source,json]
+----
+----
+
+.Notes
+
+// irreversible
+* It is https://www.diki.pl/slownik-angielskiego?q=irreversible:”irreversible”.
+++++
+<!-- diki w wiki (translation: diki in wiki) -->
+++++
+
+====
+
+.`POST /api/session/add` - add an exercise to the session [[POST_api_session_add]]
+[%collapsible]
+====
+
+.It can be used by
+* all assignees.
+
+.Special status codes
+
+.Request
+
+[source,json]
+----
+{
+“team”: 2,
+“subject”: “fizyka”,
+“eid”: “pociagi-dwa-2”
+}
+----
+
+.Response
+
+[source,json]
+----
+----
+
+.Notes
+
+====
+
+.`POST /api/session/delete` - remove the exercise from the session [[POST_api_session_delete]]
+[%collapsible]
+====
+
+.It can be used by
+* all assignees of a subject.
+
+.Special status codes
+
+.Request
+
+[source,json]
+----
+{
+“team”: 2,
+“subject”: “fizyka”,
+“eid”: “pociagi-dwa-2”
+}
+----
+
+.Response
+
+[source,json]
+----
+----
+
+.Notes
+
+====
+
+.`POST /api/session/status` - generate a current report without saving it [[POST_api_session_status]]
+[%collapsible]
+====
+
+.It can be used by
+* all assignees.
+
+.Special status codes
+
+.Request
+
+[source,json]
+----
+{
+“team”: 2
+}
+----
+
+.Response
+
+[source,json]
+----
+{
+  “exercises”: [ “fizyka/pociagi-dwa-1”,“fizyka/pociagi-dwa-2”,“fizyka/pociagi-dwa-3”,“fizyka/pociagi-dwa-4” ], 
+  “report”: [
+    {
+      “user”:  “e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855”,
+      “exercises”: [“☐”, “☒”, “⚀”, “☑”]
+    }
+  ]
+}
+----
+
+.Notes
+
+// report.exercises-length
+* `report.exercises` type is a tuple with the same length as `exercises`
+// report.exercises-enum
+* `report.exercises` is a tuple with four possible states, i. e.
+** `☐` (U+2610) - unattempted
+** `☒` (U+2612) - incorrect
+** `⚀` (U+2680) - parial
+** `☑` (U+2611) - correct
+
+====
+
+.`POST /api/session/end` - end a session / block adding new submits [[POST_api_session_end]]
+[%collapsible]
+====
+
+.It can be used by
+* all assignees.
+
+.Special status codes
+
+.Request
+
+[source,json]
+----
+{
+“team”: 2
+}
+----
+
+.Response
+
+[source,json]
+----
+----
+
+.Notes
+
+====
+
+=== Reports
+
+.`POST /api/session/report/save` - save a report to disk [[POST_api_session_report_save]]
+[%collapsible]
+====
+
+.It can be used by
+* all assignees.
+
+.Special status codes
+
+.Request
+
+[source,json]
+----
+{
+“team”: 2
+}
+----
+
+.Response
+
+[source,json]
+----
+{
+    “name”: “report_2_2022-05-26T23:33:36+02:00.txt”
+}
+----
+
+.Notes
+
+// generated-report
+* The generated report will be available at `https://zadania.infa8lo.pl/session/static/report_2_2022-05-26T23:33:36+02:00.txt` (see /api/session/static/:filename).
+
+
+====
+
+.`POST /api/session/report/list` - list reports [[POST_api_session_report_list]]
+[%collapsible]
+====
+
+// TODO: Marwyk co-author
+
+.It can be used by
+* all assignees.
+
+.Special status codes
+
+.Request
+
+[source,json]
+----
+{
+  “reports”: [
+    “report_2_2022-05-26T23:33:36+02:00.txt”,
+    “report_π_2022-05-27T01:33:66+02:00.txt”
+  ]
+}
+----
+
+.Response
+
+[source,json]
+----
+----
+
+.Notes
+
+====
+
+.`POST /api/session/report/delete` - delete a report [[POST_api_session_report_delete]]
+[%collapsible]
+====
+
+.It can be used by
+* all assignees.
+
+.Special status codes
+
+.Request
+
+[source,json]
+----
+{
+  “report”: “report_3.14_2022-05-27T01:33:66+02:00.txt”
+}
+----
+
+.Response
+
+[source,json]
+----
+----
+
+.Notes
+
+====
+
 ////
 
 == Notes database
@@ -1235,6 +1536,26 @@ With this request, it is not possible to register hard-coded users (like `root`)
 
 // subjects-:only-available
 * There are only subjects available for the User.
+
+// irreversible
+* It is https://www.diki.pl/slownik-angielskiego?q=irreversible:”irreversible”.
+++++
+<!-- diki w wiki (translation: diki in wiki) -->
+++++
+
+// report.exercises-length
+* `report.exercises` type is a tuple with the same length as `exercises`
+
+// report.exercises-enum
+* `report.exercises` is a tuple with four possible states, i. e.
+** `☐` (U+2610) - unattempted
+** `☒` (U+2612) - incorrect
+** `⚀` (U+2680) - parial
+** `☑` (U+2611) - correct
+
+// generated-report
+* The generated report will be available at `https://zadania.infa8lo.pl/session/static/report_2_2022-05-26T23:33:36+02:00.txt` (see /api/session/static/:filename).
+
 
 ====
 
