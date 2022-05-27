@@ -1,7 +1,7 @@
 API Endpoints of link:.[`pikne-zadania`]
 ========================================
 Marcin Zepp <nircek-2103@protonmail.com>
-v0.5, 2022-05-27: Revision ⦲ (U+29B2)
+v0.5, 2022-05-27: Revision 1
 :issue: https://github.com/Pikne-Programy/pikne-zadania/issues/50[#50]
 :stylesheet: main.css
 :linkcss:
@@ -173,11 +173,6 @@ It has to be unique.
 [%collapsible]
 ====
 
-[sidebar]
-QUESTION: should we permit all teachers to use this request if a subject's `assignees` equals `null`?
-// add to `It can be used by` if so:
-// or all teachers if a subject's `assignees` equals `null`.
-
 .It can be used by
 * all assignees of a subject.
 
@@ -210,7 +205,7 @@ QUESTION: should we permit all teachers to use this request if a subject's `assi
 
 === Problem managing
 
-.`POST /api/subject/problem/get` - render an exercise [[POST_api_subject_problem_get]]
+.`POST /api/subject/problem/render` - render an exercise [[POST_api_subject_problem_render]]
 [%collapsible]
 ====
 
@@ -271,11 +266,9 @@ The User can access it via the <<GET_api_subject_static_.subject_.filename,`GET 
 
 ====
 
-.`POST /api/subject/problem/update` - submit an answer & store it [[POST_api_subject_problem_update]]
+.`POST /api/subject/problem/submit` - submit an answer & store it [[POST_api_subject_problem_submit]]
 [%collapsible]
 ====
-
-// TODO: change name to submit in v0.4
 
 .It can be used by
 * anyone if a subject is public and an exercise is listed in a subject's hierarchy,
@@ -329,7 +322,7 @@ The one shown above is the EquationExercise (EqEx) one.
 [source,json]
 ----
 {
-“subject”: “fizyka”
+  "subject": "fizyka"
 }
 ----
 
@@ -338,7 +331,7 @@ The one shown above is the EquationExercise (EqEx) one.
 [source,json]
 ----
 {
-    “filenames”: [“rzeka.jpg”]
+  "filenames": ["rzeka.jpg"]
 }
 ----
 
@@ -392,8 +385,6 @@ The one shown above is the EquationExercise (EqEx) one.
 .`POST /api/subject/hierarchy/get` - read an exercise hierarchy of a subject [[POST_api_subject_hierarchy_get]]
 [%collapsible]
 ====
-
-// TODO: get rid of `raw` in v0.4
 
 .It can be used by
 * anyone if a subject is public,
@@ -466,13 +457,9 @@ The one shown above is the EquationExercise (EqEx) one.
 [%collapsible]
 ====
 
-[sidebar]
-QUESTION: should we permit all teachers to use this request if a subject's `assignees` equals `null`?
-// add if so:
-// or all teachers if a subject's `assignees` equals `null`.
-
 .It can be used by
-* all assignees of a subject.
+* all assignees of a subject,
+* or all teachers if a subject's `assignees` equals `null`.
 
 .Special status codes
 
@@ -1153,7 +1140,7 @@ or `null` (in that case, registration will be closed).
 [%collapsible]
 ====
 
-NOTE: ask to save a report
+NOTE: Remember to save a report via the <<POST_api_session_report_save,`POST /api/session/report/save`>> request.
 
 .It can be used by
 * all assignees.
@@ -1165,7 +1152,7 @@ NOTE: ask to save a report
 [source,json]
 ----
 {
-“team”: 2
+  "teamId": 2
 }
 ----
 
@@ -1178,7 +1165,7 @@ NOTE: ask to save a report
 .Notes
 
 // irreversible
-* It is https://www.diki.pl/slownik-angielskiego?q=irreversible:”irreversible”.
+* It is https://www.diki.pl/slownik-angielskiego?q=irreversible[irreversible].
 ++++
 <!-- diki w wiki (translation: diki in wiki) -->
 ++++
@@ -1190,7 +1177,8 @@ NOTE: ask to save a report
 ====
 
 .It can be used by
-* all assignees.
+* all teachers if a subject is public and an exercise is listed in a subject's hierarchy,
+* all assignees of a subject.
 
 .Special status codes
 
@@ -1199,9 +1187,9 @@ NOTE: ask to save a report
 [source,json]
 ----
 {
-“team”: 2,
-“subject”: “fizyka”,
-“eid”: “pociagi-dwa-2”
+  "teamId": 2,
+  "subject": "fizyka",
+  "exerciseId": "pociagi-dwa-2"
 }
 ----
 
@@ -1220,7 +1208,7 @@ NOTE: ask to save a report
 ====
 
 .It can be used by
-* all assignees of a subject.
+* all teachers.
 
 .Special status codes
 
@@ -1229,9 +1217,9 @@ NOTE: ask to save a report
 [source,json]
 ----
 {
-“team”: 2,
-“subject”: “fizyka”,
-“eid”: “pociagi-dwa-2”
+  "teamId": 2,
+  "subject": "fizyka",
+  "exerciseId": "pociagi-dwa-2"
 }
 ----
 
@@ -1259,7 +1247,7 @@ NOTE: ask to save a report
 [source,json]
 ----
 {
-“team”: 2
+  "teamId": 2
 }
 ----
 
@@ -1268,11 +1256,17 @@ NOTE: ask to save a report
 [source,json]
 ----
 {
-  “exercises”: [ “fizyka/pociagi-dwa-1”,“fizyka/pociagi-dwa-2”,“fizyka/pociagi-dwa-3”,“fizyka/pociagi-dwa-4” ], 
-  “report”: [
+  "finished": true,
+  "exercises": [
+    "fizyka/pociagi-dwa-1",
+    "fizyka/pociagi-dwa-2",
+    "fizyka/pociagi-dwa-3",
+    "fizyka/pociagi-dwa-4"
+  ],
+  "report": [
     {
-      “user”:  “e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855”,
-      “exercises”: [“☐”, “☒”, “⚀”, “☑”]
+      "user": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exercises": ["☐", "☒", "⚀", "☑"]
     }
   ]
 }
@@ -1281,13 +1275,13 @@ NOTE: ask to save a report
 .Notes
 
 // report.exercises-length
-* `report.exercises` type is a tuple with the same length as `exercises`
+* The `exercises` properties nested in `report` are tuples with the same length as the `exercises` property.
 // report.exercises-enum
-* `report.exercises` is a tuple with four possible states, i. e.
+* The `exercises` properties nested in `report` have elements with four possible values, i.e.
 ** `☐` (U+2610) - unattempted
-** `☒` (U+2612) - incorrect
-** `⚀` (U+2680) - parial
-** `☑` (U+2611) - correct
+** `☒` (U+2612) - incorrect answer
+** `⚀` (U+2680) - partial answer
+** `☑` (U+2611) - correct answer
 
 ====
 
@@ -1305,7 +1299,7 @@ NOTE: ask to save a report
 [source,json]
 ----
 {
-“team”: 2
+  "teamId": 2
 }
 ----
 
@@ -1321,12 +1315,47 @@ NOTE: ask to save a report
 
 === Reports
 
+.`POST /api/session/report/list` - list reports [[POST_api_session_report_list]]
+[%collapsible]
+====
+
+.It can be used by
+* all teachers.
+
+.Special status codes
+
+.Request
+
+[source,json]
+----
+----
+
+.Response
+
+[source,json]
+----
+{
+  "filenames": [
+    "report_2_2022-05-26T23:33:36+02:00.txt",
+    "report_π_2022-05-27T01:33:66+02:00.txt"
+  ]
+}
+----
+
+.Notes
+
+// generated-reports
+* Generated reports can be downloaded via the <<GET_api_session_static_.filename,`GET /api/session/static/:filename`>> request.
+
+
+====
+
 .`POST /api/session/report/save` - save a report to disk [[POST_api_session_report_save]]
 [%collapsible]
 ====
 
 .It can be used by
-* all assignees.
+* all teachers.
 
 .Special status codes
 
@@ -1335,7 +1364,7 @@ NOTE: ask to save a report
 [source,json]
 ----
 {
-“team”: 2
+  "teamId": 2
 }
 ----
 
@@ -1344,48 +1373,35 @@ NOTE: ask to save a report
 [source,json]
 ----
 {
-    “name”: “report_2_2022-05-26T23:33:36+02:00.txt”
+  "filename": "report_2_2022-05-26T23:33:36+02:00.txt"
 }
 ----
 
 .Notes
 
-// generated-report
-* The generated report will be available at `https://zadania.infa8lo.pl/session/static/report_2_2022-05-26T23:33:36+02:00.txt` (see /api/session/static/:filename).
+// generated-reports
+* Generated reports can be downloaded via the <<GET_api_session_static_.filename,`GET /api/session/static/:filename`>> request.
 
 
 ====
 
-.`POST /api/session/report/list` - list reports [[POST_api_session_report_list]]
+.`GET /api/session/static/:filename` - get a static file [[GET_api_session_static_.filename]]
 [%collapsible]
 ====
 
-// TODO: Marwyk co-author
-
 .It can be used by
-* all assignees.
+* all teachers.
 
 .Special status codes
 
 .Request
 
-[source,json]
-----
-{
-  “reports”: [
-    “report_2_2022-05-26T23:33:36+02:00.txt”,
-    “report_π_2022-05-27T01:33:66+02:00.txt”
-  ]
-}
-----
-
 .Response
 
-[source,json]
-----
-----
-
 .Notes
+
+// /static-:binary-data
+* There should be binary data with an appropriate Content-type in the response.
 
 ====
 
@@ -1394,7 +1410,7 @@ NOTE: ask to save a report
 ====
 
 .It can be used by
-* all assignees.
+* all teachers.
 
 .Special status codes
 
@@ -1403,7 +1419,7 @@ NOTE: ask to save a report
 [source,json]
 ----
 {
-  “report”: “report_3.14_2022-05-27T01:33:66+02:00.txt”
+  "filename": "report_π_2022-05-27T01:33:66+02:00.txt"
 }
 ----
 
@@ -1538,23 +1554,23 @@ With this request, it is not possible to register hard-coded users (like `root`)
 * There are only subjects available for the User.
 
 // irreversible
-* It is https://www.diki.pl/slownik-angielskiego?q=irreversible:”irreversible”.
+* It is https://www.diki.pl/slownik-angielskiego?q=irreversible[irreversible].
 ++++
 <!-- diki w wiki (translation: diki in wiki) -->
 ++++
 
 // report.exercises-length
-* `report.exercises` type is a tuple with the same length as `exercises`
+* The `exercises` properties nested in `report` are tuples with the same length as the `exercises` property.
 
 // report.exercises-enum
-* `report.exercises` is a tuple with four possible states, i. e.
+* The `exercises` properties nested in `report` have elements with four possible values, i.e.
 ** `☐` (U+2610) - unattempted
-** `☒` (U+2612) - incorrect
-** `⚀` (U+2680) - parial
-** `☑` (U+2611) - correct
+** `☒` (U+2612) - incorrect answer
+** `⚀` (U+2680) - partial answer
+** `☑` (U+2611) - correct answer
 
-// generated-report
-* The generated report will be available at `https://zadania.infa8lo.pl/session/static/report_2_2022-05-26T23:33:36+02:00.txt` (see /api/session/static/:filename).
+// generated-reports
+* Generated reports can be downloaded via the <<GET_api_session_static_.filename,`GET /api/session/static/:filename`>> request.
 
 
 ====
