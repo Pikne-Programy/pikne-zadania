@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-FROM node:14.15
+FROM node:14.19
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
