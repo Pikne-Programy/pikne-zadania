@@ -2,8 +2,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-export * from "./authorizer.ts";
-export * from "./auth.ts";
-export * from "./subject.ts";
-export * from "./team.ts";
-export * from "./user.ts";
+export * from "./authController.ts";
+export * from "./subjectController.ts";
+export * from "./problemController.ts";
+export * from "./exerciseController.ts";
+export * from "./teamController.ts";
+export * from "./userController.ts";

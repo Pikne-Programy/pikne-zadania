@@ -4,15 +4,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { vs } from "../../deps.ts";
-import { Range, RNG } from "../../utils/mod.ts";
-import {
-  CustomDictError,
-  Exercise,
-  isObject,
-  JSONObject,
-  JSONType,
-} from "../../types/mod.ts";
-import { IConfigService } from "../../interfaces/mod.ts";
+import { isObject, JSONObject, JSONType, Range, RNG } from "../../utils/mod.ts";
+import { Exercise } from "../../common/mod.ts";
+import { ConfigService } from "../../services/mod.ts";
+import { CustomDictError } from "../../common/mod.ts";
 import RPN from "./RPN-parser/parser.ts";
 
 const greekAlphabet: { [key: string]: string } = {
@@ -83,12 +78,12 @@ const imgSchema = {
     each: vs.string({ strictType: true }),
   }),
 };
-function isAnswer(what: unknown): what is { answers: (number | null)[] } {
-  return isObject(what) && Array.isArray(what?.answers) &&
-    what?.answers.every((e) => typeof e === "number" || e === null);
-}
+const isAnswer = (what: unknown): what is { answers: (number | null)[] } =>
+  isObject(what) &&
+  Array.isArray(what?.answers) &&
+  what?.answers.every((e) => typeof e === "number" || e === null);
 
-export default class EquationExercise extends Exercise {
+export default class EquationExercise implements Exercise {
   // regular expressions used to extract and parse content
   static readonly greekR = new RegExp(Object.keys(greekAlphabet).join("|"));
   static readonly equationR = new RegExp(
@@ -117,18 +112,17 @@ export default class EquationExercise extends Exercise {
 
   // content -> parse to latex, extract RPN, Range and number -> return parsed text
   constructor(
-    protected cfg: IConfigService,
+    public config: ConfigService,
     readonly name: string,
-    content: string,
+    public _content: string,
     readonly properties: JSONObject,
   ) {
-    super(cfg, name, content, properties);
-    this.answerPrecision = this.cfg.ANSWER_PREC;
-    this.pointDecimalSeparator = this.cfg.DECIMAL_POINT;
-    this.rngPrec = this.cfg.RNG_PREC;
+    this.answerPrecision = this.config.ANSWER_PREC;
+    this.pointDecimalSeparator = this.config.DECIMAL_POINT;
+    this.rngPrec = this.config.RNG_PREC;
     try {
       this.img = vs.applySchemaObject(imgSchema, { t: this.properties.img }).t;
-    } catch (_) {
+    } catch {
       throw new Error("img must be an array of strings");
     }
     delete this.properties.img;
@@ -136,9 +130,10 @@ export default class EquationExercise extends Exercise {
     let globalIndex = 0; // global index (different than the index of the current line)
     let parsingContent = ""; // content without ranges ([number;number]) and unknowns (=?unit)
     let parsedLine = ""; // line without ranges ([number;number]) and unknowns (=?unit)
-    content.split("\n").forEach((line: string) => {
-      if (line == "") return;
-      else if (line == "---") {
+    _content.split("\n").forEach((line: string) => {
+      if (line == "") {
+        return;
+      } else if (line == "---") {
         segment++;
         return;
       } else if (segment == 0) {
@@ -164,7 +159,10 @@ export default class EquationExercise extends Exercise {
             sValue = sValue.replace(".", ",\\!");
           }
           parsedLine += `${
-            line.substring(0, index[0])
+            line.substring(
+              0,
+              index[0],
+            )
           }\\(${formattedName}= ${sValue}${unit}\\)`;
           line = line.substring(index[1]); // remove this match from line
           this.variables.push([name, value]);
@@ -211,7 +209,10 @@ export default class EquationExercise extends Exercise {
           const unit = EquationExercise.convertToLaTeX(m[6]);
           this.variables.push([name, new Range(rangeMin, rangeMax, step)]);
           parsedLine += `${
-            line.substring(0, index[0])
+            line.substring(
+              0,
+              index[0],
+            )
           }\\(${formattedName}= ${unit}\\)`;
           line = line.substring(index[1]); // remove this match
           globalIndex += 2 + index[0] + formattedName.length + 2; // "\(" + name + "= ";
@@ -247,9 +248,12 @@ export default class EquationExercise extends Exercise {
       const value = range.rand(rng);
       let sValue = value.toString();
       if (!this.pointDecimalSeparator) sValue = sValue.replace(".", ",\\!");
-      parsingContent = `${parsingContent.substr(0, textIndex)}${sValue}${
-        parsingContent.substr(textIndex)
-      }`;
+      parsingContent = `${
+        parsingContent.substr(
+          0,
+          textIndex,
+        )
+      }${sValue}${parsingContent.substr(textIndex)}`;
     }
     return {
       type: this.type,
@@ -263,32 +267,33 @@ export default class EquationExercise extends Exercise {
   }
 
   getCorrectAnswer(seed: number) {
-    const s = this.check(seed);
-    if ("correctAnswer" in s) return { answers: s.correctAnswer };
-    throw new Error("never"); // TODO: refactor, make it better
+    try {
+      const { correctAnswer: answers } = this.check(seed);
+
+      return { answers };
+    } catch {
+      throw new Error("never");
+    }
   }
 
   check(seed: number, answer?: JSONType) {
     // TODO: use value-schema
     if (answer !== undefined && !isAnswer(answer)) {
-      return new CustomDictError("ExerciseBadAnswerFormat", {
+      throw new CustomDictError("ExerciseBadAnswerFormat", {
         description: "INVALID ANSWER FORMAT",
       });
     }
     const answers = answer?.answers;
     if (answers !== undefined && answers.length != this.unknowns.length) {
-      return new CustomDictError("ExerciseBadAnswerFormat", {
+      throw new CustomDictError("ExerciseBadAnswerFormat", {
         description: "INVALID ANSWER LENGTH",
       });
     }
     const answerDict = answers !== undefined // TODO: refactor
-      ? this.unknowns.reduce(
-        (a: { [key: string]: number | null }, x, i) => {
-          a[x] = answers[i];
-          return a;
-        },
-        {},
-      )
+      ? this.unknowns.reduce((a: { [key: string]: number | null }, x, i) => {
+        a[x] = answers[i];
+        return a;
+      }, {})
       : {};
     const rng = new RNG(seed, this.rngPrec);
     const calculated: { [key: string]: number | undefined } = {};
@@ -325,7 +330,7 @@ export default class EquationExercise extends Exercise {
           Math.abs(ans - correctAns) <= this.answerPrecision * correctAns,
       );
     }
-    const done = info.reduce((a: number, b) => a + (+b), 0) / info.length;
+    const done = info.reduce((a: number, b) => a + +b, 0) / info.length;
     return { correctAnswer, done, info };
   }
 

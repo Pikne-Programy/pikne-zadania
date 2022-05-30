@@ -3,20 +3,15 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { CustomDictError } from "../types/mod.ts";
+export const deepCopy = <T>(arr: T): T => JSON.parse(JSON.stringify(arr));
 
-export function deepCopy<T>(arr: T): T {
-  return JSON.parse(JSON.stringify(arr));
-}
-
-export function handleThrown(e: unknown, msg?: string) {
-  if (msg) console.error("-------", msg);
-  if (e instanceof CustomDictError) console.trace(e.message, e.info, e.stack);
-  else if (e instanceof Error) console.trace(e.message, e.stack);
-  else if (e instanceof ErrorEvent) console.trace("ErrorEvent:", e);
-  else console.trace("UNDEFINED ERROR:", e);
-}
-
-export function assertUnreachable(_: never): never {
-  throw new Error("we reached the unreachable");
+export function countdown(seconds: number): Promise<void> {
+  if (seconds) {
+    Deno.stdout.writeSync(new Uint8Array([126]));
+    return new Promise((r) =>
+      setTimeout(() => countdown(seconds - 1).then(r), 1e3)
+    );
+  }
+  Deno.stdout.writeSync(new Uint8Array([10]));
+  return new Promise((r) => r());
 }

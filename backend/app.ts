@@ -2,90 +2,49 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Application, Context, HttpError } from "./deps.ts";
-import { handleThrown } from "./utils/mod.ts";
-import { IConfigService } from "./interfaces/mod.ts";
-import {
-  ConfigService,
-  Database,
-  ExerciseService,
-  ExerciseStore,
-  JWTService,
-  StoreTarget,
-  SubjectStore,
-  TeamStore,
-  UserStore,
-} from "./services/mod.ts";
-import {
-  AuthController,
-  SubjectController,
-  TeamController,
-  UserController,
-} from "./controllers/mod.ts";
-import { ApiRouterBuilder } from "./router.ts";
+import { Application, chalk } from "./deps.ts";
+import { DatabaseDriver } from "./drivers/mod.ts";
+import { createApiRoutes } from "./core/mod.ts";
+import { ErrorHandlerMiddleware, LoggerMiddleware } from "./middlewares/mod.ts";
+import { Logger } from "./services/mod.ts";
+import { TokenAuthController } from "./controllers/auth/mod.ts";
+import { module } from "./module.ts";
 
-export async function constructApp(cfg: IConfigService = new ConfigService()) {
+export async function createApp() {
   const app = new Application();
+  const ioCContainer = await module().resolve();
 
-  if (cfg.VERBOSITY >= 3) {
-    app.addEventListener("listen", () => console.log("Server started"));
-  }
-  if (cfg.VERBOSITY >= 1) {
-    app.addEventListener("error", handleThrown);
-  }
+  const logger = ioCContainer["global"].resolveOrFail(Logger);
+  const controllersRef = ioCContainer["controllers"];
+  const db = ioCContainer["drivers"].resolveOrFail(DatabaseDriver);
 
-  function die(ctx: Context, status = 500, message = "") {
-    ctx.response.status = status;
-    ctx.response.body = { status, message };
-  }
+  const router = createApiRoutes(
+    controllersRef
+      .listAvailable()
+      .map((controller) => controllersRef.resolveOrFail(controller))
+      .filter(
+        <T>(c: T): c is Exclude<T, TokenAuthController> =>
+          !(c instanceof TokenAuthController),
+      ),
+  );
 
-  app.use(async (ctx: Context, next: () => unknown) => {
-    try {
-      await next();
-    } catch (e) {
-      if (e instanceof HttpError) die(ctx, e.status, e.message);
-      else {
-        die(ctx, 500, e instanceof Error ? e.message : "");
-        if (cfg.VERBOSITY >= 1) handleThrown(e);
-      }
-    } finally {
-      if (cfg.VERBOSITY >= 3) {
-        console.log(
-          ctx.request.method,
-          ctx.request.url.pathname,
-          ctx.response.status,
-        );
-      }
-    }
+  app.addEventListener("listen", () => {
+    logger.log(chalk.green("Server started"));
   });
 
-  const db = new Database(cfg);
-  await db.connect();
-  const target = new StoreTarget(cfg, db, TeamStore, UserStore);
-  await target.us.init();
-  await target.ts.init();
-  const es = new ExerciseStore(cfg);
-  const ss = new SubjectStore(db, es);
-  await ss.init();
-  const ex = new ExerciseService(es);
-  const jwt = new JWTService(cfg, target.us);
+  app.addEventListener("error", (e) => {
+    logger.recogniseAndTrace(e);
+  });
 
-  const ac = new AuthController(cfg, target.us, jwt);
-  const sc = new SubjectController(cfg, jwt, target.us, ss, es, ex);
-  const tc = new TeamController(jwt, target.us, target.ts);
-  const uc = new UserController(jwt, target.us, target.ts);
-
-  const rb = new ApiRouterBuilder(ac, sc, tc, uc);
-
-  const router = rb.router;
-  app.use(router.routes());
-  app.use(router.allowedMethods());
+  app
+    .use(LoggerMiddleware(logger))
+    .use(ErrorHandlerMiddleware(logger))
+    .use(router.routes())
+    .use(router.allowedMethods());
 
   return {
     app,
-    dropExercises: () => es.drop(),
-    dropDb: () => db.drop(),
+    logger,
     closeDb: () => db.close(),
-    cfg,
   };
 }
