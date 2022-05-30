@@ -23,6 +23,7 @@ services:
     volumes:
       - ./frontend:/app
       - node_modules:/app/node_modules
+      - angular-cache:/app/.angular
       - html:/app/dist
     depends_on:
       - api
@@ -49,3 +50,4 @@ services:
 volumes:
   html:
   node_modules:
+  angular-cache:

@@ -24,14 +24,6 @@ sudo service docker start
 sudo service docker enable
 ```
 
-Install [Docker Compose](https://docs.docker.com/compose/install/):
-
-```sh
-sudo curl -L "https://github.com/docker/compose/releases/download/1.28.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
-```
-
 Install our app (use `sudo` if you are not in `docker` group):
 
 ```sh
@@ -39,7 +31,7 @@ curl -L https://raw.githubusercontent.com/Pikne-Programy/pikne-zadania/master/do
 cd pikne-zadania/
 printf "JWT_ALG=HS512\nJWT_KEY=$(openssl rand -base64 32)\nJWT_EXP=$((7*24*60*60))\nLOGIN_TIME=2e3\nUSER_SALT=$(openssl rand -base64 32)\nDECIMAL_POINT=false\nROOT_ENABLE=yes\nROOT_PASS=$(openssl rand -base64 32)\n" > api.env
 # get exercises (see section below)
-docker-compose up -d
+docker compose up -d
 ```
 
 Perform updates automatically with the [Watchtower](https://github.com/containrrr/watchtower):
@@ -65,8 +57,8 @@ git clone --recursive git@github.com:Pikne-Programy/pikne-zadania.git # clone vi
 cd pikne-zadania
 # get exercises (see section above)
 # build and run, can be repeated on and on:
-docker-compose up --build # with auto-update, denon and angular CLI running in background, port 80
-docker-compose -f docker-compose.prod.yml up --build # production-like environment, port 8080
+BUILDKIT_PROGRESS=plain docker compose up --build # with auto-update, denon and angular CLI running in background, port 80
+BUILDKIT_PROGRESS=plain docker compose -f docker-compose.prod.yml up --build # production-like environment, port 8080
 ```
 
 ## Local testing
@@ -84,33 +76,33 @@ And then:
 
 ```sh
 # build (see section above)
-docker-compose up -d
-docker-compose exec web /bin/sh -c "[ ! -e /tmp/firefox/firefox-bin ] && ( cd /tmp && wget https://ftp.mozilla.org/pub/firefox/releases/91.0/linux-x86_64/en-US/firefox-91.0.tar.bz2 && tar xjf firefox-91.0.tar.bz2 && chmod +x firefox/firefox-bin && apt update && apt install libgtk-3-0 libdbus-glib-1-2; )"
-docker-compose exec web /bin/sh -c "FIREFOX_BIN=/tmp/firefox/firefox-bin npm test -- --watch"
-docker-compose down
+docker compose up -d
+docker compose exec web /bin/sh -c "[ ! -e /tmp/firefox/firefox-bin ] && ( cd /tmp && wget https://ftp.mozilla.org/pub/firefox/releases/91.0/linux-x86_64/en-US/firefox-91.0.tar.bz2 && tar xjf firefox-91.0.tar.bz2 && chmod +x firefox/firefox-bin && apt update && apt install libgtk-3-0 libdbus-glib-1-2; )"
+docker compose exec web /bin/sh -c "FIREFOX_BIN=/tmp/firefox/firefox-bin npm test -- --watch"
+docker compose down
 git restore docker-compose.yml
 ```
 
 Additionally, you can lint the frontend code:
 
 ```sh
-docker-compose exec web npm run lint
+docker compose exec web npm run lint
 ```
 
 ### Backend
 
 ```sh
 # build (see section above)
-docker-compose up -d
-docker-compose exec api deno test -A --unstable --cached-only --watch
-docker-compose down
+docker compose up -d
+docker compose exec api deno test -A --unstable --cached-only --watch
+docker compose down
 ```
 
 Additionally, you can lint and check formatting of the backend code:
 
 ```sh
-docker-compose exec api deno lint --unstable
-docker-compose exec api deno fmt --unstable --check
+docker compose exec api deno lint --unstable
+docker compose exec api deno fmt --unstable --check
 ```
 
 ## RESET ALL DOCKER STUFF (use only if it's needed!):
