@@ -1,7 +1,7 @@
 API Endpoints of link:.[`pikne-zadania`]
 ========================================
 Marcin Zepp <nircek-2103@protonmail.com>
-v0.5, 2022-05-27: Revision 1
+v0.5, 2022-05-27: Revision 2
 :issue: https://github.com/Pikne-Programy/pikne-zadania/issues/50[#50]
 :stylesheet: main.css
 :linkcss:
@@ -211,6 +211,7 @@ It has to be unique.
 
 .It can be used by
 * anyone if a subject is public and an exercise is listed in a subject's hierarchy,
+* all users if the exercise is added to their session,
 * all assignees of a subject.
 
 .Special status codes
@@ -272,6 +273,7 @@ The User can access it via the <<GET_api_subject_static_.subject_.filename,`GET 
 
 .It can be used by
 * anyone if a subject is public and an exercise is listed in a subject's hierarchy,
+* all users if the exercise is added to their session
 * all assignees of a subject.
 
 .Special status codes
@@ -345,6 +347,7 @@ The one shown above is the EquationExercise (EqEx) one.
 
 .It can be used by
 * anyone if a subject is public,
+* all users if the exercise mentioning the static file is added to their session,
 * all assignees of a subject.
 
 .Special status codes
@@ -1181,6 +1184,7 @@ NOTE: Remember to save a report via the <<POST_api_session_report_save,`POST /ap
 * all assignees of a subject.
 
 .Special status codes
+* `409 Conflict` - if the session is already finished.
 
 .Request
 
@@ -1233,9 +1237,63 @@ NOTE: Remember to save a report via the <<POST_api_session_report_save,`POST /ap
 
 ====
 
+.`POST /api/session/list` - generate a list of exercises in the current session for the users [[POST_api_session_list]]
+[%collapsible]
+====
+
+.It can be used by
+* all authorized excluding teachers.
+
+.Special status codes
+
+.Request
+
+[source,json]
+----
+----
+
+.Response
+
+[source,json]
+----
+[
+  {
+    "type": "EqEx",
+    "name": "Kula 2",
+    "subject": "_fizyka",
+    "exerciseId": "kula-2",
+    "description": "TODO",
+    "done": null
+  },
+  {
+    "type": "EqEx",
+    "name": "Pociągi dwa 2",
+    "subject": "fizyka",
+    "exerciseId": "pociagi-dwa",
+    "description": "Z miast \\(A\\) i \\(B\\) odległych o \\(d= 300\\;\\mathrm{km}\\) wyruszają jednocześnie\ndwa pociągi z prędkościami \\(v_{a}= \\;\\mathrm{\\frac{km}{h}}\\) oraz \\(v_{b}= \\;\\mathrm{\\frac{km}{h}}\\).\nW jakiej odległości \\(x\\) od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie \\(t\\) się to stanie?\n",
+    "done": 0.34
+  }
+]
+----
+
+.Notes
+
+// description-:ext-dependent
+* The `description` property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.
+// done-:def
+* The `done` property can be `null` or a number from 0 up to and including 1, see https://github.com/Pikne-Programy/pikne-zadania/issues/24#issuecomment-782939873[#24].
+// subject&exerciseId-:links2problem
+* The `subject` and the `exerciseId` properties mention exercises added to the session.
+The User can access it via the <<POST_api_subject_problem_render,`POST /api/subject/problem/render`>> request.
+
+====
+
 .`POST /api/session/status` - generate a current report without saving it [[POST_api_session_status]]
 [%collapsible]
 ====
+
+// done-in-exercises:def [null, 0, 0.3333333333333333 , 1]
 
 .It can be used by
 * all assignees.
@@ -1258,14 +1316,14 @@ NOTE: Remember to save a report via the <<POST_api_session_report_save,`POST /ap
 {
   "finished": true,
   "exercises": [
-    "fizyka/pociagi-dwa-1",
-    "fizyka/pociagi-dwa-2",
-    "fizyka/pociagi-dwa-3",
-    "fizyka/pociagi-dwa-4"
+    {"subject": "fizyka", "exerciseId": "pociagi-dwa-1"},
+    {"subject": "fizyka", "exerciseId": "pociagi-dwa-2"},
+    {"subject": "fizyka", "exerciseId": "pociagi-dwa-3"},
+    {"subject": "fizyka", "exerciseId": "pociagi-dwa-4"}
   ],
   "report": [
     {
-      "user": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "userId": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "exercises": ["☐", "☒", "⚀", "☑"]
     }
   ]
@@ -1328,6 +1386,9 @@ NOTE: Remember to save a report via the <<POST_api_session_report_save,`POST /ap
 
 [source,json]
 ----
+{
+  "teamId": 3
+}
 ----
 
 .Response
@@ -1336,7 +1397,7 @@ NOTE: Remember to save a report via the <<POST_api_session_report_save,`POST /ap
 ----
 {
   "filenames": [
-    "report_2_2022-05-26T23:33:36+02:00.txt",
+    "report_3_2022-05-26T23:33:36+02:00.txt",
     "report_π_2022-05-27T01:33:66+02:00.txt"
   ]
 }
@@ -1471,6 +1532,10 @@ The User can upload it via the <<PUT_api_subject_static_.subject_.filename,`PUT 
 * The `problem` property can contain links to static content.
 The User can access it via the <<GET_api_subject_static_.subject_.filename,`GET /api/subject/static/:subject/:filename`>> request.
 
+// subject&exerciseId-:links2problem
+* The `subject` and the `exerciseId` properties mention exercises added to the session.
+The User can access it via the <<POST_api_subject_problem_render,`POST /api/subject/problem/render`>> request.
+
 // assignees+:def
 * If the `assignees` property equals `null`, all teachers will be able to manage the subject.
 
@@ -1479,6 +1544,9 @@ The User can access it via the <<GET_api_subject_static_.subject_.filename,`GET 
 
 // done-:def
 * The `done` property can be `null` or a number from 0 up to and including 1, see https://github.com/Pikne-Programy/pikne-zadania/issues/24#issuecomment-782939873[#24].
+
+// done-in-exercises:def
+* The `exercises` properties nested in `report` consist of elements like `null` or a number from 0 up to and including 1, see https://github.com/Pikne-Programy/pikne-zadania/issues/24#issuecomment-782939873[#24].
 
 // hashedPassword+:def
 * The description of the `hashedPassword` property generation is https://github.com/Pikne-Programy/pikne-zadania/issues/22#issuecomment-789536400[here].
