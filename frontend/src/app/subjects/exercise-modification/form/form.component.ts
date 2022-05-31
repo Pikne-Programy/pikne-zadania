@@ -63,7 +63,7 @@ implements OnInit, AfterViewInit {
     @Output() onCancel = new EventEmitter();
 
     @ViewChild('textareaComp')
-    textareaComponent!: HighlightTextareaComponent;
+        textareaComponent!: HighlightTextareaComponent;
     textarea$ = new Subject<ElementRef<HTMLTextAreaElement>>();
 
     form!: FormGroup;

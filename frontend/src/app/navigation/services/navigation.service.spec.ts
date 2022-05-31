@@ -331,7 +331,7 @@ describe('Service: Navigation', () => {
             accountServiceSpy = spyOn(
                 accountServiceMock,
                 'getAccount'
-            ).and.returnValue(Promise.resolve(account$!));
+            ).and.resolveTo(account$);
         });
 
         afterEach(() => {
@@ -441,7 +441,7 @@ describe('Service: Navigation', () => {
                 account$ = {
                     observable: new BehaviorSubject({})
                 } as any;
-                accountServiceSpy.and.returnValue(Promise.resolve(account$!));
+                accountServiceSpy.and.resolveTo(account$!);
                 spyOn(RoleGuardService, 'getRole').and.returnValue(
                     Role.TEACHER
                 );

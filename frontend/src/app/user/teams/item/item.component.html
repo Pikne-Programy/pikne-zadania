@@ -54,7 +54,7 @@
         <div class="tile is-parent is-4">
             <div class="tile is-child is-vertical panel is-primary is-flex unscrollable">
                 <p class="panel-heading is-flex is-align-items-center">
-                    <span class="is-flex-grow-1">Członkowie</span>
+                    <span class="is-flex-grow-1">Członkowie ({{ team.members.length }})</span>
                     <button class="button is-primary" title="Odśwież klasę" (click)="refreshTeam()">
                         <i class="fas fa-sync-alt" [class.is-spinning]="isRefreshing"></i>
                     </button>

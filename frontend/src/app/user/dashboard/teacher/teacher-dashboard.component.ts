@@ -10,7 +10,7 @@ import * as Utils from '../dashboard.utils';
 })
 export class TeacherDashboardComponent
 implements Utils.DashboardComponentType, OnInit {
-  readonly ErrorMessage = Utils.ERROR_MESSAGE;
+    readonly ErrorMessage = Utils.ERROR_MESSAGE;
 
   @Input() account!: Account;
   @Input() data!: Utils.TeacherData | number;

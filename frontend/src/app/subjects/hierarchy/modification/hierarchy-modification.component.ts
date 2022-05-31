@@ -295,6 +295,7 @@ export class HierarchyModificationComponent
     //#region Theme
     isDarkTheme = false;
     getNodeActionStyle(node: HierarchyNode) {
+        /* eslint-disable @typescript-eslint/naming-convention */
         const isSelected = node === this.selectedFolder;
         return {
             'is-black': !isSelected && !this.isDarkTheme,

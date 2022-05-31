@@ -68,9 +68,7 @@ describe('Service: Team', () => {
                                 ServerRoutes.teamList
                             );
                             expect(req.request.method).toEqual('GET');
-                            req.error(new ErrorEvent('Server error'), {
-                                status: errorCode
-                            });
+                            req.flush('Server error', { status: errorCode });
                         }
                     )
                 )
@@ -165,9 +163,7 @@ describe('Service: Team', () => {
                             );
                             expect(req.request.method).toEqual('POST');
                             expect(req.request.body).toEqual(expectedBody);
-                            req.error(new ErrorEvent('Server error'), {
-                                status: errorCode
-                            });
+                            req.flush('Server error', { status: errorCode });
                         }
                     )
                 )
@@ -277,11 +273,8 @@ describe('Service: Team', () => {
                                 );
                                 expect(req.request.method).toEqual('POST');
                                 expect(req.request.body).toEqual(expectedBody);
-                                if (response === null) {
-                                    req.error(new ErrorEvent('Error'), {
-                                        status: errorCode
-                                    });
-                                }
+                                if (response === null)
+                                    req.flush('Error', { status: errorCode });
                                 else req.flush(response);
                             }
                         )
@@ -644,7 +637,7 @@ function expectTeamModRequest(
     expect(req.request.method).toEqual('POST');
     expect(req.request.body).toEqual(body);
     if (errorCode !== null)
-        req.error(new ErrorEvent('Error'), { status: errorCode });
+        req.flush('Error', { status: errorCode });
     else req.flush(response ? response : {});
 }
 

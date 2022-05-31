@@ -19,7 +19,7 @@ const SPECIAL_LOGINS: string[] = ['admin', 'root'];
 })
 export class LoginComponent {
     // Error codes
-    readonly GeneralError = 488;
+    readonly GeneralError = 40088;
     readonly SubmitError = 401;
 
     readonly form = new FormGroup({

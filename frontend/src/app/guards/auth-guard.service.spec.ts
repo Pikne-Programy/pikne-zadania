@@ -133,8 +133,8 @@ describe('Service: AuthGuard', () => {
                     expect(service).toBeTruthy();
                     const routerSpy = spyOn(router, 'navigate');
 
-                    spyOn(accountService, 'getAccount').and.returnValue(
-                        Promise.reject(getAccountPromise({}, null))
+                    spyOn(accountService, 'getAccount').and.rejectWith(
+                        getAccountPromise({}, null)
                     );
 
                     const result = await service.canActivate(

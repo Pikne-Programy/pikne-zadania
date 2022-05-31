@@ -1,7 +1,6 @@
 import {
     AfterViewInit,
     Component,
-    ComponentFactoryResolver,
     ComponentRef,
     EventEmitter,
     Input,
@@ -49,7 +48,6 @@ export class ExerciseComponent implements AfterViewInit, OnChanges, OnDestroy {
     isLoading = true;
     submitState: SubmitButtonState = 'disabled';
     constructor(
-        private factoryResolver: ComponentFactoryResolver,
         public inflationService: ExerciseInflationService,
         accountService: AccountService
     ) {
@@ -107,9 +105,8 @@ export class ExerciseComponent implements AfterViewInit, OnChanges, OnDestroy {
         E extends Exercise
     >(type: Type<T>, exercise: E, container: ViewContainerRef) {
         this.inflationService.setExercise(exercise);
-        const factory = this.factoryResolver.resolveComponentFactory(type);
         container.clear();
-        const component = container.createComponent(factory);
+        const component = container.createComponent<T>(type);
         this.componentRef = component;
         component.instance.isUser = this.isUser;
         this.loading$ = component.instance.loaded.subscribe((error) => {

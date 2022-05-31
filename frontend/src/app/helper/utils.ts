@@ -146,7 +146,7 @@ export async function pbkdf2(
     );
     const params = { name: 'PBKDF2', hash: digest, salt, iterations };
     const hash = await crypto.subtle.deriveBits(params, key, keylen);
-    return btoa(String.fromCharCode(...new Uint8Array(hash)));
+    return window.btoa(String.fromCharCode(...new Uint8Array(hash)));
 }
 //#endregion
 

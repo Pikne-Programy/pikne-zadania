@@ -8,10 +8,10 @@ import { serverMockEnabled } from './helper/tests/tests.config';
     styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'Niedostateczny';
+    title = 'Niedostateczny';
 
-  constructor() {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      if (serverMockEnabled) startServer();
-  }
+    constructor() {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (serverMockEnabled) startServer();
+    }
 }

@@ -21,30 +21,30 @@ export const SIZES: [ScreenSizes, number][] = [
     providedIn: 'root'
 })
 export class ScreenSizeService implements OnDestroy {
-  currentSize = new BehaviorSubject(this.getSize());
+    currentSize = new BehaviorSubject(this.getSize());
 
-  private event$: Subscription;
-  constructor() {
-      this.event$ = fromEvent(window, 'resize').subscribe(() => this.onResize());
-  }
+    private event$: Subscription;
+    constructor() {
+        this.event$ = fromEvent(window, 'resize').subscribe(() => this.onResize());
+    }
 
-  ngOnDestroy() {
-      this.currentSize.complete();
-      this.event$.unsubscribe();
-  }
+    ngOnDestroy() {
+        this.currentSize.complete();
+        this.event$.unsubscribe();
+    }
 
-  private onResize() {
-      const newSize = this.getSize();
-      if (this.currentSize.getValue() !== newSize)
-          this.currentSize.next(newSize);
-  }
+    private onResize() {
+        const newSize = this.getSize();
+        if (this.currentSize.getValue() !== newSize)
+            this.currentSize.next(newSize);
+    }
 
-  private getSize(): ScreenSizes {
-      const windowWidth = window.innerWidth;
-      for (const [screenSize, width] of SIZES) {
-          if (windowWidth <= width)
-              return screenSize;
-      }
-      return ScreenSizes.FULL_HD;
-  }
+    private getSize(): ScreenSizes {
+        const windowWidth = window.innerWidth;
+        for (const [screenSize, width] of SIZES) {
+            if (windowWidth <= width)
+                return screenSize;
+        }
+        return ScreenSizes.FULL_HD;
+    }
 }

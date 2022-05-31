@@ -122,11 +122,8 @@ describe('Service: Subject', () => {
                                 ServerRoutes.subjectList
                             );
                             expect(req.request.method).toEqual('GET');
-                            if (errorCode === 500) {
-                                req.error(new ErrorEvent('Server error'), {
-                                    status: errorCode
-                                });
-                            }
+                            if (errorCode === 500)
+                                req.flush('Server error', { status: errorCode });
                             else req.flush(serverResponse);
                         }
                     )
@@ -208,9 +205,7 @@ describe('Service: Subject', () => {
                         );
                         expect(req.request.method).toEqual('POST');
                         expect(req.request.body).toEqual(expectedBody);
-                        req.error(new ErrorEvent('Server error'), {
-                            status: errorCode
-                        });
+                        req.flush('Server error', { status: errorCode });
                     }
                 )
             )
@@ -334,7 +329,7 @@ describe('Service: Subject', () => {
                     ServerRoutes.subjectCreate
                 );
                 expect(req.request.method).toEqual('POST');
-                req.error(new ErrorEvent('Id taken'), { status: errorCode });
+                req.flush('Id taken', { status: errorCode });
             }
         ));
 
@@ -456,11 +451,8 @@ describe('Service: Subject', () => {
                     );
                     expect(req.request.method).toEqual('POST');
                     expect(req.request.body).toEqual({ subject: subjectId });
-                    if (errorCode === serverError) {
-                        req.error(new ErrorEvent('Server error'), {
-                            status: errorCode
-                        });
-                    }
+                    if (errorCode === serverError)
+                        req.flush('Server error', { status: errorCode });
                     else req.flush(returnObj);
                 }
             ));
@@ -548,9 +540,7 @@ describe('Service: Subject', () => {
                     subject: subjectId,
                     assignees
                 });
-                req.error(new ErrorEvent('Server error'), {
-                    status: errorCode
-                });
+                req.flush('Server error', { status: errorCode });
             }
         ));
 

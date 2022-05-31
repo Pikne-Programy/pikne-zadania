@@ -119,9 +119,7 @@ describe('Service: Account', () => {
                                 await expectAsync(promise).toBeResolved();
                             }
                             else {
-                                req.error(new ErrorEvent('Server error'), {
-                                    status: error
-                                });
+                                req.flush('Server error', { status: error });
                                 await expectAsync(promise).toBeRejected();
                             }
                         }
@@ -209,9 +207,7 @@ describe('Service: Account', () => {
                         );
                         expect(req.request.method).toEqual('POST');
                         expect(req.request.body).toEqual(expectedBody);
-                        req.error(new ErrorEvent('Server error'), {
-                            status: ERROR_CODE
-                        });
+                        req.flush('Server error', { status: ERROR_CODE });
 
                         const response = await promise;
                         expect(response.error).toBe(ERROR_CODE);
@@ -265,9 +261,7 @@ describe('Service: Account', () => {
                             ServerRoutes.login
                         );
                         expect(req.request.method).toEqual('POST');
-                        req.error(new ErrorEvent('Wrong password'), {
-                            status: 401
-                        });
+                        req.flush('Wrong password', { status: 401 });
 
                         await expectAsync(promise).toBeRejected();
                     }
@@ -324,9 +318,7 @@ describe('Service: Account', () => {
                 const req = httpController.expectOne(ServerRoutes.logout);
                 expect(req.request.method).toEqual('POST');
                 const ERROR_CODE = 500;
-                req.error(new ErrorEvent('Server error'), {
-                    status: ERROR_CODE
-                });
+                req.flush('Server error', { status: ERROR_CODE });
 
                 await setAsyncTimeout(1000);
                 expect(consoleSpy).toHaveBeenCalledWith(
@@ -356,14 +348,3 @@ describe('Service: Account', () => {
         ));
     });
 });
-
-function getAccountName(obj: any): string {
-    switch (typeof obj.name) {
-        case 'string':
-            return obj.name;
-        case 'number':
-            return `_account-name-${obj.name as number}`;
-        default:
-            return '_missing-account-name_';
-    }
-}

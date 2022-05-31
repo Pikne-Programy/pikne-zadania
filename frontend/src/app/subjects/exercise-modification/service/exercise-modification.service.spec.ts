@@ -60,11 +60,8 @@ describe('Service: ExerciseModification', () => {
                             );
                             expect(req.request.method).toEqual('POST');
                             expect(req.request.body).toEqual(expectedBody);
-                            if (errorCode !== TYPE_ERROR) {
-                                req.error(new ErrorEvent(testMess), {
-                                    status: errorCode
-                                });
-                            }
+                            if (errorCode !== TYPE_ERROR)
+                                req.flush(testMess, { status: errorCode });
                             else req.flush(serverResponse);
                         }
                     )
@@ -144,11 +141,8 @@ describe('Service: ExerciseModification', () => {
                             );
                             expect(req.request.method).toEqual('POST');
                             expect(req.request.body).toEqual(expectedBody);
-                            if (errorCode !== TYPE_ERROR) {
-                                req.error(new ErrorEvent(testMess), {
-                                    status: errorCode
-                                });
-                            }
+                            if (errorCode !== TYPE_ERROR)
+                                req.flush(testMess, { status: errorCode });
                             else req.flush(serverResponse);
                         }
                     )
@@ -245,9 +239,7 @@ describe('Service: ExerciseModification', () => {
                             ServerRoutes.subjectExercisePreview
                         );
                         expect(req.request.method).toEqual('POST');
-                        req.error(new ErrorEvent('Server error'), {
-                            status: errorCode
-                        });
+                        req.flush('Server error', { status: errorCode });
                     }
                 )
             )
@@ -383,11 +375,7 @@ describe('Service: ExerciseModification', () => {
                             expect(req.request.method).toEqual('POST');
                             expect(req.request.body).toEqual(expectedBody);
                             if (errorCode === null) req.flush({});
-                            else {
-                                req.error(new ErrorEvent(testMess), {
-                                    status: errorCode
-                                });
-                            }
+                            else req.flush(testMess, { status: errorCode });
                         }
                     )
                 )
