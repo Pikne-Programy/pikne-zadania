@@ -46,16 +46,16 @@ export class AuthController {
       }
       throw new httpErrors["Unauthorized"]();
     } //! PEVO
-    ctx.cookies.set("jwt", jwt, { maxAge: this.cfg.JWT_CONF.exp });
+    await ctx.cookies.set("jwt", jwt, { maxAge: this.cfg.JWT_CONF.exp });
     ctx.response.status = 200; //! D
   }
 
   async logout(ctx: RouterContext) {
-    const jwt = ctx.cookies.get("jwt");
+    const jwt = await ctx.cookies.get("jwt");
     const userId = translateErrors(await this.jwt.resolve(jwt)); //! APE
     if (jwt === undefined) throw new Error("never"); // * the above would throw *
     translateErrors(await this.jwt.revoke(userId, jwt)); //! O
-    ctx.cookies.delete("jwt");
+    await ctx.cookies.delete("jwt");
     ctx.response.status = 200; //! D
   }
 

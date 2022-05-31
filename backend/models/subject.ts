@@ -25,7 +25,9 @@ export class Subject implements ISubject {
     value: SubjectType[T],
   ) {
     if (!await this.exists()) throw new Error(); // TODO: error message
-    await this.db.teams!.updateOne({ id: this.id }, { $set: { [key]: value } });
+    await this.db.subjects!.updateOne({ id: this.id }, {
+      $set: { [key]: value },
+    });
   }
 
   async exists() {

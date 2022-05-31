@@ -6,21 +6,21 @@
 
 // don't forget to update deno and denon in Dockerfile and denon.dockerfile
 // don;t forget to update test_deps.ts
-export { parse } from "https://deno.land/std@0.100.0/encoding/yaml.ts";
+export { parse } from "https://deno.land/std@0.141.0/encoding/yaml.ts";
 export {
   emptyDirSync,
   existsSync,
   walkSync,
-} from "https://deno.land/std@0.100.0/fs/mod.ts";
+} from "https://deno.land/std@0.141.0/fs/mod.ts";
 export {
   basename,
   common,
   join,
-} from "https://deno.land/std@0.100.0/path/mod.ts";
-export { normalize as _normalize } from "https://deno.land/std@0.100.0/path/mod.ts";
-export { pbkdf2Sync } from "https://deno.land/std@0.100.0/node/crypto.ts";
-export { createHash } from "https://deno.land/std@0.100.0/hash/mod.ts";
-import { stringify as _stringify } from "https://deno.land/std@0.106.0/encoding/yaml.ts";
+} from "https://deno.land/std@0.141.0/path/mod.ts";
+export { normalize as _normalize } from "https://deno.land/std@0.141.0/path/mod.ts";
+export { pbkdf2Sync } from "https://deno.land/std@0.141.0/node/crypto.ts";
+export { createHash } from "https://deno.land/std@0.141.0/hash/mod.ts";
+import { stringify as _stringify } from "https://deno.land/std@0.141.0/encoding/yaml.ts";
 export function stringify(x: unknown) {
   // deno-lint-ignore no-explicit-any
   return _stringify(x as any);
@@ -29,27 +29,27 @@ export function stringify(x: unknown) {
 export type {
   Context,
   RouterContext,
-} from "https://deno.land/x/oak@v7.7.0/mod.ts";
+} from "https://deno.land/x/oak@v9.0.1/mod.ts";
 export {
   Application,
   HttpError,
   httpErrors,
   Router,
   send,
-} from "https://deno.land/x/oak@v7.7.0/mod.ts";
+} from "https://deno.land/x/oak@v9.0.1/mod.ts";
 export {
   compare,
   hash,
   hashSync,
-} from "https://deno.land/x/bcrypt@v0.2.4/mod.ts";
-import "https://deno.land/x/bcrypt@v0.2.4/src/worker.ts"; // force caching
-export { default as vs } from "https://deno.land/x/value_schema@v3.0.0/mod.ts";
+} from "https://deno.land/x/bcrypt@v0.3.0/mod.ts";
+import "https://deno.land/x/bcrypt@v0.3.0/src/worker.ts"; // force caching
+export { default as vs } from "https://deno.land/x/value_schema@v4.0.0-rc.1/mod.ts";
 export type {
   ObjectTypeOf,
   SchemaObject,
-} from "https://deno.land/x/value_schema@v3.0.0/dist-deno/libs/types.ts";
-export { MongoClient } from "https://deno.land/x/mongo@v0.23.1/mod.ts";
-export type { Collection } from "https://deno.land/x/mongo@v0.23.1/src/collection/mod.ts";
+} from "https://deno.land/x/value_schema@v4.0.0-rc.1/dist-deno/libs/types.ts";
+export { MongoClient } from "https://deno.land/x/mongo@v0.30.0/mod.ts";
+export type { Collection } from "https://deno.land/x/mongo@v0.30.0/src/collection/mod.ts";
 export {
   create,
   getNumericDate,

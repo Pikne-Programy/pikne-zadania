@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-FROM denoland/deno:alpine-1.11.4
+FROM denoland/deno:alpine-1.22.1
 EXPOSE 8000
 WORKDIR /app
 USER deno

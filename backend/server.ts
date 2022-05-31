@@ -19,20 +19,22 @@ function countdown(seconds: number): Promise<void> {
   return new Promise((r) => r());
 }
 
-Promise.race([
-  // this will not be executed in the development environment
-  // see https://github.com/denosaurs/denon/issues/126
-  // Deno.signal(Deno.Signal.SIGKILL),
-  Deno.signal(Deno.Signal.SIGINT),
-  Deno.signal(Deno.Signal.SIGQUIT),
-  Deno.signal(Deno.Signal.SIGTERM),
-]).then(() => {
-  if (cfg.VERBOSITY >= 3) {
-    console.log("The server is closing...");
+const sigHandler = async () => {
+  try {
+    if (cfg.VERBOSITY >= 3) {
+      console.log("The server is closing...");
+    }
+    abortController.abort();
+    closeDb();
+    await countdown(5);
+  } finally {
+    Deno.exit();
   }
-  abortController.abort();
-  closeDb();
-}).then(() => countdown(5)).finally(Deno.exit);
+};
+
+Deno.addSignalListener("SIGINT", sigHandler);
+Deno.addSignalListener("SIGTERM", sigHandler);
+Deno.addSignalListener("SIGQUIT", sigHandler);
 
 await app.listen({ port: 8000, signal });
 if (cfg.VERBOSITY >= 3) {

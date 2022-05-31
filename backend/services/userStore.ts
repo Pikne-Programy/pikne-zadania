@@ -87,8 +87,9 @@ export class UserStore implements IUserStore {
           console.log(new Date(), "Generated!");
         }
         if (this.cfg.VERBOSITY >= 2) {
+          const escapedDhPassword = dhPassword.replaceAll("$", "\\$");
           console.warn(
-            `Please unset ROOT_PASS!\nSet ROOT_DHPASS=${dhPassword} if needed.`,
+            `Please unset ROOT_PASS!\nSet ROOT_DHPASS=${escapedDhPassword} if needed.`,
           );
         }
         this.handle(
@@ -177,7 +178,8 @@ export class UserStore implements IUserStore {
       exercises: {},
     };
     if (options.role === "admin") {
-      await this.db.users!.updateOne({ id: user.id }, user, { upsert: true });
+      await this.db.users!.deleteOne({ id: user.id });
+      await this.db.users!.insertOne(user);
     } else {
       if (await this.get(user.id).exists()) {
         return new CustomDictError("UserAlreadyExists", { userId: user.id });

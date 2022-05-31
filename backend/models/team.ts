@@ -48,7 +48,7 @@ export class Team implements ITeam {
   readonly members = {
     add: async (uid: string) => {
       await this.db.teams!.updateOne({ id: this.id }, {
-        $push: { members: uid },
+        $push: { members: uid } as any, // TODO: Marwyk, your piece of code, pls fix it without using `any`
       });
     },
     get: async () => await this.get("members"),

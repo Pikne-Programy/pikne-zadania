@@ -64,7 +64,6 @@ export class TeamStore implements ITeamStore {
       name: options.name,
       assignee: options.assignee,
       members: [],
-      invitation: null,
     });
     return teamId;
   }

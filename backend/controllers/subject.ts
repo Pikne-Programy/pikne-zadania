@@ -12,6 +12,7 @@ import {
 } from "../utils/mod.ts";
 import {
   CustomDictError,
+  isJSONType,
   isSubSection,
   schemas,
   Section,
@@ -131,8 +132,8 @@ export class SubjectController extends Authorizer {
           ? { seed }
           : user;
       }
-      const s = ctx.cookies.get("seed") ?? `${generateSeed()}`;
-      ctx.cookies.set("seed", s, { maxAge: this.parent.cfg.SEED_AGE });
+      const s = await ctx.cookies.get("seed") ?? `${generateSeed()}`;
+      await ctx.cookies.set("seed", s, { maxAge: this.parent.cfg.SEED_AGE });
       return { seed: +s };
     },
 
@@ -169,6 +170,7 @@ export class SubjectController extends Authorizer {
         exerciseId: schemas.exercise.id,
         answer: schemas.exercise.answer,
       }); //! R
+      if (!isJSONType(answer)) throw new httpErrors["BadRequest"]();
       if (!await this.parent.isPermittedToView(subject, user)) {
         throw new httpErrors["Forbidden"]();
       } //! P

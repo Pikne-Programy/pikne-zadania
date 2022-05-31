@@ -20,11 +20,11 @@ export class Authorizer {
     req: false,
   ): Promise<IUser | undefined>;
   protected async authorize(ctx: RouterContext, req = true) {
-    const jwt = ctx.cookies.get("jwt");
+    const jwt = await ctx.cookies.get("jwt");
     const userId = await this.jwt.resolve(jwt);
     if (!(userId instanceof CustomDictError)) return this.us.get(userId);
     if (userId.type !== "JWTNotFound") assertUnreachable(userId.type);
-    ctx.cookies.delete("jwt");
+    await ctx.cookies.delete("jwt");
     if (req) throw new Error(`never: ${translateErrors(userId)}`);
   }
 }
