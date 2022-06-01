@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.17">
+<title>Exercise specification</title>
+<link rel="stylesheet" href="./main.css">
+<link title="asciidoctor-Light">
+<link rel="alternate stylesheet" title="asciidoctor-Dark" href="dark.css" disabled="disabled">
+<link rel="alternate stylesheet" title="Light" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/styles/github.min.css">
+<link rel="alternate stylesheet" title="Dark" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/styles/dark.min.css" disabled="disabled">
+</head>
+<body class="article">
+<div id="header">
+<h1>Exercise specification</h1>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="sidebarblock compact-lists">
+<div class="content">
+<div style="position:relative;">
+<ul class="styles">
+<li class="current">Light</li>
+<li>Dark</li>
+</ul>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href=".">Home</a></p>
+</li>
+<li>
+<p>Specification</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="API">API (endpoints)</a></p>
+</li>
+<li>
+<p><a href="Exercise" class="bare">Exercise</a></p>
+</li>
+<li>
+<p><a href="EqEx">EquationExercise (EqEx)</a></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<hr>
+<div class="paragraph">
+<p>At the beginning of each Exercise file, there is a header in <a href="https://yaml.org/spec/1.2/spec.html">YAML format</a>.
+There are two lines with a separator (<code>---</code>) only, and the header is between them.
+The required keys are <code>type</code> (string) and <code>name</code> (string). All the others are ExT-dependent (Exercise Type dependent).
+There is ExT-dependent content after the second separator.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_example">Example</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-yml" data-lang="yml">---
+type: "EqEx"
+name: "Sample name"
+imgs:
+ - first image.jpg
+ - second image.jpg
+---
+g=9.81</code></pre>
+</div>
+</div>
+<hr>
+<div class="sidebarblock">
+<div class="content">
+<div class="paragraph">
+<p>The project has been made by students of 8th High School of Maria Skłodowska-Curie in Katowice (class 2d in 2020/2021).<br>
+&#169; 2021 <a href="https://github.com/Nircek">Nircek</a> (Marcin Zepp), <a href="https://github.com/Marwyk2003">Marwyk2003</a> (Marcin Wykpis), <a href="https://github.com/miloszwasacz">miloszwasacz</a> (Miłosz Wąsacz), <a href="https://github.com/MichalTheProgrammer">MichalTheProgrammer</a> (Michał Szymocha)<br>
+This project is licensed under the terms of <a href="https://github.com/Pikne-Programy/pikne-zadania/blob/master/COPYING">the GNU AGPL v3 or later</a>.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2022-06-01 15:28:33 UTC
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"
+  integrity="sha384-3J57zMPq3MVZNftJooMj0yTPa/5Jwox3gxrP+A2v+Q3k0SGttDQTwoFxjl//O+BY" crossorigin="anonymous"></script>
+<script>
+  if (!hljs.initHighlighting.called) {
+    hljs.initHighlighting.called = true
+      ;[].slice.call(document.querySelectorAll('pre.highlight > code')).forEach(function (el) { hljs.highlightBlock(el) })
+  }
+  hljs.debugMode();
+  const styles = [...document.querySelectorAll(".styles > li")]
+  // styles.reverse();
+  styles.forEach((style) => {
+    style.addEventListener("click", (event) => {
+      // inspired by https://github.com/highlightjs/highlight.js/blob/e91ffbdbcb9232287677b26c792e5fe8a75c3167/demo/demo.js
+      const current = document.querySelector(".styles .current");
+      const currentStyle = current.textContent;
+      const nextStyle = event.target.textContent;
+
+      if (currentStyle !== nextStyle) {
+        document.querySelector(`link[title="${nextStyle}"]`).removeAttribute("disabled");
+        document.querySelector(`link[title="${currentStyle}"]`).setAttribute("disabled", "disabled");
+        document.querySelector(`link[title="asciidoctor-${nextStyle}"]`).removeAttribute("disabled");
+        document.querySelector(`link[title="asciidoctor-${currentStyle}"]`).setAttribute("disabled", "disabled");
+
+        current.classList.remove("current");
+        event.target.classList.add("current");
+      }
+    });
+    style.click();
+  });
+</script>
+</body>
+</html>

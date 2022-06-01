@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.17">
+<title>Equation Exercise (EqEx) specification v0.2</title>
+<link rel="stylesheet" href="./main.css">
+<link title="asciidoctor-Light">
+<link rel="alternate stylesheet" title="asciidoctor-Dark" href="dark.css" disabled="disabled">
+<link rel="alternate stylesheet" title="Light" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/styles/github.min.css">
+<link rel="alternate stylesheet" title="Dark" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/styles/dark.min.css" disabled="disabled">
+</head>
+<body class="article">
+<div id="header">
+<h1>Equation Exercise (EqEx) specification v0.2</h1>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="sidebarblock compact-lists">
+<div class="content">
+<div style="position:relative;">
+<ul class="styles">
+<li class="current">Light</li>
+<li>Dark</li>
+</ul>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href=".">Home</a></p>
+</li>
+<li>
+<p>Specification</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="API">API (endpoints)</a></p>
+</li>
+<li>
+<p><a href="Exercise" class="bare">Exercise</a></p>
+</li>
+<li>
+<p><a href="EqEx">EquationExercise (EqEx)</a></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<hr>
+<div class="paragraph">
+<p>Equation Exercise is an answer only oriented type of Exercise. The file was specifically designed for physics problems but can be used for any answer only exercises.</p>
+</div>
+<div class="paragraph">
+<p>The file consists of three segments: the <strong>Header</strong>, the <strong>Text</strong> and the <strong>Calculations</strong>. The separator between them is the line with <code>---</code> only. In particular, the file starts with <code>---</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_header">Header</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The header defines respectively fields:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>type</strong>: EqEx (static for this type of exercise)</p>
+</li>
+<li>
+<p><strong>name</strong>: the name of the exercise</p>
+</li>
+<li>
+<p><strong>img</strong>: the name of exercise&#8217;s image (optional)</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-yml" data-lang="yml">type: "EqEx"
+name: "Sample name"
+img: "image.jpg"</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_text">Text</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The text is the exercise&#8217;s content with specified types and values of all the variables.</p>
+</div>
+<div class="paragraph">
+<p>Such specification has the format:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>variable name</strong>: begins with a letter and can consist of Latin alphabet letters (upper- and lowercase), numbers, some special characters (<code>'</code>) and an underscore (one per name)<br>
+Notice that all greek letters will be replaced with the corresponding symbol.</p>
+</li>
+<li>
+<p><code>=</code></p>
+</li>
+<li>
+<p><strong>value</strong>: depends on the type of the variable, specified below.</p>
+</li>
+<li>
+<p><strong>unit</strong>: units of the scalar commonly used in physics. They can also consist of multiplied or rased to integer power subunits. <code>/</code> symbol indicates the denominator part and can be used only once per unit (<code>a/b*c</code> will be recognised as <code>(a)/(b*c)</code>)<br>
+Notice that units similar to <code>1/s</code> should be written as <code>/s</code>. In addition <code>deg</code> will be replaced with Unicode&#8217;s <code>°</code><br>
+e.g. <code>g=10m/s^2</code>, <code>W=20kg*m^2/s^2</code>, <code>f=5/s</code></p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_value">Value</h3>
+<div class="paragraph">
+<p>There are three types of variables in the EqEx format:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>constant (numeric)</strong>:  variable has a predetermined value. The value is a number written in decimal notation (<code>1</code>, <code>-0.5</code>) or scientific notation (<code>1.234e5</code>, <code>1e-3</code>)<br>
+e.g. <code>x=1e-5s</code></p>
+</li>
+<li>
+<p><strong>range</strong>: variable value is between predetermined boundaries. Arguments in the range are passed between <code>[</code> and <code>]</code> and are separated by <code>;</code> (without any whitespace between).<br>
+<strong>range format</strong>: <code>[</code> minimal value <code>;</code> maximal value <code>;</code> step <code>]</code><br>
+Notice that step is optional. When omitted, the value would be rounded to 3 significant figures.<br>
+e.g. <code>x=[0;5;1]</code> would yield <code>x=</code> one of <code>0, 1, 2, 3, 4, 5</code></p>
+</li>
+<li>
+<p><strong>unknown</strong>: variable defined in <strong>the calculation</strong> part. All the unknowns are in query. Unknowns are defined by <code>?</code> character instead of its value.<br>
+e.g. <code>x=?m/s</code></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_calculations">Calculations</h3>
+<div class="paragraph">
+<p>Each line in the <strong>Calculations</strong> is a declaration (or redeclaration) of a variable. Auxilary variables can be declared and used in the equations underneath. Every variable in the query (unknown) must be declared in the <strong>Calculation</strong> segment.</p>
+</div>
+<div class="paragraph">
+<p>Special-use character <code>=</code> splits the equation into the following parts:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>variable name</p>
+</li>
+<li>
+<p><code>=</code></p>
+</li>
+<li>
+<p>mathematic expression</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_mathematic_expression">Mathematic Expression</h3>
+<div class="paragraph">
+<p>Operations and functions supported:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>arytmetic operations:</strong> <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>^</code></p>
+</li>
+<li>
+<p><strong>brackets:</strong> <code>(</code>, <code>)</code></p>
+</li>
+<li>
+<p><strong>square root:</strong> <code>sqrt</code></p>
+</li>
+<li>
+<p><strong>absolute value (|x|):</strong> <code>abs</code></p>
+</li>
+<li>
+<p><strong>logarithmic functions:</strong> <code>log</code>/<code>log10</code> (base 10), <code>ln</code>, <code>log2</code></p>
+</li>
+<li>
+<p><strong>exponent function (e<sup>x</sup>):</strong> <code>exp</code></p>
+</li>
+<li>
+<p><strong>trigonometry:</strong> <code>sin</code>, <code>cos</code>, <code>tan</code>/<code>tg</code>, <code>cot</code>/<code>ctg</code></p>
+</li>
+<li>
+<p><strong>hyperbolic trigonometry:</strong> use <code>-h</code> suffix, e.g. <code>sinh</code>, <code>tanh</code>/<code>tgh</code></p>
+</li>
+<li>
+<p><strong>trigonometry (argument in radians):</strong> use <code>-r</code> suffix, e.g. <code>sinr</code>, <code>tanhr/tghr</code></p>
+</li>
+<li>
+<p><strong>inverse trigonometry:</strong> use <code>a-</code> prefix, e.g. <code>asin</code>, <code>atanh</code>/<code>atgh</code></p>
+</li>
+<li>
+<p><strong>inverse trigonometry (value in radians):</strong> use <code>-r</code> suffix, e.g. <code>asinr</code>, <code>atanhr</code>/<code>atghr</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>e.g. <code>x=-5*sinr(3.14)</code>, <code>y=sqrt(abs(x+1))^2</code>, <code>z=log2(2^10)/5</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_example">Example</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-yml" data-lang="yml">type: "EqEx"
+name: "Velocity 1"
+img: "velocity1_img.jpg"
+---
+A man walks s_1=[5;10;1]km East in t_1=2h and then s_2=[2;4;0.5]km West in t_2=1h. What is the man's average speed v_1=? and velocity v_2=? for the whole journey?
+---
+v_1=(s_1+s_2)/(t_1+t_2)
+v_2=(s_1-s_2)/(t_1+t_2)</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2022-06-01 15:28:33 UTC
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"
+  integrity="sha384-3J57zMPq3MVZNftJooMj0yTPa/5Jwox3gxrP+A2v+Q3k0SGttDQTwoFxjl//O+BY" crossorigin="anonymous"></script>
+<script>
+  if (!hljs.initHighlighting.called) {
+    hljs.initHighlighting.called = true
+      ;[].slice.call(document.querySelectorAll('pre.highlight > code')).forEach(function (el) { hljs.highlightBlock(el) })
+  }
+  hljs.debugMode();
+  const styles = [...document.querySelectorAll(".styles > li")]
+  // styles.reverse();
+  styles.forEach((style) => {
+    style.addEventListener("click", (event) => {
+      // inspired by https://github.com/highlightjs/highlight.js/blob/e91ffbdbcb9232287677b26c792e5fe8a75c3167/demo/demo.js
+      const current = document.querySelector(".styles .current");
+      const currentStyle = current.textContent;
+      const nextStyle = event.target.textContent;
+
+      if (currentStyle !== nextStyle) {
+        document.querySelector(`link[title="${nextStyle}"]`).removeAttribute("disabled");
+        document.querySelector(`link[title="${currentStyle}"]`).setAttribute("disabled", "disabled");
+        document.querySelector(`link[title="asciidoctor-${nextStyle}"]`).removeAttribute("disabled");
+        document.querySelector(`link[title="asciidoctor-${currentStyle}"]`).setAttribute("disabled", "disabled");
+
+        current.classList.remove("current");
+        event.target.classList.add("current");
+      }
+    });
+    style.click();
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,1831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.17">
+<meta name="author" content="Marcin Zepp">
+<title>API Endpoints of pikne-zadania</title>
+<link rel="stylesheet" href="./main.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link title="asciidoctor-Light">
+<link rel="alternate stylesheet" title="asciidoctor-Dark" href="dark.css" disabled="disabled">
+<link rel="alternate stylesheet" title="Light" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/styles/github.min.css">
+<link rel="alternate stylesheet" title="Dark" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/styles/dark.min.css" disabled="disabled">
+</head>
+<body class="article">
+<div id="header">
+<h1>API Endpoints of <a href="."><code>pikne-zadania</code></a></h1>
+<div class="details">
+<span id="author" class="author">Marcin Zepp</span><br>
+<span id="email" class="email"><a href="mailto:nircek-2103@protonmail.com">nircek-2103@protonmail.com</a></span><br>
+<span id="revnumber">version 0.5,</span>
+<span id="revdate">2022-05-27</span>
+<br><span id="revremark">Revision 2</span>
+</div>
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_throwing_errors">Throwing errors</a></li>
+<li><a href="#_the_most_common_status_codes">The most common status codes</a></li>
+<li><a href="#_endpoints">Endpoints</a>
+<ul class="sectlevel2">
+<li><a href="#_subject">Subject</a></li>
+<li><a href="#_problem_managing">Problem managing</a></li>
+<li><a href="#_static_files_managing">Static files managing</a></li>
+<li><a href="#_hierarchy_modification">Hierarchy modification</a></li>
+<li><a href="#_exercise_modification">Exercise modification</a></li>
+<li><a href="#_auth">Auth</a></li>
+<li><a href="#_user">User</a></li>
+<li><a href="#_team">Team</a></li>
+<li><a href="#_session">Session</a></li>
+<li><a href="#_reports">Reports</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div style="position:relative;">
+<ul class="styles">
+<button onclick="document.querySelectorAll(`details`).forEach(e => { e.open = false; });">Collapse all</button>
+<button onclick="document.querySelectorAll(`details`).forEach(e => { e.open = true; });">Uncollapse all</button>
+<br>
+<li class="current">Light</li>
+<li>Dark</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Discuss API v0.5 at <a href="https://github.com/Pikne-Programy/pikne-zadania/issues/50">#50</a>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_throwing_errors">Throwing errors</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If there is an error (<code>4xx</code> or <code>5xx</code> HTTP status code), the API will return either no content or the JSON object with an error message:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "status": 500,
+  "message": "&lt;error message&gt;"
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>"status"</code> property is a status code of the response.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_most_common_status_codes">The most common status codes</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><code>200 OK</code>, when the request is succesful,</p>
+</li>
+<li>
+<p><code>400 Bad Request</code>, when the request is invalid,</p>
+</li>
+<li>
+<p><code>401 Unauthorized</code>, when the User must authenticate but the authentication failed or was not provided;<br>
+the unauthenticated will always get <code>401 Unauthorized</code> instead of <code>403 Forbidden</code>.</p>
+</li>
+<li>
+<p><code>403 Forbidden</code>, when the User is not authorized to make a request (see "It can be used by" section),</p>
+</li>
+<li>
+<p><code>404 Not Found</code>, when the requested resource does not exist,</p>
+</li>
+<li>
+<p><code>500 Internal Server Error</code>, when there is a problem on the server-side.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+The request will have a <code>403 Forbidden</code> status code instead of <code>404 Not Found</code> one when a resource is unavailable for the User to list (or it would be if it existed).
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_endpoints">Endpoints</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_subject">Subject</h3>
+<details>
+<summary class="title"><code>GET /api/subject/list</code> - list all available subjects <a id="GET_api_subject_list"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>anyone.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json"></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "subjects": ["fizyka", "_fizyka", "astronomia"]
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>There are only subjects available for the User.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/subject/create</code> - create a new subject <a id="POST_api_subject_create"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all teachers.</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Special status codes</div>
+<ul>
+<li>
+<p><code>409 Conflict</code> - the name (the <code>subject</code> property) is already taken.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "subject": "fizyka",
+  "assignees": [
+    "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755"
+  ]
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json"></code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>Subjects that begins with the <code>_</code> character are private and not visible to unauthorized users.</p>
+</li>
+<li>
+<p>Only the Admin will be managing the subject if the <code>assignees</code> property equals <code>[]</code>.</p>
+</li>
+<li>
+<p><code>subject</code> is a name and an id simultaneously.
+It has to be unique.</p>
+</li>
+<li>
+<p>If the <code>assignees</code> property equals <code>null</code>, all teachers will be able to manage the subject.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/subject/info</code> - read assignees of a subject <a id="POST_api_subject_info"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all assignees of a subject,</p>
+</li>
+<li>
+<p>or all teachers if a subject&#8217;s <code>assignees</code> equals <code>null</code>.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "subject": "fizyka"
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "assignees": [
+    {
+      "userId": "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755",
+      "name": "Smith"
+    }
+  ]
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>If the <code>assignees</code> property equals <code>null</code>, all teachers can modify the subject.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/subject/permit</code> - update assignees of a subject <a id="POST_api_subject_permit"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all assignees of a subject.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "subject": "fizyka",
+  "assignees": [
+    "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755"
+  ]
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json"></code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>If the <code>assignees</code> property equals <code>null</code>, all teachers will be able to manage the subject.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+</div>
+<div class="sect2">
+<h3 id="_problem_managing">Problem managing</h3>
+<details>
+<summary class="title"><code>POST /api/subject/problem/render</code> - render an exercise <a id="POST_api_subject_problem_render"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>anyone if a subject is public and an exercise is listed in a subject&#8217;s hierarchy,</p>
+</li>
+<li>
+<p>all users if the exercise is added to their session,</p>
+</li>
+<li>
+<p>all assignees of a subject.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "subject": "fizyka",
+  "exerciseId": "pociagi-dwa",
+  "seed": 0
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "type": "EqEx",
+  "name": "Pociągi dwa 2",
+  "done": 0.34,
+  "problem": {
+    "main": "Z miast \\(A\\) i \\(B\\) odległych o \\(d=300\\;\\mathrm{km}\\) wyruszają jednocześnie\ndwa pociągi z prędkościami \\(v_a= 50\\;\\mathrm{\\frac{km}{h}}\\) oraz \\(v_b=70\\;\\mathrm{\\frac{km}{h}}\\).\nW jakiej odległości \\(x\\) od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie \\(t\\) się to stanie?",
+    "img": ["1.png", "2.png"],
+    "unknown": [
+      ["x", "\\mathrm{km}"],
+      ["t", "\\mathrm{s}"]
+    ]
+  },
+  "correctAnswer": {
+    "answers": [2.5, 125]
+  }
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>Only the Teacher and the Admin can use the <code>seed</code> property.
+Otherwise, the database provides it.</p>
+</li>
+<li>
+<p>Only the Teacher and the Admin receive the <code>correctAnswer</code> property.</p>
+</li>
+<li>
+<p>The <code>done</code> property can be <code>null</code> or a number from 0 up to and including 1, see <a href="https://github.com/Pikne-Programy/pikne-zadania/issues/24#issuecomment-782939873">#24</a>.</p>
+</li>
+<li>
+<p>The <code>problem</code> property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.</p>
+</li>
+<li>
+<p>The <code>problem</code> property can contain links to static content.
+The User can access it via the <a href="#GET_api_subject_static_.subject_.filename"><code>GET /api/subject/static/:subject/:filename</code></a> request.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/subject/problem/submit</code> - submit an answer &amp; store it <a id="POST_api_subject_problem_submit"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>anyone if a subject is public and an exercise is listed in a subject&#8217;s hierarchy,</p>
+</li>
+<li>
+<p>all users if the exercise is added to their session</p>
+</li>
+<li>
+<p>all assignees of a subject.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "subject": "fizyka",
+  "exerciseId": "pociagi-dwa",
+  "answer": {
+    "answers": [15.000000000000004, 13]
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "info": [false, true]
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>The <code>info</code> property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+</div>
+<div class="sect2">
+<h3 id="_static_files_managing">Static files managing</h3>
+<details>
+<summary class="title"><code>POST /api/subject/static/list</code> - list static files <a id="POST_api_subject_static_list"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all assignees of a subject.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "subject": "fizyka"
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "filenames": ["rzeka.jpg"]
+}</code></pre>
+</div>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>GET /api/subject/static/:subject/:filename</code> - get a static file <a id="GET_api_subject_static_.subject_.filename"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>anyone if a subject is public,</p>
+</li>
+<li>
+<p>all users if the exercise mentioning the static file is added to their session,</p>
+</li>
+<li>
+<p>all assignees of a subject.</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>There should be binary data with an appropriate Content-type in the response.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>PUT /api/subject/static/:subject/:filename</code> - upload a static file <a id="PUT_api_subject_static_.subject_.filename"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all assignees of a subject.</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>The request data should follow the <code>multipart/form-data</code> Content-type.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+</div>
+<div class="sect2">
+<h3 id="_hierarchy_modification">Hierarchy modification</h3>
+<details>
+<summary class="title"><code>POST /api/subject/hierarchy/get</code> - read an exercise hierarchy of a subject <a id="POST_api_subject_hierarchy_get"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>anyone if a subject is public,</p>
+</li>
+<li>
+<p>all assignees of a subject.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "subject": "fizyka",
+  "raw": false
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">[
+  {
+    "name": "",
+    "children": [
+      {
+        "type": "EqEx",
+        "name": "Kula 2",
+        "children": "kula-2",
+        "description": "TODO",
+        "done": null
+      }
+    ]
+  },
+  {
+    "name": "mechanika",
+    "children": [
+      {
+        "name": "kinematyka",
+        "children": [
+          {
+            "type": "EqEx",
+            "name": "Pociągi dwa 2",
+            "children": "pociagi-dwa",
+            "description": "Z miast \\(A\\) i \\(B\\) odległych o \\(d= 300\\;\\mathrm{km}\\) wyruszają jednocześnie\ndwa pociągi z prędkościami \\(v_{a}= \\;\\mathrm{\\frac{km}{h}}\\) oraz \\(v_{b}= \\;\\mathrm{\\frac{km}{h}}\\).\nW jakiej odległości \\(x\\) od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie \\(t\\) się to stanie?\n",
+            "done": 0.34
+          }
+        ]
+      }
+    ]
+  }
+]</code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>If the <code>raw</code> property equals <code>false</code>, there is the <code>description</code> property and can be the optional <code>done</code> property if the User is authenticated.</p>
+</li>
+<li>
+<p>If the <code>raw</code> property equals <code>false</code> and the User is authorized, there is a <code>{"name": "", children: [...]}</code> (sub-subject) object with all exercises not listed in the hierarchy.</p>
+</li>
+<li>
+<p>The <code>description</code> property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.</p>
+</li>
+<li>
+<p>The <code>done</code> property can be <code>null</code> or a number from 0 up to and including 1, see <a href="https://github.com/Pikne-Programy/pikne-zadania/issues/24#issuecomment-782939873">#24</a>.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/subject/hierarchy/set</code> - update an exercise hierarchy of a subject <a id="POST_api_subject_hierarchy_set"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all assignees of a subject,</p>
+</li>
+<li>
+<p>or all teachers if a subject&#8217;s <code>assignees</code> equals <code>null</code>.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "subject": "fizyka",
+  "hierarchy": [
+    {
+      "name": "mechanika",
+      "children": [
+        {
+          "name": "kinematyka",
+          "children": [
+            {
+              "children": "pociagi-dwa"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json"></code></pre>
+</div>
+</div>
+</div>
+</details>
+</div>
+<div class="sect2">
+<h3 id="_exercise_modification">Exercise modification</h3>
+<details>
+<summary class="title"><code>POST /api/subject/exercise/list</code> - get all exercises from a subject <a id="POST_api_subject_exercise_list"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all assignees of a subject,</p>
+</li>
+<li>
+<p>or all teachers if a subject&#8217;s <code>assignees</code> equals <code>null</code>.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "subject": "_fizyka"
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "exercises": [
+    {
+      "id": "kula-2",
+      "type": "EqEx",
+      "name": "Kula 2",
+      "description": "TODO"
+    },
+    {
+      "id": "pociagi-dwa",
+      "type": "EqEx",
+      "name": "Pociągi dwa 2",
+      "description": "Z miast \\(A\\) i \\(B\\) odległych o \\(d= 300\\;\\mathrm{km}\\) wyruszają jednocześnie\ndwa pociągi z prędkościami \\(v_{a}= \\;\\mathrm{\\frac{km}{h}}\\) oraz \\(v_{b}= \\;\\mathrm{\\frac{km}{h}}\\).\nW jakiej odległości \\(x\\) od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie \\(t\\) się to stanie?\n"
+    }
+  ]
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>The <code>description</code> property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/subject/exercise/add</code> - create an exercise <a id="POST_api_subject_exercise_add"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all assignees of a subject,</p>
+</li>
+<li>
+<p>or all teachers if a subject&#8217;s <code>assignees</code> equals <code>null</code>.</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Special status codes</div>
+<ul>
+<li>
+<p><code>409 Conflict</code> - the name (<code>subject</code> and <code>exerciseId</code> properties) is already taken.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "subject": "fizyka",
+  "exerciseId": "pociagi-dwa",
+  "content": "---\ntype: EqEx\nname: Pociągi dwa 2\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n"
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json"></code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>The <code>content</code> property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.</p>
+</li>
+<li>
+<p>The <code>content</code> property can contain links to static content.
+The User can upload it via the <a href="#PUT_api_subject_static_.subject_.filename"><code>PUT /api/subject/static/:subject/:filename</code></a> request.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/subject/exercise/get</code> - read a content of an exercise <a id="POST_api_subject_exercise_get"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all assignees of a subject,</p>
+</li>
+<li>
+<p>or all teachers if a subject&#8217;s <code>assignees</code> equals <code>null</code>,</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Special status codes</div>
+<ul>
+<li>
+<p><code>200 OK</code>,
+<code>403 Forbidden</code>, <code>404 Not Found</code></p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "subject": "fizyka",
+  "exerciseId": "pociagi-dwa"
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "content": "---\ntype: EqEx\nname: Pociągi dwa 2\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n"
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>The <code>content</code> property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/subject/exercise/update</code> - update a content of an exercise <a id="POST_api_subject_exercise_update"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all assignees of a subject,</p>
+</li>
+<li>
+<p>or all teachers if a subject&#8217;s <code>assignees</code> equals <code>null</code>.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "subject": "fizyka",
+  "exerciseId": "pociagi-dwa",
+  "content": "---\ntype: EqEx\nname: Pociągi dwa 2\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n"
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json"></code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>Only the <code>content</code> property is changeable.
+Changing an <code>exerciseId</code> fails or overwrites an old exercise.</p>
+</li>
+<li>
+<p>The <code>content</code> property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/subject/exercise/preview</code> - render an exercise from a content <a id="POST_api_subject_exercise_preview"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all authorized.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "content": "---\ntype: EqEx\nname: Pociągi dwa 2\n---\nZ miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n",
+  "seed": 0
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "type": "EqEx",
+  "name": "Pociągi dwa 2",
+  "problem": {
+    "main": "Z miast \\(A\\) i \\(B\\) odległych o \\(d=300\\;\\mathrm{km}\\) wyruszają jednocześnie\ndwa pociągi z prędkościami \\(v_a= 50\\;\\mathrm{\\frac{km}{h}}\\) oraz \\(v_b=70\\;\\mathrm{\\frac{km}{h}}\\).\nW jakiej odległości \\(x\\) od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie \\(t\\) się to stanie?",
+    "img": ["1.png", "2.png"],
+    "unknown": [
+      ["x", "\\mathrm{km}"],
+      ["t", "\\mathrm{s}"]
+    ]
+  },
+  "correctAnswer": {
+    "answers": [2.5, 125]
+  }
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>The <code>seed</code> property is optional.</p>
+</li>
+<li>
+<p>The <code>problem</code> property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.</p>
+</li>
+<li>
+<p>The <code>problem</code> property can contain links to static content.
+The User can access it via the <a href="#GET_api_subject_static_.subject_.filename"><code>GET /api/subject/static/:subject/:filename</code></a> request.</p>
+</li>
+<li>
+<p>The <code>content</code> property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+</div>
+<div class="sect2">
+<h3 id="_auth">Auth</h3>
+<details>
+<summary class="title"><code>POST /api/auth/register</code> - create a new user <a id="POST_api_auth_register"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>anyone who has a valid invitation.</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Special status codes</div>
+<ul>
+<li>
+<p><code>409 Conflict</code> - the login is already taken.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "login": "user@example.com",
+  "name": "User",
+  "hashedPassword": "r02H/fnQ3M3Xfjqsr3dg8mY78lBDXWoiR0O0JcXW8VM=",
+  "number": 11,
+  "invitation": "QwErTy58"
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json"></code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>This request doesn&#8217;t authenticate, unlike a <a href="#POST_api_auth_login"><code>POST /api/auth/login</code></a> one.</p>
+</li>
+<li>
+<p>The <code>login</code> property is an email address.
+With this request, it is not possible to register hard-coded users (like <code>root</code>).</p>
+</li>
+<li>
+<p>The description of the <code>hashedPassword</code> property generation is <a href="https://github.com/Pikne-Programy/pikne-zadania/issues/22#issuecomment-789536400">here</a>.</p>
+</li>
+<li>
+<p>The <code>number</code> property is a number or <code>null</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/auth/login</code> - authenticate <a id="POST_api_auth_login"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>anyone.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "login": "user@example.com",
+  "hashedPassword": "r02H/fnQ3M3Xfjqsr3dg8mY78lBDXWoiR0O0JcXW8VM="
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json"></code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>The description of the <code>hashedPassword</code> property generation is <a href="https://github.com/Pikne-Programy/pikne-zadania/issues/22#issuecomment-789536400">here</a>.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/auth/logout</code> - unauthenticate <a id="POST_api_auth_logout"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all authorized.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json"></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json"></code></pre>
+</div>
+</div>
+</div>
+</details>
+</div>
+<div class="sect2">
+<h3 id="_user">User</h3>
+<details>
+<summary class="title"><code>POST /api/user/info</code> - read user&#8217;s info <a id="POST_api_user_info"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all authorized if a request is referring to the User,</p>
+</li>
+<li>
+<p>the assignee of the team of the requested user.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "userId": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "name": "User",
+  "teamId": 2,
+  "number": 11
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>Omitting the <code>userId</code> property causes using the User&#8217;s one.</p>
+</li>
+<li>
+<p>The <code>number</code> property is a number or <code>null</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/user/update</code> - update user&#8217;s info <a id="POST_api_user_update"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>the assignee of the team of the requested user.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "userId": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "number": 33
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json"></code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>Only <code>number</code> and <code>name</code> properties are changeable.</p>
+</li>
+<li>
+<p>The <code>number</code> property is a number or <code>null</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/user/delete</code> - delete a user <a id="POST_api_user_delete"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>the assignee of the team of the requested user.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "userId": "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755"
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json"></code></pre>
+</div>
+</div>
+</div>
+</details>
+</div>
+<div class="sect2">
+<h3 id="_team">Team</h3>
+<details>
+<summary class="title"><code>GET /api/team/list</code> - list all teams <a id="GET_api_team_list"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all teachers.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json"></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">[
+  {
+    "teamId": 1,
+    "name": "Teachers",
+    "assignee": {
+      "userId": "4813494d137e1631bba301d5acab6e7bb7aa74ce1185d456565ef51d737677b2",
+      "name": "root"
+    },
+    "invitation": "QwErTy58"
+  },
+  {
+    "teamId": 2,
+    "name": "2d",
+    "assignee": {
+      "userId": "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755",
+      "name": "Smith"
+    },
+    "invitation": null
+  },
+  {
+    "teamId": 3,
+    "name": "3d",
+    "assignee": {
+      "userId": "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755",
+      "name": "Smith"
+    },
+    "invitation": null
+  }
+]</code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>There is always a hard-coded <code>admin</code> team with id <code>0</code>.</p>
+</li>
+<li>
+<p>If the User can manage a team, there is the <code>invitation</code> property there.</p>
+</li>
+<li>
+<p>When a team has closed registration, the <code>invitation</code> property is <code>null</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/team/create</code> - create a team <a id="POST_api_team_create"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all teachers.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "name": "2d"
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "teamId": 2
+}</code></pre>
+</div>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/team/info</code> - read team&#8217;s info <a id="POST_api_team_info"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all authorized if a request is referring to the User&#8217;s team,</p>
+</li>
+<li>
+<p>all teachers.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "teamId": 2
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "name": "2d",
+  "assignee": {
+    "userId": "1057a9604e04b274da5a4de0c8f4b4868d9b230989f8c8c6a28221143cc5a755",
+    "name": "Smith"
+  },
+  "invitation": "QwErTy58",
+  "members": [
+    {
+      "userId": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "User",
+      "number": 11
+    }
+  ]
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>The Student will not receive the <code>invitation</code> property and any of <code>userId</code> properties.</p>
+</li>
+<li>
+<p>When a team has closed registration, the <code>invitation</code> property is <code>null</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/team/update</code> - update team&#8217;s info <a id="POST_api_team_update"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>the assignee of the requested team,</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Special status codes</div>
+<ul>
+<li>
+<p><code>409 Conflict</code> - the invitation is already taken.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "teamId": 2,
+  "invitation": "QwErTy58"
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json"></code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>Only a teacher can be an assignee of a team.</p>
+</li>
+<li>
+<p>Only <code>invitation</code>, <code>assignee</code> and <code>name</code> properties are changeable.</p>
+</li>
+<li>
+<p>The <code>invitation</code> property can also be an empty string <code>""</code> (in that case, it will be random)
+or <code>null</code> (in that case, registration will be closed).</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/team/delete</code> - delete a team <a id="POST_api_team_delete"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>the assignee of the requested team.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "teamId": 2
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json"></code></pre>
+</div>
+</div>
+</div>
+</details>
+</div>
+<div class="sect2">
+<h3 id="_session">Session</h3>
+<details>
+<summary class="title"><code>POST /api/session/reset</code> - drop and create a session <a id="POST_api_session_reset"></a></summary>
+<div class="content">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Remember to save a report via the <a href="#POST_api_session_report_save"><code>POST /api/session/report/save</code></a> request.
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all assignees.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "teamId": 2
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json"></code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>It is <a href="https://www.diki.pl/slownik-angielskiego?q=irreversible">irreversible</a>.</p>
+</li>
+</ul>
+</div>
+<!-- diki w wiki (translation: diki in wiki) -->
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/session/add</code> - add an exercise to the session <a id="POST_api_session_add"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all teachers if a subject is public and an exercise is listed in a subject&#8217;s hierarchy,</p>
+</li>
+<li>
+<p>all assignees of a subject.</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Special status codes</div>
+<ul>
+<li>
+<p><code>409 Conflict</code> - if the session is already finished.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "teamId": 2,
+  "subject": "fizyka",
+  "exerciseId": "pociagi-dwa-2"
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json"></code></pre>
+</div>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/session/delete</code> - remove the exercise from the session <a id="POST_api_session_delete"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all teachers.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "teamId": 2,
+  "subject": "fizyka",
+  "exerciseId": "pociagi-dwa-2"
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json"></code></pre>
+</div>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/session/list</code> - generate a list of exercises in the current session for the users <a id="POST_api_session_list"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all authorized excluding teachers.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json"></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">[
+  {
+    "type": "EqEx",
+    "name": "Kula 2",
+    "subject": "_fizyka",
+    "exerciseId": "kula-2",
+    "description": "TODO",
+    "done": null
+  },
+  {
+    "type": "EqEx",
+    "name": "Pociągi dwa 2",
+    "subject": "fizyka",
+    "exerciseId": "pociagi-dwa",
+    "description": "Z miast \\(A\\) i \\(B\\) odległych o \\(d= 300\\;\\mathrm{km}\\) wyruszają jednocześnie\ndwa pociągi z prędkościami \\(v_{a}= \\;\\mathrm{\\frac{km}{h}}\\) oraz \\(v_{b}= \\;\\mathrm{\\frac{km}{h}}\\).\nW jakiej odległości \\(x\\) od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie \\(t\\) się to stanie?\n",
+    "done": 0.34
+  }
+]</code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>The <code>description</code> property is dependent on exercise type (ExT).
+The one shown above is the EquationExercise (EqEx) one.</p>
+</li>
+<li>
+<p>The <code>done</code> property can be <code>null</code> or a number from 0 up to and including 1, see <a href="https://github.com/Pikne-Programy/pikne-zadania/issues/24#issuecomment-782939873">#24</a>.</p>
+</li>
+<li>
+<p>The <code>subject</code> and the <code>exerciseId</code> properties mention exercises added to the session.
+The User can access it via the <a href="#POST_api_subject_problem_render"><code>POST /api/subject/problem/render</code></a> request.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/session/status</code> - generate a current report without saving it <a id="POST_api_session_status"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all assignees.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "teamId": 2
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "finished": true,
+  "exercises": [
+    {"subject": "fizyka", "exerciseId": "pociagi-dwa-1"},
+    {"subject": "fizyka", "exerciseId": "pociagi-dwa-2"},
+    {"subject": "fizyka", "exerciseId": "pociagi-dwa-3"},
+    {"subject": "fizyka", "exerciseId": "pociagi-dwa-4"}
+  ],
+  "report": [
+    {
+      "userId": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exercises": ["☐", "☒", "⚀", "☑"]
+    }
+  ]
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>The <code>exercises</code> properties nested in <code>report</code> are tuples with the same length as the <code>exercises</code> property.</p>
+</li>
+<li>
+<p>The <code>exercises</code> properties nested in <code>report</code> have elements with four possible values, i.e.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>☐</code> (U+2610) - unattempted</p>
+</li>
+<li>
+<p><code>☒</code> (U+2612) - incorrect answer</p>
+</li>
+<li>
+<p><code>⚀</code> (U+2680) - partial answer</p>
+</li>
+<li>
+<p><code>☑</code> (U+2611) - correct answer</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/session/end</code> - end a session / block adding new submits <a id="POST_api_session_end"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all assignees.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "teamId": 2
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json"></code></pre>
+</div>
+</div>
+</div>
+</details>
+</div>
+<div class="sect2">
+<h3 id="_reports">Reports</h3>
+<details>
+<summary class="title"><code>POST /api/session/report/list</code> - list reports <a id="POST_api_session_report_list"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all teachers.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "teamId": 3
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "filenames": [
+    "report_3_2022-05-26T23:33:36+02:00.txt",
+    "report_π_2022-05-27T01:33:66+02:00.txt"
+  ]
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>Generated reports can be downloaded via the <a href="#GET_api_session_static_.filename"><code>GET /api/session/static/:filename</code></a> request.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/session/report/save</code> - save a report to disk <a id="POST_api_session_report_save"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all teachers.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "teamId": 2
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "filename": "report_2_2022-05-26T23:33:36+02:00.txt"
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>Generated reports can be downloaded via the <a href="#GET_api_session_static_.filename"><code>GET /api/session/static/:filename</code></a> request.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>GET /api/session/static/:filename</code> - get a static file <a id="GET_api_session_static_.filename"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all teachers.</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Notes</div>
+<ul>
+<li>
+<p>There should be binary data with an appropriate Content-type in the response.</p>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<details>
+<summary class="title"><code>POST /api/session/report/delete</code> - delete a report <a id="POST_api_session_report_delete"></a></summary>
+<div class="content">
+<div class="ulist">
+<div class="title">It can be used by</div>
+<ul>
+<li>
+<p>all teachers.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "filename": "report_π_2022-05-27T01:33:66+02:00.txt"
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json"></code></pre>
+</div>
+</div>
+</div>
+</details>
+<hr>
+<div class="sidebarblock">
+<div class="content">
+<div class="paragraph">
+<p>The project has been made by students of 8th High School of Maria Skłodowska-Curie in Katowice (class 2d in 2020/2021).<br>
+&#169; 2021 <a href="https://github.com/Nircek">Nircek</a> (Marcin Zepp), <a href="https://github.com/Marwyk2003">Marwyk2003</a> (Marcin Wykpis), <a href="https://github.com/miloszwasacz">miloszwasacz</a> (Miłosz Wąsacz), <a href="https://github.com/MichalTheProgrammer">MichalTheProgrammer</a> (Michał Szymocha)<br>
+This project is licensed under the terms of <a href="https://github.com/Pikne-Programy/pikne-zadania/blob/master/COPYING">the GNU AGPL v3 or later</a>.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version 0.5<br>
+Last updated 2022-06-01 15:40:41 UTC
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"
+  integrity="sha384-3J57zMPq3MVZNftJooMj0yTPa/5Jwox3gxrP+A2v+Q3k0SGttDQTwoFxjl//O+BY" crossorigin="anonymous"></script>
+<script>
+  if (!hljs.initHighlighting.called) {
+    hljs.initHighlighting.called = true
+      ;[].slice.call(document.querySelectorAll('pre.highlight > code')).forEach(function (el) { hljs.highlightBlock(el) })
+  }
+  hljs.debugMode();
+  const styles = [...document.querySelectorAll(".styles > li")]
+  // styles.reverse();
+  styles.forEach((style) => {
+    style.addEventListener("click", (event) => {
+      // inspired by https://github.com/highlightjs/highlight.js/blob/e91ffbdbcb9232287677b26c792e5fe8a75c3167/demo/demo.js
+      const current = document.querySelector(".styles .current");
+      const currentStyle = current.textContent;
+      const nextStyle = event.target.textContent;
+
+      if (currentStyle !== nextStyle) {
+        document.querySelector(`link[title="${nextStyle}"]`).removeAttribute("disabled");
+        document.querySelector(`link[title="${currentStyle}"]`).setAttribute("disabled", "disabled");
+        document.querySelector(`link[title="asciidoctor-${nextStyle}"]`).removeAttribute("disabled");
+        document.querySelector(`link[title="asciidoctor-${currentStyle}"]`).setAttribute("disabled", "disabled");
+
+        current.classList.remove("current");
+        event.target.classList.add("current");
+      }
+    });
+    style.click();
+  });
+</script>
+</body>
+</html>
