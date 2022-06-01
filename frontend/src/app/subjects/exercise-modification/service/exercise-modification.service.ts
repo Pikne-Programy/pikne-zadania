@@ -110,6 +110,7 @@ export class ExerciseModificationService {
                     content: content.toString()
                 }
             )
+            .pipe(switchMap(() => of(exerciseId)))
             .toPromise();
     }
 

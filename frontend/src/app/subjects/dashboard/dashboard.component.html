@@ -4,13 +4,9 @@
         <div class="tile is-child height-full panel is-primary is-root">
             <p class="panel-heading is-flex is-align-items-center">
                 <span class="is-flex-grow-1">{{ subject.getName() | titlecase }}</span>
-                <a class="button is-primary" title="Stwórz zadanie" [routerLink]="['/subject/exercise-new', subject.id]">
-                    <i class="fas fa-plus"></i>
-                </a>
                 <a class="button is-primary" title="Edytuj kategorie" [routerLink]="['/subject/categories', subject.id]">
                     <i class="fas fa-pen"></i>
                 </a>
-                <!--TODO Subject access management -->
                 <a class="button is-primary" title="Zarządzaj dostępem" routerLink="permit">
                     <i class="fas fa-user-cog"></i>
                 </a>
@@ -50,7 +46,17 @@
     <ul *ngIf="checkNodeChildren(node)" class="menu-list">
         <ng-container *ngFor="let child of node.children">
             <li *ngIf="checkNodeIfIsCategory(child)">
-                <a [class.is-active]="child.isSelected" (click)="onTreeNodeClick(child)">{{ child.value | titlecase }}</a>
+                <a class="is-flex is-justify-content-space-between" [class.is-active]="child.isSelected" (click)="onTreeNodeClick(child)">
+                    <span>{{ child.value | titlecase }}</span>
+                    <span class="buttons tiny">
+                        <button class="button" [class.is-active]="child.isSelected" title="Stwórz nowe zadanie" (click)="navigateToExerciseCreation(child)">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <a class="button" [class.is-active]="child.isSelected" title="Dodaj zadanie z listy">
+                            <i class="fas fa-folder-open"></i>
+                        </a>
+                    </span>
+                </a>
                 <div [appCollapsible]="!child.isSelected">
                     <ng-container *ngTemplateOutlet="catList; context: { $implicit: child }"></ng-container>
                 </div>

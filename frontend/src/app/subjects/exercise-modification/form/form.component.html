@@ -129,3 +129,16 @@
     </footer>
 </app-card-modal>
 <!--#endregion-->
+
+<!--#region Modal Hierarchy warning -->
+<app-card-modal [title]="'Błąd hierarchii (' + hierarchyErrorCode + ')'" [open]="hierarchyErrorCode !== null" (onClose)="dismissHierarchyAlert()">
+    <section>
+        <p class="has-text-justified">Zadanie zostało utworzone, ale wystąpił błąd podczas dodawania go do kategorii. Dodaj je do kategorii z poziomu edycji przedmiotu klikając w ikonę folderu przy odpowiedniej kategorii.</p>
+    </section>
+    <footer class="width-full">
+        <div class="buttons width-full is-right">
+            <button class="button is-primary" (click)="dismissHierarchyAlert()">Ok</button>
+        </div>
+    </footer>
+</app-card-modal>
+<!--#endregion-->

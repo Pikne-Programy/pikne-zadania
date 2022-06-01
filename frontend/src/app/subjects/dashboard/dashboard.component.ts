@@ -1,7 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { getErrorCode, TYPE_ERROR } from 'src/app/helper/utils';
+import { HierarchyService } from '../hierarchy/service/hierarchy.service';
 import {
     Subject,
     SubjectService,
@@ -40,6 +41,8 @@ export class SubjectDashboardComponent implements OnInit, OnDestroy {
     param$?: Subscription;
     constructor(
         private subjectService: SubjectService,
+        private hierarchyService: HierarchyService,
+        private router: Router,
         private route: ActivatedRoute
     ) {}
 
@@ -68,7 +71,7 @@ export class SubjectDashboardComponent implements OnInit, OnDestroy {
     }
 
     checkNodeIfIsCategory(node: ViewExerciseTreeNode): boolean {
-        return node.url === null;
+        return node.url === null && node.value !== '';
     }
 
     onTreeNodeClick(node: ViewExerciseTreeNode) {
@@ -133,6 +136,13 @@ export class SubjectDashboardComponent implements OnInit, OnDestroy {
 
     isLast(index: number): boolean {
         return !this.exerciseList || index === this.exerciseList.length - 1;
+    }
+
+    navigateToExerciseCreation(parent: ViewExerciseTreeNode) {
+        if (this.subject) {
+            this.hierarchyService.setNewExerciseHierarchy(parent);
+            this.router.navigate(['/subject/exercise-new', this.subject.id]);
+        }
     }
 
     getErrorMessage(errorCode: number): string | undefined {

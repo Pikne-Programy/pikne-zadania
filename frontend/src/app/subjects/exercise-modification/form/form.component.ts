@@ -31,8 +31,16 @@ import { getErrorCode } from 'src/app/helper/utils';
 import { highlightList } from './highlight-utils/highlight.utils';
 import { HighlightTextareaComponent } from 'src/app/templates/highlight-textarea/highlight-textarea.component';
 import { SnippetService } from './snippet.service/snippet.service';
-import { FileHeader, FileUploadService, isFileHeader } from '../../file-upload.service/file-upload.service';
-import { EqExHeader, ExerciseHeader } from '../service/exercise-modification.utils';
+import {
+    FileHeader,
+    FileUploadService,
+    isFileHeader
+} from '../../file-upload.service/file-upload.service';
+import {
+    EqExHeader,
+    ExerciseHeader
+} from '../service/exercise-modification.utils';
+import { HierarchyService } from '../../hierarchy/service/hierarchy.service';
 
 interface AbstractControlWarn extends AbstractControl {
     warnings: ValidationErrors | null;
@@ -87,6 +95,7 @@ implements OnInit, AfterViewInit {
 
     isSubmitted = false;
     errorCode: number | null = null;
+    hierarchyErrorCode: number | null = null;
 
     isUnknownTypeModalOpen = false;
     isConfirmCancelModalOpen = false;
@@ -98,6 +107,7 @@ implements OnInit, AfterViewInit {
     hasNewFiles = false;
     constructor(
         private exerciseService: ExerciseModificationService,
+        private hierarchyService: HierarchyService,
         public snippetService: SnippetService,
         public fileService: FileUploadService
     ) {}
@@ -172,8 +182,7 @@ implements OnInit, AfterViewInit {
         this.snippetService.closeSnippet();
         if (this.type!.warnings?.type) this.isUnknownTypeModalOpen = true;
         else {
-            if (!this.isModified())
-                this.onSuccess.emit(nextRoute);
+            if (!this.isModified()) this.onSuccess.emit(nextRoute);
             else {
                 this.isSubmitted = true;
                 const content = this.updateExercise();
@@ -185,7 +194,14 @@ implements OnInit, AfterViewInit {
                           content
                       );
                 promise
-                    .then(() => this.onSuccess.emit(nextRoute))
+                    .then((exerciseId) => {
+                        if (this.isCreation)
+                            this.addToHierarchy(exerciseId, nextRoute);
+                        else {
+                            this.onSuccess.emit(nextRoute);
+                            this.isSubmitted = false;
+                        }
+                    })
                     .catch((error) => {
                         const code = getErrorCode(error);
                         if (code === this.IdError) {
@@ -194,10 +210,18 @@ implements OnInit, AfterViewInit {
                             this.name!.updateValueAndValidity();
                         }
                         else this.errorCode = code;
-                    })
-                    .finally(() => (this.isSubmitted = false));
+                        this.isSubmitted = false;
+                    });
             }
         }
+    }
+
+    private addToHierarchy(exerciseId: string, nextRoute?: string) {
+        this.hierarchyService
+            .addNewExerciseToHierarchy(this.subjectId, exerciseId)
+            .then(() => this.onSuccess.emit(nextRoute))
+            .catch((error) => (this.hierarchyErrorCode = getErrorCode(error)))
+            .finally(() => (this.isSubmitted = false));
     }
 
     cancel() {
@@ -215,12 +239,19 @@ implements OnInit, AfterViewInit {
         return isFileHeader(header);
     }
 
+    dismissHierarchyAlert() {
+        this.onSuccess.emit();
+        this.hierarchyErrorCode = null;
+    }
+
     //#region Validators & filters
     isModified(): boolean {
-        return this.type!.dirty ||
-        this.name!.dirty ||
-        this.content!.dirty ||
-        this.hasNewFiles;
+        return (
+            this.type!.dirty ||
+            this.name!.dirty ||
+            this.content!.dirty ||
+            this.hasNewFiles
+        );
     }
 
     private typeValidator() {

@@ -54,3 +54,25 @@ app-subject-ex-prev {
         border-radius: 0;
     }
 }
+
+.buttons.tiny .button {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: none;
+    background: transparent;
+
+    &:hover {
+        background: #00000015;
+    }
+
+    &.is-active {
+        color: inherit;
+
+        &:hover {
+            background: #00000050;
+        }
+    }
+}

@@ -5,6 +5,7 @@ import { switchMap } from 'rxjs/operators';
 import { isObject, TYPE_ERROR } from 'src/app/helper/utils';
 import * as ServerRoutes from 'src/app/server-routes';
 import { isExerciseListType } from '../../exercise-modification/service/exercise-modification.utils';
+import { ViewExerciseTreeNode } from '../../subject.service/subject.service';
 
 interface ServerHierarchyNode {
     name: string;
@@ -79,6 +80,12 @@ function mapToHierarchyTree(
     providedIn: 'root'
 })
 export class HierarchyService {
+    private newExerciseHierarchy: string[] | null = null;
+    /* eslint-disable @typescript-eslint/naming-convention */
+    private static NEW_EXERCISE_ERROR_CODE = 48800;
+    private static SUBCATEGORY_ERROR_CODE = 48801;
+    /* eslint-enable @typescript-eslint/naming-convention */
+
     constructor(private http: HttpClient) {}
 
     private isServerHierarchyTree(
@@ -125,6 +132,15 @@ export class HierarchyService {
                 hierarchy: mapToServerHierarchyTree(
                     this.removeNotAssigned(tree)
                 )
+            })
+            .toPromise();
+    }
+
+    setExerciseHierarchy(subject: string, hierarchy: ServerHierarchyNode[]) {
+        return this.http
+            .post(ServerRoutes.hierarchySet, {
+                subject,
+                hierarchy
             })
             .toPromise();
     }
@@ -217,4 +233,68 @@ export class HierarchyService {
         }
     }
     //#endregion
+
+    setNewExerciseHierarchy(parent: ViewExerciseTreeNode) {
+        const result: string[] = [];
+        let currentNode = parent;
+        while (currentNode.parent !== null) {
+            result.push(currentNode.value);
+            currentNode = currentNode.parent;
+        }
+        this.newExerciseHierarchy = result.reverse();
+    }
+
+    addNewExerciseToHierarchy(subjectId: string, exerciseId: string) {
+        return this.getHierarchy(subjectId)
+            .then((tree) =>
+                mapToServerHierarchyTree(this.removeNotAssigned(tree))
+            )
+            .then((hierarchy) =>
+                this.addExerciseToHierarchy(hierarchy, exerciseId)
+            )
+            .then((hierarchy) =>
+                this.setExerciseHierarchy(subjectId, hierarchy)
+            )
+            .finally(() => this.resetNewExerciseHierarchy());
+    }
+
+    private addExerciseToHierarchy(
+        hierarchy: ServerHierarchyNode[],
+        exerciseId: string
+    ): ServerHierarchyNode[] {
+        const list = this.newExerciseHierarchy;
+        if (!list)
+            throw { status: HierarchyService.NEW_EXERCISE_ERROR_CODE };
+
+        if (list.length === 0) {
+            hierarchy.push({
+                name: exerciseId,
+                children: exerciseId
+            });
+            return hierarchy;
+        }
+
+        let currentNode = hierarchy.find((node) => node.name === list[0]);
+        let i = 0;
+        while (i < list.length) {
+            i++;
+            if (!currentNode || typeof currentNode.children === 'string')
+                throw { status: HierarchyService.SUBCATEGORY_ERROR_CODE };
+
+            if (i < list.length) {
+                currentNode = currentNode.children.find(
+                    (node) => node.name === list[i]
+                );
+            }
+        }
+        (currentNode!.children as ServerHierarchyNode[]).push({
+            name: exerciseId,
+            children: exerciseId
+        });
+        return hierarchy;
+    }
+
+    resetNewExerciseHierarchy() {
+        this.newExerciseHierarchy = null;
+    }
 }
