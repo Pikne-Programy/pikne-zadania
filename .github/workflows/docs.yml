@@ -9,7 +9,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: asciidoctor-ghpages
-        uses: manoelcampos/asciidoctor-ghpages-action@v2.1.2
+        uses: manoelcampos/asciidoctor-ghpages-action@v2
+        # if it broke, use instead:
+        # git checkout gh-pages && git reset --hard docs && docker run --rm -v $(pwd):/documents/ asciidoctor/docker-asciidoctor asciidoctor *.adoc && git add *.html && git commit -S
         # with:
         #   asciidoctor_params: --attribute=nofooter
         #   source_dir: docs/ # default is .
