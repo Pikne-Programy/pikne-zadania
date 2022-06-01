@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 export { copy } from "https://deno.land/std@0.141.0/fs/mod.ts";
+export { rgb8 } from "https://deno.land/std@0.141.0/fmt/colors.ts";
 export {
   assert,
   assertEquals,
@@ -10,12 +11,3 @@ export {
 
 export { superoak } from "https://deno.land/x/superoak@4.7.0/mod.ts";
 export type { IResponse } from "https://deno.land/x/superoak@4.7.0/mod.ts";
-export {
-  describe,
-  it,
-  test,
-  TestSuite,
-  xdescribe,
-  xit,
-} from "https://deno.land/x/test_suite@v0.8.0/mod.ts";
-// from "https://deno.land/std@0.141.0/testing/bdd.ts";

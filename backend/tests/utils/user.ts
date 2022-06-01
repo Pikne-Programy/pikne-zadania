@@ -2,16 +2,16 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { E2eSuiteContext } from "../e2e.ts";
+import { E2eTestContext } from "../smoke_mod.ts";
 import { updateCookies } from "./cookies.ts";
 
 export async function login(
-  context: E2eSuiteContext,
+  g: E2eTestContext,
   credentials: { login: string; hashedPassword: string },
   old?: string,
 ) {
   try {
-    const response = await (await context.request())
+    const response = await (await g.request())
       .post("/api/auth/login")
       .send(credentials)
       .expect(200);
@@ -22,7 +22,7 @@ export async function login(
 }
 
 export async function register(
-  context: E2eSuiteContext,
+  g: E2eTestContext,
   data: {
     login: string;
     name: string;
@@ -33,7 +33,7 @@ export async function register(
 ) {
   try {
     if (data.number === undefined) data.number = null;
-    await (await context.request())
+    await (await g.request())
       .post("/api/auth/register")
       .send(data)
       .expect(200);
@@ -45,12 +45,12 @@ export async function register(
 }
 
 export async function createTeam(
-  context: E2eSuiteContext,
+  g: E2eTestContext,
   cookie: string,
   name: string,
 ) {
   try {
-    const response = await (await context.request())
+    const response = await (await g.request())
       .post("/api/team/create")
       .set("Cookie", cookie)
       .send({ name })
@@ -69,13 +69,13 @@ export async function createTeam(
 }
 
 export async function updateTeamInvitation(
-  context: E2eSuiteContext,
+  g: E2eTestContext,
   cookie: string,
   teamId: number,
   invitation: string | null,
 ) {
   try {
-    await (await context.request())
+    await (await g.request())
       .post("/api/team/update")
       .set("Cookie", cookie)
       .send({ teamId, invitation })
