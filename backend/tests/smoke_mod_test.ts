@@ -18,6 +18,8 @@ import { initRoleTests } from "./smoke_20_role.ts";
 import { initTeamTests } from "./smoke_21_team.ts";
 import { initUserTests } from "./smoke_22_user.ts";
 import { initHierarchyTests } from "./smoke_23_hierarchy.ts";
+import { initProblemTests } from "./smoke_24_problem.ts";
+import { initSubjectTests } from "./smoke_25_subject.ts";
 
 Deno.test("smoke", async (t) => {
   await bench("init exercises", async () => {
@@ -59,6 +61,8 @@ Deno.test("smoke", async (t) => {
       await t.step("hierarchy", async (t) => {
         await initHierarchyTests(t, roleCtx);
       });
+      await t.step("problem", async (t) => await initProblemTests(t, roleCtx));
+      await t.step("subject", async (t) => await initSubjectTests(t, roleCtx));
     });
   });
 
