@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { Algorithm } from "../deps.ts";
-import { sha256 } from "../utils/mod.ts";
+import { get, sha256 } from "../utils/mod.ts";
 import { IConfigService } from "../interfaces/mod.ts";
 
 const algos = [
@@ -22,34 +22,6 @@ function isJWTAlgo(x?: string): x is Algorithm {
 
 function isFrom0To4(x: number): x is 0 | 1 | 2 | 3 | 4 {
   return [0, 1, 2, 3, 4].includes(x);
-}
-
-function get(type: "string", key: string, def?: string): string;
-function get(type: "number", key: string, def?: number): number;
-function get(type: "boolean", key: string, def?: boolean): boolean;
-function get(
-  type: "string" | "number" | "boolean",
-  key: string,
-  def?: string | number | boolean,
-): string | number | boolean {
-  const env = Deno.env.get(key) ?? def;
-  let x;
-  switch (type) {
-    case "string":
-      x = env;
-      break;
-    case "number":
-      x = +(env ?? NaN);
-      if (isNaN(x)) x = null;
-      break;
-    case "boolean":
-      x = (typeof env == "string")
-        ? ["true", "yes", "1"].includes(env.toLocaleLowerCase())
-        : env;
-      break;
-  }
-  if (x == null) throw new Error(`${key} must be present`);
-  return x;
 }
 
 export class ConfigService implements IConfigService {
