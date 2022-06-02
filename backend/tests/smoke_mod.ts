@@ -11,6 +11,7 @@ import {
   writeStdout,
 } from "../utils/mod.ts";
 import { constructApp } from "../app.ts";
+import { data } from "./testdata/config.ts";
 
 const LIVE_BENCH = get("boolean", "LIVE_BENCH", true);
 let timing = false;
@@ -34,7 +35,15 @@ export async function bench<T>(name: string, fn: () => T | Promise<T>) {
   const x0 = performance.now();
   const rp = fn();
   const t = stdoutTimer(prefix, x0);
-  const r = await rp;
+  let r: Awaited<typeof rp>;
+  try {
+    r = await rp;
+  } catch (e) {
+    timing = false;
+    await t;
+    console.log();
+    throw e;
+  }
   const x1 = performance.now();
   timing = false;
   await t;
@@ -50,10 +59,6 @@ export interface E2eTestContext {
 }
 export interface RoleTestContext extends E2eTestContext {
   roles: {
-    root: string;
-    teacher: string;
-    teacher2: string;
-    student: string;
-    student2: string;
+    [prop in keyof (typeof data)["u"]]: string;
   };
 }

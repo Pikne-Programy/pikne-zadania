@@ -32,7 +32,7 @@ export async function initSubjectTests(
   await t.step("Student - list (only public subjects)", async () => {
     await (await g.request())
       .get("/api/subject/list")
-      .set("Cookie", g.roles.student2)
+      .set("Cookie", g.roles.bob)
       .expect(200)
       .expect({
         "subjects": ["fizyka"],
@@ -42,7 +42,7 @@ export async function initSubjectTests(
   await t.step("Teacher - list (only public subjects)", async () => {
     await (await g.request())
       .get("/api/subject/list")
-      .set("Cookie", g.roles.teacher2)
+      .set("Cookie", g.roles.ralph)
       .expect(200)
       .expect({
         "subjects": ["fizyka"],
@@ -65,7 +65,7 @@ export async function initSubjectTests(
       .send({
         subject: "astronomia",
         assignees: [
-          data.teacher.id,
+          data.u.lanny.id,
         ],
       })
       .expect(200);
@@ -79,8 +79,8 @@ export async function initSubjectTests(
       .expect({
         assignees: [
           {
-            userId: data.teacher.id,
-            name: data.teacher.name,
+            userId: data.u.lanny.id,
+            name: data.u.lanny.name,
           },
         ],
       });
@@ -89,7 +89,7 @@ export async function initSubjectTests(
   await t.step("Teacher - create public subject", async () => {
     await (await g.request())
       .post("/api/subject/create")
-      .set("Cookie", g.roles.teacher)
+      .set("Cookie", g.roles.lanny)
       .send({
         subject: "informatyka",
         assignees: null,
@@ -110,7 +110,7 @@ export async function initSubjectTests(
   await t.step("Student - try to create a subject", async () => {
     await (await g.request())
       .post("/api/subject/create")
-      .set("Cookie", g.roles.student)
+      .set("Cookie", g.roles.alice)
       .send({
         subject: "fizyka2",
         assignees: null,
@@ -166,7 +166,7 @@ export async function initSubjectTests(
   await t.step("Student - try to get info about public subject", async () => {
     await (await g.request())
       .post("/api/subject/info")
-      .set("Cookie", g.roles.student)
+      .set("Cookie", g.roles.alice)
       .send({
         subject: "fizyka",
       })
@@ -176,7 +176,7 @@ export async function initSubjectTests(
   await t.step("Assignee - get info about public subject", async () => {
     await (await g.request())
       .post("/api/subject/info")
-      .set("Cookie", g.roles.teacher2)
+      .set("Cookie", g.roles.ralph)
       .send({
         subject: "fizyka",
       })
@@ -217,7 +217,7 @@ export async function initSubjectTests(
       .set("Cookie", g.roles.root)
       .send({
         subject: "fizyka",
-        assignees: [data.teacher.id],
+        assignees: [data.u.lanny.id],
       })
       .expect(200);
     await (await g.request())
@@ -230,8 +230,8 @@ export async function initSubjectTests(
       .expect({
         assignees: [
           {
-            userId: data.teacher.id,
-            name: data.teacher.name,
+            userId: data.u.lanny.id,
+            name: data.u.lanny.name,
           },
         ],
       });
@@ -240,7 +240,7 @@ export async function initSubjectTests(
   await t.step("Assignee - permit public subject", async () => {
     await (await g.request())
       .post("/api/subject/permit")
-      .set("Cookie", g.roles.teacher)
+      .set("Cookie", g.roles.lanny)
       .send({
         subject: "fizyka",
         assignees: [],
@@ -259,7 +259,7 @@ export async function initSubjectTests(
   await t.step("Teacher - try to permit public subject", async () => {
     await (await g.request())
       .post("/api/subject/permit")
-      .set("Cookie", g.roles.teacher2)
+      .set("Cookie", g.roles.ralph)
       .send({
         subject: "fizyka",
         assignees: null,
@@ -270,7 +270,7 @@ export async function initSubjectTests(
   await t.step("Student - try to permit public subject", async () => {
     await (await g.request())
       .post("/api/subject/permit")
-      .set("Cookie", g.roles.student)
+      .set("Cookie", g.roles.alice)
       .send({
         subject: "fizyka",
         assignees: null,

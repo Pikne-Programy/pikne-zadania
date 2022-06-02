@@ -94,7 +94,7 @@ export async function initHierarchyTests(
     async () => {
       const response = await (await g.request())
         .post("/api/subject/hierarchy/get")
-        .set("Cookie", g.roles.teacher)
+        .set("Cookie", g.roles.lanny)
         .send({ subject: "fizyka", raw: false })
         .expect(200);
       const desc = response.body[1]?.children[0]?.children[0]?.description;
@@ -119,7 +119,7 @@ export async function initHierarchyTests(
     async () => {
       const response = await (await g.request())
         .post("/api/subject/hierarchy/get")
-        .set("Cookie", g.roles.student)
+        .set("Cookie", g.roles.alice)
         .send({ subject: "fizyka", raw: false })
         .expect(200);
       const desc = response.body[0]?.children[0]?.children[0]?.description;
@@ -132,7 +132,7 @@ export async function initHierarchyTests(
     async () => {
       await (await g.request())
         .post("/api/subject/hierarchy/get")
-        .set("Cookie", g.roles.student)
+        .set("Cookie", g.roles.alice)
         .send({ subject: "fizyka", raw: true })
         .expect(200)
         .expect(hierarchy);
@@ -183,12 +183,12 @@ export async function initHierarchyTests(
   await t.step("Assignee - set hierarchy, public subject", async () => {
     await (await g.request())
       .post("/api/subject/hierarchy/set")
-      .set("Cookie", g.roles.teacher)
+      .set("Cookie", g.roles.lanny)
       .send({ subject: "fizyka", hierarchy: setHierarchy2 })
       .expect(200);
     const response = await (await g.request())
       .post("/api/subject/hierarchy/get")
-      .set("Cookie", g.roles.teacher)
+      .set("Cookie", g.roles.lanny)
       .send({ subject: "fizyka", raw: true })
       .expect(200);
     assertEquals(
@@ -201,7 +201,7 @@ export async function initHierarchyTests(
   await t.step("Student - try to set hierarchy, public subject", async () => {
     await (await g.request())
       .post("/api/subject/hierarchy/set")
-      .set("Cookie", g.roles.student)
+      .set("Cookie", g.roles.alice)
       .send({ subject: "fizyka", hierarchy: setHierarchy2 })
       .expect(403);
   });

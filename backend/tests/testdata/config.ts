@@ -2,7 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { IConfigService } from "../../interfaces/mod.ts";
+import { IConfigService, IUserStore } from "../../interfaces/mod.ts";
+import { assert } from "../../test_deps.ts";
 import { sha256 } from "../../utils/mod.ts";
 
 export const lazyDefaultConfig: IConfigService = {
@@ -36,45 +37,116 @@ export const lazyDefaultConfig: IConfigService = {
   },
 };
 
-export const data = {
+type teams = "t" | "dd" | "d";
+type users = "root" | "lanny" | "ralph" | "alice" | "bob" | "mike";
+
+const teamData: {
+  [prop in teams]: {
+    /** id */ id: number;
+    /** name */ n: string;
+    /** invitation */ i: string;
+    /** assignee */ a: users;
+    /** members */ m: users[];
+  };
+} = {
+  t: { id: 1, n: "Teachers", i: "teacher", a: "root", m: ["lanny", "ralph"] },
+  dd: { id: 2, n: "3dd", i: "3dd", a: "lanny", m: ["alice", "bob"] },
+  d: { id: 3, n: "3d", i: "e^iπ+1=0", a: "ralph", m: ["mike"] },
+};
+const invs = Object.fromEntries(
+  Object.entries(teamData).map((e) => [e[1].i, e[1].id])
+    .concat([["", 0]]) as [string, number][],
+);
+const userData: {
+  [prop in users]: Parameters<IUserStore["add"]>[1] & {
+    id: string;
+    hashedPassword: string;
+    invitation: string;
+  };
+} = {
   root: {
     id: "changed below",
     login: "root",
     name: "root",
     hashedPassword: "t3SDQPqrwJM6fmiQZ7w3cO7ZJTStKE+aZ5mLlckMuqE=", // secret
+    invitation: "",
   },
-  teacher: {
+  /** teacher - assignee of Alice and Bob */
+  lanny: {
     id: "changed below",
-    login: "teacher@example.com",
-    name: "Smith",
+    login: "lanny@example.com",
+    name: "Lanny",
     hashedPassword: "26n60IlkcRznpeBQa2pI6zKp7ymLSBqiWLZEIEC+uEk=", // teacher
-    invitation: "QwErTy58",
+    invitation: teamData.t.i,
   },
-  teacher2: {
+  /** teacher - assignee of Mike */
+  ralph: {
     id: "changed below",
-    login: "teacher2@example.com",
-    name: "Williams",
+    login: "ralph@example.com",
+    name: "Ralph",
     hashedPassword: "26n60IlkcRznpeBQa2pI6zKp7ymLSBqiWLZEIEC+uEk=", // teacher
-    invitation: "QwErTy58",
+    invitation: teamData.t.i,
   },
-  student: {
+  alice: {
     id: "changed below",
-    login: "student@example.com",
-    name: "User",
+    login: "alice@example.com",
+    name: "Alice",
     hashedPassword: "Hth8SbNz18M69i3AJK7LEENcZ+S8KYDs8MhrlSWAK7U=", // student
-    invitation: "85yTrEwQ",
+    invitation: teamData.dd.i,
     number: 1,
   },
-  student2: {
+  bob: {
     id: "changed below",
-    login: "student2@example.com",
-    name: "User2",
+    login: "bob@example.com",
+    name: "Bob",
     hashedPassword: "Hth8SbNz18M69i3AJK7LEENcZ+S8KYDs8MhrlSWAK7U=", // student
-    invitation: "85yTrEwQ",
+    invitation: teamData.dd.i,
     number: 2,
   },
+  mike: {
+    id: "changed below",
+    login: "mike@example.com",
+    name: "Mike",
+    hashedPassword: "Hth8SbNz18M69i3AJK7LEENcZ+S8KYDs8MhrlSWAK7U=", // student
+    invitation: teamData.d.i,
+    number: 1,
+  },
 };
-type roles = keyof typeof data;
-for (const key in data) {
-  data[key as roles].id = lazyDefaultConfig.hash(data[key as roles].login);
+let key: keyof typeof userData;
+for (key in userData) {
+  userData[key].id = lazyDefaultConfig.hash(userData[key].login);
 }
+const dummy = {
+  t: {
+    nextId: Math.max(...Object.values(teamData).map((e) => e.id)) + 1,
+    id: 1024,
+    name: "2d",
+    nextName: "LEAVE ME HERE",
+    inv: "xd",
+    closingInv: null,
+    randomInv: "",
+  },
+  u: {
+    id: "changed below",
+    login: "craig@example.com",
+    hPass: userData.alice.hashedPassword,
+    name: "Craig",
+    number: 47,
+  },
+};
+dummy.u.id = lazyDefaultConfig.hash(dummy.u.login);
+assert(!(dummy.t.name in Object.values(teamData).map((e) => e.n)));
+assert(!(dummy.t.inv in Object.values(teamData).map((e) => e.i)));
+assert(!(dummy.u.id in Object.values(userData).map((e) => e.id)));
+assert(!(dummy.u.login in Object.values(userData).map((e) => e.login)));
+assert(!(dummy.u.name in Object.values(userData).map((e) => e.name)));
+assert(!(dummy.u.number in Object.values(userData).map((e) => e.number)));
+
+export const data = {
+  t: teamData,
+  u: userData,
+  i: invs,
+  number: (info: { number?: number | null }) =>
+    "number" in info ? info.number : null,
+  dummy,
+};

@@ -41,7 +41,7 @@ export async function initProblemTests(
   await t.step("Teacher - render an exercise with seed", async () => {
     const response = await (await g.request())
       .post("/api/subject/problem/get")
-      .set("Cookie", g.roles.teacher)
+      .set("Cookie", g.roles.lanny)
       .send({
         subject: "fizyka",
         exerciseId: "pociagi-dwa-2",
@@ -54,7 +54,7 @@ export async function initProblemTests(
   await t.step("Student - render an exercise", async () => {
     const response = await (await g.request())
       .post("/api/subject/problem/get")
-      .set("Cookie", g.roles.student)
+      .set("Cookie", g.roles.alice)
       .send({
         subject: "fizyka",
         exerciseId: "pociagi-dwa-2",
@@ -66,7 +66,7 @@ export async function initProblemTests(
   await t.step("Student - check whether seed is working", async () => {
     const response = await (await g.request())
       .post("/api/subject/problem/get")
-      .set("Cookie", g.roles.student)
+      .set("Cookie", g.roles.alice)
       .send({
         subject: "fizyka",
         exerciseId: "pociagi-dwa",
@@ -74,7 +74,7 @@ export async function initProblemTests(
       .expect(200);
     const response2 = await (await g.request())
       .post("/api/subject/problem/get")
-      .set("Cookie", g.roles.student)
+      .set("Cookie", g.roles.alice)
       .send({
         subject: "fizyka",
         exerciseId: "pociagi-dwa",
@@ -202,7 +202,7 @@ export async function initProblemTests(
   await t.step("Student - submit a solution (0%)", async () => {
     await (await g.request())
       .post("/api/subject/problem/update")
-      .set("Cookie", g.roles.student)
+      .set("Cookie", g.roles.alice)
       .send({
         subject: "fizyka",
         exerciseId: "pociagi-dwa-2",
@@ -214,7 +214,7 @@ export async function initProblemTests(
       .expect({ info: [false, false] });
     const response = await (await g.request())
       .post("/api/subject/problem/get")
-      .set("Cookie", g.roles.student)
+      .set("Cookie", g.roles.alice)
       .send({
         subject: "fizyka",
         exerciseId: "pociagi-dwa-2",
@@ -226,7 +226,7 @@ export async function initProblemTests(
   await t.step("Student - submit a solution (100%)", async () => {
     await (await g.request())
       .post("/api/subject/problem/update")
-      .set("Cookie", g.roles.student)
+      .set("Cookie", g.roles.alice)
       .send({
         subject: "fizyka",
         exerciseId: "pociagi-dwa-2",
@@ -238,7 +238,7 @@ export async function initProblemTests(
       .expect({ info: [true, true] });
     const response = await (await g.request())
       .post("/api/subject/problem/get")
-      .set("Cookie", g.roles.student)
+      .set("Cookie", g.roles.alice)
       .send({
         subject: "fizyka",
         exerciseId: "pociagi-dwa-2",
@@ -252,7 +252,7 @@ export async function initProblemTests(
     async () => {
       await (await g.request())
         .post("/api/subject/problem/update")
-        .set("Cookie", g.roles.student)
+        .set("Cookie", g.roles.alice)
         .send({
           subject: "fizyka",
           exerciseId: "pociagi-dwa-2",
@@ -264,7 +264,7 @@ export async function initProblemTests(
         .expect({ info: [true, false] });
       const response = await (await g.request())
         .post("/api/subject/problem/get")
-        .set("Cookie", g.roles.student)
+        .set("Cookie", g.roles.alice)
         .send({
           subject: "fizyka",
           exerciseId: "pociagi-dwa-2",
@@ -277,7 +277,7 @@ export async function initProblemTests(
   await t.step("Teacher - submit a solution (50%)", async () => {
     await (await g.request())
       .post("/api/subject/problem/update")
-      .set("Cookie", g.roles.teacher)
+      .set("Cookie", g.roles.lanny)
       .send({
         subject: "fizyka",
         exerciseId: "pociagi-dwa-2",
@@ -289,7 +289,7 @@ export async function initProblemTests(
       .expect({ info: [true, false] });
     const response = await (await g.request())
       .post("/api/subject/problem/get")
-      .set("Cookie", g.roles.teacher)
+      .set("Cookie", g.roles.lanny)
       .send({
         subject: "fizyka",
         exerciseId: "pociagi-dwa-2",

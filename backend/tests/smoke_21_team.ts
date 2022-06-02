@@ -6,490 +6,405 @@ import { assert } from "../test_deps.ts";
 import { RoleTestContext } from "./smoke_mod.ts";
 import { data } from "./testdata/config.ts";
 
+function generateInfo(team: (typeof data)["t"]["t"], inv = true, t = true) {
+  const a = data.u[team.a];
+  return {
+    name: team.n,
+    assignee: { ...(t ? { userId: a.id } : {}), name: a.name },
+    ...(inv ? { invitation: team.i } : {}),
+    members: team.m.map((e) => ({
+      ...(t ? { userId: data.u[e].id } : {}),
+      name: data.u[e].name,
+      number: data.number(data.u[e]),
+    })),
+  };
+}
+
 export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
-  await t.step("teachers' one exists", async () => {
-    await (await g.request())
-      .post("/api/team/info")
-      .set("Cookie", g.roles.root)
-      .send({ teamId: 1 })
-      .expect(200)
-      .expect({
-        name: "Teachers",
-        assignee: { userId: data.root.id, name: data.root.name },
-        invitation: data.teacher.invitation,
-        members: [{
-          userId: data.teacher.id,
-          name: data.teacher.name,
-          number: null,
-        }, {
-          userId: data.teacher2.id,
-          name: data.teacher2.name,
-          number: null,
-        }],
+  await t.step("exist", async (t) => {
+    for (const team of Object.values(data.t)) {
+      await t.step(team.n.toLocaleUpperCase(), async () => {
+        await (await g.request())
+          .post("/api/team/info")
+          .set("Cookie", g.roles.root)
+          .send({ teamId: team.id })
+          .expect(200)
+          .expect(generateInfo(team));
       });
+    }
   });
 
-  await t.step("Root - list teams", async () => {
+  await t.step("[ROOT] list teams", async () => {
     await (await g.request())
       .get("/api/team/list")
       .set("Cookie", g.roles.root)
       .expect(200)
       .expect(
         [{
-          teamId: 1,
-          name: "Teachers",
+          teamId: data.t.t.id,
+          name: data.t.t.n,
           assignee: {
-            userId: data.root.id,
-            name: data.root.name,
+            userId: data.u.root.id,
+            name: data.u.root.name,
           },
-          invitation: data.teacher.invitation,
+          invitation: data.t.t.i,
         }, {
-          teamId: 2,
-          name: "2d",
+          teamId: data.t.dd.id,
+          name: data.t.dd.n,
           assignee: {
-            userId: data.teacher.id,
-            name: data.teacher.name,
+            userId: data.u.lanny.id,
+            name: data.u.lanny.name,
           },
-          invitation: data.student.invitation,
+          invitation: data.t.dd.i,
+        }, {
+          teamId: data.t.d.id,
+          name: data.t.d.n,
+          assignee: {
+            userId: data.u.ralph.id,
+            name: data.u.ralph.name,
+          },
+          invitation: data.t.d.i,
         }],
       );
   });
 
-  await t.step("Not logged in - list teams", async () => {
+  await t.step("[EVE] can't list teams", async () => {
     await (await g.request())
       .get("/api/team/list")
       .expect(401);
   });
 
-  await t.step("Student - list teams", async () => {
+  await t.step("[ALICE] can't list teams", async () => {
     await (await g.request())
       .get("/api/team/list")
-      .set("Cookie", g.roles.student)
+      .set("Cookie", g.roles.alice)
       .expect(403);
   });
 
-  await t.step("Student - try to create a team", async () => {
+  await t.step("[ALICE] can't create a team", async () => {
     await (await g.request())
       .post("/api/team/create")
-      .set("Cookie", g.roles.student)
+      .set("Cookie", g.roles.alice)
       .send({
-        name: "3d",
+        name: data.dummy.t.name,
       })
       .expect(403);
   });
 
-  await t.step("Not logged in - try to create a team", async () => {
+  await t.step("[EVE] can't create a team", async () => {
     await (await g.request())
       .post("/api/team/create")
       .send({
-        name: "3d",
+        name: data.t.d.n,
       })
       .expect(401);
   });
 
-  await t.step("/team/create Bad Request", async () => {
+  await t.step("[ROOT] create team - bad", async () => {
     await (await g.request())
       .post("/api/team/create")
       .set("Cookie", g.roles.root)
       .send({
-        name: 2,
+        name: data.dummy.t.id,
       })
       .expect(400);
   });
 
-  await t.step("Student - get info about team", async () => {
+  await t.step("[BOB] get info about his team", async () => {
     await (await g.request())
       .post("/api/team/info")
-      .set("Cookie", g.roles.student)
+      .set("Cookie", g.roles.bob)
       .send({
-        teamId: 2,
+        teamId: data.t.dd.id,
       })
       .expect(200)
-      .expect({
-        name: "2d",
-        assignee: {
-          name: data.teacher.name,
-        },
-        members: [
-          {
-            name: data.student.name,
-            number: data.student.number,
-          },
-          {
-            name: data.student2.name,
-            number: data.student2.number,
-          },
-        ],
+      .expect(generateInfo(data.t.dd, false, false));
+  });
+
+  await t.step("[ALICE] can't get info about other teams", async (t) => {
+    for (
+      const [id, name] of (["t", "d"] as const)
+        .map((e) => [data.t[e].id, data.t[e].n] as const)
+    ) {
+      await t.step(name.toLocaleUpperCase(), async () => {
+        await (await g.request())
+          .post("/api/team/info")
+          .set("Cookie", g.roles.alice)
+          .send({
+            teamId: id,
+          })
+          .expect(403);
       });
+    }
   });
 
-  await t.step("Student - get info about team (Unauthorized)", async () => {
+  await t.step("[LANNY] get info about own team", async () => {
     await (await g.request())
       .post("/api/team/info")
-      .set("Cookie", g.roles.student)
+      .set("Cookie", g.roles.lanny)
       .send({
-        teamId: 1,
-      })
-      .expect(403);
-  });
-
-  await t.step("Assignee - get info about team", async () => {
-    await (await g.request())
-      .post("/api/team/info")
-      .set("Cookie", g.roles.teacher)
-      .send({
-        teamId: 2,
+        teamId: data.t.dd.id,
       })
       .expect(200)
-      .expect({
-        name: "2d",
-        assignee: {
-          userId: data.teacher.id,
-          name: data.teacher.name,
-        },
-        invitation: data.student.invitation,
-        members: [
-          {
-            userId: data.student.id,
-            name: data.student.name,
-            number: data.student.number,
-          },
-          {
-            userId: data.student2.id,
-            name: data.student2.name,
-            number: data.student2.number,
-          },
-        ],
-      });
+      .expect(generateInfo(data.t.dd));
   });
 
-  await t.step("Teacher - get info about team", async () => {
+  await t.step("[RALPH] get info about not own team", async () => {
     await (await g.request())
       .post("/api/team/info")
-      .set("Cookie", g.roles.teacher)
+      .set("Cookie", g.roles.ralph)
       .send({
-        teamId: 2,
+        teamId: data.t.dd.id,
       })
       .expect(200)
-      .expect({
-        name: "2d",
-        assignee: {
-          userId: data.teacher.id,
-          name: data.teacher.name,
-        },
-        invitation: data.student.invitation,
-        members: [
-          {
-            userId: data.student.id,
-            name: data.student.name,
-            number: data.student.number,
-          },
-          {
-            userId: data.student2.id,
-            name: data.student2.name,
-            number: data.student2.number,
-          },
-        ],
-      });
+      .expect(generateInfo(data.t.dd, false));
   });
 
-  await t.step("Assignee - close registration", async () => {
+  await t.step("[LANNY] close registration", async () => {
     await (await g.request())
       .post("/api/team/update")
-      .set("Cookie", g.roles.teacher)
+      .set("Cookie", g.roles.lanny)
       .send({
-        teamId: 2,
-        invitation: null,
+        teamId: data.t.dd.id,
+        invitation: data.dummy.t.closingInv,
       })
       .expect(200);
     await (await g.request())
       .post("/api/team/info")
-      .set("Cookie", g.roles.teacher)
+      .set("Cookie", g.roles.lanny)
       .send({
-        teamId: 2,
+        teamId: data.t.dd.id,
       })
       .expect(200)
       .expect({
-        name: "2d",
-        assignee: {
-          userId: data.teacher.id,
-          name: data.teacher.name,
-        },
-        invitation: null,
-        members: [
-          {
-            userId: data.student.id,
-            name: data.student.name,
-            number: data.student.number,
-          },
-          {
-            userId: data.student2.id,
-            name: data.student2.name,
-            number: data.student2.number,
-          },
-        ],
+        ...generateInfo(data.t.dd, false),
+        invitation: data.dummy.t.closingInv,
       });
   });
 
-  await t.step("Assignee - change team's invitation (random)", async () => {
+  await t.step("[LANNY] ranomize invitation of own team", async () => {
     await (await g.request())
       .post("/api/team/update")
-      .set("Cookie", g.roles.teacher)
+      .set("Cookie", g.roles.lanny)
       .send({
-        teamId: 2,
-        invitation: "",
+        teamId: data.t.dd.id,
+        invitation: data.dummy.t.randomInv,
       })
       .expect(200);
     const response = await (await g.request())
       .post("/api/team/info")
       .set("Cookie", g.roles.root)
       .send({
-        teamId: 2,
+        teamId: data.t.dd.id,
       })
       .expect(200);
     const inv = response.body?.invitation;
     assert(inv !== null, "closed registration");
     assert(typeof inv === "string", "invalid object"); // throws if inv === undefined
-    assert(inv !== data.student.invitation, "invitation not changed");
+    assert(inv !== data.t.dd.i, "invitation not changed");
   });
 
-  await t.step("Assignee - change team's invitation", async () => {
+  await t.step("[LANNY] change invitation of own team", async () => {
     await (await g.request())
       .post("/api/team/update")
-      .set("Cookie", g.roles.teacher)
+      .set("Cookie", g.roles.lanny)
       .send({
-        teamId: 2,
-        invitation: data.student.invitation,
+        teamId: data.t.dd.id,
+        invitation: data.t.dd.i,
       })
       .expect(200);
     await (await g.request())
       .post("/api/team/info")
       .set("Cookie", g.roles.root)
       .send({
-        teamId: 2,
+        teamId: data.t.dd.id,
+      })
+      .expect(200)
+      .expect(generateInfo(data.t.dd));
+  });
+
+  await t.step("[LANNY] change assignee of own team", async () => {
+    await (await g.request())
+      .post("/api/team/update")
+      .set("Cookie", g.roles.lanny)
+      .send({
+        teamId: data.t.dd.id,
+        assignee: data.u.root.id,
+      })
+      .expect(200);
+    await (await g.request())
+      .post("/api/team/info")
+      .set("Cookie", g.roles.lanny)
+      .send({
+        teamId: data.t.dd.id,
       })
       .expect(200)
       .expect({
-        name: "2d",
+        ...generateInfo(data.t.dd, false),
+        // there is no invitation - Lanny not an assignee anymore
         assignee: {
-          userId: data.teacher.id,
-          name: data.teacher.name,
+          userId: data.u.root.id,
+          name: data.u.root.name,
         },
-        invitation: data.student.invitation,
-        members: [
-          {
-            userId: data.student.id,
-            name: data.student.name,
-            number: data.student.number,
-          },
-          {
-            userId: data.student2.id,
-            name: data.student2.name,
-            number: data.student2.number,
-          },
-        ],
       });
-  });
-
-  await t.step("Assignee - change team's assignee", async () => {
     await (await g.request())
       .post("/api/team/update")
-      .set("Cookie", g.roles.teacher)
+      .set("Cookie", g.roles.root)
       .send({
-        teamId: 2,
-        assignee: data.root.id,
+        teamId: data.t.dd.id,
+        assignee: data.u.lanny.id,
+      })
+      .expect(200);
+  });
+
+  await t.step("[LANNY] can't change name of not own teams", async (t) => {
+    for (
+      const [id, name] of (["t", "d"] as const)
+        .map((e) => [data.t[e].id, data.t[e].n] as const)
+    ) {
+      await t.step(name.toLocaleUpperCase(), async () => {
+        await (await g.request())
+          .post("/api/team/update")
+          .set("Cookie", g.roles.lanny)
+          .send({
+            teamId: id,
+            name: data.dummy.t.name,
+          })
+          .expect(403);
+      });
+    }
+  });
+
+  await t.step("[LANNY] change name of own team", async () => {
+    await (await g.request())
+      .post("/api/team/update")
+      .set("Cookie", g.roles.lanny)
+      .send({
+        teamId: data.t.dd.id,
+        name: data.dummy.t.name,
       })
       .expect(200);
     await (await g.request())
       .post("/api/team/info")
       .set("Cookie", g.roles.root)
       .send({
-        teamId: 2,
+        teamId: data.t.dd.id,
       })
       .expect(200)
       .expect({
-        name: "2d",
-        assignee: {
-          userId: data.root.id,
-          name: data.root.name,
-        },
-        invitation: data.student.invitation,
-        members: [
-          {
-            userId: data.student.id,
-            name: data.student.name,
-            number: data.student.number,
-          },
-          {
-            userId: data.student2.id,
-            name: data.student2.name,
-            number: data.student2.number,
-          },
-        ],
+        ...generateInfo(data.t.dd),
+        name: data.dummy.t.name,
       });
-    await (await g.request())
-      .post("/api/team/update")
-      .set("Cookie", g.roles.root)
-      .send({
-        teamId: 2,
-        assignee: data.teacher.id,
-      })
-      .expect(200);
   });
 
-  await t.step("Teacher - change team's name", async () => {
+  await t.step("[BOB] can't change name of his team", async () => {
     await (await g.request())
       .post("/api/team/update")
-      .set("Cookie", g.roles.teacher)
+      .set("Cookie", g.roles.bob)
       .send({
-        teamId: 1,
-        name: "0a",
+        teamId: data.t.dd.id,
+        name: data.dummy.t.name,
       })
       .expect(403);
   });
 
-  await t.step("Assignee - change team's name", async () => {
-    await (await g.request())
-      .post("/api/team/update")
-      .set("Cookie", g.roles.teacher)
-      .send({
-        teamId: 2,
-        name: "2dd",
-      })
-      .expect(200);
-    await (await g.request())
-      .post("/api/team/info")
-      .set("Cookie", g.roles.root)
-      .send({
-        teamId: 2,
-      })
-      .expect(200)
-      .expect({
-        name: "2dd",
-        assignee: {
-          userId: data.teacher.id,
-          name: data.teacher.name,
-        },
-        invitation: data.student.invitation,
-        members: [
-          {
-            userId: data.student.id,
-            name: data.student.name,
-            number: data.student.number,
-          },
-          {
-            userId: data.student2.id,
-            name: data.student2.name,
-            number: data.student2.number,
-          },
-        ],
-      });
-  });
+  await t.step(
+    "[ROOT] can't change invitation to already taken one",
+    async () => {
+      await (await g.request())
+        .post("/api/team/update")
+        .set("Cookie", g.roles.root)
+        .send({
+          teamId: data.t.t.id,
+          invitation: data.t.dd.i,
+        })
+        .expect(409);
+    },
+  );
 
-  await t.step("Student - change team's name", async () => {
-    await (await g.request())
-      .post("/api/team/update")
-      .set("Cookie", g.roles.student)
-      .send({
-        teamId: 2,
-        name: "2d",
-      })
-      .expect(403);
-  });
-
-  await t.step("Admin - change team's invitation (taken)", async () => {
-    await (await g.request())
-      .post("/api/team/update")
-      .set("Cookie", g.roles.root)
-      .send({
-        teamId: 1,
-        invitation: data.student.invitation,
-      })
-      .expect(409);
-  });
-
-  await t.step("Create team to be deleted", async () => {
+  await t.step("[LANNY] create working team", async () => {
     await (await g.request())
       .post("/api/team/create")
-      .set("Cookie", g.roles.teacher)
+      .set("Cookie", g.roles.lanny)
       .send({
-        name: "3dd",
+        name: data.dummy.t.nextName,
       })
       .expect(200)
-      .expect({ teamId: 3 });
+      .expect({ teamId: data.dummy.t.nextId });
     await (await g.request())
       .post("/api/team/update")
-      .set("Cookie", g.roles.teacher)
+      .set("Cookie", g.roles.lanny)
       .send({
-        teamId: 3,
-        invitation: "QwErTy59",
+        teamId: data.dummy.t.nextId,
+        invitation: data.dummy.t.inv,
       })
       .expect(200);
     await (await g.request())
       .post("/api/auth/register")
       .send(
         {
-          login: "user3@example.com",
-          name: "User3",
-          hashedPassword: data.student.hashedPassword,
-          number: 11,
-          invitation: "QwErTy59",
+          login: data.dummy.u.login,
+          name: data.dummy.u.name,
+          hashedPassword: data.dummy.u.hPass,
+          number: data.dummy.u.number,
+          invitation: data.dummy.t.inv,
         },
       )
       .expect(200);
   });
 
-  await t.step("Student - try to delete a team", async () => {
+  await t.step("[ALICE] can't delete a team", async () => {
     await (await g.request())
       .post("/api/team/delete")
-      .set("Cookie", g.roles.student)
+      .set("Cookie", g.roles.alice)
       .send({
-        teamId: 2,
+        teamId: data.t.dd.id,
       })
       .expect(403);
   });
 
-  await t.step("Assignee - delete a team", async () => {
+  await t.step("[LANNY] delete a team", async () => {
     await (await g.request())
       .post("/api/team/delete")
-      .set("Cookie", g.roles.teacher)
+      .set("Cookie", g.roles.lanny)
       .send({
-        teamId: 3,
+        teamId: data.dummy.t.nextId,
       })
       .expect(200);
   });
 
-  await t.step(
-    "Try to get info about non-existing (deleted) team",
-    async () => {
-      await (await g.request())
-        .post("/api/team/info")
-        .set("Cookie", g.roles.root)
-        .send({
-          teamId: 3,
-        })
-        .expect(404);
-    },
-  );
-  await t.step(
-    "Teacher - try to delete a team. WARNING: If this test fails all the others may either",
-    async () => {
-      await (await g.request())
-        .post("/api/team/delete")
-        .set("Cookie", g.roles.teacher)
-        .send({
-          teamId: 1,
-        })
-        .expect(403);
-    },
-  );
+  await t.step("[ROOT] can't get info about deleted team", async () => {
+    await (await g.request())
+      .post("/api/team/info")
+      .set("Cookie", g.roles.root)
+      .send({
+        teamId: data.dummy.t.nextId,
+      })
+      .expect(404);
+  });
+  await t.step("[LANNY] can't delete not own teams", async (t) => {
+    for (
+      const [id, name] of (["t", "d"] as const)
+        .map((e) => [data.t[e].id, data.t[e].n] as const)
+    ) {
+      await t.step(name.toLocaleUpperCase(), async () => {
+        await (await g.request())
+          .post("/api/team/delete")
+          .set("Cookie", g.roles.lanny)
+          .send({
+            teamId: id,
+          })
+          .expect(403);
+      });
+    }
+  });
 
-  await t.step("Try to delete a non-exiting team", async () => {
+  await t.step("[ROOT] can't delete non-exiting team", async () => {
     await (await g.request())
       .post("/api/team/delete")
       .set("Cookie", g.roles.root)
       .send({
-        teamId: 1024,
+        teamId: data.dummy.t.id,
       })
       .expect(404);
   });

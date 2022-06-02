@@ -13,7 +13,7 @@ export async function initUserTests(t: Deno.TestContext, g: RoleTestContext) {
       .expect(200)
       .send({})
       .expect({
-        name: data.root.name,
+        name: data.u.root.name,
         teamId: 0,
         number: null,
       });
@@ -25,9 +25,9 @@ export async function initUserTests(t: Deno.TestContext, g: RoleTestContext) {
       .send({
         login: "user2@example.com",
         name: "User2",
-        hashedPassword: data.student.hashedPassword,
+        hashedPassword: data.u.alice.hashedPassword,
         number: 11,
-        invitation: data.student.invitation,
+        invitation: data.u.alice.invitation,
       })
       .expect(200);
   });
@@ -35,57 +35,57 @@ export async function initUserTests(t: Deno.TestContext, g: RoleTestContext) {
   await t.step("Teacher - get info about student", async () => {
     await (await g.request())
       .post("/api/user/info")
-      .set("Cookie", g.roles.teacher)
-      .send({ userId: data.student.id })
+      .set("Cookie", g.roles.lanny)
+      .send({ userId: data.u.alice.id })
       .expect(200)
       .expect({
-        name: data.student.name,
+        name: data.u.alice.name,
         teamId: 2,
-        number: data.student.number,
+        number: data.number(data.u.alice),
       });
   });
 
   await t.step("Get info about currently authenticated student", async () => {
     await (await g.request())
       .post("/api/user/info")
-      .set("Cookie", g.roles.student)
+      .set("Cookie", g.roles.alice)
       .send({})
       .expect(200)
       .expect({
-        name: data.student.name,
+        name: data.u.alice.name,
         teamId: 2,
-        number: data.student.number,
+        number: data.number(data.u.alice),
       });
   });
 
   await t.step("Student - get info about another student", async () => {
     await (await g.request())
       .post("/api/user/info")
-      .set("Cookie", g.roles.student)
-      .send({ userId: data.student2.id })
+      .set("Cookie", g.roles.alice)
+      .send({ userId: data.u.bob.id })
       .expect(403);
   });
 
   await t.step("Student - get info about teacher", async () => {
     await (await g.request())
       .post("/api/user/info")
-      .set("Cookie", g.roles.student)
-      .send({ userId: data.teacher.id })
+      .set("Cookie", g.roles.alice)
+      .send({ userId: data.u.lanny.id })
       .expect(403);
   });
 
   await t.step("Student - get info about admin", async () => {
     await (await g.request())
       .post("/api/user/info")
-      .set("Cookie", g.roles.student)
-      .send({ userId: data.root.id })
+      .set("Cookie", g.roles.alice)
+      .send({ userId: data.u.root.id })
       .expect(403);
   });
 
   await t.step("Not logged in - get info about student", async () => {
     await (await g.request())
       .post("/api/user/info")
-      .send({ userId: data.student.id })
+      .send({ userId: data.u.alice.id })
       .expect(401);
   });
 
@@ -100,11 +100,11 @@ export async function initUserTests(t: Deno.TestContext, g: RoleTestContext) {
     await (await g.request())
       .post("/api/user/update")
       .set("Cookie", g.roles.root)
-      .send({ userId: data.student.id, name: "Student", number: 11 })
+      .send({ userId: data.u.alice.id, name: "Student", number: 11 })
       .expect(200);
     await (await g.request())
       .post("/api/user/info")
-      .set("Cookie", g.roles.student)
+      .set("Cookie", g.roles.alice)
       .send({})
       .expect(200)
       .expect({
@@ -117,82 +117,82 @@ export async function initUserTests(t: Deno.TestContext, g: RoleTestContext) {
   await t.step("Assignee - update student's name and number", async () => {
     await (await g.request())
       .post("/api/user/update")
-      .set("Cookie", g.roles.teacher)
+      .set("Cookie", g.roles.lanny)
       .send({
-        userId: data.student.id,
-        name: data.student.name,
-        number: data.student.number,
+        userId: data.u.alice.id,
+        name: data.u.alice.name,
+        number: data.number(data.u.alice),
       })
       .expect(200);
     await (await g.request())
       .post("/api/user/info")
-      .set("Cookie", g.roles.student)
+      .set("Cookie", g.roles.alice)
       .send({})
       .expect(200)
       .expect({
-        name: data.student.name,
+        name: data.u.alice.name,
         teamId: 2,
-        number: data.student.number,
+        number: data.number(data.u.alice),
       });
   });
 
   await t.step("Teacher - update student's name and number", async () => {
     await (await g.request())
       .post("/api/user/update")
-      .set("Cookie", g.roles.teacher2)
-      .send({ userId: data.student.id, name: "User", number: 1 })
+      .set("Cookie", g.roles.ralph)
+      .send({ userId: data.u.alice.id, name: "User", number: 1 })
       .expect(403);
   });
 
   await t.step("Teacher - update admin's name", async () => {
     await (await g.request())
       .post("/api/user/update")
-      .set("Cookie", g.roles.teacher)
-      .send({ userId: data.root.id, name: "rooot" })
+      .set("Cookie", g.roles.lanny)
+      .send({ userId: data.u.root.id, name: "rooot" })
       .expect(403);
   });
 
   await t.step("Student - update another student's name", async () => {
     await (await g.request())
       .post("/api/user/update")
-      .set("Cookie", g.roles.student)
-      .send({ userId: data.student2.id, name: "User2" })
+      .set("Cookie", g.roles.alice)
+      .send({ userId: data.u.bob.id, name: "User2" })
       .expect(403);
   });
 
   await t.step("Student - try to delete a student", async () => {
     await (await g.request())
       .post("/api/user/delete")
-      .set("Cookie", g.roles.student)
-      .send({ userId: data.student2.id })
+      .set("Cookie", g.roles.alice)
+      .send({ userId: data.u.bob.id })
       .expect(403);
   });
 
   await t.step("Teacher - try to delete a student", async () => {
     await (await g.request())
       .post("/api/user/delete")
-      .set("Cookie", g.roles.teacher2)
-      .send({ userId: data.student2.id })
+      .set("Cookie", g.roles.ralph)
+      .send({ userId: data.u.bob.id })
       .expect(403);
   });
 
   await t.step("Not logged in - try to delete a student", async () => {
     await (await g.request())
       .post("/api/user/delete")
-      .send({ userId: data.student2.id })
+      .send({ userId: data.u.bob.id })
       .expect(401);
   });
 
   await t.step("Assignee - delete a student", async () => {
     await (await g.request())
       .post("/api/user/delete")
-      .set("Cookie", g.roles.teacher)
-      .send({ userId: data.student2.id })
+      .set("Cookie", g.roles.lanny)
+      .send({ userId: data.u.bob.id })
       .expect(200);
     await (await g.request())
       .post("/api/user/info")
       .set("Cookie", g.roles.root)
-      .send({ userId: data.student2.id })
+      .send({ userId: data.u.bob.id })
       .expect(404);
   });
 
@@ -200,7 +200,7 @@ export async function initUserTests(t: Deno.TestContext, g: RoleTestContext) {
     await (await g.request())
       .post("/api/user/delete")
       .set("Cookie", g.roles.root)
-      .send({ userId: data.student2.id, name: "Student2" })
+      .send({ userId: data.u.bob.id, name: "Student2" })
       .expect(404);
   });
 }
