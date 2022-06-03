@@ -7,6 +7,7 @@ import { TeamService } from 'src/app/user/team.service/team.service';
 import { AssigneeUser } from 'src/app/user/team.service/types';
 import {
     Assignee,
+    Subject,
     SubjectService
 } from '../../subject.service/subject.service';
 
@@ -98,6 +99,10 @@ export class SubjectPermitComponent
         });
     }
 
+    getPanelHeader(): string {
+        return this.subjectId ? Subject.getSubjectName(this.subjectId) : '';
+    }
+
     checkAll() {
         this.allSelected = !this.allSelected;
         this._isModified = true;
@@ -114,16 +119,21 @@ export class SubjectPermitComponent
 
     submit(nextRoute?: string) {
         if (this.subjectId && this.assignees) {
-            this.subjectService.setAssignees(
-                this.subjectId,
-                this.allSelected ? null : this.assignees
-            )
+            this.subjectService
+                .setAssignees(
+                    this.subjectId,
+                    this.allSelected ? null : this.assignees
+                )
                 .then(() => {
                     this.setSubmitFlag();
                     if (nextRoute) this.router.navigateByUrl(nextRoute);
-                    else this.router.navigate(['../'], { relativeTo: this.route });
+                    else {
+                        this.router.navigate(['../'], {
+                            relativeTo: this.route
+                        });
+                    }
                 })
-                .catch((error) => this.submitErrorCode = getErrorCode(error))
+                .catch((error) => (this.submitErrorCode = getErrorCode(error)))
                 .finally(() => {
                     this.isSubmitLoading = false;
                     this.resetNavigation();

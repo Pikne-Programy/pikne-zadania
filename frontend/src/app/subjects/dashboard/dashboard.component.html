@@ -4,6 +4,12 @@
         <div class="tile is-child height-full panel is-primary is-root">
             <p class="panel-heading is-flex is-align-items-center">
                 <span class="is-flex-grow-1">{{ subject.getName() | titlecase }}</span>
+                <button class="button is-primary" title="Stwórz nowe zadanie" (click)="navigateToExerciseCreationFromRoot()">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <button class="button is-primary" title="Dodaj zadanie z listy" (click)="navigateToCategoryModificationFromRoot()">
+                    <i class="fas fa-folder-open"></i>
+                </button>
                 <a class="button is-primary" title="Edytuj kategorie" [routerLink]="['/subject/categories', subject.id]">
                     <i class="fas fa-pen"></i>
                 </a>
@@ -52,9 +58,9 @@
                         <button class="button" [class.is-active]="child.isSelected" title="Stwórz nowe zadanie" (click)="navigateToExerciseCreation(child)">
                             <i class="fas fa-plus"></i>
                         </button>
-                        <a class="button" [class.is-active]="child.isSelected" title="Dodaj zadanie z listy">
+                        <button class="button" [class.is-active]="child.isSelected" title="Dodaj zadanie z listy" (click)="navigateToCategoryModification(child)">
                             <i class="fas fa-folder-open"></i>
-                        </a>
+                        </button>
                     </span>
                 </a>
                 <div [appCollapsible]="!child.isSelected">

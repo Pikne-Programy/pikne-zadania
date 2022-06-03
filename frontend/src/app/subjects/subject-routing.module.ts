@@ -6,6 +6,7 @@ import { SubjectDashboardComponent } from './dashboard/dashboard.component';
 import { SubjectPermitComponent } from './dashboard/permit/permit.component';
 import { ExerciseCreationComponent } from './exercise-modification/creation/creation.component';
 import { ExerciseModificationComponent } from './exercise-modification/modification/modification.component';
+import { CategoryModificationComponent } from './hierarchy/category-modification/category-modification.component';
 import { HierarchyModificationComponent } from './hierarchy/modification/hierarchy-modification.component';
 import { SubjectListComponent } from './list/list.component';
 
@@ -45,6 +46,11 @@ const routes: Routes = [
             {
                 path: 'categories/:subjectId',
                 component: HierarchyModificationComponent,
+                canDeactivate: [ProgressSaveGuardService]
+            },
+            {
+                path: 'category-edit/:subjectId',
+                component: CategoryModificationComponent,
                 canDeactivate: [ProgressSaveGuardService]
             }
         ]

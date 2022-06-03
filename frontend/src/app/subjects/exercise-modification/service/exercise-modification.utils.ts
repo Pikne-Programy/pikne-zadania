@@ -5,7 +5,7 @@ import {
 import { isObject, replaceAccents } from 'src/app/helper/utils';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 
-type ListedExerciseType = {
+export type ListedExerciseType = {
     id: string;
     type: ExerciseType;
     name: string;

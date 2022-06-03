@@ -1,24 +1,5 @@
 <div *ngIf="hierarchy && exercises && !isLoading && errorCode === null" class="container height-full">
     <div class="tile is-ancestor height-full m-0 scrollable">
-        <!--#region Unassigned exercise list -->
-        <div class="tile is-parent is-3">
-            <div class="tile is-child panel is-primary is-flex is-flex-direction-column unscrollable">
-                <p class="panel-heading">Zadania</p>
-                <div class="menu height-full scrollable">
-                    <ul [id]="EXERCISE_LIST_ID" class="menu-list" cdkDropList cdkDropListSortingDisabled [cdkDropListData]="exercises" [cdkDropListConnectedTo]="getConnectedDropLists()">
-                        <li *ngFor="let exercise of exercises" cdkDrag [cdkDragData]="exercise">
-                            <a class="is-unselectable is-dragable">
-                                <span class="icon">
-                                    <i class="fas fa-file-alt"></i>
-                                </span>
-                                {{ exercise.name | titlecase }}
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <!--#endregion-->
         <!--#region Tree view -->
         <div class="tile is-parent">
             <div class="tile is-child box scrollable">

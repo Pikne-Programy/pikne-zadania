@@ -1,7 +1,7 @@
 <div *ngIf="subjectId && assignees" class="columns height-full is-centered">
     <div class="column is-flex is-flex-direction-column height-full is-half-tablet is-two-fifths-desktop is-one-third-widescreen is-one-forth-fullhd py-only-mobile-0">
         <div class="panel is-flex is-flex-direction-column unscrollable">
-            <p class="panel-heading"></p>
+            <p class="panel-heading">{{ getPanelHeader() | titlecase }} - zarządzaj dostępem</p>
             <div *ngIf="!isLoading" class="panel height-full scrollable">
                 <label class="panel-block checkbox" (change)="checkAll()">
                     <input type="checkbox" [checked]="allSelected">

@@ -145,6 +145,27 @@ export class SubjectDashboardComponent implements OnInit, OnDestroy {
         }
     }
 
+    navigateToExerciseCreationFromRoot() {
+        if (this.subject) {
+            this.hierarchyService.setNewExerciseHierarchyAsRoot();
+            this.router.navigate(['/subject/exercise-new', this.subject.id]);
+        }
+    }
+
+    navigateToCategoryModification(parent: ViewExerciseTreeNode) {
+        if (this.subject) {
+            this.hierarchyService.setNewExerciseHierarchy(parent);
+            this.router.navigate(['/subject/category-edit', this.subject.id]);
+        }
+    }
+
+    navigateToCategoryModificationFromRoot() {
+        if (this.subject) {
+            this.hierarchyService.setNewExerciseHierarchyAsRoot();
+            this.router.navigate(['/subject/category-edit', this.subject.id]);
+        }
+    }
+
     getErrorMessage(errorCode: number): string | undefined {
         switch (errorCode) {
             case 404:

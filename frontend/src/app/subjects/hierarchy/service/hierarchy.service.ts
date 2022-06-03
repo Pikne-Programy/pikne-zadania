@@ -4,7 +4,10 @@ import { of, throwError } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { isObject, TYPE_ERROR } from 'src/app/helper/utils';
 import * as ServerRoutes from 'src/app/server-routes';
-import { isExerciseListType } from '../../exercise-modification/service/exercise-modification.utils';
+import {
+    isExerciseListType,
+    ListedExerciseType
+} from '../../exercise-modification/service/exercise-modification.utils';
 import { ViewExerciseTreeNode } from '../../subject.service/subject.service';
 
 interface ServerHierarchyNode {
@@ -76,14 +79,20 @@ function mapToHierarchyTree(
     });
 }
 
+export interface CategoryExercise extends ListedExerciseType {
+    isSelected: boolean;
+    isDisabled: boolean;
+}
+
 @Injectable({
     providedIn: 'root'
 })
 export class HierarchyService {
-    private newExerciseHierarchy: string[] | null = null;
+    private currentCategory: string[] | null = null;
     /* eslint-disable @typescript-eslint/naming-convention */
-    private static NEW_EXERCISE_ERROR_CODE = 48800;
+    private static CURRENT_CATEGORY_ERROR_CODE = 48800;
     private static SUBCATEGORY_ERROR_CODE = 48801;
+    private static ADD_TO_ROOT_CODE = 48802;
     /* eslint-enable @typescript-eslint/naming-convention */
 
     constructor(private http: HttpClient) {}
@@ -241,7 +250,11 @@ export class HierarchyService {
             result.push(currentNode.value);
             currentNode = currentNode.parent;
         }
-        this.newExerciseHierarchy = result.reverse();
+        this.currentCategory = result.reverse();
+    }
+
+    setNewExerciseHierarchyAsRoot() {
+        this.currentCategory = [];
     }
 
     addNewExerciseToHierarchy(subjectId: string, exerciseId: string) {
@@ -262,9 +275,9 @@ export class HierarchyService {
         hierarchy: ServerHierarchyNode[],
         exerciseId: string
     ): ServerHierarchyNode[] {
-        const list = this.newExerciseHierarchy;
+        const list = this.currentCategory;
         if (!list)
-            throw { status: HierarchyService.NEW_EXERCISE_ERROR_CODE };
+            throw { status: HierarchyService.CURRENT_CATEGORY_ERROR_CODE };
 
         if (list.length === 0) {
             hierarchy.push({
@@ -274,7 +287,7 @@ export class HierarchyService {
             return hierarchy;
         }
 
-        let currentNode = hierarchy.find((node) => node.name === list[0]);
+        /* let currentNode = hierarchy.find((node) => node.name === list[0]);
         let i = 0;
         while (i < list.length) {
             i++;
@@ -289,12 +302,215 @@ export class HierarchyService {
         }
         (currentNode!.children as ServerHierarchyNode[]).push({
             name: exerciseId,
+            children: exerciseId,
+        }); */
+        this.findCategory(hierarchy, list).push({
+            name: exerciseId,
             children: exerciseId
         });
         return hierarchy;
     }
 
+    getNewExercisesForCategory(subjectId: string): Promise<CategoryExercise[]> {
+        const list = this.currentCategory;
+        if (!list)
+            throw { status: HierarchyService.CURRENT_CATEGORY_ERROR_CODE };
+
+        return this.getPresentCategoryExercises(subjectId, list).then(
+            (presentExercises) =>
+                this.getExercisesForCategory(subjectId, presentExercises)
+        );
+    }
+
+    private getPresentCategoryExercises(
+        subjectId: string,
+        category: string[]
+    ): Promise<Set<string>> {
+        return this.getHierarchy(subjectId)
+            .then((tree) =>
+                mapToServerHierarchyTree(this.removeNotAssigned(tree))
+            )
+            .then((hierarchy) => {
+                if (category.length === 0)
+                    throw { status: HierarchyService.ADD_TO_ROOT_CODE };
+
+                /* let currentNode = hierarchy.find(
+                    (node) => node.name === category[0]
+                );
+                let i = 0;
+                while (i < category.length) {
+                    i++;
+                    if (
+                        !currentNode ||
+                        typeof currentNode.children === 'string'
+                    ) {
+                        throw {
+                            status: HierarchyService.SUBCATEGORY_ERROR_CODE,
+                        };
+                    }
+
+                    if (i < category.length) {
+                        currentNode = currentNode.children.find(
+                            (node) => node.name === category[i]
+                        );
+                    }
+                }
+                const exercises = (
+                    currentNode!.children as ServerHierarchyNode[]
+                ) */
+                const exercises = this.findCategory(hierarchy, category)
+                    .filter((node) => typeof node.children === 'string')
+                    .map((node) => node.children as string);
+                return new Set(exercises);
+            });
+    }
+
+    private getExercisesForCategory(
+        subjectId: string,
+        presentExercises: Set<string>
+    ): Promise<CategoryExercise[]> {
+        return this.http
+            .post(ServerRoutes.subjectExerciseList, { subject: subjectId })
+            .pipe(
+                switchMap((response) =>
+                    isExerciseListType(response)
+                        ? of(
+                              response.exercises
+                                  .map((exercise) => ({
+                                      id: exercise.id,
+                                      type: exercise.type,
+                                      name: exercise.name,
+                                      description: exercise.description,
+                                      isSelected: presentExercises.has(
+                                          exercise.id
+                                      ),
+                                      isDisabled: presentExercises.has(
+                                          exercise.id
+                                      )
+                                  }))
+                                  .sort((a, b) => a.name.localeCompare(b.name))
+                          )
+                        : throwError({ status: TYPE_ERROR })
+                )
+            )
+            .toPromise();
+    }
+
+    shouldGetFromSubject(): boolean {
+        return (
+            this.currentCategory !== null && this.currentCategory.length === 0
+        );
+    }
+
+    getNewExercisesForSubject(subjectId: string): Promise<CategoryExercise[]> {
+        return this.getPresentExercisesForRoot(subjectId).then(
+            (presentExercises) =>
+                this.getExercisesForCategory(subjectId, presentExercises)
+        );
+    }
+
+    private getPresentExercisesForRoot(
+        subjectId: string
+    ): Promise<Set<string>> {
+        return this.getHierarchy(subjectId)
+            .then((tree) =>
+                mapToServerHierarchyTree(this.removeNotAssigned(tree))
+            )
+            .then((hierarchy) => {
+                const exercises = hierarchy
+                    .filter((node) => typeof node.children === 'string')
+                    .map((node) => node.children as string);
+                return new Set(exercises);
+            });
+    }
+
+    addNewExercisesToCategory(
+        subjectId: string,
+        exercises: CategoryExercise[]
+    ) {
+        const list = this.currentCategory;
+        if (!list)
+            throw { status: HierarchyService.CURRENT_CATEGORY_ERROR_CODE };
+
+        const selected: ServerHierarchyNode[] = exercises
+            .filter((exercise) => exercise.isSelected && !exercise.isDisabled)
+            .map((exercise) => ({
+                name: exercise.name,
+                children: exercise.id
+            }));
+
+        return this.getHierarchy(subjectId)
+            .then((tree) =>
+                mapToServerHierarchyTree(this.removeNotAssigned(tree))
+            )
+            .then((hierarchy) => {
+                if (list.length === 0) hierarchy.push(...selected);
+                else this.findCategory(hierarchy, list).push(...selected);
+                /* let currentNode = hierarchy.find(
+                        (node) => node.name === list[0]
+                    );
+                    let i = 0;
+                    while (i < list.length) {
+                        i++;
+                        if (
+                            !currentNode ||
+                            typeof currentNode.children === 'string'
+                        ) {
+                            throw {
+                                status: HierarchyService.SUBCATEGORY_ERROR_CODE,
+                            };
+                        }
+
+                        if (i < list.length) {
+                            currentNode = currentNode.children.find(
+                                (node) => node.name === list[i]
+                            );
+                        }
+                    }
+                    (currentNode!.children as ServerHierarchyNode[]).push(
+                        ...selected
+                    ); */
+
+                return hierarchy;
+            })
+            .then((hierarchy) =>
+                this.setExerciseHierarchy(subjectId, hierarchy)
+            )
+            .finally(() => this.resetNewExerciseHierarchy());
+    }
+
+    /**
+     * @param categoryRoute Must have at least 1 item
+     */
+    private findCategory(
+        hierarchy: ServerHierarchyNode[],
+        categoryRoute: string[]
+    ): ServerHierarchyNode[] {
+        let currentNode = hierarchy.find(
+            (node) => node.name === categoryRoute[0]
+        );
+        let i = 0;
+        while (i < categoryRoute.length) {
+            i++;
+            if (!currentNode || typeof currentNode.children === 'string')
+                throw { status: HierarchyService.SUBCATEGORY_ERROR_CODE };
+
+            if (i < categoryRoute.length) {
+                currentNode = currentNode.children.find(
+                    (node) => node.name === categoryRoute[i]
+                );
+            }
+        }
+        if (!currentNode || typeof currentNode.children === 'string')
+            throw { status: HierarchyService.SUBCATEGORY_ERROR_CODE };
+        else return currentNode.children;
+    }
+
+    getCategoryRoute(): string[] | null {
+        return this.currentCategory;
+    }
+
     resetNewExerciseHierarchy() {
-        this.newExerciseHierarchy = null;
+        this.currentCategory = null;
     }
 }

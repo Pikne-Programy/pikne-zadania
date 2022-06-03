@@ -1,0 +1,45 @@
+<div *ngIf="subject && exercises" class="columns is-root is-centered">
+    <div class="column is-flex is-flex-direction-column height-full is-half-tablet is-two-fifths-desktop is-one-third-widescreen is-one-forth-fullhd py-only-mobile-0">
+        <div class="panel is-flex is-flex-direction-column unscrollable">
+            <p class="panel-heading icon-text">
+                <span>{{ getSubjectName(subject) | titlecase }}</span>
+                <ng-container *ngFor="let segment of getPanelHeader()">
+                    <span class="icon">
+                        <i class="fas fa-arrow-right"></i>
+                    </span>
+                    <span>{{ segment | titlecase }}</span>
+                </ng-container>
+            </p>
+            <!--TODO Searchbar -->
+            <div *ngIf="!isLoading" class="panel height-full scrollable">
+                <label *ngFor="let exercise of exercises" class="panel-block checkbox" (change)="selectExercise(exercise)">
+                    <input type="checkbox" [checked]="exercise.isSelected" [disabled]="exercise.isDisabled">
+                    <span class="is-unselectable">{{ exercise.name | titlecase }}</span>
+                </label>
+            </div>
+            <app-loading *ngIf="isLoading"></app-loading>
+        </div>
+        <div class="buttons is-right">
+            <button type="button" class="button is-success" (click)="submit()">Zapisz</button>
+            <button type="button" class="button is-danger" (click)="cancel()">Odrzuć</button>
+        </div>
+        <p *ngIf="submitErrorCode !== null" class="error-warning help is-danger">Coś poszło nie tak (kod błędu: {{ submitErrorCode }})</p>
+    </div>
+</div>
+
+<app-error *ngIf="errorCode !== null && !isLoading" [code]="errorCode"></app-error>
+<app-unsaved-changes-modal [open]="isConfirmExitModalOpen" (onSubmit)="onExitSubmit()" (onDiscard)="onExitDiscard()" (onCancel)="onExitCancel()"></app-unsaved-changes-modal>
+
+<!--#region Modal Discard -->
+<app-card-modal [title]="'Odrzuć zmiany'" [open]="isDiscardModalOpen" (onClose)="isDiscardModalOpen = false">
+    <section>
+        <p class="has-text-justified">Czy na pewno chcesz odrzucić wszystkie zmiany?</p>
+    </section>
+    <footer>
+        <div class="buttons">
+            <button class="button is-danger" (click)="isDiscardModalOpen = false; onExitDiscard()">Odrzuć</button>
+            <button class="button" (click)="isDiscardModalOpen = false">Anuluj</button>
+        </div>
+    </footer>
+</app-card-modal>
+<!--#endregion-->

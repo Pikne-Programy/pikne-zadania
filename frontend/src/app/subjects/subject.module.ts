@@ -24,6 +24,7 @@ import { FileUploadComponent } from './exercise-modification/form/file-upload/fi
 import { FileUploadService } from './file-upload.service/file-upload.service';
 import { TeamService } from '../user/team.service/team.service';
 import { SubjectPermitComponent } from './dashboard/permit/permit.component';
+import { CategoryModificationComponent } from './hierarchy/category-modification/category-modification.component';
 
 @NgModule({
     declarations: [
@@ -36,6 +37,7 @@ import { SubjectPermitComponent } from './dashboard/permit/permit.component';
         ExerciseModificationFormComponent,
         EditorToolbarComponent,
         HierarchyModificationComponent,
+        CategoryModificationComponent,
         FileUploadComponent,
         SubjectPermitComponent
     ],
