@@ -1,4 +1,4 @@
-// Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
+// Copyright 2021-2022 Marcin Zepp <nircek-2103@protonmail.com>
 // Copyright 2021 Marcin Wykpis <marwyk2003@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -153,7 +153,7 @@ export class SubjectController extends Authorizer {
           await this.getSeed(ctx, seed, user),
         ),
       ); //! EO
-      if (!this.parent.isAssigneeOf(subject, user)) {
+      if (!await this.parent.isAssigneeOf(subject, user)) {
         const parsedCensored: Omit<typeof parsed, "correctAnswer"> & {
           correctAnswer?: unknown;
         } = parsed;

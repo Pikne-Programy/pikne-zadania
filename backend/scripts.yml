@@ -30,6 +30,6 @@ watcher:
     - json
     - yml
 # * needs restarting denon
-  skip: ["exercises/**"]
+  skip: ["exercises/**", "tests/**"]
 logger:
   debug: false

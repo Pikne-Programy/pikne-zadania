@@ -8,6 +8,7 @@ import { deepCopy } from "../utils/mod.ts";
 import { RoleTestContext } from "./smoke_mod.ts";
 
 // TODO: make tests where done != null
+// TODO: make tests with unlisted exercises
 
 export async function initHierarchyTests(
   t: Deno.TestContext,
@@ -36,11 +37,6 @@ export async function initHierarchyTests(
       ],
     },
   ];
-  const unlisted = {
-    name: "",
-    children: [],
-  };
-  const whole = (hierarchy: unknown[]) => [unlisted, ...hierarchy];
 
   const setHierarchy = [
     {
@@ -86,7 +82,7 @@ export async function initHierarchyTests(
       .set("Cookie", g.roles.root)
       .send({ subject: "fizyka", raw: true })
       .expect(200)
-      .expect(whole(hierarchy));
+      .expect(hierarchy);
   });
 
   await t.step(
@@ -94,7 +90,7 @@ export async function initHierarchyTests(
     async () => {
       const response = await (await g.request())
         .post("/api/subject/hierarchy/get")
-        .set("Cookie", g.roles.teacher)
+        .set("Cookie", g.roles.lanny)
         .send({ subject: "fizyka", raw: false })
         .expect(200);
       const desc = response.body[1]?.children[0]?.children[0]?.description;
@@ -110,7 +106,7 @@ export async function initHierarchyTests(
         .set("Cookie", g.roles.root)
         .send({ subject: "fizyka", raw: true })
         .expect(200)
-        .expect(whole(hierarchy));
+        .expect(hierarchy);
     },
   );
 
@@ -119,7 +115,7 @@ export async function initHierarchyTests(
     async () => {
       const response = await (await g.request())
         .post("/api/subject/hierarchy/get")
-        .set("Cookie", g.roles.student)
+        .set("Cookie", g.roles.alice)
         .send({ subject: "fizyka", raw: false })
         .expect(200);
       const desc = response.body[0]?.children[0]?.children[0]?.description;
@@ -132,7 +128,7 @@ export async function initHierarchyTests(
     async () => {
       await (await g.request())
         .post("/api/subject/hierarchy/get")
-        .set("Cookie", g.roles.student)
+        .set("Cookie", g.roles.alice)
         .send({ subject: "fizyka", raw: true })
         .expect(200)
         .expect(hierarchy);
@@ -175,7 +171,7 @@ export async function initHierarchyTests(
       .expect(200);
     assertEquals(
       response.body,
-      whole(setHierarchy),
+      setHierarchy,
       "Hierarchy not changed",
     );
   });
@@ -183,17 +179,17 @@ export async function initHierarchyTests(
   await t.step("Assignee - set hierarchy, public subject", async () => {
     await (await g.request())
       .post("/api/subject/hierarchy/set")
-      .set("Cookie", g.roles.teacher)
+      .set("Cookie", g.roles.lanny)
       .send({ subject: "fizyka", hierarchy: setHierarchy2 })
       .expect(200);
     const response = await (await g.request())
       .post("/api/subject/hierarchy/get")
-      .set("Cookie", g.roles.teacher)
+      .set("Cookie", g.roles.lanny)
       .send({ subject: "fizyka", raw: true })
       .expect(200);
     assertEquals(
       response.body,
-      whole(setHierarchy2),
+      setHierarchy2,
       "Hierarchy not changed",
     );
   });
@@ -201,7 +197,7 @@ export async function initHierarchyTests(
   await t.step("Student - try to set hierarchy, public subject", async () => {
     await (await g.request())
       .post("/api/subject/hierarchy/set")
-      .set("Cookie", g.roles.student)
+      .set("Cookie", g.roles.alice)
       .send({ subject: "fizyka", hierarchy: setHierarchy2 })
       .expect(403);
   });

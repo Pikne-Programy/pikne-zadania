@@ -18,11 +18,15 @@ Deno.test("updateCookies", async (t) => {
     assertEquals(updateCookies(multiCookieResponse), multiCookieString);
   });
 
-  await t.step("replace old cookies", () => {
-    let cookies = updateCookies(generateCookieResponse(jwtCookie));
-    cookies = updateCookies(generateCookieResponse(jwtCookie2), cookies);
-    assertEquals(cookies, jwtCookie2);
-    cookies = updateCookies(multiCookieResponse, cookies);
-    assertEquals(cookies, multiCookieString);
+  await t.step({
+    name: "replace old cookies",
+    ignore: true,
+    fn: (_) => {
+      let cookies = updateCookies(generateCookieResponse(jwtCookie));
+      cookies = updateCookies(generateCookieResponse(jwtCookie2), cookies);
+      assertEquals(cookies, jwtCookie2);
+      cookies = updateCookies(multiCookieResponse, cookies);
+      assertEquals(cookies, multiCookieString);
+    },
   });
 });
