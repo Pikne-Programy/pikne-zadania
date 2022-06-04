@@ -1,8 +1,9 @@
 // Copyright 2021 Michał Szymocha <szymocha.michal@gmail.com>
+// Copyright 2022 Marcin Zepp <nircek-2103@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { assertEquals } from "../test_deps.ts";
+import { assert, assertEquals } from "../test_deps.ts";
 import { deepCopy } from "../utils/mod.ts";
 import { RoleTestContext } from "./smoke_mod.ts";
 
@@ -19,12 +20,45 @@ export async function initProblemTests(
       "unknown": [["x", "\\;\\mathrm{km}"], ["t", "\\;\\mathrm{h}"]],
       "img": [],
     },
-    "done": null,
     "correctAnswer": { "answers": [1, 1] },
+    "done": null,
   };
 
   const studentVer: Partial<typeof rendered> = deepCopy(rendered);
   delete studentVer.correctAnswer;
+
+  async function getDone(
+    exerciseId: string,
+    cookies = g.roles.root,
+  ): Promise<null | number> {
+    const response = await (await g.request())
+      .post("/api/subject/problem/get")
+      .set("Cookie", cookies)
+      .send({ subject: "fizyka", exerciseId })
+      .expect(200);
+    const done1 = response?.body?.done;
+    const response2 = await (await g.request())
+      .post("/api/subject/hierarchy/get")
+      .set("Cookie", cookies)
+      .send({ subject: "fizyka", raw: false })
+      .expect(200);
+    type crazyType = { done?: null | number; children: string | crazyType[] };
+    const recu = (o: crazyType[]): number | null | undefined =>
+      o.reduce<null | number | undefined>((p, n) => {
+        if (n?.children === exerciseId) return n?.done;
+        if (!Array.isArray(n?.children)) return p;
+        const r = recu(n.children);
+        return r !== undefined ? r : p;
+      }, undefined);
+    const done2 = recu(response2?.body);
+    assert(
+      done2 !== undefined,
+      `exercise '${exerciseId}' not found in hierarchy`,
+    );
+    assertEquals(done1, done2, "`done` differs");
+    return done1;
+  }
+
   await t.step("Admin - render an exercise with seed", async () => {
     const response = await (await g.request())
       .post("/api/subject/problem/get")
@@ -109,7 +143,6 @@ export async function initProblemTests(
       })
       .expect(404);
   });
-
   await t.step("Admin - submit a solution (50%)", async () => {
     await (await g.request())
       .post("/api/subject/problem/update")
@@ -123,16 +156,6 @@ export async function initProblemTests(
       })
       .expect(200)
       .expect({ info: [true, false] });
-    const response = await (await g.request())
-      .post("/api/subject/problem/get")
-      .set("Cookie", g.roles.root)
-      .send({
-        subject: "fizyka",
-        exerciseId: "pociagi-dwa-2",
-        seed: 0,
-      })
-      .expect(200);
-    assertEquals(response?.body?.done, 0.5, "Done not saved");
   });
 
   await t.step("Admin - submit a solution (100%)", async () => {
@@ -148,16 +171,6 @@ export async function initProblemTests(
       })
       .expect(200)
       .expect({ info: [true, true] });
-    const response = await (await g.request())
-      .post("/api/subject/problem/get")
-      .set("Cookie", g.roles.root)
-      .send({
-        subject: "fizyka",
-        exerciseId: "pociagi-dwa-2",
-        seed: 0,
-      })
-      .expect(200);
-    assertEquals(response?.body?.done, 1, "Done not saved");
   });
 
   await t.step("Admin - submit a solution (lower than highscore)", async () => {
@@ -173,16 +186,6 @@ export async function initProblemTests(
       })
       .expect(200)
       .expect({ info: [true, false] });
-    const response = await (await g.request())
-      .post("/api/subject/problem/get")
-      .set("Cookie", g.roles.root)
-      .send({
-        subject: "fizyka",
-        exerciseId: "pociagi-dwa-2",
-        seed: 0,
-      })
-      .expect(200);
-    assertEquals(response?.body?.done, 1, "Done not saved");
   });
 
   await t.step("Admin - submit non-existing exercise", async () => {
@@ -212,15 +215,11 @@ export async function initProblemTests(
       })
       .expect(200)
       .expect({ info: [false, false] });
-    const response = await (await g.request())
-      .post("/api/subject/problem/get")
-      .set("Cookie", g.roles.alice)
-      .send({
-        subject: "fizyka",
-        exerciseId: "pociagi-dwa-2",
-      })
-      .expect(200);
-    assertEquals(response?.body?.done, 0, "Done not saved");
+    assertEquals(
+      await getDone("pociagi-dwa-2", g.roles.alice),
+      0,
+      "Done not saved",
+    );
   });
 
   await t.step("Student - submit a solution (100%)", async () => {
@@ -236,15 +235,11 @@ export async function initProblemTests(
       })
       .expect(200)
       .expect({ info: [true, true] });
-    const response = await (await g.request())
-      .post("/api/subject/problem/get")
-      .set("Cookie", g.roles.alice)
-      .send({
-        subject: "fizyka",
-        exerciseId: "pociagi-dwa-2",
-      })
-      .expect(200);
-    assertEquals(response?.body?.done, 1, "Done not saved");
+    assertEquals(
+      await getDone("pociagi-dwa-2", g.roles.alice),
+      1,
+      "Done not saved",
+    );
   });
 
   await t.step(
@@ -262,15 +257,11 @@ export async function initProblemTests(
         })
         .expect(200)
         .expect({ info: [true, false] });
-      const response = await (await g.request())
-        .post("/api/subject/problem/get")
-        .set("Cookie", g.roles.alice)
-        .send({
-          subject: "fizyka",
-          exerciseId: "pociagi-dwa-2",
-        })
-        .expect(200);
-      assertEquals(response?.body?.done, 1, "Done not saved");
+      assertEquals(
+        await getDone("pociagi-dwa-2", g.roles.alice),
+        0.5,
+        "Done not saved",
+      );
     },
   );
 
@@ -287,14 +278,10 @@ export async function initProblemTests(
       })
       .expect(200)
       .expect({ info: [true, false] });
-    const response = await (await g.request())
-      .post("/api/subject/problem/get")
-      .set("Cookie", g.roles.lanny)
-      .send({
-        subject: "fizyka",
-        exerciseId: "pociagi-dwa-2",
-      })
-      .expect(200);
-    assertEquals(response?.body?.done, 0.5, "Done not saved");
+    assertEquals(
+      await getDone("pociagi-dwa-2", g.roles.lanny),
+      0.5,
+      "Done not saved",
+    );
   });
 }

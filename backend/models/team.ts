@@ -48,6 +48,7 @@ export class Team implements ITeam {
   readonly members = {
     add: async (uid: string) => {
       await this.db.teams!.updateOne({ id: this.id }, {
+        // deno-lint-ignore no-explicit-any
         $push: { members: uid } as any, // TODO: Marwyk, your piece of code, pls fix it without using `any`
       });
     },

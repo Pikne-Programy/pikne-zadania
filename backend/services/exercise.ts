@@ -1,4 +1,4 @@
-// Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
+// Copyright 2021-2022 Marcin Zepp <nircek-2103@protonmail.com>
 // Copyright 2021 Marcin Wykpis <marwyk2003@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -36,7 +36,7 @@ export class ExerciseService implements IExerciseService {
     {
       type: string;
       name: string;
-      done: number;
+      done: number | null;
       problem: JSONObject;
       correctAnswer: JSONObject;
     } | CustomDictError<"ExerciseBadFormat">
@@ -48,7 +48,7 @@ export class ExerciseService implements IExerciseService {
     {
       type: string;
       name: string;
-      done: number;
+      done: number | null;
       problem: JSONObject;
       correctAnswer: JSONObject;
     } | CustomDictError<"ExerciseNotFound">
@@ -60,7 +60,7 @@ export class ExerciseService implements IExerciseService {
     {
       type: string;
       name: string;
-      done: number;
+      done: number | null;
       problem: JSONObject;
       correctAnswer: JSONObject;
     } | CustomDictError<"ExerciseBadFormat" | "ExerciseNotFound">
@@ -70,8 +70,12 @@ export class ExerciseService implements IExerciseService {
     const seed = await this.getSeed(user);
     return {
       ...ex.render(seed),
-      done: 0,
       correctAnswer: ex.getCorrectAnswer(seed),
+      done: "exercises" in user && "exerciseId" in input
+        ? await user.exercises.get(
+          this.ex.uid(input.subject, input.exerciseId),
+        ) ?? null
+        : null,
     };
   }
 
@@ -87,7 +91,10 @@ export class ExerciseService implements IExerciseService {
       !(r instanceof CustomDictError) && "exercises" in user &&
       "exerciseId" in input
     ) {
-      await user.exercises.set(input.exerciseId, r.done);
+      await user.exercises.set(
+        this.ex.uid(input.subject, input.exerciseId),
+        r.done,
+      );
     }
     return r;
   }

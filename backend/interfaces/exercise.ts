@@ -1,4 +1,4 @@
-// Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
+// Copyright 2021-2022 Marcin Zepp <nircek-2103@protonmail.com>
 // Copyright 2021 Marcin Wykpis <marwyk2003@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -11,7 +11,7 @@ export interface IExerciseService {
     {
       type: string;
       name: string;
-      done: number;
+      done: number | null;
       problem: JSONObject;
       correctAnswer: JSONObject;
     } | CustomDictError<"ExerciseBadFormat">
@@ -23,7 +23,7 @@ export interface IExerciseService {
     {
       type: string;
       name: string;
-      done: number;
+      done: number | null;
       problem: JSONObject;
       correctAnswer: JSONObject;
     } | CustomDictError<"ExerciseNotFound">
@@ -35,7 +35,7 @@ export interface IExerciseService {
     {
       type: string;
       name: string;
-      done: number;
+      done: number | null;
       problem: JSONObject;
       correctAnswer: JSONObject;
     } | CustomDictError<"ExerciseBadFormat" | "ExerciseNotFound">
