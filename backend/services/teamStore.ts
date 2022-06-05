@@ -64,6 +64,12 @@ export class TeamStore implements ITeamStore {
       name: options.name,
       assignee: options.assignee,
       members: [],
+      session: {
+        isFinished: false,
+        exercises: [],
+        report: {},
+      },
+      reports: [],
     });
     return teamId;
   }

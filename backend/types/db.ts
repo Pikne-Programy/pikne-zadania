@@ -19,12 +19,21 @@ export type UserType = {
   exercises: { [key: string]: number };
 };
 
+// TODO (Marwyk): Fix old records having undefined properties (session, reports) due to a new database version
+export type SessionType = {
+  isFinished: boolean;
+  exercises: string[];
+  report: { [uid: string]: { [eid: string]: null | number } };
+};
+
 export type TeamType = {
   id: number;
   name: string;
   assignee: string;
   members: string[];
   invitation?: string;
+  session: SessionType;
+  reports: string[];
 };
 
 export type SubjectType = {

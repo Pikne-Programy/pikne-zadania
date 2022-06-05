@@ -3,7 +3,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { TeamType } from "../types/mod.ts";
+import { SessionType, TeamType } from "../types/mod.ts";
 import { IDatabaseService, ITeam } from "../interfaces/mod.ts";
 
 // TODO: make an abstract Model class
@@ -48,8 +48,7 @@ export class Team implements ITeam {
   readonly members = {
     add: async (uid: string) => {
       await this.db.teams!.updateOne({ id: this.id }, {
-        // deno-lint-ignore no-explicit-any
-        $push: { members: uid } as any, // TODO: Marwyk, your piece of code, pls fix it without using `any`
+        $push: { members: { $each: [uid] } }, // alternative: `$push: { members: uid } } as any`
       });
     },
     get: async () => await this.get("members"),
@@ -71,6 +70,80 @@ export class Team implements ITeam {
         await this.set("invitation", invitation);
       }
       return true;
+    },
+  };
+
+  readonly session = {
+    get: async () => await this.get("session"),
+    drop: async () => {
+      const emptySession: SessionType = {
+        isFinished: false,
+        exercises: [],
+        report: {},
+      };
+      await this.set("session", emptySession);
+    },
+    end: async () => {
+      if (!await this.exists()) throw new Error(); // TODO: error message
+      await this.db.teams!.updateOne({ id: this.id }, {
+        $set: { "session.finished": true },
+      });
+    },
+    isFinished: async () => {
+      const session = await this.session.get();
+      return session["isFinished"];
+    },
+    exercises: {
+      get: async () => {
+        const session = await this.session.get();
+        return session["exercises"];
+      },
+      add: async (eid: string) => {
+        if (!await this.exists()) throw new Error(); // TODO: error message
+        await this.db.teams!.updateOne({ id: this.id }, {
+          // deno-lint-ignore no-explicit-any
+          $push: { "session.exercises": eid } as any, // types doesn't match in linter, but works in mongo
+        });
+      },
+      remove: async (eid: string) => {
+        if (!await this.exists()) throw new Error(); // TODO: error message
+        await this.db.teams!.updateOne({ id: this.id }, {
+          // deno-lint-ignore no-explicit-any
+          $pull: { "session.exercises": eid } as any, // types doesn't match in linter, but works in mongo
+        });
+      },
+    },
+    report: {
+      get: async () => {
+        const session = await this.session.get();
+        return session["report"];
+      },
+      add: async (eid: string) => {
+        const report = await this.session.report.get();
+        for (const uid in report) {
+          const key = `session.report.${uid}.${eid}`;
+          await this.db.teams!.updateOne({ id: this.id }, {
+            $set: { [key]: null },
+          });
+        }
+      },
+      remove: async (eid: string) => {
+        const report = await this.session.report.get();
+        for (const uid in report) {
+          const key = `session.report.${uid}`;
+          await this.db.teams!.updateOne({ id: this.id }, {
+            $unset: { [key]: eid },
+          });
+        }
+      },
+      set: async (uid: string, eid: string, value: null | number) => {
+        const exercises = await this.session.exercises.get();
+        if (!exercises.includes(eid)) throw new Error(); // TODO: error message
+        const key = `session.report.${uid}.${eid}`;
+        await this.db.teams!.updateOne({ id: this.id }, {
+          $set: { [key]: value },
+        });
+      },
     },
   };
 }
