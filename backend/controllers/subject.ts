@@ -137,7 +137,7 @@ export class SubjectController extends Authorizer {
       return { seed: +s };
     },
 
-    async get(ctx: RouterContext) {
+    async render(ctx: RouterContext) {
       const user = await this.parent.authorize(ctx, false); //! A
       const { subject, exerciseId, seed } = await followSchema(ctx, {
         subject: schemas.exercise.subject,
@@ -163,7 +163,7 @@ export class SubjectController extends Authorizer {
       ctx.response.status = 200; //! D
     },
 
-    async update(ctx: RouterContext) {
+    async submit(ctx: RouterContext) {
       const user = await this.parent.authorize(ctx, false); //! A
       const { subject, exerciseId, answer } = await followSchema(ctx, {
         subject: schemas.exercise.subject,
@@ -406,8 +406,8 @@ export class SubjectController extends Authorizer {
     .use(
       "/problem",
       new Router()
-        .post("/get", (ctx: RouterContext) => this.problem.get(ctx))
-        .post("/update", (ctx: RouterContext) => this.problem.update(ctx))
+        .post("/render", (ctx: RouterContext) => this.problem.render(ctx))
+        .post("/submit", (ctx: RouterContext) => this.problem.submit(ctx))
         .routes(),
     ).use(
       "/static",

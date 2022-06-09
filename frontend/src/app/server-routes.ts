@@ -1,7 +1,7 @@
 //#region Exercise/Problem
 export const exerciseList = '/api/subject/hierarchy/get';
-export const exerciseGet = '/api/subject/problem/get';
-export const exerciseCheck = '/api/subject/problem/update';
+export const exerciseGet = '/api/subject/problem/render';
+export const exerciseCheck = '/api/subject/problem/submit';
 //#endregion
 
 //#region Subject

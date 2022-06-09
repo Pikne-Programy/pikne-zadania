@@ -32,7 +32,7 @@ export async function initProblemTests(
     cookies = g.roles.root,
   ): Promise<null | number> {
     const response = await (await g.request())
-      .post("/api/subject/problem/get")
+      .post("/api/subject/problem/render")
       .set("Cookie", cookies)
       .send({ subject: "fizyka", exerciseId })
       .expect(200);
@@ -61,7 +61,7 @@ export async function initProblemTests(
 
   await t.step("Admin - render an exercise with seed", async () => {
     const response = await (await g.request())
-      .post("/api/subject/problem/get")
+      .post("/api/subject/problem/render")
       .set("Cookie", g.roles.root)
       .send({
         subject: "fizyka",
@@ -74,7 +74,7 @@ export async function initProblemTests(
 
   await t.step("Teacher - render an exercise with seed", async () => {
     const response = await (await g.request())
-      .post("/api/subject/problem/get")
+      .post("/api/subject/problem/render")
       .set("Cookie", g.roles.lanny)
       .send({
         subject: "fizyka",
@@ -87,7 +87,7 @@ export async function initProblemTests(
 
   await t.step("Student - render an exercise", async () => {
     const response = await (await g.request())
-      .post("/api/subject/problem/get")
+      .post("/api/subject/problem/render")
       .set("Cookie", g.roles.alice)
       .send({
         subject: "fizyka",
@@ -99,7 +99,7 @@ export async function initProblemTests(
 
   await t.step("Student - check whether seed is working", async () => {
     const response = await (await g.request())
-      .post("/api/subject/problem/get")
+      .post("/api/subject/problem/render")
       .set("Cookie", g.roles.alice)
       .send({
         subject: "fizyka",
@@ -107,7 +107,7 @@ export async function initProblemTests(
       })
       .expect(200);
     const response2 = await (await g.request())
-      .post("/api/subject/problem/get")
+      .post("/api/subject/problem/render")
       .set("Cookie", g.roles.alice)
       .send({
         subject: "fizyka",
@@ -123,7 +123,7 @@ export async function initProblemTests(
 
   await t.step("Not logged in - render an exercise", async () => {
     const response = await (await g.request())
-      .post("/api/subject/problem/get")
+      .post("/api/subject/problem/render")
       .send({
         subject: "fizyka",
         exerciseId: "pociagi-dwa-2",
@@ -134,7 +134,7 @@ export async function initProblemTests(
 
   await t.step("Admin - non-existing exercise", async () => {
     await (await g.request())
-      .post("/api/subject/problem/get")
+      .post("/api/subject/problem/render")
       .set("Cookie", g.roles.root)
       .send({
         subject: "matematyka",
@@ -145,7 +145,7 @@ export async function initProblemTests(
   });
   await t.step("Admin - submit a solution (50%)", async () => {
     await (await g.request())
-      .post("/api/subject/problem/update")
+      .post("/api/subject/problem/submit")
       .set("Cookie", g.roles.root)
       .send({
         subject: "fizyka",
@@ -160,7 +160,7 @@ export async function initProblemTests(
 
   await t.step("Admin - submit a solution (100%)", async () => {
     await (await g.request())
-      .post("/api/subject/problem/update")
+      .post("/api/subject/problem/submit")
       .set("Cookie", g.roles.root)
       .send({
         subject: "fizyka",
@@ -175,7 +175,7 @@ export async function initProblemTests(
 
   await t.step("Admin - submit a solution (lower than highscore)", async () => {
     await (await g.request())
-      .post("/api/subject/problem/update")
+      .post("/api/subject/problem/submit")
       .set("Cookie", g.roles.root)
       .send({
         subject: "fizyka",
@@ -190,7 +190,7 @@ export async function initProblemTests(
 
   await t.step("Admin - submit non-existing exercise", async () => {
     await (await g.request())
-      .post("/api/subject/problem/update")
+      .post("/api/subject/problem/submit")
       .set("Cookie", g.roles.root)
       .send({
         subject: "matematyka",
@@ -204,7 +204,7 @@ export async function initProblemTests(
 
   await t.step("Student - submit a solution (0%)", async () => {
     await (await g.request())
-      .post("/api/subject/problem/update")
+      .post("/api/subject/problem/submit")
       .set("Cookie", g.roles.alice)
       .send({
         subject: "fizyka",
@@ -224,7 +224,7 @@ export async function initProblemTests(
 
   await t.step("Student - submit a solution (100%)", async () => {
     await (await g.request())
-      .post("/api/subject/problem/update")
+      .post("/api/subject/problem/submit")
       .set("Cookie", g.roles.alice)
       .send({
         subject: "fizyka",
@@ -246,7 +246,7 @@ export async function initProblemTests(
     "Student - submit a solution (lower than highscore)",
     async () => {
       await (await g.request())
-        .post("/api/subject/problem/update")
+        .post("/api/subject/problem/submit")
         .set("Cookie", g.roles.alice)
         .send({
           subject: "fizyka",
@@ -267,7 +267,7 @@ export async function initProblemTests(
 
   await t.step("Teacher - submit a solution (50%)", async () => {
     await (await g.request())
-      .post("/api/subject/problem/update")
+      .post("/api/subject/problem/submit")
       .set("Cookie", g.roles.lanny)
       .send({
         subject: "fizyka",
