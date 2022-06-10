@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 // TODO: add bad requests
+import { assert, assertEquals } from "../test_deps.ts";
 import { RoleTestContext } from "./smoke_mod.ts";
 import { data } from "./testdata/config.ts";
 
@@ -10,12 +11,12 @@ export async function initSubjectTests(
   t: Deno.TestContext,
   g: RoleTestContext,
 ) {
-  await t.step("Make _fizyka visible for root only", async () => {
+  await t.step("Make _easy visible for root only", async () => {
     await (await g.request())
       .post("/api/subject/permit")
       .set("Cookie", g.roles.root)
       .send({
-        subject: "_fizyka",
+        subject: "_easy",
         assignees: [],
       })
       .expect(200);
@@ -23,39 +24,45 @@ export async function initSubjectTests(
       .post("/api/subject/info")
       .set("Cookie", g.roles.root)
       .send({
-        subject: "_fizyka",
+        subject: "_easy",
       })
       .expect(200)
       .expect({ assignees: [] });
   });
 
   await t.step("Student - list (only public subjects)", async () => {
-    await (await g.request())
+    const response = await (await g.request())
       .get("/api/subject/list")
       .set("Cookie", g.roles.bob)
-      .expect(200)
-      .expect({
-        "subjects": ["fizyka"],
-      });
+      .expect(200);
+    assert(
+      "subjects" in response.body && Array.isArray(response.body.subjects),
+    );
+    response.body.subjects.sort();
+    assertEquals(response.body.subjects, ["easy", "fizyka"]);
   });
 
   await t.step("Teacher - list (only public subjects)", async () => {
-    await (await g.request())
+    const response = await (await g.request())
       .get("/api/subject/list")
       .set("Cookie", g.roles.ralph)
-      .expect(200)
-      .expect({
-        "subjects": ["fizyka"],
-      });
+      .expect(200);
+    assert(
+      "subjects" in response.body && Array.isArray(response.body.subjects),
+    );
+    response.body.subjects.sort();
+    assertEquals(response.body.subjects, ["easy", "fizyka"]);
   });
 
   await t.step("Not logged in - list", async () => {
-    await (await g.request())
+    const response = await (await g.request())
       .get("/api/subject/list")
-      .expect(200)
-      .expect({
-        "subjects": ["fizyka"],
-      });
+      .expect(200);
+    assert(
+      "subjects" in response.body && Array.isArray(response.body.subjects),
+    );
+    response.body.subjects.sort();
+    assertEquals(response.body.subjects, ["easy", "fizyka"]);
   });
 
   await t.step("Root - create a public subject", async () => {

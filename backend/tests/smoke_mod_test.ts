@@ -20,6 +20,7 @@ import { initUserTests } from "./smoke_22_user.ts";
 import { initProblemTests } from "./smoke_23_problem.ts";
 import { initHierarchyTests } from "./smoke_24_hierarchy.ts";
 import { initSubjectTests } from "./smoke_25_subject.ts";
+import { initSessionTests } from "./smoke_26_session.ts";
 
 async function initRole(e2eCtx: E2eTestContext) {
   const root = await login(e2eCtx, data.u.root);
@@ -74,6 +75,7 @@ Deno.test("smoke", async (t) => {
       await wrapper(t, roleCtx, "problem", initProblemTests);
       await wrapper(t, roleCtx, "hierarchy", initHierarchyTests);
       await wrapper(t, roleCtx, "subject", initSubjectTests);
+      await wrapper(t, roleCtx, "session", initSessionTests);
     });
   });
 

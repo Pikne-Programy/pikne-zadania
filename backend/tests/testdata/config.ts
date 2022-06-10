@@ -40,22 +40,14 @@ export const lazyDefaultConfig: IConfigService = {
 type teams = "t" | "dd" | "d";
 type users = "root" | "lanny" | "ralph" | "alice" | "bob" | "mike";
 
-const teamData: {
-  [prop in teams]: {
-    /** id */ id: number;
-    /** name */ n: string;
-    /** invitation */ i: string;
-    /** assignee */ a: users;
-    /** members */ m: users[];
-  };
-} = {
+const teamData = {
   t: { id: 1, n: "Teachers", i: "teacher", a: "root", m: ["lanny", "ralph"] },
   dd: { id: 2, n: "3dd", i: "3dd", a: "lanny", m: ["alice", "bob"] },
   d: { id: 3, n: "3d", i: "e^iπ+1=0", a: "ralph", m: ["mike"] },
-};
+} as const;
 const invs = Object.fromEntries(
-  Object.entries(teamData).map((e) => [e[1].i, e[1].id])
-    .concat([["", 0]]) as [string, number][],
+  (Object.entries(teamData).map((e) => [e[1].i, e[1].id]) as [string, number][])
+    .concat([["", 0]]),
 );
 const userData: {
   [prop in users]: Parameters<IUserStore["add"]>[1] & {

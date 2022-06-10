@@ -1,0 +1,7 @@
+---
+type: EqEx
+name: Concatenate
+---
+a=[1;999;1] b=[0;9;1] c=[0;9;1] x=?
+---
+x=100*a+10*b+c

@@ -6,7 +6,8 @@ import { assert } from "../test_deps.ts";
 import { RoleTestContext } from "./smoke_mod.ts";
 import { data } from "./testdata/config.ts";
 
-function generateInfo(team: (typeof data)["t"]["t"], inv = true, t = true) {
+type Teams = (typeof data)["t"];
+function generateInfo(team: Teams[keyof Teams], inv = true, t = true) {
   const a = data.u[team.a];
   return {
     name: team.n,
