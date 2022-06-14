@@ -32,6 +32,9 @@ export const lazyDefaultConfig: IConfigService = {
   EXERCISES_PATH: await Deno.makeTempDir({
     prefix: "pikne-zadania-exercises-",
   }),
+  REPORTS_PATH: await Deno.makeTempDir({
+    prefix: "pikne-zadania-reports-",
+  }),
   hash(login: string) {
     return sha256(login, this.USER_SALT);
   },
