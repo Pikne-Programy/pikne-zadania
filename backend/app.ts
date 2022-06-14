@@ -11,6 +11,7 @@ import {
   ExerciseService,
   ExerciseStore,
   JWTService,
+  ReportsService,
   StoreTarget,
   SubjectStore,
   TeamStore,
@@ -69,7 +70,7 @@ export async function constructApp(cfg: IConfigService = new ConfigService()) {
   await ss.init();
   const ex = new ExerciseService(es);
   const jwt = new JWTService(cfg, target.us);
-
+  const rep = new ReportsService(cfg, target.ts);
   const ac = new AuthController(cfg, target.us, jwt);
   const sc = new SubjectController(cfg, jwt, target.us, ss, es, ex);
   const tc = new TeamController(jwt, target.us, target.ts);

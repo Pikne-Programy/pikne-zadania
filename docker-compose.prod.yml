@@ -17,6 +17,7 @@ services:
     env_file: api.env
     volumes:
       - ./exercises:/app/exercises
+      - ./reports:/app/reports
     expose:
       - 8000
     links:

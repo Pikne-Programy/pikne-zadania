@@ -11,3 +11,4 @@ export * from "./userStore.ts";
 export * from "./subjectStore.ts";
 export * from "./exercise.ts";
 export * from "./storeTarget.ts";
+export * from "./reports.ts";

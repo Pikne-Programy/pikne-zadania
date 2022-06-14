@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { SessionType } from "../types/db.ts";
+import { ReportType, SessionType } from "../types/mod.ts";
 
 export interface ITeam {
   exists(): Promise<boolean>;
@@ -35,10 +35,15 @@ export interface ITeam {
       remove: (eid: string) => Promise<void>;
     };
     report: {
-      get: () => Promise<{ [uid: string]: { [eid: string]: null | number } }>;
+      get: () => Promise<ReportType>;
       add: (eid: string) => Promise<void>;
       remove: (eid: string) => Promise<void>;
       set: (uid: string, eid: string, value: null | number) => Promise<void>;
     };
+  };
+  reports: {
+    list: () => Promise<string[]>;
+    push: (path: string) => Promise<void>;
+    pull: (path: string) => Promise<void>;
   };
 }

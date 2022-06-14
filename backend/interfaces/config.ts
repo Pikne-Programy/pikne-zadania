@@ -32,5 +32,6 @@ export interface IConfigService {
   };
   readonly FRESH: boolean;
   readonly EXERCISES_PATH: string;
+  readonly REPORTS_PATH: string;
   hash(login: string): string;
 }

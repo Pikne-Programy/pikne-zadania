@@ -45,6 +45,7 @@ export class ConfigService implements IConfigService {
   };
   readonly FRESH: boolean;
   readonly EXERCISES_PATH: string;
+  readonly REPORTS_PATH: string;
 
   constructor() {
     const alg = Deno.env.get("JWT_ALG");
@@ -92,6 +93,7 @@ export class ConfigService implements IConfigService {
       console.warn(`The FRESH safe word was${fresh} triggered...`);
     }
     this.EXERCISES_PATH = get("string", "EXERCISES_PATH", "./exercises/");
+    this.REPORTS_PATH = get("string", "REPORTS_PATH", "./reports/");
   }
 
   hash(login: string) {

@@ -8,8 +8,8 @@ scripts:
     allow: # change Dockerfile also
       net: true
       env: true
-      read: /app/exercises
-      write: /app/exercises
+      read: [/app/exercises, /app/reports]
+      write: ['/app/exercises', '/app/reports']
     unstable: true
     env: # mind that once set it can't be unset without restarting denon (or compose)
       JWT_ALG: HS256
@@ -30,6 +30,6 @@ watcher:
     - json
     - yml
 # * needs restarting denon
-  skip: ["exercises/**", "tests/**"]
+  skip: ["exercises/**", "tests/**", "reports/**"]
 logger:
   debug: false
