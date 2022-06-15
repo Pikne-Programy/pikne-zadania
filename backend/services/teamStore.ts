@@ -66,6 +66,7 @@ export class TeamStore implements ITeamStore {
       members: [],
       session: {
         isFinished: false,
+        seedOffset: 0,
         exercises: [],
         report: {},
       },

@@ -29,15 +29,22 @@ export interface ITeam {
     drop: () => Promise<void>;
     end: () => Promise<void>;
     isFinished: () => Promise<boolean>;
+    seedOffset: {
+      get: () => Promise<number>;
+      set: (value: number) => Promise<void>;
+    };
     exercises: {
       get: () => Promise<string[]>;
       add: (eid: string) => Promise<void>;
       remove: (eid: string) => Promise<void>;
     };
+    users: {
+      get: () => Promise<string[]>;
+      add: (uid: string) => Promise<void>;
+      remove: (uid: string) => Promise<void>;
+    };
     report: {
       get: () => Promise<ReportType>;
-      add: (eid: string) => Promise<void>;
-      remove: (eid: string) => Promise<void>;
       set: (uid: string, eid: string, value: null | number) => Promise<void>;
     };
   };

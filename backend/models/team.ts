@@ -78,6 +78,7 @@ export class Team implements ITeam {
     drop: async () => {
       const emptySession: SessionType = {
         isFinished: false,
+        seedOffset: 0,
         exercises: [],
         report: {},
       };
@@ -86,12 +87,24 @@ export class Team implements ITeam {
     end: async () => {
       if (!await this.exists()) throw new Error(); // TODO: error message
       await this.db.teams!.updateOne({ id: this.id }, {
-        $set: { "session.finished": true },
+        $set: { "session.isFinished": true },
       });
     },
     isFinished: async () => {
       const session = await this.session.get();
       return session["isFinished"];
+    },
+    seedOffset: {
+      get: async () => {
+        const session = await this.session.get();
+        return session["seedOffset"];
+      },
+      set: async (value: number) => {
+        if (!await this.exists()) throw new Error(); // TODO: error message
+        await this.db.teams!.updateOne({ id: this.id }, {
+          $set: { "session.seedOffset": value },
+        });
+      },
     },
     exercises: {
       get: async () => {
@@ -104,6 +117,13 @@ export class Team implements ITeam {
           // deno-lint-ignore no-explicit-any
           $push: { "session.exercises": eid } as any, // types doesn't match in linter, but works in mongo
         });
+        const uids = await this.session.users.get();
+        for (const uid of uids) {
+          const key = `session.exercises.${uid}.${eid}`;
+          await this.db.teams!.updateOne({ id: this.id }, {
+            $set: { [key]: null },
+          });
+        }
       },
       remove: async (eid: string) => {
         if (!await this.exists()) throw new Error(); // TODO: error message
@@ -111,30 +131,42 @@ export class Team implements ITeam {
           // deno-lint-ignore no-explicit-any
           $pull: { "session.exercises": eid } as any, // types doesn't match in linter, but works in mongo
         });
+        const uids = await this.session.users.get();
+        for (const uid of uids) {
+          const key = `session.exercises.${uid}.${eid}`;
+          await this.db.teams!.updateOne({ id: this.id }, {
+            $unset: { [key]: "" },
+          });
+        }
+      },
+    },
+    users: {
+      get: async () => {
+        const report = await this.session.report.get();
+        return Object.keys(report);
+      },
+      add: async (uid: string) => {
+        const exercises = await this.session.exercises.get();
+        const key = `session.report.${uid}`;
+        await this.db.teams!.updateOne({ id: this.id }, {
+          $set: { [key]: {} },
+        });
+        for (const eid of exercises) {
+          await this.session.report.set(uid, eid, null);
+        }
+      },
+      remove: async (uid: string) => {
+        if (!await this.exists()) throw new Error(); // TODO: error message
+        const key = `session.report.${uid}`;
+        await this.db.teams!.updateOne({ id: this.id }, {
+          $unset: { [key]: "" },
+        });
       },
     },
     report: {
       get: async () => {
         const session = await this.session.get();
         return session["report"];
-      },
-      add: async (eid: string) => {
-        const report = await this.session.report.get();
-        for (const uid in report) {
-          const key = `session.report.${uid}.${eid}`;
-          await this.db.teams!.updateOne({ id: this.id }, {
-            $set: { [key]: null },
-          });
-        }
-      },
-      remove: async (eid: string) => {
-        const report = await this.session.report.get();
-        for (const uid in report) {
-          const key = `session.report.${uid}`;
-          await this.db.teams!.updateOne({ id: this.id }, {
-            $unset: { [key]: eid },
-          });
-        }
       },
       set: async (uid: string, eid: string, value: null | number) => {
         const exercises = await this.session.exercises.get();
