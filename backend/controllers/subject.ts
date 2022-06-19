@@ -58,17 +58,35 @@ export class SubjectController extends Authorizer {
   private async isPermittedToView(s: string, user?: IUser, eid?: string) {
     if (!/^_/.test(s)) return true; // if exercise is public
     if (await user?.role.get() === "admin") return true;
-    if (user && eid && await this.sessionContains(this.ts.get(await user.team.get()), s, eid)) return true;
+    if (
+      user && eid &&
+      await this.sessionContains(this.ts.get(await user.team.get()), s, eid)
+    ) {
+      return true;
+    }
     return await this.isAssigneeOf(s, user);
   }
 
-  private async sessionContains(team: ITeam | undefined, subject: string, eid: string) {
-    if (team) return ((await team.session.exercises.get()).includes(this.es.uid(subject, eid)) && !(await team.session.isFinished()));
+  private async sessionContains(
+    team: ITeam | undefined,
+    subject: string,
+    eid: string,
+  ) {
+    if (team) {
+      return ((await team.session.exercises.get()).includes(
+        this.es.uid(subject, eid),
+      ) && !(await team.session.isFinished()));
+    }
     return false;
   }
 
-  // TODO: move to a more proper place 
-  private async submitToSession(user: IUser, subject: string, eid: string, done: number) {
+  // TODO: move to a more proper place
+  private async submitToSession(
+    user: IUser,
+    subject: string,
+    eid: string,
+    done: number,
+  ) {
     if (await user.role.get() != "student") return;
     const team = this.ts.get(await user.team.get());
     if (await team.session.isFinished()) return;
@@ -146,7 +164,7 @@ export class SubjectController extends Authorizer {
     async getSeed(ctx: RouterContext, seed: number | null, user?: IUser) {
       if (user !== undefined) {
         return seed !== null &&
-          ["teacher", "admin"].includes(await user.role.get()) // TODO: isTeacher
+            ["teacher", "admin"].includes(await user.role.get()) // TODO: isTeacher
           ? { seed }
           : user;
       }
@@ -163,17 +181,23 @@ export class SubjectController extends Authorizer {
         seed: schemas.user.seedOptional,
       }); //! R
       let team: undefined | ITeam;
-      if (user) team = this.parent.ts.get(await user.team.get())
-      if (!await this.parent.isPermittedToView(subject, user) && !(await this.parent.sessionContains(team, subject, exerciseId))) {
+      if (user !== undefined && await user.role.get() !== "admin") {
+        team = this.parent.ts.get(await user.team.get());
+      }
+      if (
+        !await this.parent.isPermittedToView(subject, user) &&
+        (team !== undefined &&
+          !(await this.parent.sessionContains(team, subject, exerciseId)))
+      ) {
         throw new httpErrors["Forbidden"]();
       } //! P
       let offset = 0;
-      if (team) offset = (await team.session.seedOffset.get());
+      if (team) offset = await team.session.seedOffset.get();
       const parsed = translateErrors(
         await this.parent.ex.render(
           { subject, exerciseId },
           await this.getSeed(ctx, seed, user),
-          offset
+          offset,
         ),
       ); //! EO
       if (!await this.parent.isAssigneeOf(subject, user)) {
@@ -195,12 +219,18 @@ export class SubjectController extends Authorizer {
       }); //! R
       if (!isJSONType(answer)) throw new httpErrors["BadRequest"]();
       let team: undefined | ITeam;
-      if (user) team = this.parent.ts.get(await user.team.get())
-      if (!await this.parent.isPermittedToView(subject, user) && !(await this.parent.sessionContains(team, subject, exerciseId))) {
+      if (user !== undefined && await user.role.get() !== "admin") {
+        team = this.parent.ts.get(await user.team.get());
+      }
+      if (
+        !await this.parent.isPermittedToView(subject, user) &&
+        (team !== undefined &&
+          !(await this.parent.sessionContains(team, subject, exerciseId)))
+      ) {
         throw new httpErrors["Forbidden"]();
       } //! P
       let offset = 0;
-      if (team) offset = (await team.session.seedOffset.get());
+      if (team) offset = await team.session.seedOffset.get();
       const { done, info } = translateErrors(
         await this.parent.ex.check(
           { subject, exerciseId },
@@ -209,7 +239,9 @@ export class SubjectController extends Authorizer {
           offset,
         ),
       ); //! EVO
-      if (user) await this.parent.submitToSession(user, subject, exerciseId, done);
+      if (user) {
+        await this.parent.submitToSession(user, subject, exerciseId, done);
+      }
       ctx.response.body = { info }; // ? done, correctAnswer ?
       ctx.response.status = 200; //! D
     },

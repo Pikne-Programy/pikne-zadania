@@ -149,7 +149,7 @@ export function registerRoleTest(
 
 const optionalRoleSuites: string[] = [
   // "smoke_21_team.ts",
-  "smoke_23_problem.ts", // TODO: remove this line if "smoke_23_problem.ts" is not failing
+  // "smoke_23_problem.ts",
 ];
 
 Deno.test("smoke", async (t) => {

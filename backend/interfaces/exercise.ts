@@ -30,7 +30,8 @@ export interface IExerciseService {
   >;
   render(
     input: { content: string } | { subject: string; exerciseId: string },
-    user: IUser | { seed: number }, offset?: number,
+    user: IUser | { seed: number },
+    offset?: number,
   ): Promise<
     {
       type: string;

@@ -6,10 +6,10 @@ import { Router } from "./deps.ts";
 import { placeholder } from "./utils/mod.ts";
 import {
   AuthController,
+  SessionController,
   SubjectController,
   TeamController,
   UserController,
-  SessionController
 } from "./controllers/mod.ts";
 
 export class ApiRouterBuilder {

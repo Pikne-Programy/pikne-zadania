@@ -51,8 +51,8 @@ export class ExerciseStore implements IExerciseStore {
   readonly deuid = (uid: string) => {
     const match = uid.match(/^([^/]*)\/([^/]*)$/);
     return match === null ? null : { subject: match[1], exerciseId: match[2] };
-  }
-  
+  };
+
   constructor(
     private cfg: IConfigService,
   ) {
