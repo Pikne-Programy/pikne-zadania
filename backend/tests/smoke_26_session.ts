@@ -3,42 +3,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { assert, assertEquals, assertNotEquals } from "../test_deps.ts";
-import { RoleTestContext } from "./smoke_mod.ts";
-import { data } from "./testdata/config.ts";
+import { endpointFactory, RoleTestContext } from "./smoke_mod.ts";
+import { data, generateProblemAnswer } from "./testdata/config.ts";
 
-function concatProblemDigits(problem: string) {
-  return [...problem.matchAll(/\d+/g)].map((e) => e[0]).join("");
-}
-
-function generateProblemAnswer(
-  exerciseId: "double" | "concat",
-  problem: string,
-  correct = true,
-) {
-  const digits = concatProblemDigits(problem);
-  let r: number;
-  switch (exerciseId) {
-    case "double":
-      assert(digits[0] === "0");
-      r = 2 * parseFloat("0." + digits.substring(1));
-      break;
-    case "concat":
-      r = parseInt(digits);
-      break;
-  }
-  if (!correct) r /= 2;
-  return r;
-}
-
-function deuid(uid: string) {
-  const match = uid.match(/^([^/]*)\/([^/]*)$/);
-  assert(match !== null);
-  return { subject: match[1], exerciseId: match[2] };
-}
-
-type DataEndpoint = {
+interface DataEndpoint {
   "/api/session/status": { teamId: number };
-  "/api/session/list": undefined;
+  "/api/session/list": undefined; // TODO: make it GET
   "/api/subject/problem/render": {
     subject: string;
     exerciseId: string;
@@ -57,40 +27,33 @@ type DataEndpoint = {
   };
   "/api/session/end": { teamId: number };
   "/api/session/reset": { teamId: number };
-};
-type Endpoint = keyof DataEndpoint;
+}
+
+function deuid(uid: string) {
+  const match = uid.match(/^([^/]*)\/([^/]*)$/);
+  assert(match !== null);
+  return { subject: match[1], exerciseId: match[2] };
+}
+
+function unicode(x: number | null) {
+  switch (x) {
+    case null:
+      return "☐";
+    case 0:
+      return "☒";
+    case 1:
+      return "☑";
+    default:
+      return "⚀";
+  }
+}
 
 export async function initSessionTests(
   t: Deno.TestContext,
   g: RoleTestContext,
 ) {
-  async function request<T extends Endpoint>(
-    auth: keyof RoleTestContext["roles"],
-    endpoint: T,
-    data: DataEndpoint[T],
-    extra: number | [number, unknown] = 200,
-  ) {
-    const cookie = g.roles[auth];
-    const t = (await g.request())
-      .post(endpoint)
-      .set("Cookie", cookie)
-      .send(data);
-    if (typeof extra === "number") t.expect(extra);
-    else t.expect(...extra);
-    return (await t).body;
-  }
-  function unicode(x: number | null) {
-    switch (x) {
-      case null:
-        return "☐";
-      case 0:
-        return "☒";
-      case 1:
-        return "☑";
-      default:
-        return "⚀";
-    }
-  }
+  const endpoint = endpointFactory<DataEndpoint>(g);
+
   type Teams = (typeof data)["t"];
   async function checkState<T extends Teams[keyof Teams]>(
     team: T,
@@ -115,7 +78,7 @@ export async function initSessionTests(
       );
     let client: keyof (typeof data)["u"];
     for (client of ["root", team.a] as const) {
-      await request(
+      await endpoint(
         client,
         "/api/session/status",
         { teamId: team.id },
@@ -129,7 +92,7 @@ export async function initSessionTests(
         subject: string;
         exerciseId: string;
         done: number | null;
-      }[] = (await request(client, "/api/session/list", undefined, 200));
+      }[] = (await endpoint(client, "/api/session/list", undefined, 200));
       const responseObj = response.reduce<Record<string, number | null>>(
         (o, e) => ({ ...o, [`${e.subject}/${e.exerciseId}`]: e.done }),
         {},
@@ -144,17 +107,17 @@ export async function initSessionTests(
 
   await t.step("only those who vieved session are visible", async () => { // {{005}}}
     await checkState(data.t.dd, false, [], {});
-    await request("alice", "/api/session/list", undefined, [200, []]);
+    await endpoint("alice", "/api/session/list", undefined, [200, []]);
     await checkState(data.t.dd, false, [], { alice: [] });
-    await request("bob", "/api/session/list", undefined, [200, []]);
+    await endpoint("bob", "/api/session/list", undefined, [200, []]);
     await checkState(data.t.dd, false, [], { alice: [], bob: [] });
   });
 
   await t.step("empty session after reset is still empty", async () => { // {{010}}}
-    await request("lanny", "/api/session/reset", { teamId: data.t.dd.id });
-    await request("alice", "/api/session/list", undefined, [200, []]);
-    await request("bob", "/api/session/list", undefined, [200, []]);
-    await request("mike", "/api/session/list", undefined, [200, []]);
+    await endpoint("lanny", "/api/session/reset", { teamId: data.t.dd.id });
+    await endpoint("alice", "/api/session/list", undefined, [200, []]);
+    await endpoint("bob", "/api/session/list", undefined, [200, []]);
+    await endpoint("mike", "/api/session/list", undefined, [200, []]);
     await checkState(data.t.d, false, [], { mike: [] });
     await checkState(data.t.dd, false, [], { alice: [], bob: [] });
   });
@@ -168,7 +131,7 @@ export async function initSessionTests(
   } = {};
 
   await t.step("[ALICE] access public exercises not in session", async () => { // {{020}}}
-    const response = await request(
+    const response = await endpoint(
       "alice",
       "/api/subject/problem/render",
       deuid("easy/double"),
@@ -176,7 +139,7 @@ export async function initSessionTests(
     const problem = response?.problem?.main;
     assert(typeof problem === "string");
     fetchedProblems.aliceOldDouble = problem;
-    await request(
+    await endpoint(
       "alice",
       "/api/subject/problem/submit",
       {
@@ -193,7 +156,7 @@ export async function initSessionTests(
   await t.step(
     "[ALICE] can't access private exercises not in session",
     async () => { // {{021}}}
-      await request(
+      await endpoint(
         "alice",
         "/api/subject/problem/render",
         deuid("_easy/concat"),
@@ -202,7 +165,7 @@ export async function initSessionTests(
     },
   );
   await t.step("[LANNY] add `double` exercise to session", async () => { // {{030}}}
-    await request("lanny", "/api/session/add", {
+    await endpoint("lanny", "/api/session/add", {
       teamId: data.t.dd.id,
       ...deuid("easy/double"),
     });
@@ -214,11 +177,11 @@ export async function initSessionTests(
   await t.step(
     "[LANNY] can't add non-existent execise to session",
     async () => { // {{031}}}
-      await request("lanny", "/api/session/add", {
+      await endpoint("lanny", "/api/session/add", {
         teamId: data.t.dd.id,
         ...deuid("easy/nonexistent"),
       }, 404);
-      await request("lanny", "/api/session/add", {
+      await endpoint("lanny", "/api/session/add", {
         teamId: data.t.dd.id,
         ...deuid("nonexistent/double"),
       }, 404);
@@ -228,7 +191,7 @@ export async function initSessionTests(
     await checkState(data.t.d, false, [], { mike: [] });
   });
   await t.step("same exercise renders differently in session", async () => { // {{034}}}
-    const response = await request(
+    const response = await endpoint(
       "alice",
       "/api/subject/problem/render",
       deuid("easy/double"),
@@ -239,7 +202,7 @@ export async function initSessionTests(
     assertNotEquals(problem, fetchedProblems.aliceOldDouble);
   });
   await t.step("old answers don't work", async () => { // {{037}}}
-    await request("alice", "/api/subject/problem/submit", {
+    await endpoint("alice", "/api/subject/problem/submit", {
       ...deuid("easy/double"),
       answer: {
         answers: [
@@ -256,7 +219,7 @@ export async function initSessionTests(
     });
   });
   await t.step("same exercise differs for other people", async () => { // {{041}}}
-    const response = await request(
+    const response = await endpoint(
       "bob",
       "/api/subject/problem/render",
       deuid("easy/double"),
@@ -267,7 +230,7 @@ export async function initSessionTests(
     assertNotEquals(problem, fetchedProblems.aliceDouble);
   });
   await t.step("[BOB] send correct answer for `double`", async () => { // {{050}}}
-    await request("bob", "/api/subject/problem/submit", {
+    await endpoint("bob", "/api/subject/problem/submit", {
       ...deuid("easy/double"),
       answer: {
         answers: [
@@ -281,7 +244,7 @@ export async function initSessionTests(
     });
   });
   await t.step("[ALICE] beat her score", async () => { // {{055}}}
-    await request("alice", "/api/subject/problem/submit", {
+    await endpoint("alice", "/api/subject/problem/submit", {
       ...deuid("easy/double"),
       answer: {
         answers: [
@@ -298,7 +261,7 @@ export async function initSessionTests(
     await checkState(data.t.d, false, [], { mike: [] });
   });
   await t.step("[LANNY] add `concat` exercise to session", async () => { // {{070}}}
-    await request("lanny", "/api/session/add", {
+    await endpoint("lanny", "/api/session/add", {
       teamId: data.t.dd.id,
       ...deuid("_easy/concat"),
     });
@@ -306,7 +269,7 @@ export async function initSessionTests(
       alice: [1, null],
       bob: [1, null],
     });
-    let response = await request(
+    let response = await endpoint(
       "bob",
       "/api/subject/problem/render",
       deuid("_easy/concat"),
@@ -314,7 +277,7 @@ export async function initSessionTests(
     let problem = response?.problem?.main;
     assert(typeof problem === "string");
     fetchedProblems.bobConcat = problem;
-    response = await request(
+    response = await endpoint(
       "alice",
       "/api/subject/problem/render",
       deuid("_easy/concat"),
@@ -324,7 +287,7 @@ export async function initSessionTests(
     fetchedProblems.aliceConcat = problem;
   });
   await t.step("[ALICE] send correct answer for `concat`", async () => { // {{080}}}
-    await request("alice", "/api/subject/problem/submit", {
+    await endpoint("alice", "/api/subject/problem/submit", {
       ...deuid("_easy/concat"),
       answer: {
         answers: [
@@ -338,7 +301,7 @@ export async function initSessionTests(
     });
   });
   await t.step("[LANNY] delete `double` exercise from session", async () => { // {{090}}}
-    await request("lanny", "/api/session/delete", {
+    await endpoint("lanny", "/api/session/delete", {
       teamId: data.t.dd.id,
       ...deuid("easy/double"),
     });
@@ -346,7 +309,7 @@ export async function initSessionTests(
       alice: [1],
       bob: [null],
     });
-    const response = await request(
+    const response = await endpoint(
       "alice",
       "/api/subject/problem/render",
       deuid("easy/double"),
@@ -356,14 +319,14 @@ export async function initSessionTests(
     assertEquals(problem, fetchedProblems.aliceOldDouble);
   });
   await t.step("[RALPH] has own working session", async () => { // {{100}}}
-    await request("lanny", "/api/session/add", {
+    await endpoint("ralph", "/api/session/add", {
       teamId: data.t.d.id,
       ...deuid("_easy/concat"),
     });
     await checkState(data.t.d, false, ["_easy/concat"], {
       mike: [null],
     });
-    const response = await request(
+    const response = await endpoint(
       "mike",
       "/api/subject/problem/render",
       deuid("_easy/concat"),
@@ -371,7 +334,7 @@ export async function initSessionTests(
     const problem = response?.problem?.main;
     assert(typeof problem === "string");
     fetchedProblems.mikeConcat = problem;
-    await request("mike", "/api/subject/problem/submit", {
+    await endpoint("mike", "/api/subject/problem/submit", {
       ...deuid("_easy/concat"),
       answer: {
         answers: [
@@ -390,20 +353,20 @@ export async function initSessionTests(
   await t.step(
     "[LANNY] end a session => [BOB] can't send answers",
     async () => { // {{110}}}
-      await request("lanny", "/api/session/end", { teamId: data.t.dd.id });
+      await endpoint("lanny", "/api/session/end", { teamId: data.t.dd.id });
       await checkState(data.t.dd, true, ["_easy/concat"], {
         alice: [1],
         bob: [null],
       });
       const tryAnswer = (answer: number) =>
-        request("bob", "/api/subject/problem/submit", {
+        endpoint("bob", "/api/subject/problem/submit", {
           ...deuid("_easy/concat"),
           answer: { answers: [answer] },
         });
       let problem = fetchedProblems.bobConcat ?? "";
       await tryAnswer(generateProblemAnswer("concat", problem));
       await tryAnswer(generateProblemAnswer("concat", problem, false));
-      const response = await request(
+      const response = await endpoint(
         "bob",
         "/api/subject/problem/render",
         deuid("_easy/concat"),
@@ -418,16 +381,21 @@ export async function initSessionTests(
     },
   );
   await t.step("[LANNY] can't manage not own session", async () => { // {{117}}}
-    await request("lanny", "/api/session/delete", {
+    await endpoint("lanny", "/api/session/delete", {
       teamId: data.t.d.id,
       ...deuid("_easy/concat"),
     }, 403);
-    await request("lanny", "/api/session/add", {
+    await endpoint("lanny", "/api/session/add", {
       teamId: data.t.d.id,
       ...deuid("easy/double"),
     }, 403);
-    await request("lanny", "/api/session/status", { teamId: data.t.d.id }, 403);
-    await request("lanny", "/api/session/end", { teamId: data.t.d.id }, 403);
+    await endpoint(
+      "lanny",
+      "/api/session/status",
+      { teamId: data.t.d.id },
+      403,
+    );
+    await endpoint("lanny", "/api/session/end", { teamId: data.t.d.id }, 403);
     await checkState(data.t.d, false, ["_easy/concat"], {
       mike: [1],
     });

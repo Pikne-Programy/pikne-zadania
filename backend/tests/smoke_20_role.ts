@@ -3,10 +3,16 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { assert } from "../test_deps.ts";
-import { RoleTestContext } from "./smoke_mod.ts";
+import { endpointFactory, RoleTestContext } from "./smoke_mod.ts";
 import { data } from "./testdata/config.ts";
 
+interface DataEndpoint {
+  "/api/user/info": { userId?: string };
+}
+
 export async function initRoleTests(t: Deno.TestContext, g: RoleTestContext) {
+  const endpoint = endpointFactory<DataEndpoint>(g);
+
   const good = await t.step("exist", async (t) => {
     let user: keyof typeof data.u;
     for (user in data.u) {
@@ -16,13 +22,10 @@ export async function initRoleTests(t: Deno.TestContext, g: RoleTestContext) {
         teamId: data.i[info.invitation],
         number: data.number(info),
       };
-      await t.step(user.toLocaleUpperCase(), async () => {
-        await (await g.request())
-          .post("/api/user/info")
-          .set("Cookie", g.roles[user])
-          .send({})
-          .expect(200)
-          .expect(obj);
+      const eve = user === "eve";
+      await t.step((eve ? "not " : "") + user.toLocaleUpperCase(), async () => {
+        if (eve) await endpoint(user, "/api/user/info", {}, 401);
+        else await endpoint(user, "/api/user/info", {}, [200, obj]);
       });
     }
   });

@@ -23,6 +23,7 @@ import { initSubjectTests } from "./smoke_25_subject.ts";
 import { initSessionTests } from "./smoke_26_session.ts";
 
 async function initRole(e2eCtx: E2eTestContext) {
+  const eve = undefined as unknown as string;
   const root = await login(e2eCtx, data.u.root);
   await updateTeamInvitation(e2eCtx, root, data.t.t.id, data.t.t.i);
   await register(e2eCtx, data.u.lanny);
@@ -41,7 +42,7 @@ async function initRole(e2eCtx: E2eTestContext) {
   const mike = await login(e2eCtx, data.u.mike);
   return {
     ...e2eCtx,
-    roles: { root, lanny, ralph, alice, bob, mike },
+    roles: { root, lanny, ralph, alice, bob, mike, eve },
   };
 }
 

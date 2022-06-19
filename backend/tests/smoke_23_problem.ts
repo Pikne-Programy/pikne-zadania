@@ -5,12 +5,29 @@
 
 import { assert, assertEquals } from "../test_deps.ts";
 import { deepCopy } from "../utils/mod.ts";
-import { RoleTestContext } from "./smoke_mod.ts";
+import { endpointFactory, RoleTestContext } from "./smoke_mod.ts";
+import { data } from "./testdata/config.ts";
+
+interface DataEndpoint {
+  "/api/subject/problem/render": {
+    subject: string;
+    exerciseId: string;
+    seed?: number;
+  };
+  "/api/subject/problem/submit": {
+    subject: string;
+    exerciseId: string;
+    answer: { answers: number[] };
+  };
+  "/api/subject/hierarchy/get": { subject: string; raw: boolean };
+}
 
 export async function initProblemTests(
   t: Deno.TestContext,
   g: RoleTestContext,
 ) {
+  const endpoint = endpointFactory<DataEndpoint>(g);
+
   const rendered = {
     "type": "EqEx",
     "name": "Pociągi dwa 2",
@@ -28,20 +45,22 @@ export async function initProblemTests(
   delete studentVer.correctAnswer;
 
   async function getDone(
+    user: keyof (typeof data)["u"],
     exerciseId: string,
-    cookies = g.roles.root,
   ): Promise<null | number> {
-    const response = await (await g.request())
-      .post("/api/subject/problem/render")
-      .set("Cookie", cookies)
-      .send({ subject: "fizyka", exerciseId })
-      .expect(200);
-    const done1 = response?.body?.done;
-    const response2 = await (await g.request())
-      .post("/api/subject/hierarchy/get")
-      .set("Cookie", cookies)
-      .send({ subject: "fizyka", raw: false })
-      .expect(200);
+    const response = await endpoint(
+      user,
+      "/api/subject/problem/render",
+      { subject: "fizyka", exerciseId },
+      200,
+    );
+    const done1 = response?.done;
+    const response2 = await endpoint(
+      user,
+      "/api/subject/hierarchy/get",
+      { subject: "fizyka", raw: false },
+      200,
+    );
     type crazyType = { done?: null | number; children: string | crazyType[] };
     const recu = (o: crazyType[]): number | null | undefined =>
       o.reduce<null | number | undefined>((p, n) => {
@@ -50,7 +69,7 @@ export async function initProblemTests(
         const r = recu(n.children);
         return r !== undefined ? r : p;
       }, undefined);
-    const done2 = recu(response2?.body);
+    const done2 = recu(response2);
     assert(
       done2 !== undefined,
       `exercise '${exerciseId}' not found in hierarchy`,
@@ -60,183 +79,168 @@ export async function initProblemTests(
   }
 
   await t.step("Admin - render an exercise with seed", async () => {
-    const response = await (await g.request())
-      .post("/api/subject/problem/render")
-      .set("Cookie", g.roles.root)
-      .send({
-        subject: "fizyka",
-        exerciseId: "pociagi-dwa-2",
-        seed: 0,
-      })
-      .expect(200);
-    assertEquals(response?.body, rendered, "Rendering exercise failed");
+    const response = await endpoint(
+      "root",
+      "/api/subject/problem/render",
+      { subject: "fizyka", exerciseId: "pociagi-dwa-2", seed: 0 },
+      200,
+    );
+    assertEquals(response, rendered, "Rendering exercise failed");
   });
 
   await t.step("Teacher - render an exercise with seed", async () => {
-    const response = await (await g.request())
-      .post("/api/subject/problem/render")
-      .set("Cookie", g.roles.lanny)
-      .send({
-        subject: "fizyka",
-        exerciseId: "pociagi-dwa-2",
-        seed: 0,
-      })
-      .expect(200);
-    assertEquals(response?.body, rendered, "Rendering exercise failed");
+    const response = await endpoint(
+      "lanny",
+      "/api/subject/problem/render",
+      { subject: "fizyka", exerciseId: "pociagi-dwa-2", seed: 0 },
+      200,
+    );
+    assertEquals(response, rendered, "Rendering exercise failed");
   });
 
   await t.step("Student - render an exercise", async () => {
-    const response = await (await g.request())
-      .post("/api/subject/problem/render")
-      .set("Cookie", g.roles.alice)
-      .send({
-        subject: "fizyka",
-        exerciseId: "pociagi-dwa-2",
-      })
-      .expect(200);
-    assertEquals(response?.body, studentVer, "Rendering exercise failed");
+    const response = await endpoint(
+      "alice",
+      "/api/subject/problem/render",
+      { subject: "fizyka", exerciseId: "pociagi-dwa-2" },
+      200,
+    );
+    assertEquals(response, studentVer, "Rendering exercise failed");
   });
 
   await t.step("Student - check whether seed is working", async () => {
-    const response = await (await g.request())
-      .post("/api/subject/problem/render")
-      .set("Cookie", g.roles.alice)
-      .send({
-        subject: "fizyka",
-        exerciseId: "pociagi-dwa",
-      })
-      .expect(200);
-    const response2 = await (await g.request())
-      .post("/api/subject/problem/render")
-      .set("Cookie", g.roles.alice)
-      .send({
-        subject: "fizyka",
-        exerciseId: "pociagi-dwa",
-      })
-      .expect(200);
+    const response = await endpoint(
+      "alice",
+      "/api/subject/problem/render",
+      { subject: "fizyka", exerciseId: "pociagi-dwa" },
+      200,
+    );
+    const response2 = await endpoint(
+      "alice",
+      "/api/subject/problem/render",
+      { subject: "fizyka", exerciseId: "pociagi-dwa" },
+      200,
+    );
     assertEquals(
-      response?.body,
-      response2?.body,
+      response,
+      response2,
       "Failed to render same content with same seed",
     );
   });
 
   await t.step("Not logged in - render an exercise", async () => {
-    const response = await (await g.request())
-      .post("/api/subject/problem/render")
-      .send({
-        subject: "fizyka",
-        exerciseId: "pociagi-dwa-2",
-      })
-      .expect(200);
-    assertEquals(response?.body, studentVer, "Rendering exercise failed");
+    const response = await endpoint(
+      "eve",
+      "/api/subject/problem/render",
+      { subject: "fizyka", exerciseId: "pociagi-dwa-2" },
+      200,
+    );
+    assertEquals(response, studentVer, "Rendering exercise failed");
   });
 
   await t.step("Admin - non-existing exercise", async () => {
-    await (await g.request())
-      .post("/api/subject/problem/render")
-      .set("Cookie", g.roles.root)
-      .send({
-        subject: "matematyka",
-        exerciseId: "pociagi-dwa-2",
-        seed: 0,
-      })
-      .expect(404);
+    await endpoint(
+      "root",
+      "/api/subject/problem/render",
+      { subject: "matematyka", exerciseId: "pociagi-dwa-2", seed: 0 },
+      404,
+    );
   });
   await t.step("Admin - submit a solution (50%)", async () => {
-    await (await g.request())
-      .post("/api/subject/problem/submit")
-      .set("Cookie", g.roles.root)
-      .send({
+    await endpoint(
+      "root",
+      "/api/subject/problem/submit",
+      {
         subject: "fizyka",
         exerciseId: "pociagi-dwa-2",
         answer: {
           answers: [1, 0],
         },
-      })
-      .expect(200)
-      .expect({ info: [true, false] });
+      },
+      [200, { info: [true, false] }],
+    );
   });
 
   await t.step("Admin - submit a solution (100%)", async () => {
-    await (await g.request())
-      .post("/api/subject/problem/submit")
-      .set("Cookie", g.roles.root)
-      .send({
+    await endpoint(
+      "root",
+      "/api/subject/problem/submit",
+      {
         subject: "fizyka",
         exerciseId: "pociagi-dwa-2",
         answer: {
           answers: [1, 1],
         },
-      })
-      .expect(200)
-      .expect({ info: [true, true] });
+      },
+      [200, { info: [true, true] }],
+    );
   });
 
   await t.step("Admin - submit a solution (lower than highscore)", async () => {
-    await (await g.request())
-      .post("/api/subject/problem/submit")
-      .set("Cookie", g.roles.root)
-      .send({
+    await endpoint(
+      "root",
+      "/api/subject/problem/submit",
+      {
         subject: "fizyka",
         exerciseId: "pociagi-dwa-2",
         answer: {
           answers: [1, 0],
         },
-      })
-      .expect(200)
-      .expect({ info: [true, false] });
+      },
+      [200, { info: [true, false] }],
+    );
   });
 
   await t.step("Admin - submit non-existing exercise", async () => {
-    await (await g.request())
-      .post("/api/subject/problem/submit")
-      .set("Cookie", g.roles.root)
-      .send({
+    await endpoint(
+      "root",
+      "/api/subject/problem/submit",
+      {
         subject: "matematyka",
         exerciseId: "pociagi-dwa-2",
         answer: {
           answers: [123, 456],
         },
-      })
-      .expect(404);
+      },
+      404,
+    );
   });
 
   await t.step("Student - submit a solution (0%)", async () => {
-    await (await g.request())
-      .post("/api/subject/problem/submit")
-      .set("Cookie", g.roles.alice)
-      .send({
+    await endpoint(
+      "alice",
+      "/api/subject/problem/submit",
+      {
         subject: "fizyka",
         exerciseId: "pociagi-dwa-2",
         answer: {
           answers: [-123, 18283239723897],
         },
-      })
-      .expect(200)
-      .expect({ info: [false, false] });
+      },
+      [200, { info: [false, false] }],
+    );
     assertEquals(
-      await getDone("pociagi-dwa-2", g.roles.alice),
+      await getDone("alice", "pociagi-dwa-2"),
       0,
       "Done not saved",
     );
   });
 
   await t.step("Student - submit a solution (100%)", async () => {
-    await (await g.request())
-      .post("/api/subject/problem/submit")
-      .set("Cookie", g.roles.alice)
-      .send({
+    await endpoint(
+      "alice",
+      "/api/subject/problem/submit",
+      {
         subject: "fizyka",
         exerciseId: "pociagi-dwa-2",
         answer: {
           answers: [1, 1],
         },
-      })
-      .expect(200)
-      .expect({ info: [true, true] });
+      },
+      [200, { info: [true, true] }],
+    );
     assertEquals(
-      await getDone("pociagi-dwa-2", g.roles.alice),
+      await getDone("alice", "pociagi-dwa-2"),
       1,
       "Done not saved",
     );
@@ -245,20 +249,20 @@ export async function initProblemTests(
   await t.step(
     "Student - submit a solution (lower than highscore)",
     async () => {
-      await (await g.request())
-        .post("/api/subject/problem/submit")
-        .set("Cookie", g.roles.alice)
-        .send({
+      await endpoint(
+        "alice",
+        "/api/subject/problem/submit",
+        {
           subject: "fizyka",
           exerciseId: "pociagi-dwa-2",
           answer: {
             answers: [1, 18283239723897],
           },
-        })
-        .expect(200)
-        .expect({ info: [true, false] });
+        },
+        [200, { info: [true, false] }],
+      );
       assertEquals(
-        await getDone("pociagi-dwa-2", g.roles.alice),
+        await getDone("alice", "pociagi-dwa-2"),
         0.5,
         "Done not saved",
       );
@@ -266,20 +270,20 @@ export async function initProblemTests(
   );
 
   await t.step("Teacher - submit a solution (50%)", async () => {
-    await (await g.request())
-      .post("/api/subject/problem/submit")
-      .set("Cookie", g.roles.lanny)
-      .send({
+    await endpoint(
+      "lanny",
+      "/api/subject/problem/submit",
+      {
         subject: "fizyka",
         exerciseId: "pociagi-dwa-2",
         answer: {
           answers: [1, 17],
         },
-      })
-      .expect(200)
-      .expect({ info: [true, false] });
+      },
+      [200, { info: [true, false] }],
+    );
     assertEquals(
-      await getDone("pociagi-dwa-2", g.roles.lanny),
+      await getDone("lanny", "pociagi-dwa-2"),
       0.5,
       "Done not saved",
     );

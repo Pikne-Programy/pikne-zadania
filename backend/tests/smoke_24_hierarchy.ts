@@ -3,17 +3,25 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { assertEquals } from "../test_deps.ts";
+import { Section } from "../types/mod.ts";
 import { deepCopy } from "../utils/mod.ts";
-import { RoleTestContext } from "./smoke_mod.ts";
+import { assertEquals } from "../test_deps.ts";
+import { endpointFactory, RoleTestContext } from "./smoke_mod.ts";
 
 // TODO: make tests where done != null
 // TODO: make tests with unlisted exercises
+
+interface DataEndpoint {
+  "/api/subject/hierarchy/get": { subject: string; raw: boolean };
+  "/api/subject/hierarchy/set": { subject: string; hierarchy: Section[] };
+}
 
 export async function initHierarchyTests(
   t: Deno.TestContext,
   g: RoleTestContext,
 ) {
+  const endpoint = endpointFactory<DataEndpoint>(g);
+
   const description =
     "Z miast \\(A\\) i \\(B\\) odległych o \\(d= 300\\;\\mathrm{km}\\) wyruszają jednocześnie\ndwa pociągi z prędkościami \\(v_{a}= \\;\\mathrm{\\frac{km}{h}}\\) oraz \\(v_{b}= \\;\\mathrm{\\frac{km}{h}}\\).\nW jakiej odległości \\(x\\) od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie \\(t\\) się to stanie?\n";
 
@@ -64,36 +72,38 @@ export async function initHierarchyTests(
   await t.step(
     "Root - get hierarchy, public subject, raw = false",
     async () => {
-      const response = await (await g.request())
-        .post("/api/subject/hierarchy/get")
-        .set("Cookie", g.roles.root)
-        .send({ subject: "fizyka", raw: false })
-        .expect(200);
+      const response = await endpoint(
+        "root",
+        "/api/subject/hierarchy/get",
+        { subject: "fizyka", raw: false },
+        200,
+      );
       assertEquals(
-        response.body[1]?.children[0]?.children[0]?.description,
+        response[1]?.children[0]?.children[0]?.description,
         description,
       );
     },
   );
 
   await t.step("Root - get hierarchy, public subject, raw = true", async () => {
-    await (await g.request())
-      .post("/api/subject/hierarchy/get")
-      .set("Cookie", g.roles.root)
-      .send({ subject: "fizyka", raw: true })
-      .expect(200)
-      .expect(hierarchy);
+    await endpoint(
+      "root",
+      "/api/subject/hierarchy/get",
+      { subject: "fizyka", raw: true },
+      [200, hierarchy],
+    );
   });
 
   await t.step(
     "Teacher - get hierarchy, public subject, raw = false",
     async () => {
-      const response = await (await g.request())
-        .post("/api/subject/hierarchy/get")
-        .set("Cookie", g.roles.lanny)
-        .send({ subject: "fizyka", raw: false })
-        .expect(200);
-      const desc = response.body[1]?.children[0]?.children[0]?.description;
+      const response = await endpoint(
+        "lanny",
+        "/api/subject/hierarchy/get",
+        { subject: "fizyka", raw: false },
+        200,
+      );
+      const desc = response[1]?.children[0]?.children[0]?.description;
       assertEquals(desc, description);
     },
   );
@@ -101,24 +111,25 @@ export async function initHierarchyTests(
   await t.step(
     "Teacher - get hierarchy, public subject, raw = true",
     async () => {
-      await (await g.request())
-        .post("/api/subject/hierarchy/get")
-        .set("Cookie", g.roles.root)
-        .send({ subject: "fizyka", raw: true })
-        .expect(200)
-        .expect(hierarchy);
+      await endpoint(
+        "root",
+        "/api/subject/hierarchy/get",
+        { subject: "fizyka", raw: true },
+        [200, hierarchy],
+      );
     },
   );
 
   await t.step(
     "Student - get hierarchy, public subject, raw = false",
     async () => {
-      const response = await (await g.request())
-        .post("/api/subject/hierarchy/get")
-        .set("Cookie", g.roles.alice)
-        .send({ subject: "fizyka", raw: false })
-        .expect(200);
-      const desc = response.body[0]?.children[0]?.children[0]?.description;
+      const response = await endpoint(
+        "alice",
+        "/api/subject/hierarchy/get",
+        { subject: "fizyka", raw: false },
+        200,
+      );
+      const desc = response[0]?.children[0]?.children[0]?.description;
       assertEquals(desc, description);
     },
   );
@@ -126,23 +137,25 @@ export async function initHierarchyTests(
   await t.step(
     "Student - get hierarchy, public subject, raw = true",
     async () => {
-      await (await g.request())
-        .post("/api/subject/hierarchy/get")
-        .set("Cookie", g.roles.alice)
-        .send({ subject: "fizyka", raw: true })
-        .expect(200)
-        .expect(hierarchy);
+      await endpoint(
+        "alice",
+        "/api/subject/hierarchy/get",
+        { subject: "fizyka", raw: true },
+        [200, hierarchy],
+      );
     },
   );
 
   await t.step(
     "Not logged in - get hierarchy, public subject, raw = false",
     async () => {
-      const response = await (await g.request())
-        .post("/api/subject/hierarchy/get")
-        .send({ subject: "fizyka", raw: false })
-        .expect(200);
-      const desc = response.body[0]?.children[0]?.children[0]?.description;
+      const response = await endpoint(
+        "eve",
+        "/api/subject/hierarchy/get",
+        { subject: "fizyka", raw: false },
+        200,
+      );
+      const desc = response[0]?.children[0]?.children[0]?.description;
       assertEquals(desc, description);
     },
   );
@@ -150,65 +163,65 @@ export async function initHierarchyTests(
   await t.step(
     "Not logged in - get hierarchy, public subject, raw = true",
     async () => {
-      await (await g.request())
-        .post("/api/subject/hierarchy/get")
-        .send({ subject: "fizyka", raw: true })
-        .expect(200)
-        .expect(hierarchy);
+      await endpoint(
+        "eve",
+        "/api/subject/hierarchy/get",
+        { subject: "fizyka", raw: true },
+        [200, hierarchy],
+      );
     },
   );
 
   await t.step("Root - set hierarchy, public subject", async () => {
-    await (await g.request())
-      .post("/api/subject/hierarchy/set")
-      .set("Cookie", g.roles.root)
-      .send({ subject: "fizyka", hierarchy: setHierarchy })
-      .expect(200);
-    const response = await (await g.request())
-      .post("/api/subject/hierarchy/get")
-      .set("Cookie", g.roles.root)
-      .send({ subject: "fizyka", raw: true })
-      .expect(200);
-    assertEquals(
-      response.body,
-      setHierarchy,
-      "Hierarchy not changed",
+    await endpoint(
+      "root",
+      "/api/subject/hierarchy/set",
+      { subject: "fizyka", hierarchy: setHierarchy },
+      200,
     );
+    const response = await endpoint(
+      "root",
+      "/api/subject/hierarchy/get",
+      { subject: "fizyka", raw: true },
+      200,
+    );
+    assertEquals(response, setHierarchy, "Hierarchy not changed");
   });
 
   await t.step("Assignee - set hierarchy, public subject", async () => {
-    await (await g.request())
-      .post("/api/subject/hierarchy/set")
-      .set("Cookie", g.roles.lanny)
-      .send({ subject: "fizyka", hierarchy: setHierarchy2 })
-      .expect(200);
-    const response = await (await g.request())
-      .post("/api/subject/hierarchy/get")
-      .set("Cookie", g.roles.lanny)
-      .send({ subject: "fizyka", raw: true })
-      .expect(200);
-    assertEquals(
-      response.body,
-      setHierarchy2,
-      "Hierarchy not changed",
+    await endpoint(
+      "lanny",
+      "/api/subject/hierarchy/set",
+      { subject: "fizyka", hierarchy: setHierarchy2 },
+      200,
     );
+    const response = await endpoint(
+      "lanny",
+      "/api/subject/hierarchy/get",
+      { subject: "fizyka", raw: true },
+      200,
+    );
+    assertEquals(response, setHierarchy2, "Hierarchy not changed");
   });
 
   await t.step("Student - try to set hierarchy, public subject", async () => {
-    await (await g.request())
-      .post("/api/subject/hierarchy/set")
-      .set("Cookie", g.roles.alice)
-      .send({ subject: "fizyka", hierarchy: setHierarchy2 })
-      .expect(403);
+    await endpoint(
+      "alice",
+      "/api/subject/hierarchy/set",
+      { subject: "fizyka", hierarchy: setHierarchy2 },
+      403,
+    );
   });
 
   await t.step(
     "Not logged in - try to set hierarchy, public subject",
     async () => {
-      await (await g.request())
-        .post("/api/subject/hierarchy/set")
-        .send({ subject: "fizyka", hierarchy: setHierarchy })
-        .expect(401);
+      await endpoint(
+        "eve",
+        "/api/subject/hierarchy/set",
+        { subject: "fizyka", hierarchy: setHierarchy },
+        401,
+      );
     },
   );
 }

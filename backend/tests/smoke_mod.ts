@@ -53,6 +53,29 @@ export async function bench<T>(name: string, fn: () => T | Promise<T>) {
   return r;
 }
 
+export function endpointFactory<
+  E extends Record<K, undefined | Record<string, unknown>>,
+  K extends string = keyof E & string,
+>(g: RoleTestContext) {
+  return async function endpoint<T extends K>(
+    auth: keyof RoleTestContext["roles"],
+    endpoint: T,
+    data: E[T],
+    extra: number | [number, unknown] = 200,
+  ) {
+    const cookie = g.roles[auth];
+    const get = endpoint[0] === ":";
+    const url = get ? endpoint.slice(1) : endpoint;
+    const t = (await g.request())
+      [get ? "get" : "post"](url)
+      .set("Cookie", cookie)
+      .send(data);
+    if (typeof extra === "number") t.expect(extra);
+    else t.expect(...extra);
+    return (await t).body;
+  };
+}
+
 export interface E2eTestContext {
   request: () => ReturnType<typeof superoak>;
   app: Await<ReturnType<typeof constructApp>>;
