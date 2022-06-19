@@ -268,7 +268,7 @@ export default class EquationExercise extends Exercise {
     throw new Error("never"); // TODO: refactor, make it better
   }
 
-  check(seed: number, answer?: JSONType) {
+  check(seed: number, answer?: JSONType, offset?: number) {
     // TODO: use value-schema
     if (answer !== undefined && !isAnswer(answer)) {
       return new CustomDictError("ExerciseBadAnswerFormat", {
@@ -281,6 +281,7 @@ export default class EquationExercise extends Exercise {
         description: "INVALID ANSWER LENGTH",
       });
     }
+    seed += offset ?? 0;
     const answerDict = answers !== undefined // TODO: refactor
       ? this.unknowns.reduce(
         (a: { [key: string]: number | null }, x, i) => {

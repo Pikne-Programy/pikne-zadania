@@ -9,6 +9,7 @@ import {
   SubjectController,
   TeamController,
   UserController,
+  SessionController
 } from "./controllers/mod.ts";
 
 export class ApiRouterBuilder {
@@ -19,6 +20,7 @@ export class ApiRouterBuilder {
     private s: SubjectController,
     private tm: TeamController,
     private us: UserController,
+    private se: SessionController,
   ) {
     this.router = new Router()
       .get("/api", placeholder(200, {}))
@@ -29,6 +31,7 @@ export class ApiRouterBuilder {
           .use("/auth", this.au.router.routes())
           .use("/user", this.us.router.routes())
           .use("/team", this.tm.router.routes())
+          .use("/session", this.se.router.routes())
           .routes(),
       );
   }
