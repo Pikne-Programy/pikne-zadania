@@ -30,9 +30,10 @@ interface DataEndpoint {
 export async function initProblemTests(
   t: Deno.TestContext,
   g: RoleTestContext,
+  ff: boolean,
 ) {
   const endpoint = endpointFactory<DataEndpoint>(g);
-  let ignore = false; // ignore ||= !
+  let ignore = false;
 
   const rendered = {
     "type": "EqEx",
@@ -194,7 +195,7 @@ export async function initProblemTests(
         [200, { info: [true, false] }],
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -213,7 +214,7 @@ export async function initProblemTests(
         [200, { info: [true, true] }],
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -232,7 +233,7 @@ export async function initProblemTests(
         [200, { info: [true, false] }],
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -251,7 +252,7 @@ export async function initProblemTests(
         404,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -275,7 +276,7 @@ export async function initProblemTests(
         "Done not saved",
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -299,7 +300,7 @@ export async function initProblemTests(
         "Done not saved",
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -323,7 +324,7 @@ export async function initProblemTests(
         "Done not saved",
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -347,7 +348,7 @@ export async function initProblemTests(
         "Done not saved",
       );
     },
-  });
+  }) && ff;
 
   return ignore;
 }

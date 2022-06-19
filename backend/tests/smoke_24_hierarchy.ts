@@ -24,6 +24,7 @@ interface DataEndpoint {
 export async function initHierarchyTests(
   t: Deno.TestContext,
   g: RoleTestContext,
+  ff: boolean,
 ) {
   const endpoint = endpointFactory<DataEndpoint>(g);
   let ignore = false;
@@ -207,7 +208,7 @@ export async function initHierarchyTests(
       );
       assertEquals(response, setHierarchy, "Hierarchy not changed");
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -227,7 +228,7 @@ export async function initHierarchyTests(
       );
       assertEquals(response, setHierarchy2, "Hierarchy not changed");
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -240,7 +241,7 @@ export async function initHierarchyTests(
         403,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -253,7 +254,7 @@ export async function initHierarchyTests(
         401,
       );
     },
-  });
+  }) && ff;
 
   return ignore;
 }

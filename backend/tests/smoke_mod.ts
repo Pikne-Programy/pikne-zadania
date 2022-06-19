@@ -119,9 +119,11 @@ async function initRole(e2eCtx: E2eTestContext): Promise<RoleTestContext> {
   };
 }
 
+const DONT_FAIL_FAST = get("boolean", "DONT_FAIL_FAST", false);
+
 type TC = Deno.TestContext;
 interface initFunc<T> {
-  (t: TC, ctx: T): Promise<boolean> | boolean;
+  (t: TC, ctx: T, ff: boolean): Promise<boolean> | boolean;
 }
 async function wrapper<T>(
   t: TC,
@@ -132,9 +134,9 @@ async function wrapper<T>(
 ) {
   let critic = true;
   const r = await t.step(n, async (t) => {
-    critic = await fn(t, ctx);
+    critic = await fn(t, ctx, !DONT_FAIL_FAST);
   });
-  assert(optional || !critic || r, `${n} suite is required`);
+  assert(DONT_FAIL_FAST || optional || !critic || r, `${n} suite is required`);
   return r;
 }
 

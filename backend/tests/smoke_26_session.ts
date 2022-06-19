@@ -56,9 +56,10 @@ function unicode(x: number | null) {
 export async function initSessionTests(
   t: Deno.TestContext,
   g: RoleTestContext,
+  ff: boolean,
 ) {
   const endpoint = endpointFactory<DataEndpoint>(g);
-  let ignore = false; // ignore ||= !
+  let ignore = false;
 
   type Teams = (typeof data)["t"];
   async function checkState<T extends Teams[keyof Teams]>(
@@ -134,7 +135,8 @@ export async function initSessionTests(
       await checkState(data.t.d, false, [], { mike: [] });
       await checkState(data.t.dd, false, [], { alice: [], bob: [] });
     },
-  });
+  }) && ff;
+
   const fetchedProblems: {
     aliceOldDouble?: string;
     aliceDouble?: string;
@@ -198,7 +200,7 @@ export async function initSessionTests(
         bob: [null],
       });
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -213,7 +215,7 @@ export async function initSessionTests(
         ...deuid("nonexistent/double"),
       }, 404);
     },
-  });
+  }) && ff;
 
   await t.step({
     ignore,
@@ -259,7 +261,7 @@ export async function initSessionTests(
         bob: [null],
       });
     },
-  });
+  }) && ff;
 
   await t.step({
     ignore,
@@ -294,7 +296,7 @@ export async function initSessionTests(
         bob: [1],
       });
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -313,7 +315,7 @@ export async function initSessionTests(
         bob: [1],
       });
     },
-  });
+  }) && ff;
 
   await t.step({
     ignore,
@@ -352,7 +354,7 @@ export async function initSessionTests(
       assert(typeof problem === "string");
       fetchedProblems.aliceConcat = problem;
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -371,7 +373,7 @@ export async function initSessionTests(
         bob: [1, null],
       });
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -394,7 +396,7 @@ export async function initSessionTests(
       assert(typeof problem === "string");
       assertEquals(problem, fetchedProblems.aliceOldDouble);
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -431,7 +433,7 @@ export async function initSessionTests(
         bob: [null],
       });
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -463,7 +465,7 @@ export async function initSessionTests(
         bob: [null],
       });
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -488,7 +490,7 @@ export async function initSessionTests(
         mike: [1],
       });
     },
-  });
+  }) && ff;
 
   return ignore;
 }

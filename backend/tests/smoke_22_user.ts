@@ -24,7 +24,11 @@ interface DataEndpoint {
   "/api/user/delete": { userId: string };
 }
 
-export async function initUserTests(t: Deno.TestContext, g: RoleTestContext) {
+export async function initUserTests(
+  t: Deno.TestContext,
+  g: RoleTestContext,
+  ff: boolean,
+) {
   const endpoint = endpointFactory<DataEndpoint>(g);
   let ignore = false;
 
@@ -58,7 +62,7 @@ export async function initUserTests(t: Deno.TestContext, g: RoleTestContext) {
         200,
       );
     },
-  });
+  }) && ff;
 
   await t.step({
     ignore,
@@ -176,7 +180,7 @@ export async function initUserTests(t: Deno.TestContext, g: RoleTestContext) {
         [200, { name: "Student", teamId: 2, number: 11 }],
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -203,7 +207,7 @@ export async function initUserTests(t: Deno.TestContext, g: RoleTestContext) {
         }],
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -216,7 +220,7 @@ export async function initUserTests(t: Deno.TestContext, g: RoleTestContext) {
         403,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -229,7 +233,7 @@ export async function initUserTests(t: Deno.TestContext, g: RoleTestContext) {
         403,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -242,7 +246,7 @@ export async function initUserTests(t: Deno.TestContext, g: RoleTestContext) {
         403,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -255,7 +259,7 @@ export async function initUserTests(t: Deno.TestContext, g: RoleTestContext) {
         403,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -268,7 +272,7 @@ export async function initUserTests(t: Deno.TestContext, g: RoleTestContext) {
         403,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -281,7 +285,7 @@ export async function initUserTests(t: Deno.TestContext, g: RoleTestContext) {
         401,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -300,7 +304,7 @@ export async function initUserTests(t: Deno.TestContext, g: RoleTestContext) {
         404,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -315,7 +319,7 @@ export async function initUserTests(t: Deno.TestContext, g: RoleTestContext) {
       await register(g, data.u.bob);
       g.roles.bob = await login(g, data.u.bob);
     },
-  });
+  }) && ff;
 
   return ignore;
 }

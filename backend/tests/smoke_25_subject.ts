@@ -22,9 +22,10 @@ interface DataEndpoint {
 export async function initSubjectTests(
   t: Deno.TestContext,
   g: RoleTestContext,
+  ff: boolean,
 ) {
   const endpoint = endpointFactory<DataEndpoint>(g);
-  let ignore = false; // ignore ||= !
+  let ignore = false;
 
   ignore ||= !await t.step({
     ignore,
@@ -43,7 +44,7 @@ export async function initSubjectTests(
         [200, { assignees: [] }],
       );
     },
-  });
+  }) && ff;
 
   await t.step({
     ignore,
@@ -123,7 +124,7 @@ export async function initSubjectTests(
         }],
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -144,7 +145,7 @@ export async function initSubjectTests(
         [200, { assignees: null }],
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -157,7 +158,7 @@ export async function initSubjectTests(
         403,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -170,7 +171,7 @@ export async function initSubjectTests(
         401,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -183,7 +184,7 @@ export async function initSubjectTests(
         409,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -202,7 +203,7 @@ export async function initSubjectTests(
         [200, { assignees: [] }],
       );
     },
-  });
+  }) && ff;
 
   await t.step({
     ignore,
@@ -275,7 +276,7 @@ export async function initSubjectTests(
         }],
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -294,7 +295,7 @@ export async function initSubjectTests(
         [200, { assignees: [] }],
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -307,7 +308,7 @@ export async function initSubjectTests(
         403,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -320,7 +321,7 @@ export async function initSubjectTests(
         403,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -333,7 +334,7 @@ export async function initSubjectTests(
         401,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -352,7 +353,7 @@ export async function initSubjectTests(
         [200, { assignees: null }],
       );
     },
-  });
+  }) && ff;
 
   return ignore;
 }

@@ -46,7 +46,11 @@ interface DataEndpoint {
   "/api/team/delete": { teamId: number };
 }
 
-export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
+export async function initTeamTests(
+  t: Deno.TestContext,
+  g: RoleTestContext,
+  ff: boolean,
+) {
   const endpoint = endpointFactory<DataEndpoint>(g);
   let ignore = false;
 
@@ -126,7 +130,7 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
         403,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -139,7 +143,7 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
         401,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -152,7 +156,7 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
         400,
       );
     },
-  });
+  }) && ff;
 
   await t.step({
     ignore,
@@ -233,7 +237,7 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
         }],
       );
     },
-  });
+  }) && ff;
 
   await t.step({
     ignore,
@@ -275,7 +279,7 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
         [200, generateInfo(data.t.dd)],
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -307,7 +311,7 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
         200,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -327,7 +331,7 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
         });
       }
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -346,7 +350,7 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
         [200, { ...generateInfo(data.t.dd), name: data.dummy.t.name }],
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -359,7 +363,7 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
         403,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -372,7 +376,7 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
         409,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -403,7 +407,7 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
         200,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -416,7 +420,7 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
         403,
       );
     },
-  });
+  }) && ff;
 
   ignore ||= !await t.step({
     ignore,
@@ -429,7 +433,7 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
         200,
       );
     },
-  });
+  }) && ff;
 
   await t.step({
     ignore,
@@ -443,6 +447,7 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
       );
     },
   });
+
   ignore ||= !await t.step({
     ignore,
     name: "[LANNY] can't delete not own teams",
@@ -461,7 +466,7 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
         });
       }
     },
-  });
+  }) && ff;
 
   await t.step({
     ignore,
