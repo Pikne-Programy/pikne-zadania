@@ -3,8 +3,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import "./smoke_mod.ts";
 
-import "./smoke_10_e2e.ts";
-import "./smoke_20_role.ts";
 import "./smoke_21_team.ts";
 import "./smoke_22_user.ts";
 import "./smoke_23_problem.ts";
