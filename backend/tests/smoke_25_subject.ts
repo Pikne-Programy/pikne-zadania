@@ -258,4 +258,19 @@ export async function initSubjectTests(
       401,
     );
   });
+
+  await t.step("Make _easy visible for all assignees", async () => {
+    await endpoint(
+      "root",
+      "/api/subject/permit",
+      { subject: "_easy", assignees: null },
+      200,
+    );
+    await endpoint(
+      "lanny",
+      "/api/subject/info",
+      { subject: "_easy" },
+      [200, { assignees: null }],
+    );
+  });
 }

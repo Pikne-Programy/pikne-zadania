@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { endpointFactory } from "./smoke_mod.ts";
-import { RoleTestContext } from "./smoke_mod.ts";
+import { endpointFactory, RoleTestContext } from "./smoke_mod.ts";
 import { data } from "./testdata/config.ts";
+import { login, register } from "./utils/user.ts";
 
 interface DataEndpoint {
   "/api/auth/register": {
@@ -227,9 +227,11 @@ export async function initUserTests(t: Deno.TestContext, g: RoleTestContext) {
   await t.step("Admin - try to update a non-existing student", async () => {
     await endpoint(
       "root",
-      "/api/user/delete",
-      { userId: data.u.bob.id },
+      "/api/user/update",
+      { userId: data.u.bob.id, name: data.dummy.u.name },
       404,
     );
+    await register(g, data.u.bob);
+    g.roles.bob = await login(g, data.u.bob);
   });
 }
