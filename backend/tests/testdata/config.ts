@@ -40,8 +40,32 @@ export const lazyDefaultConfig: IConfigService = {
   },
 };
 
+function concatProblemDigits(problem: string) {
+  return [...problem.matchAll(/\d+/g)].map((e) => e[0]).join("");
+}
+
+export function generateProblemAnswer(
+  exerciseId: "double" | "concat",
+  problem: string,
+  correct = true,
+) {
+  const digits = concatProblemDigits(problem);
+  let r: number;
+  switch (exerciseId) {
+    case "double":
+      assert(digits[0] === "0");
+      r = 2 * parseFloat("0." + digits.substring(1));
+      break;
+    case "concat":
+      r = parseInt(digits);
+      break;
+  }
+  if (!correct) r /= 2;
+  return r;
+}
+
 type teams = "t" | "dd" | "d";
-type users = "root" | "lanny" | "ralph" | "alice" | "bob" | "mike";
+type users = "root" | "lanny" | "ralph" | "alice" | "bob" | "mike" | "eve";
 
 const teamData = {
   t: { id: 1, n: "Teachers", i: "teacher", a: "root", m: ["lanny", "ralph"] },
@@ -106,6 +130,8 @@ const userData: {
     invitation: teamData.d.i,
     number: 1,
   },
+  // deno-lint-ignore no-explicit-any
+  eve: {} as any,
 };
 let key: keyof typeof userData;
 for (key in userData) {
