@@ -6,7 +6,12 @@
 import { Section } from "../types/mod.ts";
 import { deepCopy } from "../utils/mod.ts";
 import { assertEquals } from "../test_deps.ts";
-import { endpointFactory, RoleTestContext } from "./smoke_mod.ts";
+import {
+  endpointFactory,
+  registerRoleTest,
+  RoleTestContext,
+} from "./smoke_mod.ts";
+import { basename } from "../deps.ts";
 
 // TODO: make tests where done != null
 // TODO: make tests with unlisted exercises
@@ -225,3 +230,5 @@ export async function initHierarchyTests(
     },
   );
 }
+
+registerRoleTest(basename(import.meta.url), initHierarchyTests);

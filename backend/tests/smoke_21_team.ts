@@ -2,8 +2,13 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { basename } from "../deps.ts";
 import { assert } from "../test_deps.ts";
-import { endpointFactory, RoleTestContext } from "./smoke_mod.ts";
+import {
+  endpointFactory,
+  registerRoleTest,
+  RoleTestContext,
+} from "./smoke_mod.ts";
 import { data } from "./testdata/config.ts";
 
 type Teams = (typeof data)["t"];
@@ -373,3 +378,5 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
     );
   });
 }
+
+registerRoleTest(basename(import.meta.url), initTeamTests);

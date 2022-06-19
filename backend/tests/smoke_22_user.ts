@@ -2,7 +2,12 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { endpointFactory, RoleTestContext } from "./smoke_mod.ts";
+import { basename } from "../deps.ts";
+import {
+  endpointFactory,
+  registerRoleTest,
+  RoleTestContext,
+} from "./smoke_mod.ts";
 import { data } from "./testdata/config.ts";
 import { login, register } from "./utils/user.ts";
 
@@ -235,3 +240,5 @@ export async function initUserTests(t: Deno.TestContext, g: RoleTestContext) {
     g.roles.bob = await login(g, data.u.bob);
   });
 }
+
+registerRoleTest(basename(import.meta.url), initUserTests);

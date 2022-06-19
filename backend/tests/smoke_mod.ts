@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { rgb8, superoak } from "../test_deps.ts";
+import { assert, assertEquals, copy, rgb8, superoak } from "../test_deps.ts";
 import { Await } from "../types/mod.ts";
 import {
   delay,
@@ -11,7 +11,16 @@ import {
   writeStdout,
 } from "../utils/mod.ts";
 import { constructApp } from "../app.ts";
-import { data } from "./testdata/config.ts";
+import { data, lazyDefaultConfig } from "./testdata/config.ts";
+import {
+  createTeam,
+  login,
+  register,
+  updateTeamInvitation,
+} from "./utils/user.ts";
+
+import { initE2eTests } from "./smoke_10_e2e.ts";
+import { initRoleTests } from "./smoke_20_role.ts";
 
 const LIVE_BENCH = get("boolean", "LIVE_BENCH", true);
 let timing = false;
@@ -85,3 +94,72 @@ export interface RoleTestContext extends E2eTestContext {
     [prop in keyof (typeof data)["u"]]: string;
   };
 }
+
+async function initRole(e2eCtx: E2eTestContext): Promise<RoleTestContext> {
+  const eve = undefined as unknown as string;
+  const root = await login(e2eCtx, data.u.root);
+  await updateTeamInvitation(e2eCtx, root, data.t.t.id, data.t.t.i);
+  await register(e2eCtx, data.u.lanny);
+  const lanny = await login(e2eCtx, data.u.lanny);
+  await register(e2eCtx, data.u.ralph);
+  const ralph = await login(e2eCtx, data.u.ralph);
+  assertEquals(await createTeam(e2eCtx, lanny, data.t.dd.n), data.t.dd.id);
+  await updateTeamInvitation(e2eCtx, lanny, data.t.dd.id, data.t.dd.i);
+  await register(e2eCtx, data.u.alice);
+  const alice = await login(e2eCtx, data.u.alice);
+  await register(e2eCtx, data.u.bob);
+  const bob = await login(e2eCtx, data.u.bob);
+  assertEquals(await createTeam(e2eCtx, ralph, data.t.d.n), data.t.d.id);
+  await updateTeamInvitation(e2eCtx, ralph, data.t.d.id, data.t.d.i);
+  await register(e2eCtx, data.u.mike);
+  const mike = await login(e2eCtx, data.u.mike);
+  return {
+    ...e2eCtx,
+    roles: { root, lanny, ralph, alice, bob, mike, eve },
+  };
+}
+
+type TC = Deno.TestContext;
+function wrapper<T>(t: TC, ctx: T, n: string, fn: (t: TC, ctx: T) => unknown) {
+  return t.step(n, async (t) => {
+    await fn(t, ctx);
+  });
+}
+
+const selectedTests: [string, (t: TC, ctx: RoleTestContext) => unknown][] = [];
+export function registerRoleTest(
+  name: string,
+  init: (t: TC, ctx: RoleTestContext) => unknown,
+) {
+  assert(!selectedTests.map((e) => e[0]).includes(name));
+  selectedTests.push([name, init]);
+}
+
+Deno.test("smoke", async (t) => {
+  await bench("init exercises", async () => {
+    await Deno.remove(lazyDefaultConfig.EXERCISES_PATH, { recursive: true });
+    await copy("tests/testdata/exercises", lazyDefaultConfig.EXERCISES_PATH);
+  });
+  const app = await bench("construct app", async () => {
+    return await constructApp(lazyDefaultConfig);
+  });
+  async function request() {
+    return await superoak(app.app.handle.bind(app));
+  }
+
+  const e2eCtx = { request, app };
+  await t.step("e2e", async (t) => {
+    await initE2eTests(t, e2eCtx);
+    await t.step("role", async (t) => {
+      const roleCtx = await bench("init roles", () => initRole(e2eCtx));
+      await initRoleTests(t, roleCtx);
+      for (const [name, init] of selectedTests) {
+        await wrapper(t, roleCtx, name, init);
+      }
+    });
+  });
+
+  await app.dropDb();
+  app.dropExercises();
+  app.closeDb();
+});

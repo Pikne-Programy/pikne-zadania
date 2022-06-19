@@ -3,9 +3,14 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { basename } from "../deps.ts";
 import { assert, assertEquals } from "../test_deps.ts";
 import { deepCopy } from "../utils/mod.ts";
-import { endpointFactory, RoleTestContext } from "./smoke_mod.ts";
+import {
+  endpointFactory,
+  registerRoleTest,
+  RoleTestContext,
+} from "./smoke_mod.ts";
 import { data } from "./testdata/config.ts";
 
 interface DataEndpoint {
@@ -289,3 +294,5 @@ export async function initProblemTests(
     );
   });
 }
+
+registerRoleTest(basename(import.meta.url), initProblemTests);
