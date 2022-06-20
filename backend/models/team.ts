@@ -5,6 +5,7 @@
 
 import { SessionType, TeamType } from "../types/mod.ts";
 import { IDatabaseService, ITeam } from "../interfaces/mod.ts";
+import { generateSeed } from "../utils/mod.ts";
 
 // TODO: make an abstract Model class
 export class Team implements ITeam {
@@ -78,7 +79,7 @@ export class Team implements ITeam {
     drop: async () => {
       const emptySession: SessionType = {
         isFinished: false,
-        seedOffset: 0,
+        seedOffset: generateSeed(),
         exercises: [],
         report: {},
       };

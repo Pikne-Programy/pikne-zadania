@@ -32,8 +32,9 @@ export class SessionController extends Authorizer {
   private async isAssigneeOf(s: string, user?: IUser) {
     if (user === undefined) return false;
     const subject = this.ss.get(s);
-    if (!await subject.exists()) return false;
+    if (!await subject.exists()) throw new httpErrors["NotFound"]();
     if (await user.role.get() === "admin") return true;
+    if ((!/^_/.test(s)) && await user.role.get() === "teacher") return true;
     const assignees = await subject.assignees.get();
     if (assignees !== null && assignees.includes(user.id)) return true;
     return await user.role.get() === "teacher" && assignees === null; // TODO: user.isTeacher
@@ -92,7 +93,12 @@ export class SessionController extends Authorizer {
     if (!await team.exists()) {
       throw new httpErrors["NotFound"]();
     }
-    if (await team.session.isFinished()) {
+    if (
+      await team.session.isFinished() ||
+      (await team.session.exercises.get()).includes(
+        this.es.uid(subject, exerciseId),
+      )
+    ) {
       throw new httpErrors["Conflict"]();
     }
     const exercise = this.es.get(subject, exerciseId);
@@ -134,14 +140,25 @@ export class SessionController extends Authorizer {
     if (!await team.exists()) {
       throw new httpErrors["NotFound"](); //! EV
     }
-    await team.session.users.add(user.id);
+    if (!(await team.session.users.get()).includes(user.id)) {
+      await team.session.users.add(user.id);
+    }
+
     ctx.response.body = await Promise.all(
       (await team.session.exercises.get()).map(async (e) => {
-        const ex = await this.ex.render(this.es.deuid(e)!, {
-          seed: (await user.seed.get())! + await team.session.seedOffset.get(),
-        }); // teacher is not allowed
+        const ex = await this.ex.render(
+          this.es.deuid(e)!,
+          user,
+          await team.session.seedOffset.get(),
+        ); // teacher is not allowed
+        const report = await team.session.report.get();
         if (ex instanceof CustomDictError) return null;
-        return ex;
+        return {
+          subject: this.es.deuid(e)!.subject,
+          exerciseId: this.es.deuid(e)!.exerciseId,
+          ...ex,
+          done: report[user.id][e] ?? null,
+        };
       }),
     ); //! O
     ctx.response.status = 200; //! D
@@ -172,7 +189,6 @@ export class SessionController extends Authorizer {
       })),
     }; //! OD
     ctx.response.status = 200;
-    // console.log("report: ", Object.entries(report));
   }
 
   async end(ctx: RouterContext) {

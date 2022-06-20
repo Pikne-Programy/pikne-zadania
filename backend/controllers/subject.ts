@@ -71,23 +71,24 @@ export class SubjectController extends Authorizer {
     team: ITeam | undefined,
     subject: string,
     eid: string,
+    view?: boolean,
   ) {
     if (team) {
       return ((await team.session.exercises.get()).includes(
         this.es.uid(subject, eid),
-      ) && !(await team.session.isFinished()));
+      ) && (!(await team.session.isFinished()) || view));
     }
     return false;
   }
 
   // TODO: move to a more proper place
-  private async submitToSession(
+  private async submit2Session(
     user: IUser,
     subject: string,
     eid: string,
     done: number,
   ) {
-    if (await user.role.get() != "student") return;
+    if (await user.role.get() !== "student") return;
     const team = this.ts.get(await user.team.get());
     if (await team.session.isFinished()) return;
     if (!(await this.sessionContains(team, subject, eid))) return;
@@ -163,8 +164,8 @@ export class SubjectController extends Authorizer {
 
     async getSeed(ctx: RouterContext, seed: number | null, user?: IUser) {
       if (user !== undefined) {
-        return seed !== null &&
-            ["teacher", "admin"].includes(await user.role.get()) // TODO: isTeacher
+        return (seed !== null &&
+            ["teacher", "admin"].includes(await user.role.get())) // TODO: isTeacher
           ? { seed }
           : user;
       }
@@ -187,12 +188,17 @@ export class SubjectController extends Authorizer {
       if (
         !await this.parent.isPermittedToView(subject, user) &&
         (team !== undefined &&
-          !(await this.parent.sessionContains(team, subject, exerciseId)))
+          !(await this.parent.sessionContains(team, subject, exerciseId, true)))
       ) {
         throw new httpErrors["Forbidden"]();
       } //! P
       let offset = 0;
-      if (team) offset = await team.session.seedOffset.get();
+      if (
+        team !== undefined &&
+        await this.parent.sessionContains(team, subject, exerciseId, true)
+      ) {
+        offset = await team.session.seedOffset.get();
+      }
       const parsed = translateErrors(
         await this.parent.ex.render(
           { subject, exerciseId },
@@ -230,7 +236,12 @@ export class SubjectController extends Authorizer {
         throw new httpErrors["Forbidden"]();
       } //! P
       let offset = 0;
-      if (team) offset = await team.session.seedOffset.get();
+      if (
+        team !== undefined &&
+        await this.parent.sessionContains(team, subject, exerciseId)
+      ) {
+        offset = await team.session.seedOffset.get();
+      }
       const { done, info } = translateErrors(
         await this.parent.ex.check(
           { subject, exerciseId },
@@ -240,7 +251,7 @@ export class SubjectController extends Authorizer {
         ),
       ); //! EVO
       if (user) {
-        await this.parent.submitToSession(user, subject, exerciseId, done);
+        await this.parent.submit2Session(user, subject, exerciseId, done);
       }
       ctx.response.body = { info }; // ? done, correctAnswer ?
       ctx.response.status = 200; //! D
