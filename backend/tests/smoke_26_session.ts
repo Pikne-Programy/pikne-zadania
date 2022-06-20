@@ -10,6 +10,7 @@ import {
   RoleTestContext,
 } from "./smoke_mod.ts";
 import { data, generateProblemAnswer } from "./testdata/config.ts";
+import { FailFastManager } from "./utils/fail-fast.ts";
 
 interface DataEndpoint {
   "/api/session/status": { teamId: number };
@@ -53,13 +54,9 @@ function unicode(x: number | null) {
   }
 }
 
-export async function initSessionTests(
-  t: Deno.TestContext,
-  g: RoleTestContext,
-  ff: boolean,
-) {
+export async function initSessionTests(t: Deno.TestContext,g: RoleTestContext,) {
   const endpoint = endpointFactory<DataEndpoint>(g);
-  let ignore = false;
+  const ffm = new FailFastManager(t, undefined);
 
   type Teams = (typeof data)["t"];
   async function checkState<T extends Teams[keyof Teams]>(
@@ -112,30 +109,22 @@ export async function initSessionTests(
     }
   }
 
-  await t.step({
-    ignore,
-    name: "only those who vieved session are visible",
-    fn: async () => { // {{005}}}
-      await checkState(data.t.dd, false, [], {});
-      await endpoint("alice", "/api/session/list", undefined, [200, []]);
-      await checkState(data.t.dd, false, [], { alice: [] });
-      await endpoint("bob", "/api/session/list", undefined, [200, []]);
-      await checkState(data.t.dd, false, [], { alice: [], bob: [] });
-    },
+  await ffm.test("only those who vieved session are visible", async () => { // {{005}}}
+    await checkState(data.t.dd, false, [], {});
+    await endpoint("alice", "/api/session/list", undefined, [200, []]);
+    await checkState(data.t.dd, false, [], { alice: [] });
+    await endpoint("bob", "/api/session/list", undefined, [200, []]);
+    await checkState(data.t.dd, false, [], { alice: [], bob: [] });
   });
 
-  ignore ||= !await t.step({
-    ignore,
-    name: "empty session after reset is still empty",
-    fn: async () => { // {{010}}}
-      await endpoint("lanny", "/api/session/reset", { teamId: data.t.dd.id });
-      await endpoint("alice", "/api/session/list", undefined, [200, []]);
-      await endpoint("bob", "/api/session/list", undefined, [200, []]);
-      await endpoint("mike", "/api/session/list", undefined, [200, []]);
-      await checkState(data.t.d, false, [], { mike: [] });
-      await checkState(data.t.dd, false, [], { alice: [], bob: [] });
-    },
-  }) && ff;
+  await ffm.test("empty session after reset is still empty", async () => { // {{010}}}
+    await endpoint("lanny", "/api/session/reset", { teamId: data.t.dd.id });
+    await endpoint("alice", "/api/session/list", undefined, [200, []]);
+    await endpoint("bob", "/api/session/list", undefined, [200, []]);
+    await endpoint("mike", "/api/session/list", undefined, [200, []]);
+    await checkState(data.t.d, false, [], { mike: [] });
+    await checkState(data.t.dd, false, [], { alice: [], bob: [] });
+  }, true);
 
   const fetchedProblems: {
     aliceOldDouble?: string;
@@ -146,66 +135,53 @@ export async function initSessionTests(
     mikeConcat?: string;
   } = {};
 
-  await t.step({
-    ignore,
-    name: "[ALICE] access public exercises not in session",
-    fn: async () => { // {{020}}}
-      const response = await endpoint(
-        "alice",
-        "/api/subject/problem/render",
-        deuid("easy/double"),
-      );
-      const problem = response?.problem?.main;
-      assert(typeof problem === "string");
-      fetchedProblems.aliceOldDouble = problem;
-      await endpoint(
-        "alice",
-        "/api/subject/problem/submit",
-        {
-          ...deuid("easy/double"),
-          answer: {
-            answers: [
-              generateProblemAnswer("double", fetchedProblems.aliceOldDouble),
-            ],
-          },
-        },
-        [200, { info: [true] }],
-      );
-    },
-  });
-
-  await t.step({
-    ignore,
-    name: "[ALICE] can't access private exercises not in session",
-    fn: async () => { // {{021}}}
-      await endpoint(
-        "alice",
-        "/api/subject/problem/render",
-        deuid("_easy/concat"),
-        403,
-      );
-    },
-  });
-
-  ignore ||= !await t.step({
-    ignore,
-    name: "[LANNY] add `double` exercise to session",
-    fn: async () => { // {{030}}}
-      await endpoint("lanny", "/api/session/add", {
-        teamId: data.t.dd.id,
+  await ffm.test("[ALICE] access public exercises not in session", async () => { // {{020}}}
+    const response = await endpoint(
+      "alice",
+      "/api/subject/problem/render",
+      deuid("easy/double"),
+    );
+    const problem = response?.problem?.main;
+    assert(typeof problem === "string");
+    fetchedProblems.aliceOldDouble = problem;
+    await endpoint(
+      "alice",
+      "/api/subject/problem/submit",
+      {
         ...deuid("easy/double"),
-      });
-      await checkState(data.t.dd, false, ["easy/double"], {
-        alice: [null],
-        bob: [null],
-      });
-    },
-  }) && ff;
+        answer: {
+          answers: [
+            generateProblemAnswer("double", fetchedProblems.aliceOldDouble),
+          ],
+        },
+      },
+      [200, { info: [true] }],
+    );
+  });
 
-  ignore ||= !await t.step({
-    ignore,
-    name: "[LANNY] can't add non-existent execise to session",
-    fn: async () => { // {{031}}}
+  await ffm.test("[ALICE] can't access private exercises not in session", async () => { // {{021}}}
+    await endpoint(
+      "alice",
+      "/api/subject/problem/render",
+      deuid("_easy/concat"),
+      403,
+    );
+  });
+
+  await ffm.test("[LANNY] add `double` exercise to session", async () => { // {{030}}}
+    await endpoint("lanny", "/api/session/add", {
+      teamId: data.t.dd.id,
+      ...deuid("easy/double"),
+    });
+    await checkState(data.t.dd, false, ["easy/double"], {
+      alice: [null],
+      bob: [null],
+    });
+  }, true);
+
+  await ffm.test(
+    "[LANNY] can't add non-existent execise to session",
+    async () => { // {{031}}}
       await endpoint("lanny", "/api/session/add", {
         teamId: data.t.dd.id,
         ...deuid("easy/nonexistent"),
@@ -215,230 +191,186 @@ export async function initSessionTests(
         ...deuid("nonexistent/double"),
       }, 404);
     },
-  }) && ff;
+    true,
+  );
 
-  await t.step({
-    ignore,
-    name: "one session doesn't bother another",
-    fn: async () => { // {{032}}}
-      await checkState(data.t.d, false, [], { mike: [] });
-    },
+  await ffm.test("one session doesn't bother another", async () => { // {{032}}}
+    await checkState(data.t.d, false, [], { mike: [] });
   });
 
-  await t.step({
-    ignore,
-    name: "same exercise renders differently in session",
-    fn: async () => { // {{034}}}
-      const response = await endpoint(
-        "alice",
-        "/api/subject/problem/render",
-        deuid("easy/double"),
-      );
-      const problem = response?.problem?.main;
-      assert(typeof problem === "string");
-      fetchedProblems.aliceDouble = problem;
-      assertNotEquals(problem, fetchedProblems.aliceOldDouble);
-    },
+  await ffm.test("same exercise renders differently in session", async () => { // {{034}}}
+    const response = await endpoint(
+      "alice",
+      "/api/subject/problem/render",
+      deuid("easy/double"),
+    );
+    const problem = response?.problem?.main;
+    assert(typeof problem === "string");
+    fetchedProblems.aliceDouble = problem;
+    assertNotEquals(problem, fetchedProblems.aliceOldDouble);
   });
 
-  ignore ||= !await t.step({
-    ignore,
-    name: "old answers don't work",
-    fn: async () => { // {{037}}}
-      await endpoint("alice", "/api/subject/problem/submit", {
-        ...deuid("easy/double"),
-        answer: {
-          answers: [
-            generateProblemAnswer(
-              "double",
-              fetchedProblems.aliceOldDouble ?? "never",
-            ),
-          ],
-        },
-      }, [200, { info: [false] }]);
-      await checkState(data.t.dd, false, ["easy/double"], {
-        alice: [0],
-        bob: [null],
-      });
-    },
-  }) && ff;
+  await ffm.test("old answers don't work", async () => { // {{037}}}
+    await endpoint("alice", "/api/subject/problem/submit", {
+      ...deuid("easy/double"),
+      answer: {
+        answers: [
+          generateProblemAnswer(
+            "double",
+            fetchedProblems.aliceOldDouble ?? "never",
+          ),
+        ],
+      },
+    }, [200, { info: [false] }]);
+    await checkState(data.t.dd, false, ["easy/double"], {
+      alice: [0],
+      bob: [null],
+    });
+  }, true);
 
-  await t.step({
-    ignore,
-    name: "same exercise differs for other people",
-    fn: async () => { // {{041}}}
-      const response = await endpoint(
-        "bob",
-        "/api/subject/problem/render",
-        deuid("easy/double"),
-      );
-      const problem = response?.problem?.main;
-      assert(typeof problem === "string");
-      fetchedProblems.bobDouble = problem;
-      assertNotEquals(problem, fetchedProblems.aliceDouble);
-    },
+  await ffm.test("same exercise differs for other people", async () => { // {{041}}}
+    const response = await endpoint(
+      "bob",
+      "/api/subject/problem/render",
+      deuid("easy/double"),
+    );
+    const problem = response?.problem?.main;
+    assert(typeof problem === "string");
+    fetchedProblems.bobDouble = problem;
+    assertNotEquals(problem, fetchedProblems.aliceDouble);
   });
 
-  ignore ||= !await t.step({
-    ignore,
-    name: "[BOB] send correct answer for `double`",
-    fn: async () => { // {{050}}}
-      await endpoint("bob", "/api/subject/problem/submit", {
-        ...deuid("easy/double"),
-        answer: {
-          answers: [
-            generateProblemAnswer("double", fetchedProblems.bobDouble ?? ""),
-          ],
-        },
-      });
-      await checkState(data.t.dd, false, ["easy/double"], {
-        alice: [0],
-        bob: [1],
-      });
-    },
-  }) && ff;
+  await ffm.test("[BOB] send correct answer for `double`", async () => { // {{050}}}
+    await endpoint("bob", "/api/subject/problem/submit", {
+      ...deuid("easy/double"),
+      answer: {
+        answers: [
+          generateProblemAnswer("double", fetchedProblems.bobDouble ?? ""),
+        ],
+      },
+    });
+    await checkState(data.t.dd, false, ["easy/double"], {
+      alice: [0],
+      bob: [1],
+    });
+  }, true);
 
-  ignore ||= !await t.step({
-    ignore,
-    name: "[ALICE] beat her score",
-    fn: async () => { // {{055}}}
-      await endpoint("alice", "/api/subject/problem/submit", {
-        ...deuid("easy/double"),
-        answer: {
-          answers: [
-            generateProblemAnswer("double", fetchedProblems.aliceDouble ?? ""),
-          ],
-        },
-      });
-      await checkState(data.t.dd, false, ["easy/double"], {
-        alice: [1],
-        bob: [1],
-      });
-    },
-  }) && ff;
+  await ffm.test("[ALICE] beat her score", async () => { // {{055}}}
+    await endpoint("alice", "/api/subject/problem/submit", {
+      ...deuid("easy/double"),
+      answer: {
+        answers: [
+          generateProblemAnswer("double", fetchedProblems.aliceDouble ?? ""),
+        ],
+      },
+    });
+    await checkState(data.t.dd, false, ["easy/double"], {
+      alice: [1],
+      bob: [1],
+    });
+  }, true);
 
-  await t.step({
-    ignore,
-    name: "answers in one session don't bother in another",
-    fn: async () => { // {{060}}}
-      await checkState(data.t.d, false, [], { mike: [] });
-    },
+  await ffm.test("answers in one session don't bother in another", async () => { // {{060}}}
+    await checkState(data.t.d, false, [], { mike: [] });
   });
 
-  ignore ||= !await t.step({
-    ignore,
-    name: "[LANNY] add `concat` exercise to session",
-    fn: async () => { // {{070}}}
-      await endpoint("lanny", "/api/session/add", {
-        teamId: data.t.dd.id,
-        ...deuid("_easy/concat"),
-      });
-      await checkState(data.t.dd, false, ["easy/double", "_easy/concat"], {
-        alice: [1, null],
-        bob: [1, null],
-      });
-      let response = await endpoint(
-        "bob",
-        "/api/subject/problem/render",
-        deuid("_easy/concat"),
-      );
-      let problem = response?.problem?.main;
-      assert(typeof problem === "string");
-      fetchedProblems.bobConcat = problem;
-      response = await endpoint(
-        "alice",
-        "/api/subject/problem/render",
-        deuid("_easy/concat"),
-      );
-      problem = response?.problem?.main;
-      assert(typeof problem === "string");
-      fetchedProblems.aliceConcat = problem;
-    },
-  }) && ff;
+  await ffm.test("[LANNY] add `concat` exercise to session", async () => { // {{070}}}
+    await endpoint("lanny", "/api/session/add", {
+      teamId: data.t.dd.id,
+      ...deuid("_easy/concat"),
+    });
+    await checkState(data.t.dd, false, ["easy/double", "_easy/concat"], {
+      alice: [1, null],
+      bob: [1, null],
+    });
+    let response = await endpoint(
+      "bob",
+      "/api/subject/problem/render",
+      deuid("_easy/concat"),
+    );
+    let problem = response?.problem?.main;
+    assert(typeof problem === "string");
+    fetchedProblems.bobConcat = problem;
+    response = await endpoint(
+      "alice",
+      "/api/subject/problem/render",
+      deuid("_easy/concat"),
+    );
+    problem = response?.problem?.main;
+    assert(typeof problem === "string");
+    fetchedProblems.aliceConcat = problem;
+  }, true);
 
-  ignore ||= !await t.step({
-    ignore,
-    name: "[ALICE] send correct answer for `concat`",
-    fn: async () => { // {{080}}}
-      await endpoint("alice", "/api/subject/problem/submit", {
-        ...deuid("_easy/concat"),
-        answer: {
-          answers: [
-            generateProblemAnswer("concat", fetchedProblems.aliceConcat ?? ""),
-          ],
-        },
-      });
-      await checkState(data.t.dd, false, ["easy/double", "_easy/concat"], {
-        alice: [1, 1],
-        bob: [1, null],
-      });
-    },
-  }) && ff;
+  await ffm.test("[ALICE] send correct answer for `concat`", async () => { // {{080}}}
+    await endpoint("alice", "/api/subject/problem/submit", {
+      ...deuid("_easy/concat"),
+      answer: {
+        answers: [
+          generateProblemAnswer("concat", fetchedProblems.aliceConcat ?? ""),
+        ],
+      },
+    });
+    await checkState(data.t.dd, false, ["easy/double", "_easy/concat"], {
+      alice: [1, 1],
+      bob: [1, null],
+    });
+  }, true);
 
-  ignore ||= !await t.step({
-    ignore,
-    name: "[LANNY] delete `double` exercise from session",
-    fn: async () => { // {{090}}}
-      await endpoint("lanny", "/api/session/delete", {
-        teamId: data.t.dd.id,
-        ...deuid("easy/double"),
-      });
-      await checkState(data.t.dd, false, ["_easy/concat"], {
-        alice: [1],
-        bob: [null],
-      });
-      const response = await endpoint(
-        "alice",
-        "/api/subject/problem/render",
-        deuid("easy/double"),
-      );
-      const problem = response?.problem?.main;
-      assert(typeof problem === "string");
-      assertEquals(problem, fetchedProblems.aliceOldDouble);
-    },
-  }) && ff;
+  await ffm.test("[LANNY] delete `double` exercise from session", async () => { // {{090}}}
+    await endpoint("lanny", "/api/session/delete", {
+      teamId: data.t.dd.id,
+      ...deuid("easy/double"),
+    });
+    await checkState(data.t.dd, false, ["_easy/concat"], {
+      alice: [1],
+      bob: [null],
+    });
+    const response = await endpoint(
+      "alice",
+      "/api/subject/problem/render",
+      deuid("easy/double"),
+    );
+    const problem = response?.problem?.main;
+    assert(typeof problem === "string");
+    assertEquals(problem, fetchedProblems.aliceOldDouble);
+  }, true);
 
-  ignore ||= !await t.step({
-    ignore,
-    name: "[RALPH] has own working session",
-    fn: async () => { // {{100}}}
-      await endpoint("ralph", "/api/session/add", {
-        teamId: data.t.d.id,
-        ...deuid("_easy/concat"),
-      });
-      await checkState(data.t.d, false, ["_easy/concat"], {
-        mike: [null],
-      });
-      const response = await endpoint(
-        "mike",
-        "/api/subject/problem/render",
-        deuid("_easy/concat"),
-      );
-      const problem = response?.problem?.main;
-      assert(typeof problem === "string");
-      fetchedProblems.mikeConcat = problem;
-      await endpoint("mike", "/api/subject/problem/submit", {
-        ...deuid("_easy/concat"),
-        answer: {
-          answers: [
-            generateProblemAnswer("concat", problem),
-          ],
-        },
-      });
-      await checkState(data.t.d, false, ["_easy/concat"], {
-        mike: [1],
-      });
-      await checkState(data.t.dd, false, ["_easy/concat"], {
-        alice: [1],
-        bob: [null],
-      });
-    },
-  }) && ff;
+  await ffm.test("[RALPH] has own working session", async () => { // {{100}}}
+    await endpoint("ralph", "/api/session/add", {
+      teamId: data.t.d.id,
+      ...deuid("_easy/concat"),
+    });
+    await checkState(data.t.d, false, ["_easy/concat"], {
+      mike: [null],
+    });
+    const response = await endpoint(
+      "mike",
+      "/api/subject/problem/render",
+      deuid("_easy/concat"),
+    );
+    const problem = response?.problem?.main;
+    assert(typeof problem === "string");
+    fetchedProblems.mikeConcat = problem;
+    await endpoint("mike", "/api/subject/problem/submit", {
+      ...deuid("_easy/concat"),
+      answer: {
+        answers: [
+          generateProblemAnswer("concat", problem),
+        ],
+      },
+    });
+    await checkState(data.t.d, false, ["_easy/concat"], {
+      mike: [1],
+    });
+    await checkState(data.t.dd, false, ["_easy/concat"], {
+      alice: [1],
+      bob: [null],
+    });
+  }, true);
 
-  ignore ||= !await t.step({
-    ignore,
-    name: "[LANNY] end a session => [BOB] can't send answers",
-    fn: async () => { // {{110}}}
+  await ffm.test(
+    "[LANNY] end a session => [BOB] can't send answers",
+    async () => { // {{110}}}
       await endpoint("lanny", "/api/session/end", { teamId: data.t.dd.id });
       await checkState(data.t.dd, true, ["_easy/concat"], {
         alice: [1],
@@ -465,34 +397,31 @@ export async function initSessionTests(
         bob: [null],
       });
     },
-  }) && ff;
+    true,
+  );
 
-  ignore ||= !await t.step({
-    ignore,
-    name: "[LANNY] can't manage not own session",
-    fn: async () => { // {{117}}}
-      await endpoint("lanny", "/api/session/delete", {
-        teamId: data.t.d.id,
-        ...deuid("_easy/concat"),
-      }, 403);
-      await endpoint("lanny", "/api/session/add", {
-        teamId: data.t.d.id,
-        ...deuid("easy/double"),
-      }, 403);
-      await endpoint(
-        "lanny",
-        "/api/session/status",
-        { teamId: data.t.d.id },
-        403,
-      );
-      await endpoint("lanny", "/api/session/end", { teamId: data.t.d.id }, 403);
-      await checkState(data.t.d, false, ["_easy/concat"], {
-        mike: [1],
-      });
-    },
-  }) && ff;
+  await ffm.test("[LANNY] can't manage not own session", async () => { // {{117}}}
+    await endpoint("lanny", "/api/session/delete", {
+      teamId: data.t.d.id,
+      ...deuid("_easy/concat"),
+    }, 403);
+    await endpoint("lanny", "/api/session/add", {
+      teamId: data.t.d.id,
+      ...deuid("easy/double"),
+    }, 403);
+    await endpoint(
+      "lanny",
+      "/api/session/status",
+      { teamId: data.t.d.id },
+      403,
+    );
+    await endpoint("lanny", "/api/session/end", { teamId: data.t.d.id }, 403);
+    await checkState(data.t.d, false, ["_easy/concat"], {
+      mike: [1],
+    });
+  }, true);
 
-  return ignore;
+  return ffm.ignore;
 }
 
 registerRoleTest(basename(import.meta.url), initSessionTests);

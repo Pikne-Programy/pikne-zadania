@@ -27,7 +27,7 @@ jobs:
       - name: Run tests & Generate coverage report
         run: |
           set +e
-          docker-compose exec -T api /bin/sh -c "LIVE_BENCH=false DONT_FAIL_FAST=true deno test -A --unstable --coverage=/tmp/coverage --cached-only"
+          docker-compose exec -T api /bin/sh -c "LIVE_BENCH=false FAIL_FAST=false deno test -A --unstable --coverage=/tmp/coverage --cached-only"
           SUC=$?
           docker-compose exec -T api deno coverage /tmp/coverage --lcov > deno.lcov && exit $SUC
         if: always()

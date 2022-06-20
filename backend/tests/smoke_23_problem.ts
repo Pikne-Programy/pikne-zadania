@@ -12,6 +12,7 @@ import {
   RoleTestContext,
 } from "./smoke_mod.ts";
 import { data } from "./testdata/config.ts";
+import { FailFastManager } from "./utils/fail-fast.ts";
 
 interface DataEndpoint {
   "/api/subject/problem/render": {
@@ -30,10 +31,9 @@ interface DataEndpoint {
 export async function initProblemTests(
   t: Deno.TestContext,
   g: RoleTestContext,
-  ff: boolean,
 ) {
   const endpoint = endpointFactory<DataEndpoint>(g);
-  let ignore = false;
+  const ffm = new FailFastManager(t, undefined);
 
   const rendered = {
     "type": "EqEx",
@@ -85,141 +85,108 @@ export async function initProblemTests(
     return done1;
   }
 
-  await t.step({
-    ignore,
-    name: "Admin - render an exercise with seed",
-    fn: async () => {
-      const response = await endpoint(
-        "root",
-        "/api/subject/problem/render",
-        { subject: "fizyka", exerciseId: "pociagi-dwa-2", seed: 0 },
-        200,
-      );
-      assertEquals(response, rendered, "Rendering exercise failed");
-    },
+  await ffm.test("Admin - render an exercise with seed", async () => {
+    const response = await endpoint(
+      "root",
+      "/api/subject/problem/render",
+      { subject: "fizyka", exerciseId: "pociagi-dwa-2", seed: 0 },
+      200,
+    );
+    assertEquals(response, rendered, "Rendering exercise failed");
   });
 
-  await t.step({
-    ignore,
-    name: "Teacher - render an exercise with seed",
-    fn: async () => {
-      const response = await endpoint(
-        "lanny",
-        "/api/subject/problem/render",
-        { subject: "fizyka", exerciseId: "pociagi-dwa-2", seed: 0 },
-        200,
-      );
-      assertEquals(response, rendered, "Rendering exercise failed");
-    },
+  await ffm.test("Teacher - render an exercise with seed", async () => {
+    const response = await endpoint(
+      "lanny",
+      "/api/subject/problem/render",
+      { subject: "fizyka", exerciseId: "pociagi-dwa-2", seed: 0 },
+      200,
+    );
+    assertEquals(response, rendered, "Rendering exercise failed");
   });
 
-  await t.step({
-    ignore,
-    name: "Student - render an exercise",
-    fn: async () => {
-      const response = await endpoint(
-        "alice",
-        "/api/subject/problem/render",
-        { subject: "fizyka", exerciseId: "pociagi-dwa-2" },
-        200,
-      );
-      assertEquals(response, studentVer, "Rendering exercise failed");
-    },
+  await ffm.test("Student - render an exercise", async () => {
+    const response = await endpoint(
+      "alice",
+      "/api/subject/problem/render",
+      { subject: "fizyka", exerciseId: "pociagi-dwa-2" },
+      200,
+    );
+    assertEquals(response, studentVer, "Rendering exercise failed");
   });
 
-  await t.step({
-    ignore,
-    name: "Student - check whether seed is working",
-    fn: async () => {
-      const response = await endpoint(
-        "alice",
-        "/api/subject/problem/render",
-        { subject: "fizyka", exerciseId: "pociagi-dwa" },
-        200,
-      );
-      const response2 = await endpoint(
-        "alice",
-        "/api/subject/problem/render",
-        { subject: "fizyka", exerciseId: "pociagi-dwa" },
-        200,
-      );
-      assertEquals(
-        response,
-        response2,
-        "Failed to render same content with same seed",
-      );
-    },
+  await ffm.test("Student - check whether seed is working", async () => {
+    const response = await endpoint(
+      "alice",
+      "/api/subject/problem/render",
+      { subject: "fizyka", exerciseId: "pociagi-dwa" },
+      200,
+    );
+    const response2 = await endpoint(
+      "alice",
+      "/api/subject/problem/render",
+      { subject: "fizyka", exerciseId: "pociagi-dwa" },
+      200,
+    );
+    assertEquals(
+      response,
+      response2,
+      "Failed to render same content with same seed",
+    );
   });
 
-  await t.step({
-    ignore,
-    name: "Not logged in - render an exercise",
-    fn: async () => {
-      const response = await endpoint(
-        "eve",
-        "/api/subject/problem/render",
-        { subject: "fizyka", exerciseId: "pociagi-dwa-2" },
-        200,
-      );
-      assertEquals(response, studentVer, "Rendering exercise failed");
-    },
+  await ffm.test("Not logged in - render an exercise", async () => {
+    const response = await endpoint(
+      "eve",
+      "/api/subject/problem/render",
+      { subject: "fizyka", exerciseId: "pociagi-dwa-2" },
+      200,
+    );
+    assertEquals(response, studentVer, "Rendering exercise failed");
   });
 
-  await t.step({
-    ignore,
-    name: "Admin - non-existing exercise",
-    fn: async () => {
-      await endpoint(
-        "root",
-        "/api/subject/problem/render",
-        { subject: "matematyka", exerciseId: "pociagi-dwa-2", seed: 0 },
-        404,
-      );
-    },
+  await ffm.test("Admin - non-existing exercise", async () => {
+    await endpoint(
+      "root",
+      "/api/subject/problem/render",
+      { subject: "matematyka", exerciseId: "pociagi-dwa-2", seed: 0 },
+      404,
+    );
   });
 
-  ignore ||= !await t.step({
-    ignore,
-    name: "Admin - submit a solution (50%)",
-    fn: async () => {
-      await endpoint(
-        "root",
-        "/api/subject/problem/submit",
-        {
-          subject: "fizyka",
-          exerciseId: "pociagi-dwa-2",
-          answer: {
-            answers: [1, 0],
-          },
+  await ffm.test("Admin - submit a solution (50%)", async () => {
+    await endpoint(
+      "root",
+      "/api/subject/problem/submit",
+      {
+        subject: "fizyka",
+        exerciseId: "pociagi-dwa-2",
+        answer: {
+          answers: [1, 0],
         },
-        [200, { info: [true, false] }],
-      );
-    },
-  }) && ff;
+      },
+      [200, { info: [true, false] }],
+    );
+  }, true);
 
-  ignore ||= !await t.step({
-    ignore,
-    name: "Admin - submit a solution (100%)",
-    fn: async () => {
-      await endpoint(
-        "root",
-        "/api/subject/problem/submit",
-        {
-          subject: "fizyka",
-          exerciseId: "pociagi-dwa-2",
-          answer: {
-            answers: [1, 1],
-          },
+  await ffm.test("Admin - submit a solution (100%)", async () => {
+    await endpoint(
+      "root",
+      "/api/subject/problem/submit",
+      {
+        subject: "fizyka",
+        exerciseId: "pociagi-dwa-2",
+        answer: {
+          answers: [1, 1],
         },
-        [200, { info: [true, true] }],
-      );
-    },
-  }) && ff;
+      },
+      [200, { info: [true, true] }],
+    );
+  }, true);
 
-  ignore ||= !await t.step({
-    ignore,
-    name: "Admin - submit a solution (lower than highscore)",
-    fn: async () => {
+  await ffm.test(
+    "Admin - submit a solution (lower than highscore)",
+    async () => {
       await endpoint(
         "root",
         "/api/subject/problem/submit",
@@ -233,79 +200,67 @@ export async function initProblemTests(
         [200, { info: [true, false] }],
       );
     },
-  }) && ff;
+    true,
+  );
 
-  ignore ||= !await t.step({
-    ignore,
-    name: "Admin - submit non-existing exercise",
-    fn: async () => {
-      await endpoint(
-        "root",
-        "/api/subject/problem/submit",
-        {
-          subject: "matematyka",
-          exerciseId: "pociagi-dwa-2",
-          answer: {
-            answers: [123, 456],
-          },
+  await ffm.test("Admin - submit non-existing exercise", async () => {
+    await endpoint(
+      "root",
+      "/api/subject/problem/submit",
+      {
+        subject: "matematyka",
+        exerciseId: "pociagi-dwa-2",
+        answer: {
+          answers: [123, 456],
         },
-        404,
-      );
-    },
-  }) && ff;
+      },
+      404,
+    );
+  }, true);
 
-  ignore ||= !await t.step({
-    ignore,
-    name: "Student - submit a solution (0%)",
-    fn: async () => {
-      await endpoint(
-        "alice",
-        "/api/subject/problem/submit",
-        {
-          subject: "fizyka",
-          exerciseId: "pociagi-dwa-2",
-          answer: {
-            answers: [-123, 18283239723897],
-          },
+  await ffm.test("Student - submit a solution (0%)", async () => {
+    await endpoint(
+      "alice",
+      "/api/subject/problem/submit",
+      {
+        subject: "fizyka",
+        exerciseId: "pociagi-dwa-2",
+        answer: {
+          answers: [-123, 18283239723897],
         },
-        [200, { info: [false, false] }],
-      );
-      assertEquals(
-        await getDone("alice", "pociagi-dwa-2"),
-        0,
-        "Done not saved",
-      );
-    },
-  }) && ff;
+      },
+      [200, { info: [false, false] }],
+    );
+    assertEquals(
+      await getDone("alice", "pociagi-dwa-2"),
+      0,
+      "Done not saved",
+    );
+  }, true);
 
-  ignore ||= !await t.step({
-    ignore,
-    name: "Student - submit a solution (100%)",
-    fn: async () => {
-      await endpoint(
-        "alice",
-        "/api/subject/problem/submit",
-        {
-          subject: "fizyka",
-          exerciseId: "pociagi-dwa-2",
-          answer: {
-            answers: [1, 1],
-          },
+  await ffm.test("Student - submit a solution (100%)", async () => {
+    await endpoint(
+      "alice",
+      "/api/subject/problem/submit",
+      {
+        subject: "fizyka",
+        exerciseId: "pociagi-dwa-2",
+        answer: {
+          answers: [1, 1],
         },
-        [200, { info: [true, true] }],
-      );
-      assertEquals(
-        await getDone("alice", "pociagi-dwa-2"),
-        1,
-        "Done not saved",
-      );
-    },
-  }) && ff;
+      },
+      [200, { info: [true, true] }],
+    );
+    assertEquals(
+      await getDone("alice", "pociagi-dwa-2"),
+      1,
+      "Done not saved",
+    );
+  }, true);
 
-  ignore ||= !await t.step({
-    ignore,
-    name: "Student - submit a solution (lower than highscore)",
-    fn: async () => {
+  await ffm.test(
+    "Student - submit a solution (lower than highscore)",
+    async () => {
       await endpoint(
         "alice",
         "/api/subject/problem/submit",
@@ -324,33 +279,30 @@ export async function initProblemTests(
         "Done not saved",
       );
     },
-  }) && ff;
+    true,
+  );
 
-  ignore ||= !await t.step({
-    ignore,
-    name: "Teacher - submit a solution (50%)",
-    fn: async () => {
-      await endpoint(
-        "lanny",
-        "/api/subject/problem/submit",
-        {
-          subject: "fizyka",
-          exerciseId: "pociagi-dwa-2",
-          answer: {
-            answers: [1, 17],
-          },
+  await ffm.test("Teacher - submit a solution (50%)", async () => {
+    await endpoint(
+      "lanny",
+      "/api/subject/problem/submit",
+      {
+        subject: "fizyka",
+        exerciseId: "pociagi-dwa-2",
+        answer: {
+          answers: [1, 17],
         },
-        [200, { info: [true, false] }],
-      );
-      assertEquals(
-        await getDone("lanny", "pociagi-dwa-2"),
-        0.5,
-        "Done not saved",
-      );
-    },
-  }) && ff;
+      },
+      [200, { info: [true, false] }],
+    );
+    assertEquals(
+      await getDone("lanny", "pociagi-dwa-2"),
+      0.5,
+      "Done not saved",
+    );
+  }, true);
 
-  return ignore;
+  return ffm.ignore;
 }
 
 registerRoleTest(basename(import.meta.url), initProblemTests);

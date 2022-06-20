@@ -21,6 +21,7 @@ import {
 
 import { initE2eTests } from "./smoke_10_e2e.ts";
 import { initRoleTests } from "./smoke_20_role.ts";
+import { FailFastManager } from "./utils/fail-fast.ts";
 
 const LIVE_BENCH = get("boolean", "LIVE_BENCH", true);
 let timing = false;
@@ -119,27 +120,9 @@ async function initRole(e2eCtx: E2eTestContext): Promise<RoleTestContext> {
   };
 }
 
-const DONT_FAIL_FAST = get("boolean", "DONT_FAIL_FAST", false);
-
-type TC = Deno.TestContext;
 interface initFunc<T> {
-  (t: TC, ctx: T, ff: boolean): Promise<boolean> | boolean;
+  (t: Deno.TestContext, ctx: T): Promise<boolean> | boolean;
 }
-async function wrapper<T>(
-  t: TC,
-  ctx: T,
-  n: string,
-  fn: initFunc<T>,
-  optional = false,
-) {
-  let critic = true;
-  const r = await t.step(n, async (t) => {
-    critic = await fn(t, ctx, !DONT_FAIL_FAST);
-  });
-  assert(DONT_FAIL_FAST || optional || !critic || r, `${n} suite is required`);
-  return r;
-}
-
 const selectedTests: [string, initFunc<RoleTestContext>][] = [];
 export function registerRoleTest(
   name: string,
@@ -149,10 +132,9 @@ export function registerRoleTest(
   selectedTests.push([name, init]);
 }
 
-const optionalRoleSuites: string[] = [
+const optionalRoleSuites: Set<string> = new Set([
   // "smoke_21_team.ts",
-  // "smoke_23_problem.ts",
-];
+]);
 
 Deno.test("smoke", async (t) => {
   await bench("init exercises", async () => {
@@ -172,9 +154,10 @@ Deno.test("smoke", async (t) => {
     await t.step("role", async (t) => {
       const roleCtx = await bench("init roles", () => initRole(e2eCtx));
       await initRoleTests(t, roleCtx);
+      const ffm = new FailFastManager(t, roleCtx);
       for (const [name, init] of selectedTests) {
-        const optional = optionalRoleSuites.includes(name);
-        await wrapper(t, roleCtx, name, init, optional);
+        const optional = optionalRoleSuites.has(name);
+        await ffm.testCritic(name, init, !optional);
       }
     });
   });
