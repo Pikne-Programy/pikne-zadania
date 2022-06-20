@@ -9,3 +9,4 @@ import "./smoke_23_problem.ts";
 import "./smoke_24_hierarchy.ts";
 import "./smoke_25_subject.ts";
 import "./smoke_26_session.ts";
+import "./smoke_27_report.ts";

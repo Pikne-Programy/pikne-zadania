@@ -8,6 +8,7 @@ export {
   assert,
   assertEquals,
   assertNotEquals,
+  assertStringIncludes,
 } from "https://deno.land/std@0.141.0/testing/asserts.ts";
 
 export { superoak } from "https://deno.land/x/superoak@4.7.0/mod.ts";

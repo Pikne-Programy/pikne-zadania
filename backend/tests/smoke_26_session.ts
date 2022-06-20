@@ -54,7 +54,10 @@ function unicode(x: number | null) {
   }
 }
 
-export async function initSessionTests(t: Deno.TestContext,g: RoleTestContext,) {
+export async function initSessionTests(
+  t: Deno.TestContext,
+  g: RoleTestContext,
+) {
   const endpoint = endpointFactory<DataEndpoint>(g);
   const ffm = new FailFastManager(t, undefined);
 

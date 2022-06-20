@@ -133,7 +133,7 @@ export function registerRoleTest(
 }
 
 const optionalRoleSuites: Set<string> = new Set([
-  // "smoke_21_team.ts",
+  // "smoke_26_session.ts",
 ]);
 
 Deno.test("smoke", async (t) => {
