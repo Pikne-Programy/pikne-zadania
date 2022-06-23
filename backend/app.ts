@@ -76,7 +76,7 @@ export async function constructApp(cfg: IConfigService = new ConfigService()) {
   const sc = new SubjectController(cfg, jwt, target.us, target.ts, ss, es, ex);
   const tc = new TeamController(jwt, target.us, target.ts);
   const uc = new UserController(jwt, target.us, target.ts);
-  const sec = new SessionController(jwt, target.us, target.ts, es, ex, ss);
+  const sec = new SessionController(cfg, jwt, target.us, target.ts, es, ex, ss, rep);
 
   const rb = new ApiRouterBuilder(ac, sc, tc, uc, sec);
 

@@ -143,4 +143,8 @@ export const schemas = {
       ifNull: null,
     }),
   },
+
+  report: {
+    filename: vs.string(), // TODO: make stricter
+  },
 };

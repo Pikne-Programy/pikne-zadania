@@ -69,7 +69,8 @@ export class ReportsService implements IReportsService {
     }
     rows = [exercises, ...rows];
 
-    const path = this.generateFileName(tid);
+    const filename = this.generateFileName(tid)
+    const path = `${this.cfg.REPORTS_PATH}/${filename}`;
     try {
       const f = await Deno.open(path, {
         write: true,
@@ -83,7 +84,7 @@ export class ReportsService implements IReportsService {
     }
     const team = this.ts.get(tid);
     await team.reports.push(path);
-    return path;
+    return filename;
   }
 
   async delete(path: string) {
@@ -106,8 +107,8 @@ export class ReportsService implements IReportsService {
 
   private generateFileName(teamId: number) {
     const datetime = format(new Date(), "yyyy-MM-ddTHH:mm:ss"); // TODO: current timezone
-    const path = `${this.cfg.REPORTS_PATH}report_${teamId}_${datetime}.csv`;
-    return path;
+    const filename = `report_${teamId}_${datetime}.csv`;
+    return filename;
   }
 
   private getDataFromPath(path: string) {
