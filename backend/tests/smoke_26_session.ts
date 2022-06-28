@@ -383,7 +383,7 @@ export async function initSessionTests(
         endpoint("bob", "/api/subject/problem/submit", {
           ...deuid("_easy/concat"),
           answer: { answers: [answer] },
-        });
+        }, 403);
       let problem = fetchedProblems.bobConcat ?? "";
       await tryAnswer(generateProblemAnswer("concat", problem));
       await tryAnswer(generateProblemAnswer("concat", problem, false));

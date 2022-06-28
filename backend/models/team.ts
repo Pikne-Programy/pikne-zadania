@@ -181,16 +181,16 @@ export class Team implements ITeam {
   };
   readonly reports = {
     list: async () => await this.get("reports"),
-    push: async (path: string) => {
+    push: async (filename: string) => {
       if (!await this.exists()) throw new Error(); // TODO: error message
       await this.db.teams!.updateOne({ id: this.id }, {
-        $push: { "reports": { $each: [path] } },
+        $addToSet: { "reports": filename },
       });
     },
-    pull: async (path: string) => {
+    pull: async (filename: string) => {
       if (!await this.exists()) throw new Error(); // TODO: error message
       await this.db.teams!.updateOne({ id: this.id }, {
-        $pull: { "reports": path },
+        $pull: { "reports": filename },
       });
     },
   };

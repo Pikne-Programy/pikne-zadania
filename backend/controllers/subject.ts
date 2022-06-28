@@ -71,7 +71,7 @@ export class SubjectController extends Authorizer {
     team: ITeam | undefined,
     subject: string,
     eid: string,
-    view=false,
+    view = false,
   ) {
     if (team) {
       return ((await team.session.exercises.get()).includes(

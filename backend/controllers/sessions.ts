@@ -1,4 +1,5 @@
 // Copyright 2022 Michał Szymocha <szymocha.michal@gmail.com>
+// Copyright 2022 Marcin Wykpis <marwyk2003@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -79,7 +80,7 @@ export class SessionController extends Authorizer {
     await team.session.seedOffset.set(generateSeed());
     ctx.response.status = 200; //! D
   }
-  
+
   async add(ctx: RouterContext) {
     const user = await this.authorize(ctx); //! A
     const { teamId, subject, exerciseId } = await followSchema(ctx, {
@@ -244,8 +245,8 @@ export class SessionController extends Authorizer {
         throw new httpErrors["NotFound"](); //! EV
       }
       const r = await team.session.report.get();
-      const path = await this.parent.rep.save(teamId, r); //! O
-      ctx.response.body = { filename: path };
+      const filename = await this.parent.rep.save(teamId, r); //! O
+      ctx.response.body = { filename };
       ctx.response.status = 200; //! D
     },
 
@@ -254,7 +255,9 @@ export class SessionController extends Authorizer {
       const { filename } = await followSchema(ctx, {
         filename: schemas.report.filename,
       }); //! R
-      if (!["admin", "teacher"].includes(await user.role.get())) {
+      const teamId = this.parent.rep.getDataFromFilename(filename).tid;
+      if (teamId === null) throw new httpErrors["NotFound"]();
+      if (!await this.parent.isAssignee(teamId, user.id)) {
         throw new httpErrors["Forbidden"]();
       } //! P
       await this.parent.rep.delete(filename); //! O
@@ -269,16 +272,25 @@ export class SessionController extends Authorizer {
       const user = await this.parent.authorize(ctx); //! A
       const { filename } = ctx.params;
       if (!filename) throw new Error("never"); //! R
-      if (!["admin", "teacher"].includes(await user.role.get())) {
+      const teamId = this.parent.rep.getDataFromFilename(filename).tid;
+      if (teamId === null || !await this.parent.isAssignee(teamId, user.id)) {
         throw new httpErrors["Forbidden"]();
       } //! P
-      // console.log(`${this.parent.cfg.REPORTS_PATH}/${filename}`);
-      // console.log(await this.parent.rep.get(`${this.parent.cfg.REPORTS_PATH}/${filename}`));
-      const res = await Deno.readTextFile(`${this.parent.cfg.REPORTS_PATH}/${filename}`);
+      let res: string;
+      try {
+        res = this.parent.rep.getRaw(
+          `${this.parent.cfg.REPORTS_PATH}/${filename}`,
+        ); //! E
+      } catch (error) {
+        if (error instanceof Deno.errors.NotFound) {
+          throw new httpErrors["Forbidden"]();
+        }
+        throw error;
+      }
       ctx.response.body = res;
-      // await send(ctx, filename, {
-      //   root: this.parent.cfg.REPORTS_PATH,
-      // });
+      await send(ctx, filename, {
+        root: this.parent.cfg.REPORTS_PATH,
+      });
       //! OD
     },
   };

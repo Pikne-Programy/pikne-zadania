@@ -13,5 +13,9 @@ export interface IReportsService {
   get(
     path: string,
   ): Promise<ReportType>;
+  getRaw(path: string): string;
   delete(path: string): Promise<void>;
+  getDataFromFilename(
+    filename: string,
+  ): { tid: number | null; datetime: string | null };
 }

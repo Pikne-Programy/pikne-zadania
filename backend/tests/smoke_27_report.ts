@@ -1,5 +1,5 @@
 // Copyright 2022 Marcin Zepp <nircek-2103@protonmail.com>
-// ((*) := 'Tue, 21 Jun 2022 00:33:41 +0200')  # delete this line lmao
+// Copyright 2022 Marcin Wykpis <marwyk2003@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-laterimport { basename } from "../deps.ts";
 
@@ -47,8 +47,7 @@ export async function initReportTests(t: Deno.TestContext, g: RoleTestContext) {
       .get("/api/session/static/" + filename)
       .set("Cookie", g.roles[user])
       .expect(expected);
-    assert(typeof res.body === "string");
-    return res.body;
+    return res.text;
   }
 
   await ffm.test("there is no reports", async () => { // {{200}}}
@@ -70,16 +69,21 @@ export async function initReportTests(t: Deno.TestContext, g: RoleTestContext) {
     }
   });
 
-  /*
-    TODO: 404, 403 - it might not be here; honestly, I don't know where it should be, surprise me f'~{(*)}'
-
-
-  await ffm.test("reference to non-existent report gives 404", async () => { // {{205}}}
+  await ffm.test("[Lanny] reference to non-existent report gives 404", async () => { // {{205}}}
+    await getStaticReport(
+      data.t.dd.a,
+      `report_${data.t.dd.id}_0000-00-00T00:00:00.csv`,
+      403,
+    );
   });
 
-  await ffm.test("...?", async () => { // {{206}}}
+  await ffm.test("[ALICE] reference to non-existent report gives 403", async () => { // {{206}}}
+    await getStaticReport(
+      "alice",
+      `report_${data.t.dd.id}_0000-00-00T00:00:00.csv`,
+      403,
+    );
   });
-  */
 
   let firstReport: string;
 
@@ -100,7 +104,7 @@ export async function initReportTests(t: Deno.TestContext, g: RoleTestContext) {
 
   await ffm.test("names and numbers are in report", () => { // {{215}}}
     for (const name of ["alice", "bob"] as const) {
-      assertStringIncludes(firstReport, name);
+      assertStringIncludes(firstReport, data.u[name].name);
       assertStringIncludes(firstReport, (data.u[name].number ?? "").toString());
     }
   });
@@ -155,14 +159,14 @@ export async function initReportTests(t: Deno.TestContext, g: RoleTestContext) {
         },
       }, [200, { info: [true, true] }]);
       let res = await endpoint("lanny", "/api/session/report/save", {
-        teamId: data.t.d.id,
+        teamId: data.t.dd.id,
       });
       const onlyBobReport = await getStaticReport("lanny", res.filename);
       assertStringIncludes(onlyBobReport, data.u.bob.name);
       assert(!onlyBobReport.includes(data.u.alice.name));
       await endpoint("alice", "/api/session/list", undefined);
       res = await endpoint("lanny", "/api/session/report/save", {
-        teamId: data.t.d.id,
+        teamId: data.t.dd.id,
       });
       const report = await getStaticReport("lanny", res.filename);
       assertStringIncludes(report, data.u.alice.name);
@@ -193,7 +197,6 @@ export async function initReportTests(t: Deno.TestContext, g: RoleTestContext) {
   });
 
   await ffm.test("teachers access and delete all reports", async () => { // {{280}}}
-    // *co*authored with @Marwyk2003 :P - dopisz se kopirajta na początku jak dopiszesz testy, pozdro f'~{(*)}'
     for (const t of ["d", "dd"] as const) {
       const team = data.t[t];
       const getReports = async () =>
@@ -203,9 +206,9 @@ export async function initReportTests(t: Deno.TestContext, g: RoleTestContext) {
       for (const r of await getReports()) {
         await getStaticReport(team.a, r);
         await endpoint(team.a, "/api/session/report/delete", { filename: r });
-        await getStaticReport(team.a, r, 404);
+        await getStaticReport(team.a, r, 403);
       }
-      assert((await getReports()).length == 0);
+      assert((await getReports()).length === 0);
     }
   });
 
