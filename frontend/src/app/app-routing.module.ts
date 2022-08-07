@@ -8,6 +8,7 @@ import { SubjectSelectComponent } from './subject-select/subject-select.componen
 import { NavComponent } from './navigation/nav.component';
 import { AuthGuardService } from './guards/auth-guard.service';
 import { RoleGuardService, TEACHER_ROLES } from './guards/role-guard.service';
+import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
 
 const routes: Routes = [
     { path: '', pathMatch: 'full', redirectTo: '/public-exercises' },
@@ -49,6 +50,20 @@ const routes: Routes = [
     {
         path: 'about',
         component: AboutComponent
+    },
+    {
+        path: '**',
+        redirectTo: '/page-not-found'
+    },
+    {
+        path: 'page-not-found',
+        component: NavComponent,
+        children: [
+            {
+                path: '',
+                component: PageNotFoundComponent
+            }
+        ]
     }
 ];
 

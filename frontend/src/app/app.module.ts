@@ -27,6 +27,7 @@ import { SubjectService } from './subjects/subject.service/subject.service';
 import { ExerciseModule } from './exercises/exercise.module';
 import { ProgressSaveGuardService } from './guards/progress-save-guard.service';
 import { ImagePreviewService } from './templates/image-preview/service/image-preview.service';
+import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
 
 @NgModule({
     declarations: [
@@ -35,7 +36,8 @@ import { ImagePreviewService } from './templates/image-preview/service/image-pre
         SubjectSelectComponent,
         RegisterComponent,
         LoginComponent,
-        AboutComponent
+        AboutComponent,
+        PageNotFoundComponent
     ],
     imports: [
         BrowserModule,
