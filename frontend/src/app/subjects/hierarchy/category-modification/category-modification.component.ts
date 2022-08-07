@@ -19,6 +19,7 @@ export class CategoryModificationComponent
     implements OnInit, OnDestroy {
     subject?: string;
     exercises?: CategoryExercise[];
+    filteredExercises?: CategoryExercise[];
 
     isLoading = true;
     errorCode: number | null = null;
@@ -54,10 +55,10 @@ export class CategoryModificationComponent
                           this.subject
                       );
                 promise
-                    .then(
-                        (exercises) =>
-                            (this.exercises = this.sortExercises(exercises))
-                    )
+                    .then((exercises) => {
+                        this.exercises = this.sortExercises(exercises);
+                        this.filteredExercises = this.exercises;
+                    })
                     .catch((error) => (this.errorCode = getErrorCode(error)))
                     .finally(() => (this.isLoading = false));
                 this.param$?.unsubscribe();
@@ -66,11 +67,7 @@ export class CategoryModificationComponent
     }
 
     private sortExercises(exercises: CategoryExercise[]): CategoryExercise[] {
-        return exercises.sort((a, b) => {
-            if (a.isDisabled && !b.isDisabled) return -1;
-            if (!a.isDisabled && b.isDisabled) return 1;
-            return a.name.localeCompare(b.name);
-        });
+        return exercises.sort((a, b) => a.name.localeCompare(b.name));
     }
 
     getSubjectName(subjectId: string): string {
@@ -88,7 +85,7 @@ export class CategoryModificationComponent
 
     selectExercise(exercise: CategoryExercise) {
         this._isModified = true;
-        if (!exercise.isDisabled) exercise.isSelected = !exercise.isSelected;
+        exercise.isSelected = !exercise.isSelected;
     }
 
     submit(nextRoute?: string) {
@@ -139,4 +136,31 @@ export class CategoryModificationComponent
     ngOnDestroy() {
         this.param$?.unsubscribe();
     }
+
+    //#region Searching
+    searchWord = '';
+
+    search() {
+        const searched = this.searchWord.trim().toLocaleLowerCase();
+        this.filteredExercises = this.exercises
+            ?.filter(
+                (exercise) =>
+                    searched.length === 0 ||
+                    exercise.isSelected ||
+                    exercise.name.toLocaleLowerCase().includes(searched)
+            )
+            ?.sort((a, b) => {
+                if (searched.length !== 0) {
+                    if (a.isSelected && !b.isSelected) return -1;
+                    if (!a.isSelected && b.isSelected) return 1;
+                    const aIndex = a.name.toLocaleLowerCase().indexOf(searched);
+                    const bIndex = b.name.toLocaleLowerCase().indexOf(searched);
+                    if (aIndex === -1 && bIndex !== -1) return 1;
+                    if (aIndex !== -1 && bIndex === -1) return -1;
+                    if (aIndex !== bIndex) return aIndex - bIndex;
+                }
+                return a.name.localeCompare(b.name);
+            });
+    }
+    //#endregion
 }

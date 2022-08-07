@@ -81,7 +81,7 @@ function mapToHierarchyTree(
 
 export interface CategoryExercise extends ListedExerciseType {
     isSelected: boolean;
-    isDisabled: boolean;
+    isAdded: boolean;
 }
 
 @Injectable({
@@ -334,30 +334,6 @@ export class HierarchyService {
                 if (category.length === 0)
                     throw { status: HierarchyService.ADD_TO_ROOT_CODE };
 
-                /* let currentNode = hierarchy.find(
-                    (node) => node.name === category[0]
-                );
-                let i = 0;
-                while (i < category.length) {
-                    i++;
-                    if (
-                        !currentNode ||
-                        typeof currentNode.children === 'string'
-                    ) {
-                        throw {
-                            status: HierarchyService.SUBCATEGORY_ERROR_CODE,
-                        };
-                    }
-
-                    if (i < category.length) {
-                        currentNode = currentNode.children.find(
-                            (node) => node.name === category[i]
-                        );
-                    }
-                }
-                const exercises = (
-                    currentNode!.children as ServerHierarchyNode[]
-                ) */
                 const exercises = this.findCategory(hierarchy, category)
                     .filter((node) => typeof node.children === 'string')
                     .map((node) => node.children as string);
@@ -384,7 +360,7 @@ export class HierarchyService {
                                       isSelected: presentExercises.has(
                                           exercise.id
                                       ),
-                                      isDisabled: presentExercises.has(
+                                      isAdded: presentExercises.has(
                                           exercise.id
                                       )
                                   }))
@@ -433,11 +409,18 @@ export class HierarchyService {
             throw { status: HierarchyService.CURRENT_CATEGORY_ERROR_CODE };
 
         const selected: ServerHierarchyNode[] = exercises
-            .filter((exercise) => exercise.isSelected && !exercise.isDisabled)
+            .filter((exercise) => exercise.isSelected && !exercise.isAdded)
             .map((exercise) => ({
                 name: exercise.name,
                 children: exercise.id
             }));
+        const toRemove: Set<string> = new Set(
+            exercises
+                .filter(
+                    (exercise) => exercise.isAdded && !exercise.isSelected
+                )
+                .map((exercise) => exercise.id)
+        );
 
         return this.getHierarchy(subjectId)
             .then((tree) =>
@@ -446,30 +429,25 @@ export class HierarchyService {
             .then((hierarchy) => {
                 if (list.length === 0) hierarchy.push(...selected);
                 else this.findCategory(hierarchy, list).push(...selected);
-                /* let currentNode = hierarchy.find(
-                        (node) => node.name === list[0]
-                    );
-                    let i = 0;
-                    while (i < list.length) {
-                        i++;
-                        if (
-                            !currentNode ||
-                            typeof currentNode.children === 'string'
-                        ) {
-                            throw {
-                                status: HierarchyService.SUBCATEGORY_ERROR_CODE,
-                            };
-                        }
 
-                        if (i < list.length) {
-                            currentNode = currentNode.children.find(
-                                (node) => node.name === list[i]
-                            );
+                if (list.length === 0) {
+                    hierarchy = hierarchy.filter(
+                        (node) =>
+                            typeof node.children !== 'string' ||
+                            !toRemove.has(node.children)
+                    );
+                }
+                else {
+                    const category = this.findCategory(hierarchy, list);
+                    for (let i = 0; i < category.length; i++) {
+                        const node = category[i];
+                        if (typeof node.children !== 'string') continue;
+                        if (toRemove.has(node.children)) {
+                            category.splice(i, 1);
+                            i--;
                         }
                     }
-                    (currentNode!.children as ServerHierarchyNode[]).push(
-                        ...selected
-                    ); */
+                }
 
                 return hierarchy;
             })

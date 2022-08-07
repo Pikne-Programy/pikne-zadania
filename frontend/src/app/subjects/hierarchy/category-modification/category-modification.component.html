@@ -1,6 +1,6 @@
-<div *ngIf="subject && exercises" class="columns is-root is-centered">
-    <div class="column is-flex is-flex-direction-column height-full is-half-tablet is-two-fifths-desktop is-one-third-widescreen is-one-forth-fullhd py-only-mobile-0">
-        <div class="panel is-flex is-flex-direction-column unscrollable">
+<div *ngIf="subject && exercises && filteredExercises" class="columns is-root is-centered">
+    <div class="column is-flex is-flex-direction-column height-full is-half-tablet is-two-fifths-desktop is-one-third-widescreen is-one-forth-fullhd px-only-mobile-5">
+        <div class="panel is-flex is-flex-direction-column height-full unscrollable">
             <p class="panel-heading icon-text">
                 <span>{{ getSubjectName(subject) | titlecase }}</span>
                 <ng-container *ngFor="let segment of getPanelHeader()">
@@ -10,10 +10,19 @@
                     <span>{{ segment | titlecase }}</span>
                 </ng-container>
             </p>
-            <!--TODO Searchbar -->
+            <!--#region Searchbar -->
+            <div class="panel-block">
+              <p class="control has-icons-left">
+                <input class="input" type="text" placeholder="Szukaj" [(ngModel)]="searchWord" (input)="search()">
+                <span class="icon is-left">
+                  <i class="fas fa-search" aria-hidden="true"></i>
+                </span>
+              </p>
+            </div>
+            <!--#endregion-->
             <div *ngIf="!isLoading" class="panel height-full scrollable">
-                <label *ngFor="let exercise of exercises" class="panel-block checkbox" (change)="selectExercise(exercise)">
-                    <input type="checkbox" [checked]="exercise.isSelected" [disabled]="exercise.isDisabled">
+                <label *ngFor="let exercise of filteredExercises" class="panel-block checkbox" (change)="selectExercise(exercise)">
+                    <input type="checkbox" [checked]="exercise.isSelected">
                     <span class="is-unselectable">{{ exercise.name | titlecase }}</span>
                 </label>
             </div>
