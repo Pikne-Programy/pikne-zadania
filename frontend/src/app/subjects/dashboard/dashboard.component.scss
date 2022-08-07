@@ -21,7 +21,7 @@ $fullhd: nth($size_breakpoints, 5);
         $special_sizes: 2, 10;
         @each $size in $special_sizes {
             &.is-#{$size}-bigscreen {
-                width: ($size / 12) * 100%;
+                width: calc($size / 12) * 100%;
             }
         }
     }

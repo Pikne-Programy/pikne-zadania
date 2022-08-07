@@ -123,7 +123,7 @@ describe('Service: Subject', () => {
                             );
                             expect(req.request.method).toEqual('GET');
                             if (errorCode === 500)
-                                req.flush('Server error', { status: errorCode });
+                                req.flush('Server error', { status: errorCode, statusText: 'Error' });
                             else req.flush(serverResponse);
                         }
                     )
@@ -205,7 +205,7 @@ describe('Service: Subject', () => {
                         );
                         expect(req.request.method).toEqual('POST');
                         expect(req.request.body).toEqual(expectedBody);
-                        req.flush('Server error', { status: errorCode });
+                        req.flush('Server error', { status: errorCode, statusText: 'Error' });
                     }
                 )
             )
@@ -329,7 +329,7 @@ describe('Service: Subject', () => {
                     ServerRoutes.subjectCreate
                 );
                 expect(req.request.method).toEqual('POST');
-                req.flush('Id taken', { status: errorCode });
+                req.flush('Id taken', { status: errorCode, statusText: 'Error' });
             }
         ));
 
@@ -452,7 +452,7 @@ describe('Service: Subject', () => {
                     expect(req.request.method).toEqual('POST');
                     expect(req.request.body).toEqual({ subject: subjectId });
                     if (errorCode === serverError)
-                        req.flush('Server error', { status: errorCode });
+                        req.flush('Server error', { status: errorCode, statusText: 'Error' });
                     else req.flush(returnObj);
                 }
             ));
@@ -540,7 +540,7 @@ describe('Service: Subject', () => {
                     subject: subjectId,
                     assignees
                 });
-                req.flush('Server error', { status: errorCode });
+                req.flush('Server error', { status: errorCode, statusText: 'Error' });
             }
         ));
 

@@ -335,7 +335,7 @@ describe('Service: Exercise', () => {
                         );
                         expect(req.request.method).toEqual('POST');
                         expect(req.request.body).toEqual(expectedBody);
-                        req.flush('Server error', { status: errorCode });
+                        req.flush('Server error', { status: errorCode, statusText: 'Error' });
                     }
                 )
             )
@@ -495,7 +495,7 @@ describe('Service: Exercise', () => {
                         );
                         expect(req.request.method).toEqual('POST');
                         expect(req.request.body).toEqual(expectedBody);
-                        req.flush('Not found', { status: errorCode });
+                        req.flush('Not found', { status: errorCode, statusText: 'Error' });
                     }
                 )
             )

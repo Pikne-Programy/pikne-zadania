@@ -68,7 +68,7 @@ describe('Service: Team', () => {
                                 ServerRoutes.teamList
                             );
                             expect(req.request.method).toEqual('GET');
-                            req.flush('Server error', { status: errorCode });
+                            req.flush('Server error', { status: errorCode, statusText: 'Error' });
                         }
                     )
                 )
@@ -163,7 +163,7 @@ describe('Service: Team', () => {
                             );
                             expect(req.request.method).toEqual('POST');
                             expect(req.request.body).toEqual(expectedBody);
-                            req.flush('Server error', { status: errorCode });
+                            req.flush('Server error', { status: errorCode, statusText: 'Error' });
                         }
                     )
                 )
@@ -274,7 +274,7 @@ describe('Service: Team', () => {
                                 expect(req.request.method).toEqual('POST');
                                 expect(req.request.body).toEqual(expectedBody);
                                 if (response === null)
-                                    req.flush('Error', { status: errorCode });
+                                    req.flush('Error', { status: errorCode, statusText: 'Error' });
                                 else req.flush(response);
                             }
                         )
@@ -637,7 +637,7 @@ function expectTeamModRequest(
     expect(req.request.method).toEqual('POST');
     expect(req.request.body).toEqual(body);
     if (errorCode !== null)
-        req.flush('Error', { status: errorCode });
+        req.flush('Error', { status: errorCode, statusText: 'Error' });
     else req.flush(response ? response : {});
 }
 

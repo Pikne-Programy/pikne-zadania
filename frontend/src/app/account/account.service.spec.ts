@@ -119,7 +119,7 @@ describe('Service: Account', () => {
                                 await expectAsync(promise).toBeResolved();
                             }
                             else {
-                                req.flush('Server error', { status: error });
+                                req.flush('Server error', { status: error, statusText: 'Error' });
                                 await expectAsync(promise).toBeRejected();
                             }
                         }
@@ -207,7 +207,7 @@ describe('Service: Account', () => {
                         );
                         expect(req.request.method).toEqual('POST');
                         expect(req.request.body).toEqual(expectedBody);
-                        req.flush('Server error', { status: ERROR_CODE });
+                        req.flush('Server error', { status: ERROR_CODE, statusText: 'Error' });
 
                         const response = await promise;
                         expect(response.error).toBe(ERROR_CODE);
@@ -261,7 +261,7 @@ describe('Service: Account', () => {
                             ServerRoutes.login
                         );
                         expect(req.request.method).toEqual('POST');
-                        req.flush('Wrong password', { status: 401 });
+                        req.flush('Wrong password', { status: 401, statusText: 'Error' });
 
                         await expectAsync(promise).toBeRejected();
                     }
@@ -318,7 +318,7 @@ describe('Service: Account', () => {
                 const req = httpController.expectOne(ServerRoutes.logout);
                 expect(req.request.method).toEqual('POST');
                 const ERROR_CODE = 500;
-                req.flush('Server error', { status: ERROR_CODE });
+                req.flush('Server error', { status: ERROR_CODE, statusText: 'Error' });
 
                 await setAsyncTimeout(1000);
                 expect(consoleSpy).toHaveBeenCalledWith(

@@ -61,7 +61,7 @@ describe('Service: ExerciseModification', () => {
                             expect(req.request.method).toEqual('POST');
                             expect(req.request.body).toEqual(expectedBody);
                             if (errorCode !== TYPE_ERROR)
-                                req.flush(testMess, { status: errorCode });
+                                req.flush(testMess, { status: errorCode, statusText: 'Error' });
                             else req.flush(serverResponse);
                         }
                     )
@@ -142,7 +142,7 @@ describe('Service: ExerciseModification', () => {
                             expect(req.request.method).toEqual('POST');
                             expect(req.request.body).toEqual(expectedBody);
                             if (errorCode !== TYPE_ERROR)
-                                req.flush(testMess, { status: errorCode });
+                                req.flush(testMess, { status: errorCode, statusText: 'Error' });
                             else req.flush(serverResponse);
                         }
                     )
@@ -239,7 +239,7 @@ describe('Service: ExerciseModification', () => {
                             ServerRoutes.subjectExercisePreview
                         );
                         expect(req.request.method).toEqual('POST');
-                        req.flush('Server error', { status: errorCode });
+                        req.flush('Server error', { status: errorCode, statusText: 'Error' });
                     }
                 )
             )
@@ -375,7 +375,7 @@ describe('Service: ExerciseModification', () => {
                             expect(req.request.method).toEqual('POST');
                             expect(req.request.body).toEqual(expectedBody);
                             if (errorCode === null) req.flush({});
-                            else req.flush(testMess, { status: errorCode });
+                            else req.flush(testMess, { status: errorCode, statusText: 'Error' });
                         }
                     )
                 )
