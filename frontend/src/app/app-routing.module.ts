@@ -7,7 +7,7 @@ import { PublicExercisesComponent } from './public-exercises/public-exercises.co
 import { SubjectSelectComponent } from './subject-select/subject-select.component';
 import { NavComponent } from './navigation/nav.component';
 import { AuthGuardService } from './guards/auth-guard.service';
-import { RoleGuardService, TEACHER_ROLES } from './guards/role-guard.service';
+import { RoleGuardService, TEACHER_ROLES, USER_ROLES } from './guards/role-guard.service';
 import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
 
 const routes: Routes = [
@@ -38,7 +38,8 @@ const routes: Routes = [
     {
         path: 'user',
         canActivate: [AuthGuardService],
-        loadChildren: () => import('./user/user.module').then((m) => m.UserModule)
+        loadChildren: () =>
+            import('./user/user.module').then((m) => m.UserModule)
     },
     {
         path: 'subject',
@@ -46,6 +47,20 @@ const routes: Routes = [
         data: { roles: TEACHER_ROLES },
         loadChildren: () =>
             import('./subjects/subject.module').then((m) => m.SubjectModule)
+    },
+    {
+        path: 'tests',
+        canActivate: [RoleGuardService],
+        data: { roles: TEACHER_ROLES },
+        loadChildren: () =>
+            import('./sessions/teacher/sessions-teacher.module').then((m) => m.SessionsTeacherModule)
+    },
+    {
+        path: 'exam',
+        canActivate: [RoleGuardService],
+        data: { roles: USER_ROLES },
+        loadChildren: () =>
+            import('./sessions/user/sessions-user.module').then((m) => m.SessionsUserModule)
     },
     {
         path: 'about',

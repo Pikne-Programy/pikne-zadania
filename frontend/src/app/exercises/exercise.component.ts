@@ -31,7 +31,7 @@ import { Role, RoleGuardService } from '../guards/role-guard.service';
 })
 export class ExerciseComponent implements AfterViewInit, OnChanges, OnDestroy {
     @ViewChildren('exContainer', { read: ViewContainerRef })
-    containers!: QueryList<ViewContainerRef>;
+        containers!: QueryList<ViewContainerRef>;
     componentRef?: ComponentRef<ExerciseComponentType>;
     container$?: Subscription;
     loading$?: Subscription;

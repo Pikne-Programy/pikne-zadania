@@ -55,21 +55,26 @@ export const groupJoin = '/api/group/join';
 export const groupAddUser = '/api/group/add';
 //#endregion
 
-//#region Exam
-export const exam = '/api/exam/info';
-export const examCreate = '/api/exam/create';
-export const examDelete = '/api/exam/delete';
-export const examUpdate = '/api/exam/update';
-export const examSetExercises = '/api/exam/exercise';
-export const examStats = '/api/exam/stats';
-export const examUserStats = '/api/exam/user';
-export const examRender = '/api/exam/render';
-export const examStatic = '/api/exam/static';
-export const examClose = '/api/exam/leave';
-export const examSubmit = '/api/exam/submit';
+//#region Session
+export const sessionReset = '/api/session/reset';
+export const sessionAddExercise = '/api/session/add';
+export const sessionRemoveExercise = '/api/session/delete';
+export const sessionListExercises = '/api/session/list';
+export const sessionStatus = '/api/session/status';
+export const sessionEnd = '/api/session/end';
 //#endregion
 
-//#region Misc
+//#region Reports
+export const reportList = '/api/session/report/list';
+export const reportSave = '/api/session/report/save';
+export function report(file: string): string {
+    return `/api/session/static/${file}`;
+}
+export const reportDelete = '/api/session/report/delete';
+//#endregion
+
+//#region Static files
+export const staticList = '/api/subject/static/list';
 export function staticFile(subject: string, file: string): string {
     return `/api/subject/static/${subject}/${file}`;
 }

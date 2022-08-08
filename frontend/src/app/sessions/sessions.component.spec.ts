@@ -1,22 +1,22 @@
 /* eslint-disable no-unused-vars, @typescript-eslint/no-unused-vars */
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
-import { UserComponent } from './user.component';
+import { SessionsComponent } from './sessions.component';
 
-describe('UserComponent', () => {
-    let component: UserComponent;
-    let fixture: ComponentFixture<UserComponent>;
+describe('SessionsComponent', () => {
+    let component: SessionsComponent;
+    let fixture: ComponentFixture<SessionsComponent>;
 
     beforeEach(
         waitForAsync(() => {
             TestBed.configureTestingModule({
-                declarations: [UserComponent]
+                declarations: [SessionsComponent]
             }).compileComponents();
         })
     );
 
     beforeEach(() => {
-        fixture = TestBed.createComponent(UserComponent);
+        fixture = TestBed.createComponent(SessionsComponent);
         component = fixture.componentInstance;
         fixture.detectChanges();
     });
