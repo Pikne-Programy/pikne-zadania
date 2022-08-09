@@ -1,0 +1,59 @@
+<div *ngIf="!isLoading && errorCode === null && exerciseList" class="tile is-ancestor height-full width-full is-justify-content-center mobile-scrollable m-0 px-3 py-tablet-1">
+    <!--#region Exercise list -->
+    <div class="tile is-9 is-10-bigscreen is-parent">
+        <!--#region Header -->
+        <div class="tile is-child width-full is-flex is-flex-direction-column p-0 panel is-primary is-root">
+            <p class="panel-heading is-flex is-align-items-center">
+                <span class="is-flex-grow-1">
+                    Test&nbsp;-&nbsp;{{ team | titlecase }}
+                </span>
+                <span class="buttons is-right">
+                    <button class="button is-primary">
+                        <span class="icon is-small">
+                            <i class="fas fa-plus"></i>
+                        </span>
+                        <span>Dodaj zadania</span>
+                    </button>
+                    <button class="button is-success">
+                        <span class="icon is-small">
+                            <i class="fas fa-file-invoice"></i>
+                        </span>
+                        <span>Zobacz raport</span>
+                    </button>
+                    <button *ngIf="isSessionFinished === true" class="button is-danger">
+                        <span class="icon is-small">
+                            <i class="fas fa-trash"></i>
+                        </span>
+                        <span>Resetuj test</span>
+                    </button>
+                    <button *ngIf="isSessionFinished === false" class="button is-danger">
+                        <span class="icon is-small">
+                            <i class="fas fa-times"></i>
+                        </span>
+                        <span>Zakończ test</span>
+                    </button>
+                    <a class="button is-primary-dark" [routerLink]="['/tests/reports', teamId]">
+                        <span class="icon is-small">
+                            <i class="fas fa-cloud"></i>
+                        </span>
+                        <span>Zapisane raporty</span>
+                    </a>
+                </span>
+            </p>
+            <!--#endregion-->
+
+            <app-subject-ex-prev *ngFor="let exercise of exerciseList; index as i" class="panel-block" [class.is-hidden]="isExerciseLoading" [exercise]="exercise" [subjectId]="getExerciseSubject(i)" [isLast]="isLast(i)" (ready)="isExerciseLoading = false"></app-subject-ex-prev>
+
+            <!--#region Empty list placeholder -->
+            <ng-container *ngIf="exerciseList.length === 0 && !isExerciseLoading">
+                <app-image-placeholder class="is-align-self-center"></app-image-placeholder>
+                <p class="title px-3 pb-6 has-text-centered">Nie dodano żadnych zadań do testu</p>
+            </ng-container>
+            <!--#endregion-->
+        </div>
+    </div>
+    <!--#endregion-->
+</div>
+
+<app-loading *ngIf="isLoading && errorCode === null"></app-loading>
+<app-error *ngIf="errorCode !== null" [code]="errorCode"></app-error>

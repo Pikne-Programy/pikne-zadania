@@ -1,0 +1,27 @@
+@use "src/styles.variables.scss" as *;
+$mobile: nth($size_breakpoints, 1);
+$tablet: nth($size_breakpoints, 2);
+
+.panel-heading .button {
+    padding-bottom: calc(.5em - 1px);
+    padding-top: calc(.5em - 1px);
+    padding-left: 1em;
+    padding-right: 1em;
+    height: 2.5em;
+    width: auto;
+}
+
+
+.mobile-scrollable {
+    overflow: hidden;
+
+    @media only screen and (max-width: nth($mobile, 3)) {
+        overflow: auto;
+    }
+}
+
+app-image-placeholder {
+    @media only screen and (max-width: nth($tablet, 3)) and (min-height: nth($tablet, 2)) {
+        width: 75%;
+    }
+}

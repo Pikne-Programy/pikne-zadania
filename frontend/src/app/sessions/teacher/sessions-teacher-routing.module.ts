@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { NavComponent } from '../../navigation/nav.component';
+import { SessionTeacherDashboardComponent } from './dashboard/dashboard.component';
 
 const routes: Routes = [
     {
@@ -10,10 +11,14 @@ const routes: Routes = [
             {
                 path: '',
                 pathMatch: 'full',
-                redirectTo: 'new' //TODO Add selection component
+                redirectTo: '/user/teams'
             },
             {
-                path: 'new/:teamId'
+                path: ':teamId',
+                component: SessionTeacherDashboardComponent
+            },
+            {
+                path: 'reports/:teamId'
             }
         ]
     }

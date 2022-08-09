@@ -52,6 +52,7 @@ import { CategoryModificationComponent } from './hierarchy/category-modification
         MatAutocompleteModule,
         DragDropModule
     ],
+    exports: [SubjectDashboardPreviewComponent],
     providers: [
         TeamService,
         ExerciseModificationService,

@@ -22,8 +22,16 @@
                         </span>
                     </button>
                 </div>
+                <div class="panel-block buttons is-centered is-full mb-0 pb-only-mobile-0">       
+                    <a class="button is-primary is-light" [routerLink]="['/tests', teamId]">
+                        <span class="icon">
+                            <i class="fas fa-file-invoice"></i>
+                        </span>
+                        <span>Testy i raporty</span>
+                    </a>
+                </div>
                 <!-- Actions (mobile) -->
-                <div class="panel-block buttons is-centered is-full is-only-mobile">
+                <div class="panel-block buttons is-centered is-full is-only-mobile pt-0">
                     <ng-content *ngTemplateOutlet="buttonsTemplate"></ng-content>
                 </div>
             </div>
