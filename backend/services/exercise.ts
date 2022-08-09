@@ -56,6 +56,7 @@ export class ExerciseService implements IExerciseService {
   async render(
     input: { content: string } | { subject: string; exerciseId: string },
     user: IUser | { seed: number },
+    offset?: number,
   ): Promise<
     {
       type: string;
@@ -67,7 +68,7 @@ export class ExerciseService implements IExerciseService {
   > {
     const ex = this.getExercise(input);
     if (ex instanceof CustomDictError) return ex;
-    const seed = await this.getSeed(user);
+    const seed = await this.getSeed(user) + (offset ?? 0);
     return {
       ...ex.render(seed),
       correctAnswer: ex.getCorrectAnswer(seed),
@@ -83,10 +84,11 @@ export class ExerciseService implements IExerciseService {
     input: { content: string } | { subject: string; exerciseId: string },
     answer: JSONType,
     user: IUser | { seed: number },
+    offset?: number,
   ) {
     const ex = this.getExercise(input);
     if (ex instanceof CustomDictError) return ex;
-    const r = ex.check(await this.getSeed(user), answer);
+    const r = ex.check(await this.getSeed(user), answer, offset ?? 0);
     if (
       !(r instanceof CustomDictError) && "exercises" in user &&
       "exerciseId" in input

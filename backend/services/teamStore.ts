@@ -11,6 +11,7 @@ import {
 } from "../interfaces/mod.ts";
 import { StoreTarget } from "./mod.ts";
 import { Team } from "../models/mod.ts"; // TODO: get rid off
+import { generateSeed } from "../utils/mod.ts";
 
 export class TeamStore implements ITeamStore {
   constructor(
@@ -66,6 +67,7 @@ export class TeamStore implements ITeamStore {
       members: [],
       session: {
         isFinished: false,
+        seedOffset: generateSeed(),
         exercises: [],
         report: {},
       },

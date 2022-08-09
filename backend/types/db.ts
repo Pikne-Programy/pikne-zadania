@@ -24,6 +24,7 @@ export type ReportType = { [uid: string]: { [eid: string]: null | number } };
 // TODO (Marwyk): Fix old records having undefined properties (session, reports) due to a new database version
 export type SessionType = {
   isFinished: boolean;
+  seedOffset: number;
   exercises: string[];
   report: ReportType;
 };

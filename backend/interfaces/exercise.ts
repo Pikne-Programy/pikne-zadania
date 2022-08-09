@@ -31,6 +31,7 @@ export interface IExerciseService {
   render(
     input: { content: string } | { subject: string; exerciseId: string },
     user: IUser | { seed: number },
+    offset?: number,
   ): Promise<
     {
       type: string;
@@ -44,6 +45,7 @@ export interface IExerciseService {
     input: { content: string } | { subject: string; exerciseId: string },
     answer: JSONType,
     user: IUser | { seed: number },
+    offset?: number,
   ): Promise<
     | { done: number; info: JSONType }
     | CustomDictError<

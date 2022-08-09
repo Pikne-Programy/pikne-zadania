@@ -2,9 +2,15 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { basename } from "../deps.ts";
 import { assert } from "../test_deps.ts";
-import { endpointFactory, RoleTestContext } from "./smoke_mod.ts";
+import {
+  endpointFactory,
+  registerRoleTest,
+  RoleTestContext,
+} from "./smoke_mod.ts";
 import { data } from "./testdata/config.ts";
+import { FailFastManager } from "./utils/fail-fast.ts";
 
 type Teams = (typeof data)["t"];
 function generateInfo(team: Teams[keyof Teams], inv = true, t = true) {
@@ -43,8 +49,9 @@ interface DataEndpoint {
 
 export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
   const endpoint = endpointFactory<DataEndpoint>(g);
+  const ffm = new FailFastManager(t, undefined);
 
-  await t.step("exist", async (t) => {
+  await ffm.test("exist", async (t) => {
     for (const team of Object.values(data.t)) {
       await t.step(team.n.toLocaleUpperCase(), async () => {
         await endpoint(
@@ -57,7 +64,7 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
     }
   });
 
-  await t.step("[ROOT] list teams", async () => {
+  await ffm.test("[ROOT] list teams", async () => {
     await endpoint("root", ":/api/team/list", undefined, [200, [{
       teamId: data.t.t.id,
       name: data.t.t.n,
@@ -85,42 +92,42 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
     }]]);
   });
 
-  await t.step("[EVE] can't list teams", async () => {
+  await ffm.test("[EVE] can't list teams", async () => {
     await endpoint("eve", ":/api/team/list", undefined, 401);
   });
 
-  await t.step("[ALICE] can't list teams", async () => {
+  await ffm.test("[ALICE] can't list teams", async () => {
     await endpoint("alice", ":/api/team/list", undefined, 403);
   });
 
-  await t.step("[ALICE] can't create a team", async () => {
+  await ffm.test("[ALICE] can't create a team", async () => {
     await endpoint(
       "alice",
       "/api/team/create",
       { name: data.dummy.t.name },
       403,
     );
-  });
+  }, true);
 
-  await t.step("[EVE] can't create a team", async () => {
+  await ffm.test("[EVE] can't create a team", async () => {
     await endpoint(
       "eve",
       "/api/team/create",
       { name: data.dummy.t.name },
       401,
     );
-  });
+  }, true);
 
-  await t.step("[ROOT] create team - bad", async () => {
+  await ffm.test("[ROOT] create team - bad", async () => {
     await endpoint(
       "root",
       "/api/team/create",
       { name: data.dummy.t.id as unknown as string },
       400,
     );
-  });
+  }, true);
 
-  await t.step("[BOB] get info about his team", async () => {
+  await ffm.test("[BOB] get info about his team", async () => {
     await endpoint(
       "bob",
       "/api/team/info",
@@ -129,7 +136,7 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
     );
   });
 
-  await t.step("[ALICE] can't get info about other teams", async (t) => {
+  await ffm.test("[ALICE] can't get info about other teams", async (t) => {
     for (
       const [id, name] of (["t", "d"] as const)
         .map((e) => [data.t[e].id, data.t[e].n] as const)
@@ -145,7 +152,7 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
     }
   });
 
-  await t.step("[LANNY] get info about own team", async () => {
+  await ffm.test("[LANNY] get info about own team", async () => {
     await endpoint(
       "lanny",
       "/api/team/info",
@@ -154,7 +161,7 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
     );
   });
 
-  await t.step("[RALPH] get info about not own team", async () => {
+  await ffm.test("[RALPH] get info about not own team", async () => {
     await endpoint(
       "ralph",
       "/api/team/info",
@@ -163,7 +170,7 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
     );
   });
 
-  await t.step("[LANNY] close registration", async () => {
+  await ffm.test("[LANNY] close registration", async () => {
     await endpoint(
       "lanny",
       "/api/team/update",
@@ -179,9 +186,9 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
         invitation: data.dummy.t.closingInv,
       }],
     );
-  });
+  }, true);
 
-  await t.step("[LANNY] ranomize invitation of own team", async () => {
+  await ffm.test("[LANNY] ranomize invitation of own team", async () => {
     await endpoint(
       "lanny",
       "/api/team/update",
@@ -200,7 +207,7 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
     assert(inv !== data.t.dd.i, "invitation not changed");
   });
 
-  await t.step("[LANNY] change invitation of own team", async () => {
+  await ffm.test("[LANNY] change invitation of own team", async () => {
     await endpoint(
       "lanny",
       "/api/team/update",
@@ -213,9 +220,9 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
       { teamId: data.t.dd.id },
       [200, generateInfo(data.t.dd)],
     );
-  });
+  }, true);
 
-  await t.step("[LANNY] change assignee of own team", async () => {
+  await ffm.test("[LANNY] change assignee of own team", async () => {
     await endpoint(
       "lanny",
       "/api/team/update",
@@ -241,9 +248,9 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
       { teamId: data.t.dd.id, assignee: data.u.lanny.id },
       200,
     );
-  });
+  }, true);
 
-  await t.step("[LANNY] can't change name of not own teams", async (t) => {
+  await ffm.test("[LANNY] can't change name of not own teams", async (t) => {
     for (
       const [id, name] of (["t", "d"] as const)
         .map((e) => [data.t[e].id, data.t[e].n] as const)
@@ -257,9 +264,9 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
         );
       });
     }
-  });
+  }, true);
 
-  await t.step("[LANNY] change name of own team", async () => {
+  await ffm.test("[LANNY] change name of own team", async () => {
     await endpoint(
       "lanny",
       "/api/team/update",
@@ -272,18 +279,18 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
       { teamId: data.t.dd.id },
       [200, { ...generateInfo(data.t.dd), name: data.dummy.t.name }],
     );
-  });
+  }, true);
 
-  await t.step("[BOB] can't change name of his team", async () => {
+  await ffm.test("[BOB] can't change name of his team", async () => {
     await endpoint(
       "bob",
       "/api/team/update",
       { teamId: data.t.dd.id, name: data.dummy.t.name },
       403,
     );
-  });
+  }, true);
 
-  await t.step(
+  await ffm.test(
     "[ROOT] can't change invitation to already taken one",
     async () => {
       await endpoint(
@@ -293,9 +300,10 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
         409,
       );
     },
+    true,
   );
 
-  await t.step("[LANNY] create working team", async () => {
+  await ffm.test("[LANNY] create working team", async () => {
     await endpoint(
       "lanny",
       "/api/team/create",
@@ -320,27 +328,27 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
       },
       200,
     );
-  });
+  }, true);
 
-  await t.step("[ALICE] can't delete a team", async () => {
+  await ffm.test("[ALICE] can't delete a team", async () => {
     await endpoint(
       "alice",
       "/api/team/delete",
       { teamId: data.t.dd.id },
       403,
     );
-  });
+  }, true);
 
-  await t.step("[LANNY] delete a team", async () => {
+  await ffm.test("[LANNY] delete a team", async () => {
     await endpoint(
       "lanny",
       "/api/team/delete",
       { teamId: data.dummy.t.nextId },
       200,
     );
-  });
+  }, true);
 
-  await t.step("[ROOT] can't get info about deleted team", async () => {
+  await ffm.test("[ROOT] can't get info about deleted team", async () => {
     await endpoint(
       "root",
       "/api/team/info",
@@ -348,7 +356,8 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
       404,
     );
   });
-  await t.step("[LANNY] can't delete not own teams", async (t) => {
+
+  await ffm.test("[LANNY] can't delete not own teams", async (t) => {
     for (
       const [id, name] of (["t", "d"] as const)
         .map((e) => [data.t[e].id, data.t[e].n] as const)
@@ -362,9 +371,9 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
         );
       });
     }
-  });
+  }, true);
 
-  await t.step("[ROOT] can't delete non-exiting team", async () => {
+  await ffm.test("[ROOT] can't delete non-exiting team", async () => {
     await endpoint(
       "root",
       "/api/team/delete",
@@ -372,4 +381,8 @@ export async function initTeamTests(t: Deno.TestContext, g: RoleTestContext) {
       404,
     );
   });
+
+  return ffm.ignore;
 }
+
+registerRoleTest(basename(import.meta.url), initTeamTests);

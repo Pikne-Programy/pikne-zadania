@@ -23,6 +23,8 @@ import {
   IExerciseStore,
   IJWTService,
   ISubjectStore,
+  ITeam,
+  ITeamStore,
   IUser,
   IUserStore,
 } from "../interfaces/mod.ts";
@@ -33,6 +35,7 @@ export class SubjectController extends Authorizer {
     protected cfg: IConfigService,
     protected jwt: IJWTService,
     protected us: IUserStore,
+    protected ts: ITeamStore,
     protected ss: ISubjectStore,
     protected es: IExerciseStore,
     protected ex: IExerciseService,
@@ -52,10 +55,44 @@ export class SubjectController extends Authorizer {
   }
 
   /** check if the subject would be visible for the User */
-  private async isPermittedToView(s: string, user?: IUser) {
+  private async isPermittedToView(s: string, user?: IUser, eid?: string) {
     if (!/^_/.test(s)) return true; // if exercise is public
     if (await user?.role.get() === "admin") return true;
+    if (
+      user && eid &&
+      await this.sessionContains(this.ts.get(await user.team.get()), s, eid)
+    ) {
+      return true;
+    }
     return await this.isAssigneeOf(s, user);
+  }
+
+  private async sessionContains(
+    team: ITeam | undefined,
+    subject: string,
+    eid: string,
+    view = false,
+  ) {
+    if (team) {
+      return ((await team.session.exercises.get()).includes(
+        this.es.uid(subject, eid),
+      ) && (!(await team.session.isFinished()) || view));
+    }
+    return false;
+  }
+
+  // TODO: move to a more proper place
+  private async submit2Session(
+    user: IUser,
+    subject: string,
+    eid: string,
+    done: number,
+  ) {
+    if (await user.role.get() !== "student") return;
+    const team = this.ts.get(await user.team.get());
+    if (await team.session.isFinished()) return;
+    if (!(await this.sessionContains(team, subject, eid))) return;
+    await team.session.report.set(user.id, this.es.uid(subject, eid), done);
   }
 
   async list(ctx: RouterContext) {
@@ -127,8 +164,8 @@ export class SubjectController extends Authorizer {
 
     async getSeed(ctx: RouterContext, seed: number | null, user?: IUser) {
       if (user !== undefined) {
-        return seed !== null &&
-            ["teacher", "admin"].includes(await user.role.get()) // TODO: isTeacher
+        return (seed !== null &&
+            ["teacher", "admin"].includes(await user.role.get())) // TODO: isTeacher
           ? { seed }
           : user;
       }
@@ -144,13 +181,29 @@ export class SubjectController extends Authorizer {
         exerciseId: schemas.exercise.id,
         seed: schemas.user.seedOptional,
       }); //! R
-      if (!await this.parent.isPermittedToView(subject, user)) {
+      let team: undefined | ITeam;
+      if (user !== undefined && await user.role.get() !== "admin") {
+        team = this.parent.ts.get(await user.team.get());
+      }
+      if (
+        !await this.parent.isPermittedToView(subject, user) &&
+        (team !== undefined &&
+          !(await this.parent.sessionContains(team, subject, exerciseId, true)))
+      ) {
         throw new httpErrors["Forbidden"]();
       } //! P
+      let offset = 0;
+      if (
+        team !== undefined &&
+        await this.parent.sessionContains(team, subject, exerciseId, true)
+      ) {
+        offset = await team.session.seedOffset.get();
+      }
       const parsed = translateErrors(
         await this.parent.ex.render(
           { subject, exerciseId },
           await this.getSeed(ctx, seed, user),
+          offset,
         ),
       ); //! EO
       if (!await this.parent.isAssigneeOf(subject, user)) {
@@ -171,16 +224,35 @@ export class SubjectController extends Authorizer {
         answer: schemas.exercise.answer,
       }); //! R
       if (!isJSONType(answer)) throw new httpErrors["BadRequest"]();
-      if (!await this.parent.isPermittedToView(subject, user)) {
+      let team: undefined | ITeam;
+      if (user !== undefined && await user.role.get() !== "admin") {
+        team = this.parent.ts.get(await user.team.get());
+      }
+      if (
+        !await this.parent.isPermittedToView(subject, user) &&
+        (team !== undefined &&
+          !(await this.parent.sessionContains(team, subject, exerciseId)))
+      ) {
         throw new httpErrors["Forbidden"]();
       } //! P
-      const { info } = translateErrors(
+      let offset = 0;
+      if (
+        team !== undefined &&
+        await this.parent.sessionContains(team, subject, exerciseId)
+      ) {
+        offset = await team.session.seedOffset.get();
+      }
+      const { done, info } = translateErrors(
         await this.parent.ex.check(
           { subject, exerciseId },
           answer,
           await this.getSeed(ctx, null, user),
+          offset,
         ),
       ); //! EVO
+      if (user) {
+        await this.parent.submit2Session(user, subject, exerciseId, done);
+      }
       ctx.response.body = { info }; // ? done, correctAnswer ?
       ctx.response.status = 200; //! D
     },

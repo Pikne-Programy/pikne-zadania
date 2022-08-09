@@ -19,6 +19,7 @@ import {
 } from "./services/mod.ts";
 import {
   AuthController,
+  SessionController,
   SubjectController,
   TeamController,
   UserController,
@@ -70,13 +71,23 @@ export async function constructApp(cfg: IConfigService = new ConfigService()) {
   await ss.init();
   const ex = new ExerciseService(es);
   const jwt = new JWTService(cfg, target.us);
-  const rep = new ReportsService(cfg, target.ts);
+  const rep = new ReportsService(cfg, target.us, target.ts);
   const ac = new AuthController(cfg, target.us, jwt);
-  const sc = new SubjectController(cfg, jwt, target.us, ss, es, ex);
+  const sc = new SubjectController(cfg, jwt, target.us, target.ts, ss, es, ex);
   const tc = new TeamController(jwt, target.us, target.ts);
   const uc = new UserController(jwt, target.us, target.ts);
+  const sec = new SessionController(
+    cfg,
+    jwt,
+    target.us,
+    target.ts,
+    es,
+    ex,
+    ss,
+    rep,
+  );
 
-  const rb = new ApiRouterBuilder(ac, sc, tc, uc);
+  const rb = new ApiRouterBuilder(ac, sc, tc, uc, sec);
 
   const router = rb.router;
   app.use(router.routes());

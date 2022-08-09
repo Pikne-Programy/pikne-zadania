@@ -6,13 +6,16 @@ import {
   IConfigService,
   IReportsService,
   ITeamStore,
+  IUserStore,
 } from "../interfaces/mod.ts";
 import { format, readCSV, writeCSV } from "../deps.ts";
 import { ReportType } from "../types/mod.ts";
+import { joinThrowable } from "../utils/mod.ts";
 
 export class ReportsService implements IReportsService {
   constructor(
     private cfg: IConfigService,
+    private us: IUserStore,
     private ts: ITeamStore,
   ) {}
 
@@ -21,7 +24,7 @@ export class ReportsService implements IReportsService {
     const reports = teams.map((t) => t.reports).flat();
     return reports;
   }
-  async get(path: string) {
+  async get(filename: string) {
     const report: ReportType = {};
     const exercises: string[] = [];
     let user = "";
@@ -33,6 +36,7 @@ export class ReportsService implements IReportsService {
       quote: "$",
     };
     try {
+      const path = this.getReportPath(filename);
       const f = await Deno.open(path);
       for await (const row of readCSV(f, options)) {
         colNum = 0;
@@ -53,23 +57,29 @@ export class ReportsService implements IReportsService {
     return report;
   }
 
+  getRaw(path: string) {
+    return Deno.readTextFileSync(path);
+  }
+
   async save(
     tid: number,
     report: ReportType,
   ) {
     let rows: string[][] = [];
     let exercises: string[] = [];
-    for (const user in report) {
-      rows.push([user]);
-      for (const ex in report[user]) {
-        const cell = report[user][ex]?.toString() ?? "null";
+    for (const uid in report) {
+      const user = this.us.get(uid);
+      rows.push([`${await user.name.get()} nr${await user.number.get()}`]);
+      for (const ex in report[uid]) {
+        const cell = report[uid][ex]?.toString() ?? "null";
         rows[rows.length - 1].push(cell);
       }
-      exercises = Object.keys(report[user]);
+      exercises = Object.keys(report[uid]);
     }
     rows = [exercises, ...rows];
 
-    const path = this.generateFileName(tid);
+    const filename = this.generateFileName(tid);
+    const path = this.getReportPath(filename);
     try {
       const f = await Deno.open(path, {
         write: true,
@@ -79,22 +89,35 @@ export class ReportsService implements IReportsService {
       await writeCSV(f, rows);
       f.close();
     } catch {
-      throw new Error(); // TODO: Error message
+      throw new Error("deno open"); // TODO: Error message
     }
     const team = this.ts.get(tid);
-    await team.reports.push(path);
-    return path;
+    await team.reports.push(filename);
+    return filename;
   }
 
-  async delete(path: string) {
-    const tid = this.getDataFromPath(path).tid;
+  async delete(filename: string) {
+    const tid = this.getDataFromFilename(filename).tid;
+    if (tid === null) throw new Error(); // TODO: Error message
     const team = this.ts.get(tid);
-    await team.reports.pull(path);
+    await team.reports.pull(filename);
     try {
+      const path = this.getReportPath(filename);
       await Deno.remove(path);
     } catch {
       throw new Error(); // TODO: Error message
     }
+  }
+
+  getDataFromFilename(filename: string) {
+    const re = /report_([0-9]+)_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}).csv/g;
+    const parsed = re.exec(filename);
+    if (parsed === null || parsed?.length < 3) {
+      return { tid: null, datetime: null };
+    }
+    const tid = +parsed[1];
+    const datetime = parsed[2];
+    return { tid, datetime };
   }
 
   private castCell(cell: string): number | null {
@@ -106,16 +129,11 @@ export class ReportsService implements IReportsService {
 
   private generateFileName(teamId: number) {
     const datetime = format(new Date(), "yyyy-MM-ddTHH:mm:ss"); // TODO: current timezone
-    const path = `${this.cfg.REPORTS_PATH}report_${teamId}_${datetime}.csv`;
-    return path;
+    const filename = `report_${teamId}_${datetime}.csv`;
+    return filename;
   }
 
-  private getDataFromPath(path: string) {
-    const re = /report_([1-9]+)_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}).csv/g;
-    const parsed = re.exec(path);
-    if (parsed === null || parsed?.length < 3) throw new Error(); // TODO error message
-    const tid = +parsed[1];
-    const datetime = parsed[2];
-    return { tid, datetime };
+  private getReportPath(filename: string) {
+    return joinThrowable(this.cfg.REPORTS_PATH, filename);
   }
 }

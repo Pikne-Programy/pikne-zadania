@@ -2,9 +2,15 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { basename } from "../deps.ts";
 import { assert, assertEquals, assertNotEquals } from "../test_deps.ts";
-import { endpointFactory, RoleTestContext } from "./smoke_mod.ts";
+import {
+  endpointFactory,
+  registerRoleTest,
+  RoleTestContext,
+} from "./smoke_mod.ts";
 import { data, generateProblemAnswer } from "./testdata/config.ts";
+import { FailFastManager } from "./utils/fail-fast.ts";
 
 interface DataEndpoint {
   "/api/session/status": { teamId: number };
@@ -53,6 +59,7 @@ export async function initSessionTests(
   g: RoleTestContext,
 ) {
   const endpoint = endpointFactory<DataEndpoint>(g);
+  const ffm = new FailFastManager(t, undefined);
 
   type Teams = (typeof data)["t"];
   async function checkState<T extends Teams[keyof Teams]>(
@@ -105,7 +112,7 @@ export async function initSessionTests(
     }
   }
 
-  await t.step("only those who vieved session are visible", async () => { // {{005}}}
+  await ffm.test("only those who vieved session are visible", async () => { // {{005}}}
     await checkState(data.t.dd, false, [], {});
     await endpoint("alice", "/api/session/list", undefined, [200, []]);
     await checkState(data.t.dd, false, [], { alice: [] });
@@ -113,14 +120,15 @@ export async function initSessionTests(
     await checkState(data.t.dd, false, [], { alice: [], bob: [] });
   });
 
-  await t.step("empty session after reset is still empty", async () => { // {{010}}}
+  await ffm.test("empty session after reset is still empty", async () => { // {{010}}}
     await endpoint("lanny", "/api/session/reset", { teamId: data.t.dd.id });
     await endpoint("alice", "/api/session/list", undefined, [200, []]);
     await endpoint("bob", "/api/session/list", undefined, [200, []]);
     await endpoint("mike", "/api/session/list", undefined, [200, []]);
     await checkState(data.t.d, false, [], { mike: [] });
     await checkState(data.t.dd, false, [], { alice: [], bob: [] });
-  });
+  }, true);
+
   const fetchedProblems: {
     aliceOldDouble?: string;
     aliceDouble?: string;
@@ -130,7 +138,7 @@ export async function initSessionTests(
     mikeConcat?: string;
   } = {};
 
-  await t.step("[ALICE] access public exercises not in session", async () => { // {{020}}}
+  await ffm.test("[ALICE] access public exercises not in session", async () => { // {{020}}}
     const response = await endpoint(
       "alice",
       "/api/subject/problem/render",
@@ -153,18 +161,17 @@ export async function initSessionTests(
       [200, { info: [true] }],
     );
   });
-  await t.step(
-    "[ALICE] can't access private exercises not in session",
-    async () => { // {{021}}}
-      await endpoint(
-        "alice",
-        "/api/subject/problem/render",
-        deuid("_easy/concat"),
-        403,
-      );
-    },
-  );
-  await t.step("[LANNY] add `double` exercise to session", async () => { // {{030}}}
+
+  await ffm.test("[ALICE] can't access private exercises not in session", async () => { // {{021}}}
+    await endpoint(
+      "alice",
+      "/api/subject/problem/render",
+      deuid("_easy/concat"),
+      403,
+    );
+  });
+
+  await ffm.test("[LANNY] add `double` exercise to session", async () => { // {{030}}}
     await endpoint("lanny", "/api/session/add", {
       teamId: data.t.dd.id,
       ...deuid("easy/double"),
@@ -173,8 +180,9 @@ export async function initSessionTests(
       alice: [null],
       bob: [null],
     });
-  });
-  await t.step(
+  }, true);
+
+  await ffm.test(
     "[LANNY] can't add non-existent execise to session",
     async () => { // {{031}}}
       await endpoint("lanny", "/api/session/add", {
@@ -186,11 +194,14 @@ export async function initSessionTests(
         ...deuid("nonexistent/double"),
       }, 404);
     },
+    true,
   );
-  await t.step("one session doesn't bother another", async () => { // {{032}}}
+
+  await ffm.test("one session doesn't bother another", async () => { // {{032}}}
     await checkState(data.t.d, false, [], { mike: [] });
   });
-  await t.step("same exercise renders differently in session", async () => { // {{034}}}
+
+  await ffm.test("same exercise renders differently in session", async () => { // {{034}}}
     const response = await endpoint(
       "alice",
       "/api/subject/problem/render",
@@ -201,7 +212,8 @@ export async function initSessionTests(
     fetchedProblems.aliceDouble = problem;
     assertNotEquals(problem, fetchedProblems.aliceOldDouble);
   });
-  await t.step("old answers don't work", async () => { // {{037}}}
+
+  await ffm.test("old answers don't work", async () => { // {{037}}}
     await endpoint("alice", "/api/subject/problem/submit", {
       ...deuid("easy/double"),
       answer: {
@@ -217,8 +229,9 @@ export async function initSessionTests(
       alice: [0],
       bob: [null],
     });
-  });
-  await t.step("same exercise differs for other people", async () => { // {{041}}}
+  }, true);
+
+  await ffm.test("same exercise differs for other people", async () => { // {{041}}}
     const response = await endpoint(
       "bob",
       "/api/subject/problem/render",
@@ -229,7 +242,8 @@ export async function initSessionTests(
     fetchedProblems.bobDouble = problem;
     assertNotEquals(problem, fetchedProblems.aliceDouble);
   });
-  await t.step("[BOB] send correct answer for `double`", async () => { // {{050}}}
+
+  await ffm.test("[BOB] send correct answer for `double`", async () => { // {{050}}}
     await endpoint("bob", "/api/subject/problem/submit", {
       ...deuid("easy/double"),
       answer: {
@@ -242,8 +256,9 @@ export async function initSessionTests(
       alice: [0],
       bob: [1],
     });
-  });
-  await t.step("[ALICE] beat her score", async () => { // {{055}}}
+  }, true);
+
+  await ffm.test("[ALICE] beat her score", async () => { // {{055}}}
     await endpoint("alice", "/api/subject/problem/submit", {
       ...deuid("easy/double"),
       answer: {
@@ -256,11 +271,13 @@ export async function initSessionTests(
       alice: [1],
       bob: [1],
     });
-  });
-  await t.step("answers in one session don't bother in another", async () => { // {{060}}}
+  }, true);
+
+  await ffm.test("answers in one session don't bother in another", async () => { // {{060}}}
     await checkState(data.t.d, false, [], { mike: [] });
   });
-  await t.step("[LANNY] add `concat` exercise to session", async () => { // {{070}}}
+
+  await ffm.test("[LANNY] add `concat` exercise to session", async () => { // {{070}}}
     await endpoint("lanny", "/api/session/add", {
       teamId: data.t.dd.id,
       ...deuid("_easy/concat"),
@@ -285,8 +302,9 @@ export async function initSessionTests(
     problem = response?.problem?.main;
     assert(typeof problem === "string");
     fetchedProblems.aliceConcat = problem;
-  });
-  await t.step("[ALICE] send correct answer for `concat`", async () => { // {{080}}}
+  }, true);
+
+  await ffm.test("[ALICE] send correct answer for `concat`", async () => { // {{080}}}
     await endpoint("alice", "/api/subject/problem/submit", {
       ...deuid("_easy/concat"),
       answer: {
@@ -299,8 +317,9 @@ export async function initSessionTests(
       alice: [1, 1],
       bob: [1, null],
     });
-  });
-  await t.step("[LANNY] delete `double` exercise from session", async () => { // {{090}}}
+  }, true);
+
+  await ffm.test("[LANNY] delete `double` exercise from session", async () => { // {{090}}}
     await endpoint("lanny", "/api/session/delete", {
       teamId: data.t.dd.id,
       ...deuid("easy/double"),
@@ -317,8 +336,9 @@ export async function initSessionTests(
     const problem = response?.problem?.main;
     assert(typeof problem === "string");
     assertEquals(problem, fetchedProblems.aliceOldDouble);
-  });
-  await t.step("[RALPH] has own working session", async () => { // {{100}}}
+  }, true);
+
+  await ffm.test("[RALPH] has own working session", async () => { // {{100}}}
     await endpoint("ralph", "/api/session/add", {
       teamId: data.t.d.id,
       ...deuid("_easy/concat"),
@@ -349,8 +369,9 @@ export async function initSessionTests(
       alice: [1],
       bob: [null],
     });
-  });
-  await t.step(
+  }, true);
+
+  await ffm.test(
     "[LANNY] end a session => [BOB] can't send answers",
     async () => { // {{110}}}
       await endpoint("lanny", "/api/session/end", { teamId: data.t.dd.id });
@@ -362,7 +383,7 @@ export async function initSessionTests(
         endpoint("bob", "/api/subject/problem/submit", {
           ...deuid("_easy/concat"),
           answer: { answers: [answer] },
-        });
+        }, 403);
       let problem = fetchedProblems.bobConcat ?? "";
       await tryAnswer(generateProblemAnswer("concat", problem));
       await tryAnswer(generateProblemAnswer("concat", problem, false));
@@ -379,8 +400,10 @@ export async function initSessionTests(
         bob: [null],
       });
     },
+    true,
   );
-  await t.step("[LANNY] can't manage not own session", async () => { // {{117}}}
+
+  await ffm.test("[LANNY] can't manage not own session", async () => { // {{117}}}
     await endpoint("lanny", "/api/session/delete", {
       teamId: data.t.d.id,
       ...deuid("_easy/concat"),
@@ -399,5 +422,9 @@ export async function initSessionTests(
     await checkState(data.t.d, false, ["_easy/concat"], {
       mike: [1],
     });
-  });
+  }, true);
+
+  return ffm.ignore;
 }
+
+registerRoleTest(basename(import.meta.url), initSessionTests);

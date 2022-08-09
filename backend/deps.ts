@@ -21,6 +21,7 @@ export { normalize as _normalize } from "https://deno.land/std@0.141.0/path/mod.
 export { pbkdf2Sync } from "https://deno.land/std@0.141.0/node/crypto.ts";
 export { createHash } from "https://deno.land/std@0.141.0/hash/mod.ts";
 export { writeAllSync } from "https://deno.land/std@0.140.0/streams/conversion.ts";
+export { format } from "https://deno.land/std@0.141.0/datetime/mod.ts";
 import { stringify as _stringify } from "https://deno.land/std@0.141.0/encoding/yaml.ts";
 export function stringify(x: unknown) {
   // deno-lint-ignore no-explicit-any
@@ -58,7 +59,6 @@ export {
 } from "https://deno.land/x/djwt@v2.2/mod.ts";
 export type { Algorithm } from "https://deno.land/x/djwt@v2.2/algorithm.ts";
 export { readCSV, writeCSV } from "https://deno.land/x/csv@v0.7.4/mod.ts";
-export { format } from "https://deno.land/std@0.141.0/datetime/mod.ts";
 
 export {
   browserCrypto,

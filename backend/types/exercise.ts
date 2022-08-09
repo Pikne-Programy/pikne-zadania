@@ -29,6 +29,7 @@ export abstract class Exercise {
   abstract check(
     seed: number,
     answer: JSONType,
+    offset?: number,
   ):
     | { done: number; info: JSONType }
     | CustomDictError<"ExerciseBadAnswerFormat">;
