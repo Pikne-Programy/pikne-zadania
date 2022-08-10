@@ -2,23 +2,37 @@
 $widescreen: nth($size_breakpoints, 4);
 
 :host {
-  display: block;
-  width: 100%;
+    display: block;
+    width: 100%;
 
-  &:not(:hover):not(:focus) a:not(:focus) i.is-hiding {
-    @media only screen and (min-width: nth($widescreen, 2)) {
-      display: none;
+    &:not(:hover):not(:focus) button:not(:focus) i.is-hiding {
+        @media only screen and (min-width: nth($widescreen, 2)) {
+            display: none;
+        }
     }
-  }
 }
 
 .ellipsis {
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-  line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.3;
 }
+@mixin line-count {
+    @for $i from 1 through 5 {
+        .ellipsis.lines-#{$i} {
+            -webkit-line-clamp: $i;
+        }
+    }
+}
+@include line-count();
 
-a {
-  color: inherit;
+button {
+    color: inherit;
+    cursor: pointer;
+    text-decoration: none;
+    background: none;
+    border: none;
 }

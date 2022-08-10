@@ -1,36 +1,36 @@
 <div *ngIf="!isLoading && errorCode === null && exerciseList" class="tile is-ancestor height-full width-full is-justify-content-center mobile-scrollable m-0 px-3 py-tablet-1">
     <!--#region Exercise list -->
     <div class="tile is-9 is-10-bigscreen is-parent">
-        <!--#region Header -->
         <div class="tile is-child width-full is-flex is-flex-direction-column p-0 panel is-primary is-root">
+            <!--#region Header -->
             <p class="panel-heading is-flex is-align-items-center">
                 <span class="is-flex-grow-1">
                     Test&nbsp;-&nbsp;{{ team | titlecase }}
                 </span>
                 <span class="buttons is-right">
-                    <button class="button is-primary">
+                    <a class="button is-primary" [routerLink]="['/tests/add-exercises', teamId]">
                         <span class="icon is-small">
                             <i class="fas fa-plus"></i>
                         </span>
                         <span>Dodaj zadania</span>
-                    </button>
-                    <button class="button is-success">
+                    </a>
+                    <button class="button is-success" (click)="openModal(MODALS.REPORT)">
                         <span class="icon is-small">
                             <i class="fas fa-file-invoice"></i>
                         </span>
                         <span>Zobacz raport</span>
                     </button>
-                    <button *ngIf="isSessionFinished === true" class="button is-danger">
-                        <span class="icon is-small">
-                            <i class="fas fa-trash"></i>
-                        </span>
-                        <span>Resetuj test</span>
-                    </button>
-                    <button *ngIf="isSessionFinished === false" class="button is-danger">
+                    <button *ngIf="isSessionFinished === false" class="button is-danger" (click)="openModal(MODALS.END)">
                         <span class="icon is-small">
                             <i class="fas fa-times"></i>
                         </span>
                         <span>Zakończ test</span>
+                    </button>
+                    <button *ngIf="isSessionFinished === true" class="button is-danger" (click)="openModal(MODALS.RESET)">
+                        <span class="icon is-small">
+                            <i class="fas fa-trash"></i>
+                        </span>
+                        <span>Resetuj test</span>
                     </button>
                     <a class="button is-primary-dark" [routerLink]="['/tests/reports', teamId]">
                         <span class="icon is-small">
@@ -41,15 +41,16 @@
                 </span>
             </p>
             <!--#endregion-->
+            <div class="panel height-full is-flex is-flex-direction-column scrollable">
+                <app-subject-ex-prev *ngFor="let exercise of exerciseList; index as i" class="panel-block" [class.is-hidden]="isExerciseLoading" [icon]="'none'" [exercise]="exercise" [subjectId]="getExerciseSubject(i)" [isLast]="isLast(i)" (ready)="isExerciseLoading = false"></app-subject-ex-prev>
 
-            <app-subject-ex-prev *ngFor="let exercise of exerciseList; index as i" class="panel-block" [class.is-hidden]="isExerciseLoading" [exercise]="exercise" [subjectId]="getExerciseSubject(i)" [isLast]="isLast(i)" (ready)="isExerciseLoading = false"></app-subject-ex-prev>
-
-            <!--#region Empty list placeholder -->
-            <ng-container *ngIf="exerciseList.length === 0 && !isExerciseLoading">
-                <app-image-placeholder class="is-align-self-center"></app-image-placeholder>
-                <p class="title px-3 pb-6 has-text-centered">Nie dodano żadnych zadań do testu</p>
-            </ng-container>
-            <!--#endregion-->
+                <!--#region Empty list placeholder -->
+                <ng-container *ngIf="exerciseList.length === 0 && !isExerciseLoading">
+                    <app-image-placeholder class="is-align-self-center"></app-image-placeholder>
+                    <p class="title px-3 pb-6 has-text-centered">Nie dodano żadnych zadań do testu</p>
+                </ng-container>
+                <!--#endregion-->
+            </div>
         </div>
     </div>
     <!--#endregion-->
@@ -57,3 +58,37 @@
 
 <app-loading *ngIf="isLoading && errorCode === null"></app-loading>
 <app-error *ngIf="errorCode !== null" [code]="errorCode"></app-error>
+
+<!--#region Modal End Session -->
+<app-card-modal [title]="'Zakończ test'" [open]="openedModal === MODALS.END" (onClose)="closeModal()">
+    <section>
+        <p class="has-text-justified">Czy na pewno chcesz zakończyć test? Zablokuje to możliwość przesyłania nowych odpowiedzi przez uczniów.</p>
+    </section>
+    <footer class="width-full">
+        <div class="buttons width-full is-align-items-baseline">
+            <button class="button is-danger" [class.is-loading]="isModalLoading" (click)="endSession()">Zakończ</button>
+            <button class="button" (click)="closeModal()" [disabled]="isModalLoading">Anuluj</button>
+            <p *ngIf="modalErrorCode !== null" class="has-text-danger">
+                Wystąpił błąd ({{ modalErrorCode }})
+            </p>
+        </div>
+    </footer>
+</app-card-modal>
+<!--#endregion-->
+
+<!--#region Modal Reset Session -->
+<app-card-modal [title]="'Resetuj test'" [open]="openedModal === MODALS.RESET" (onClose)="closeModal()">
+    <section>
+        <p class="has-text-justified">Niezapisany raport zostanie utracony, a wszystkie zadania zostaną usunięte. <b>TA OPERACJA JEST NIEODWRACALNA! Czy na pewno chcesz kontynuować?</b></p>
+    </section>
+    <footer class="width-full">
+        <div class="buttons width-full is-align-items-baseline">
+            <button class="button is-danger" [class.is-loading]="isModalLoading" (click)="resetSession()">Resetuj</button>
+            <button class="button" (click)="closeModal()" [disabled]="isModalLoading">Anuluj</button>
+            <p *ngIf="modalErrorCode !== null" class="has-text-danger">
+                Wystąpił błąd ({{ modalErrorCode }})
+            </p>
+        </div>
+    </footer>
+</app-card-modal>
+<!--#endregion-->

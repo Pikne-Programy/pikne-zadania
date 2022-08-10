@@ -5,6 +5,11 @@ import { switchMap } from 'rxjs/operators';
 import { Exercise } from 'src/app/exercise-service/exercises';
 import { TYPE_ERROR } from 'src/app/helper/utils';
 import { ViewExercise } from 'src/app/subjects/dashboard/exercise-previews/preview.component';
+import {
+    Subject,
+    SubjectService,
+    ViewExerciseTreeNode
+} from 'src/app/subjects/subject.service/subject.service';
 import { isTeam } from 'src/app/user/team.service/types';
 import * as ServerRoutes from '../../server-routes';
 import {
@@ -24,7 +29,6 @@ export class SessionService {
     private readonly EXERCISE_TYPE_ERROR = 40890;
     private readonly TEAM_ERROR = 48900;
 
-    // subjectCache = new Map<string, ViewExerciseTreeNode>()
     private exerciseCache = new Map<string, ViewExercise>();
     getExerciseFromCache(
         subjectId: string,
@@ -36,7 +40,10 @@ export class SessionService {
         this.exerciseCache.set(`${subjectId}-${exercise.id}`, exercise);
     }
 
-    constructor(private http: HttpClient) {}
+    constructor(
+        private http: HttpClient,
+        private subjectService: SubjectService
+    ) {}
 
     getStatus(teamId: number): Promise<SessionStatus> {
         return this.http
@@ -91,10 +98,39 @@ export class SessionService {
     }
 
     //#region Session modification
+    end(teamId: number) {
+        return this.http.post(ServerRoutes.sessionEnd, { teamId }).toPromise();
+    }
+
     reset(teamId: number) {
         return this.http
             .post(ServerRoutes.sessionReset, { teamId })
             .toPromise();
+    }
+
+    getSubjects(): Promise<Subject[]> {
+        return this.subjectService.getSubjects();
+    }
+
+    getSubjectExercises(subjectId: string): Promise<ViewExerciseTreeNode> {
+        return this.subjectService.getExerciseTree(subjectId, true);
+    }
+
+    /**
+     * @returns First - subjectId; Second - exercise
+     */
+    getAddedExercises(teamId: number): Promise<[string, ViewExercise][]> {
+        return this.getStatus(teamId).then((sessionStatus) =>
+            Promise.all(
+                sessionStatus.exercises.map(async (statusExercise) => {
+                    const exercise = await this.getViewExercise(
+                        statusExercise.subject,
+                        statusExercise.exerciseId
+                    );
+                    return [statusExercise.subject, exercise];
+                })
+            )
+        );
     }
 
     addExercise(teamId: number, subject: string, exercise: ViewExercise) {
@@ -104,7 +140,8 @@ export class SessionService {
                 subject,
                 exerciseId: exercise.id
             })
-            .toPromise();
+            .toPromise()
+            .then(() => this.saveExerciseInCache(subject, exercise));
     }
 
     deleteExercise(teamId: number, subject: string, exerciseId: string) {

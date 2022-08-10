@@ -1,0 +1,110 @@
+<div *ngIf="!isLoading && errorCode === null" class="tile is-ancestor height-full width-full m-0 px-3 py-tablet-1 scrollable">
+    <!--#region Category tree -->
+    <div class="tile is-3 is-2-bigscreen is-vertical is-parent">
+        <div class="tile is-child height-full panel is-primary is-root">
+            <p class="panel-heading is-flex is-align-items-center">
+                Przedmioty
+            </p>
+            <div class="panel height-full scrollable">
+                <div class="panel-block">
+                    <aside class="menu width-full">
+                        <ul class="menu-list">
+                            <li *ngFor="let subject of subjectList">
+                                <a [class.is-active]="currentSubject === subject.id" (click)="onSubjectClick(subject)">
+                                    {{ subject.getName() | titlecase }}
+                                    <i *ngIf="subject.isPrivate">&nbsp;(Prywatny)</i>
+                                </a>
+                                <div [appCollapsible]="currentSubject !== subject.id">
+                                    <ng-container *ngIf="categoryTree">
+                                        <ng-container *ngTemplateOutlet="catList; context: { $implicit: categoryTree }"></ng-container>
+                                    </ng-container>
+                                </div>
+                            </li>
+                        </ul>
+                    </aside>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--#endregion-->
+    <!--#region Exercise list -->
+    <div class="tile is-6 is-8-bigscreen is-parent">
+        <div class="tile is-child width-full box p-0 mobile-unscrollable">
+            <ng-container *ngIf="!exerciseError && currentSubject">
+                <app-subject-ex-prev *ngFor="let exercise of exerciseList; index as i" class="panel-block" [class.is-hidden]="isExerciseLoading" [ellipsisLines]="3" [exercise]="exercise" [subjectId]="currentSubject" [icon]="getExerciseAction(currentSubject, exercise.id)" [isLast]="isLast(i)" (ready)="isExerciseLoading = false" (itemClick)="executeExerciseAction($event[0], $event[1])">
+                </app-subject-ex-prev>
+            </ng-container>
+            <app-image-placeholder *ngIf="(!exerciseList || !currentSubject) && !isExerciseLoading && !exerciseError"></app-image-placeholder>
+            <app-loading *ngIf="isExerciseLoading && !exerciseError"></app-loading>
+            <app-error *ngIf="exerciseError" [code]="exerciseError.code" [message]="getExerciseErrorMessage(exerciseError)"></app-error>
+        </div>
+    </div>
+    <!--#endregion-->
+    <!--#region Exercises to add -->
+    <div class="tile is-3 is-2-bigscreen is-vertical is-parent">
+        <div class="tile is-child height-full panel is-primary is-root">
+            <p class="panel-heading is-flex is-align-items-center">
+                <span class="is-flex-grow-1">Dodane zadania</span>
+                <span *ngIf="isExerciseListLoading" class="icon is-small">
+                    <i class="fas fa-sync-alt is-spinning"></i>
+                </span>
+            </p>
+            <div class="panel added-exercises">
+                <div class="panel mobile-unscrollable">
+                    <div class="panel-block">
+                        <aside class="menu width-full">
+                            <ul class="menu-list">
+                                <li *ngFor="let item of addedExerciseList">
+                                    <a class="subject" [class.is-not-empty]="item.exercises.length > 0">
+                                        {{ item.subject.getName() | titlecase }}
+                                        <i *ngIf="item.subject.isPrivate">&nbsp;(Prywatny)</i>
+                                    </a>
+                                    <div [appCollapsible]="false">
+                                        <ul class="menu-list">
+                                            <li *ngFor="let exercise of item.exercises">
+                                                <a class="is-flex is-align-items-center is-justify-content-space-between">
+                                                    <span>{{ exercise.name | titlecase }}</span>
+                                                    <button class="button action is-white">
+                                                        <span class="icon is-small" (click)="removeExercise(item.subject.id, exercise.id)">
+                                                            <i class="fas fa-trash"></i>
+                                                        </span>
+                                                    </button>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </li>
+                            </ul>
+                        </aside>
+                    </div>
+                </div>
+                <div *ngIf="teamId !== undefined" class="panel-block divider-top px-1">
+                    <div class="buttons width-full is-right">
+                        <a class="button is-success" [routerLink]="['/tests', teamId]">Zapisz</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--#endregion-->
+</div>
+
+<app-loading *ngIf="isLoading && errorCode === null"></app-loading>
+<app-error *ngIf="errorCode !== null" [code]="errorCode"></app-error>
+
+<!--#region Category template -->
+<ng-template #catList let-node>
+    <ul *ngIf="checkNodeChildren(node)" class="menu-list">
+        <ng-container *ngFor="let child of node.children">
+            <li *ngIf="checkNodeIfIsCategory(child)">
+                <a class="is-flex is-justify-content-space-between" [class.is-active]="child.isSelected" (click)="onTreeNodeClick(child)">
+                    {{ child.value | titlecase }}
+                </a>
+                <div [appCollapsible]="!child.isSelected">
+                    <ng-container *ngTemplateOutlet="catList; context: { $implicit: child }"></ng-container>
+                </div>
+            </li>
+        </ng-container>
+    </ul>
+</ng-template>
+<!--#endregion-->

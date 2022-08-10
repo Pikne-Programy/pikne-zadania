@@ -1,10 +1,17 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { getErrorCode } from 'src/app/helper/utils';
+import { getErrorCode, INTERNAL_ERROR } from 'src/app/helper/utils';
 import { ViewExercise } from 'src/app/subjects/dashboard/exercise-previews/preview.component';
 import { SessionService } from '../../services/session.service';
 import { SessionStatus, StatusExercise } from '../../services/session.utils';
+
+enum Modal {
+    REPORT,
+    END,
+    RESET,
+    REPORT_SAVED
+}
 
 @Component({
     selector: 'app-session-teacher-dashboard',
@@ -17,6 +24,26 @@ export class SessionTeacherDashboardComponent implements OnInit, OnDestroy {
     private sessionStatus?: SessionStatus;
     exerciseList?: ViewExercise[];
     isSessionFinished?: boolean;
+
+    //#region Modals
+    readonly MODALS = Modal;
+    private _openedModal: Modal | null = null;
+    get openedModal() {
+        return this._openedModal;
+    }
+    isModalLoading = false;
+    modalErrorCode: number | null = null;
+
+    openModal(modal: Modal) {
+        this._openedModal = modal;
+    }
+    closeModal() {
+        if (!this.isModalLoading) {
+            this._openedModal = null;
+            this.modalErrorCode = null;
+        }
+    }
+    //#endregion
 
     isLoading = true;
     errorCode: number | null = null;
@@ -37,15 +64,8 @@ export class SessionTeacherDashboardComponent implements OnInit, OnDestroy {
                 this.sessionService
                     .getTeamName(teamId)
                     .then((teamName) => (this.team = teamName))
-                    .then(() => this.sessionService.getStatus(teamId))
-                    .then((sessionStatus) => {
-                        this.sessionStatus = sessionStatus;
-                        this.isSessionFinished = sessionStatus.finished;
-                        return this.getViewExercises(sessionStatus.exercises);
-                    })
-                    .then((exercises) => (this.exerciseList = exercises))
-                    .catch((error) => (this.errorCode = getErrorCode(error)))
-                    .finally(() => (this.isLoading = false));
+                    .then(() => this.refreshStatus())
+                    .catch((error) => (this.errorCode = getErrorCode(error)));
                 this.param$?.unsubscribe();
             }
         });
@@ -66,6 +86,62 @@ export class SessionTeacherDashboardComponent implements OnInit, OnDestroy {
 
     getExerciseSubject(index: number): string {
         return this.sessionStatus!.exercises[index].subject;
+    }
+
+    refreshStatus() {
+        if (this.teamId) {
+            this.isLoading = true;
+            this.errorCode = null;
+            return this.sessionService
+                .getStatus(this.teamId)
+                .then((sessionStatus) => {
+                    this.sessionStatus = sessionStatus;
+                    this.isSessionFinished = sessionStatus.finished;
+                    return this.getViewExercises(sessionStatus.exercises);
+                })
+                .then((exercises) => (this.exerciseList = exercises))
+                .catch((error) => (this.errorCode = getErrorCode(error)))
+                .finally(() => (this.isLoading = false));
+        }
+        return Promise.reject({ status: INTERNAL_ERROR });
+    }
+
+    endSession() {
+        if (this.teamId === undefined) {
+            this.closeModal();
+            return;
+        }
+
+        this.sessionService
+            .end(this.teamId)
+            .then(() => this.refreshStatus())
+            .then(() => {
+                this.isModalLoading = false;
+                this.closeModal();
+            })
+            .catch((error) => {
+                this.isModalLoading = false;
+                this.modalErrorCode = getErrorCode(error);
+            });
+    }
+
+    resetSession() {
+        if (this.teamId === undefined) {
+            this.closeModal();
+            return;
+        }
+
+        this.sessionService
+            .reset(this.teamId)
+            .then(() => this.refreshStatus())
+            .then(() => {
+                this.isModalLoading = false;
+                this.closeModal();
+            })
+            .catch((error) => {
+                this.isModalLoading = false;
+                this.modalErrorCode = getErrorCode(error);
+            });
     }
 
     isLast(index: number): boolean {

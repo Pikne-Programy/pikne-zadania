@@ -222,3 +222,8 @@ export class SubjectService {
             .toPromise();
     }
 }
+
+export interface ExerciseError {
+    code: number;
+    id: string;
+}

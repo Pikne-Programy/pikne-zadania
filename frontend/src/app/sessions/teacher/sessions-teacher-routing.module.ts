@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { NavComponent } from '../../navigation/nav.component';
 import { SessionTeacherDashboardComponent } from './dashboard/dashboard.component';
+import { AddSessionExercisesComponent } from './exercises/exercises.component';
 
 const routes: Routes = [
     {
@@ -16,6 +17,10 @@ const routes: Routes = [
             {
                 path: ':teamId',
                 component: SessionTeacherDashboardComponent
+            },
+            {
+                path: 'add-exercises/:teamId',
+                component: AddSessionExercisesComponent
             },
             {
                 path: 'reports/:teamId'

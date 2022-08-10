@@ -4,16 +4,12 @@ import { Subscription } from 'rxjs';
 import { getErrorCode, TYPE_ERROR } from 'src/app/helper/utils';
 import { HierarchyService } from '../hierarchy/service/hierarchy.service';
 import {
+    ExerciseError,
     Subject,
     SubjectService,
     ViewExerciseTreeNode
 } from '../subject.service/subject.service';
 import { ViewExercise } from './exercise-previews/preview.component';
-
-interface ExerciseError {
-    code: number;
-    id: string;
-}
 
 @Component({
     selector: 'app-subject-dashboard',

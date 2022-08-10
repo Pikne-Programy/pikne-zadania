@@ -18,7 +18,7 @@ $fullhd: nth($size_breakpoints, 5);
     }
 
     @media only screen and (min-width: nth($fullhd, 2)) {
-        $special_sizes: 2, 10;
+        $special_sizes: 2, 8, 10;
         @each $size in $special_sizes {
             &.is-#{$size}-bigscreen {
                 width: calc($size / 12) * 100%;

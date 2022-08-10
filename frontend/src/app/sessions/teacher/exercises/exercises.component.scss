@@ -1,0 +1,37 @@
+@use "src/styles.variables.scss" as *;
+$tablet: nth($size_breakpoints, 2);
+
+.added-exercises {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+
+    & .panel {
+        flex-grow: 1;
+        margin-bottom: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    & .button.action {
+        padding: 0;
+        width: 1.5rem;
+        height: 1.5rem;
+        border: none;
+        background: transparent;
+
+        &:hover {
+            background: #00000015;
+        }
+    }
+
+    & .menu-list a {
+        cursor: default;
+        line-height: 1.3em;
+    }
+
+    & .subject.is-not-empty {
+        background-color: #eee;
+    }
+}

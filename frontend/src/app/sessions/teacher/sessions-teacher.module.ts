@@ -8,9 +8,14 @@ import { SessionsModule } from '../sessions.module';
 import { SessionTeacherDashboardComponent } from './dashboard/dashboard.component';
 import { SessionService } from '../services/session.service';
 import { SubjectModule } from 'src/app/subjects/subject.module';
+import { AddSessionExercisesComponent } from './exercises/exercises.component';
+import { SubjectService } from 'src/app/subjects/subject.service/subject.service';
 
 @NgModule({
-    declarations: [SessionTeacherDashboardComponent],
+    declarations: [
+        SessionTeacherDashboardComponent,
+        AddSessionExercisesComponent
+    ],
     imports: [
         CommonModule,
         SessionsModule,
@@ -19,7 +24,7 @@ import { SubjectModule } from 'src/app/subjects/subject.module';
         TemplatesModule,
         SubjectModule
     ],
-    providers: [SessionService],
+    providers: [SessionService, SubjectService],
     bootstrap: [SessionsComponent]
 })
 export class SessionsTeacherModule {}
