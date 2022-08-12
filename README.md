@@ -1,5 +1,6 @@
 <!--
 Copyright 2021 Marcin Zepp <nircek-2103@protonmail.com>
+Copyright 2022 Marcin Wykpis <marwyk2003@gmail.com>
 
 SPDX-License-Identifier: CC-BY-4.0
 -->
@@ -40,13 +41,16 @@ Perform updates automatically with the [Watchtower](https://github.com/containrr
 docker run --name watchtower -dv /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower
 ```
 
-## Get exercises
+## Set up exercises and reports
 
 ```sh
 git clone https://github.com/Pikne-Programy/pikne-zadania-exercises.git exercises # or
 git clone git@github.com:Pikne-Programy/pikne-zadania-exercises.git exercises
+mkdir reports
+
+[ "$(stat -c "%g" exercises)" != "$(stat -c "%g" reports)" ] && echo 'GID of `exercises` and `reports` directories differ.'
+chmod -R g+ws exercises reports
 printf "$(stat -c "GID=%g\n" exercises)" > .env
-chmod -R g+ws exercises
 ```
 
 ## Build
