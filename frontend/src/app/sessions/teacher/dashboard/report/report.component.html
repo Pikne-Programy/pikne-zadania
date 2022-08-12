@@ -19,7 +19,7 @@
         <p *ngIf="!isModalOpen && modalErrorCode !== null" class="has-text-danger has-text-right px-3 mb-2">
             Wystąpił błąd ({{ modalErrorCode }})
         </p>
-        <div class="table-wrapper">
+        <div *ngIf="!isTableEmpty" class="table-wrapper">
             <table class="table is-bordered">
                 <thead>
                     <tr>

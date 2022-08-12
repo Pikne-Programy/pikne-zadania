@@ -1,0 +1,18 @@
+:host {
+    display: block;
+    height: 100%;
+    padding: 1.5rem;
+    padding-bottom: 0;
+}
+
+.panel {
+    &:not(:last-child) {
+        margin-bottom: 1.25rem;
+    }
+
+    & a.panel-block {
+        display: flex;
+        justify-content: space-between;
+        cursor: default;
+    }
+}

@@ -25,3 +25,11 @@ app-image-placeholder {
         width: 75%;
     }
 }
+
+.button.is-transparent {
+    background: transparent;
+
+    &:hover {
+        background: #00000015;
+    }
+}

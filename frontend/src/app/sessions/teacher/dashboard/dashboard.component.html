@@ -103,9 +103,14 @@
         <p class="has-text-justified">Zapisano raport "<i>{{ modalData }}</i>".</p>
     </section>
     <footer class="width-full">
-        <div class="buttons width-full is-align-items-baseline">
-            <button class="button is-primary" (click)="closeModal()" [disabled]="isModalLoading">Ok</button>
-            <button class="button is-primary-dark" [class.is-loading]="isModalLoading" (click)="downloadReport()">Pobierz</button>
+        <div class="buttons width-full is-align-items-baseline is-justify-content-space-between">
+            <button class="button is-white is-transparent" (click)="closeModal()" [disabled]="isModalLoading">Ok</button>
+            <button class="button is-primary-dark" [class.is-loading]="isModalLoading" (click)="downloadReport()">
+                <span class="icon is-small">
+                    <i class="fas fa-download"></i>
+                </span>
+                <span>Pobierz</span>
+            </button>
             <p *ngIf="modalErrorCode !== null" class="has-text-danger">
                 Wystąpił błąd ({{ modalErrorCode }})
             </p>

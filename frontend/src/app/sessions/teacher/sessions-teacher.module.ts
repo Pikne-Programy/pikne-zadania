@@ -12,12 +12,14 @@ import { AddSessionExercisesComponent } from './exercises/exercises.component';
 import { SubjectService } from 'src/app/subjects/subject.service/subject.service';
 import { CurrentReportComponent } from './dashboard/report/report.component';
 import { ReportService } from '../services/report.service';
+import { ReportsComponent } from './reports/reports.component';
 
 @NgModule({
     declarations: [
         SessionTeacherDashboardComponent,
         AddSessionExercisesComponent,
-        CurrentReportComponent
+        CurrentReportComponent,
+        ReportsComponent
     ],
     imports: [
         CommonModule,

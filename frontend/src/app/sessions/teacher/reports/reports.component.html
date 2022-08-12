@@ -1,0 +1,53 @@
+<div *ngIf="errorCode === null" class="columns height-full is-centered">
+    <div class="column is-flex is-flex-direction-column height-full is-half-tablet is-two-fifths-desktop is-one-third-widescreen is-one-forth-fullhd py-only-mobile-0">
+        <div class="panel is-primary is-flex is-flex-direction-column unscrollable">
+            <p class="panel-heading is-flex is-align-items-center pl-3">
+                <a *ngIf="teamId !== undefined" class="button is-primary" title="Powrót" [routerLink]="['/tests', teamId]" >
+                    <span class="icon is-small">
+                        <i class="fas fa-chevron-left"></i>
+                    </span>
+                </a>
+                <span>{{ getHeader() }}</span>
+            </p>
+            <app-loading *ngIf="isLoading"></app-loading>
+            <div *ngIf="!isLoading" class="panel is-primary height-full scrollable">
+                <a *ngFor="let filename of reportList; let i = index" class="panel-block has-background-white">
+                    <span class="pr-3">{{ filename }}</span>
+                    <div class="buttons is-right">
+                        <button class="button is-white" title="Pobierz" [class.is-loading]="downloadIndex === i" [disabled]="deleteIndex !== null" (click)="downloadReport(filename, i)">
+                            <span class="icon is-small">
+                                <i class="fas fa-download"></i>
+                            </span>
+                        </button>
+                        <button class="button is-white" title="Usuń" [class.is-loading]="deleteIndex === i" [disabled]="downloadIndex !== null" (click)="openModal(filename, i)">
+                            <span class="icon is-small">
+                                <i class="fas fa-trash"></i>
+                            </span>
+                        </button>
+                    </div>
+                </a>
+                <p *ngIf="!isLoading && reportList.length === 0" class="title is-size-4 has-text-centered p-3">Brak zapisanych raportów</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--#region Modal Confirm deletion -->
+<app-card-modal [title]="'Usuń raport'" [open]="isModalOpen" (onClose)="closeModal()">
+    <section>
+        <p class="has-text-justified">
+            <span>Czy na pewno chcesz usunąć raport</span>
+            <span *ngIf="modalData"><i> "{{ modalData[0] }}"</i></span>
+            <span>?</span>
+        </p>
+    </section>
+    <footer class="width-full">
+        <div class="buttons width-full is-align-items-baseline">
+            <button class="button is-danger" [class.is-loading]="deleteIndex !== null" (click)="deleteReport()">Usuń</button>
+            <button class="button" (click)="closeModal()" [disabled]="deleteIndex !== null">Anuluj</button>
+        </div>
+    </footer>
+</app-card-modal>
+<!--#endregion-->
+
+<app-error *ngIf="!isLoading && errorCode !== null" [code]="errorCode"></app-error>

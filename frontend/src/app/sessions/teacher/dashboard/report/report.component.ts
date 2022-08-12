@@ -40,6 +40,12 @@ export class CurrentReportComponent implements OnInit {
     @HostBinding('class') readonly class = 'modal is-active';
 
     viewStatus?: ViewSessionStatus;
+    get isTableEmpty() {
+        return this.viewStatus
+            ? this.viewStatus.exercises.length === 0 &&
+                  this.viewStatus.users.length === 0
+            : true;
+    }
 
     isLoading = true;
     errorCode: number | null = null;

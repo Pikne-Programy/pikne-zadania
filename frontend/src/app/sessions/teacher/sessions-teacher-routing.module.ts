@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { NavComponent } from '../../navigation/nav.component';
 import { SessionTeacherDashboardComponent } from './dashboard/dashboard.component';
 import { AddSessionExercisesComponent } from './exercises/exercises.component';
+import { ReportsComponent } from './reports/reports.component';
 
 const routes: Routes = [
     {
@@ -23,7 +24,8 @@ const routes: Routes = [
                 component: AddSessionExercisesComponent
             },
             {
-                path: 'reports/:teamId'
+                path: 'reports/:teamId',
+                component: ReportsComponent
             }
         ]
     }
