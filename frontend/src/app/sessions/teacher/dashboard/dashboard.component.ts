@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { getErrorCode, INTERNAL_ERROR } from 'src/app/helper/utils';
 import { ViewExercise } from 'src/app/subjects/dashboard/exercise-previews/preview.component';
+import { ReportService } from '../../services/report.service';
 import { SessionService } from '../../services/session.service';
 import { SessionStatus, StatusExercise } from '../../services/session.utils';
 
@@ -31,20 +32,32 @@ export class SessionTeacherDashboardComponent implements OnInit, OnDestroy {
     get openedModal() {
         return this._openedModal;
     }
+    modalData?: string;
     isModalLoading = false;
+    isModalSecondaryLoading = false;
     modalErrorCode: number | null = null;
 
     openModal(modal: Modal) {
         if (modal !== Modal.REPORT) this._openedModal = modal;
-        else {
-            this.refreshStatus()
-                .then(() => this._openedModal = modal);
-        }
+        else this.refreshStatus().then(() => (this._openedModal = modal));
     }
+
+    openSavedModal(filename: string) {
+        this.isModalLoading = false;
+        this.isModalSecondaryLoading = false;
+        this.modalErrorCode = null;
+
+        this.refreshStatus();
+        this.modalData = filename;
+        this._openedModal = Modal.REPORT_SAVED;
+    }
+
     closeModal() {
-        if (!this.isModalLoading) {
+        if (!this.isModalLoading && !this.isModalSecondaryLoading) {
+            this.refreshStatus();
             this._openedModal = null;
             this.modalErrorCode = null;
+            this.modalData = undefined;
         }
     }
     //#endregion
@@ -57,6 +70,7 @@ export class SessionTeacherDashboardComponent implements OnInit, OnDestroy {
     param$?: Subscription;
     constructor(
         private sessionService: SessionService,
+        private reportService: ReportService,
         private route: ActivatedRoute
     ) {}
 
@@ -119,9 +133,9 @@ export class SessionTeacherDashboardComponent implements OnInit, OnDestroy {
             return;
         }
 
+        this.isModalLoading = true;
         this.sessionService
             .end(this.teamId)
-            .then(() => this.refreshStatus())
             .then(() => {
                 this.isModalLoading = false;
                 this.closeModal();
@@ -132,15 +146,32 @@ export class SessionTeacherDashboardComponent implements OnInit, OnDestroy {
             });
     }
 
+    endSessionAndSave() {
+        if (this.teamId === undefined) {
+            this.closeModal();
+            return;
+        }
+        const teamId = this.teamId;
+
+        this.isModalSecondaryLoading = true;
+        this.sessionService
+            .end(teamId)
+            .then(() => this.refreshStatus())
+            .then(() => this.reportService.saveReport(teamId))
+            .then((filename) => this.openSavedModal(filename))
+            .catch((error) => (this.modalErrorCode = getErrorCode(error)))
+            .finally(() => (this.isModalSecondaryLoading = false));
+    }
+
     resetSession() {
         if (this.teamId === undefined) {
             this.closeModal();
             return;
         }
 
+        this.isModalLoading = true;
         this.sessionService
             .reset(this.teamId)
-            .then(() => this.refreshStatus())
             .then(() => {
                 this.isModalLoading = false;
                 this.closeModal();
@@ -149,6 +180,24 @@ export class SessionTeacherDashboardComponent implements OnInit, OnDestroy {
                 this.isModalLoading = false;
                 this.modalErrorCode = getErrorCode(error);
             });
+    }
+
+    downloadReport() {
+        const filename = this.modalData;
+        if (filename) {
+            this.isModalLoading = true;
+            this.reportService
+                .getReport(filename)
+                .then(() => {
+                    this.isModalLoading = false;
+                    this.closeModal();
+                })
+                .catch((error) => {
+                    this.modalErrorCode = getErrorCode(error);
+                    this.isModalLoading = false;
+                });
+        }
+        else this.errorCode = INTERNAL_ERROR;
     }
 
     isLast(index: number): boolean {

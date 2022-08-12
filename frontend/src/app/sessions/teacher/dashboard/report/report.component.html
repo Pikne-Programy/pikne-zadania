@@ -2,15 +2,23 @@
 <div class="modal-card">
     <header class="modal-card-head">
         <p class="modal-card-title"><b>Raport</b></p>
-        <button type="button" class="delete" aria-label="close" (click)="closeModal()"></button>
+        <button type="button" class="delete" aria-label="close" (click)="closeReport()"></button>
     </header>
     <section *ngIf="!isLoading && errorCode === null && viewStatus" class="modal-card-body">
         <div class="is-flex is-align-items-center is-justify-content-space-between px-3 py-2">
             <p class="subtitle mb-0">
                 <span class="status">Status:</span> {{ getSessionState(viewStatus) }}
             </p>
-            <button class="button is-primary">Zapisz raport</button>
+            <button class="button is-primary" [class.is-loading]="!isModalOpen && (isModalSaveLoading || isModalEndSaveLoading)" (click)="onSaveClick()">
+                <span class="icon is-small">
+                    <i class="fas fa-cloud-arrow-down"></i>
+                </span>
+                <span>Zapisz raport</span>
+            </button>
         </div>
+        <p *ngIf="!isModalOpen && modalErrorCode !== null" class="has-text-danger has-text-right px-3 mb-2">
+            Wystąpił błąd ({{ modalErrorCode }})
+        </p>
         <div class="table-wrapper">
             <table class="table is-bordered">
                 <thead>
@@ -70,3 +78,21 @@
         <app-error *ngIf="errorCode !== null" [code]="errorCode"></app-error>
         </section>
 </div>
+
+<!--#region Modal Save confirmation -->
+<app-card-modal [title]="'Trwający test'" [open]="isModalOpen" (onClose)="closeModal()">
+    <section>
+        <p class="has-text-justified">Test nie został zakończony i użytkownicy wciąż mogą zmieniać swoje odpowiedzi. Możesz zapisać raport w aktualnym stanie lub zakończyć test i zapisać raport.</p>
+    </section>
+    <footer class="width-full">
+        <div class="buttons width-full is-align-items-baseline">
+            <button class="button is-primary" [class.is-loading]="isModalSaveLoading" [disabled]="isModalEndSaveLoading" (click)="saveReport()">Zapisz</button>
+            <button class="button is-primary-dark" [class.is-loading]="isModalEndSaveLoading" [disabled]="isModalSaveLoading" (click)="endAndSaveReport()">Zakończ i Zapisz</button>
+            <button class="button" (click)="closeModal()" [disabled]="isModalSaveLoading">Anuluj</button>
+            <p *ngIf="modalErrorCode !== null" class="has-text-danger">
+                Wystąpił błąd ({{ modalErrorCode }})
+            </p>
+        </div>
+    </footer>
+</app-card-modal>
+<!--#endregion-->

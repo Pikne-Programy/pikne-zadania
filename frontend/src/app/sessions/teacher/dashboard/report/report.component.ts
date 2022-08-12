@@ -6,7 +6,8 @@ import {
     OnInit,
     Output
 } from '@angular/core';
-import { getErrorCode } from 'src/app/helper/utils';
+import { getErrorCode, INTERNAL_ERROR } from 'src/app/helper/utils';
+import { ReportService } from 'src/app/sessions/services/report.service';
 import { SessionService } from 'src/app/sessions/services/session.service';
 import {
     ExerciseState,
@@ -35,13 +36,43 @@ export class CurrentReportComponent implements OnInit {
     @Input() sessionStatus!: SessionStatus;
     @Input() teamId!: number;
     @Output() onClose = new EventEmitter();
+    @Output() onSaved = new EventEmitter<string>();
     @HostBinding('class') readonly class = 'modal is-active';
 
     viewStatus?: ViewSessionStatus;
 
     isLoading = true;
     errorCode: number | null = null;
-    constructor(private sessionService: SessionService) {}
+    constructor(
+        private sessionService: SessionService,
+        private reportService: ReportService
+    ) {}
+
+    //#region Save Modal
+    isModalOpen = false;
+    isModalSaveLoading = false;
+    isModalEndSaveLoading = false;
+    modalErrorCode: number | null = null;
+
+    openSaveModal() {
+        this.isModalOpen = true;
+    }
+
+    closeModal() {
+        if (!this.isModalSaveLoading && !this.isModalEndSaveLoading) {
+            this.isModalOpen = false;
+            this.modalErrorCode = null;
+        }
+    }
+
+    onSaveClick() {
+        if (this.viewStatus) {
+            if (!this.viewStatus.finished) this.openSaveModal();
+            else this.saveReport();
+        }
+        else this.errorCode = INTERNAL_ERROR;
+    }
+    //#endregion
 
     ngOnInit() {
         this.mapSessionStatus(this.sessionStatus)
@@ -125,7 +156,26 @@ export class CurrentReportComponent implements OnInit {
         );
     }
 
-    closeModal() {
+    saveReport() {
+        this.isModalSaveLoading = true;
+        this.reportService
+            .saveReport(this.teamId)
+            .then((filename) => this.onSaved.emit(filename))
+            .catch((error) => (this.modalErrorCode = getErrorCode(error)))
+            .finally(() => (this.isModalSaveLoading = false));
+    }
+
+    endAndSaveReport() {
+        this.isModalEndSaveLoading = true;
+        this.sessionService
+            .end(this.teamId)
+            .then(() => this.reportService.saveReport(this.teamId))
+            .then((filename) => this.onSaved.emit(filename))
+            .catch((error) => (this.modalErrorCode = getErrorCode(error)))
+            .finally(() => (this.isModalEndSaveLoading = false));
+    }
+
+    closeReport() {
         this.onClose.emit();
     }
 }

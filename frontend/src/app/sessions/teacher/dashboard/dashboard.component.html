@@ -60,7 +60,7 @@
 <app-error *ngIf="errorCode !== null" [code]="errorCode"></app-error>
 
 <!-- Modal Report -->
-<app-current-report *ngIf="openedModal === MODALS.REPORT && sessionStatus" [sessionStatus]="sessionStatus" (onClose)="closeModal()"></app-current-report>
+<app-current-report *ngIf="openedModal === MODALS.REPORT && sessionStatus && teamId !== undefined" [sessionStatus]="sessionStatus" [teamId]="teamId" (onClose)="closeModal()" (onSaved)="openSavedModal($event)"></app-current-report>
 
 <!--#region Modal End Session -->
 <app-card-modal [title]="'Zakończ test'" [open]="openedModal === MODALS.END" (onClose)="closeModal()">
@@ -69,7 +69,8 @@
     </section>
     <footer class="width-full">
         <div class="buttons width-full is-align-items-baseline">
-            <button class="button is-danger" [class.is-loading]="isModalLoading" (click)="endSession()">Zakończ</button>
+            <button class="button is-danger" [class.is-loading]="isModalLoading" [disabled]="isModalSecondaryLoading" (click)="endSession()">Zakończ</button>
+            <button class="button is-link" [class.is-loading]="isModalSecondaryLoading" [disabled]="isModalLoading" (click)="endSessionAndSave()">Zakończ i Zapisz</button>
             <button class="button" (click)="closeModal()" [disabled]="isModalLoading">Anuluj</button>
             <p *ngIf="modalErrorCode !== null" class="has-text-danger">
                 Wystąpił błąd ({{ modalErrorCode }})
@@ -88,6 +89,23 @@
         <div class="buttons width-full is-align-items-baseline">
             <button class="button is-danger" [class.is-loading]="isModalLoading" (click)="resetSession()">Resetuj</button>
             <button class="button" (click)="closeModal()" [disabled]="isModalLoading">Anuluj</button>
+            <p *ngIf="modalErrorCode !== null" class="has-text-danger">
+                Wystąpił błąd ({{ modalErrorCode }})
+            </p>
+        </div>
+    </footer>
+</app-card-modal>
+<!--#endregion-->
+
+<!--#region Modal Report Saved -->
+<app-card-modal [title]="'Zapisano raport'" [open]="openedModal === MODALS.REPORT_SAVED" (onClose)="closeModal()">
+    <section *ngIf="modalData">
+        <p class="has-text-justified">Zapisano raport "<i>{{ modalData }}</i>".</p>
+    </section>
+    <footer class="width-full">
+        <div class="buttons width-full is-align-items-baseline">
+            <button class="button is-primary" (click)="closeModal()" [disabled]="isModalLoading">Ok</button>
+            <button class="button is-primary-dark" [class.is-loading]="isModalLoading" (click)="downloadReport()">Pobierz</button>
             <p *ngIf="modalErrorCode !== null" class="has-text-danger">
                 Wystąpił błąd ({{ modalErrorCode }})
             </p>

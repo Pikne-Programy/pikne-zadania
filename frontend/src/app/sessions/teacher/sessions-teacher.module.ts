@@ -11,6 +11,7 @@ import { SubjectModule } from 'src/app/subjects/subject.module';
 import { AddSessionExercisesComponent } from './exercises/exercises.component';
 import { SubjectService } from 'src/app/subjects/subject.service/subject.service';
 import { CurrentReportComponent } from './dashboard/report/report.component';
+import { ReportService } from '../services/report.service';
 
 @NgModule({
     declarations: [
@@ -26,7 +27,7 @@ import { CurrentReportComponent } from './dashboard/report/report.component';
         TemplatesModule,
         SubjectModule
     ],
-    providers: [SessionService, SubjectService],
+    providers: [SessionService, SubjectService, ReportService],
     bootstrap: [SessionsComponent]
 })
 export class SessionsTeacherModule {}
