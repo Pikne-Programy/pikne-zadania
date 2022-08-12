@@ -54,26 +54,28 @@
                     <div class="panel-block">
                         <aside class="menu width-full">
                             <ul class="menu-list">
-                                <li *ngFor="let item of addedExerciseList">
-                                    <a class="subject" [class.is-not-empty]="item.exercises.length > 0">
-                                        {{ item.subject.getName() | titlecase }}
-                                        <i *ngIf="item.subject.isPrivate">&nbsp;(Prywatny)</i>
-                                    </a>
-                                    <div [appCollapsible]="false">
-                                        <ul class="menu-list">
-                                            <li *ngFor="let exercise of item.exercises">
-                                                <a class="is-flex is-align-items-center is-justify-content-space-between">
-                                                    <span>{{ exercise.name | titlecase }}</span>
-                                                    <button class="button action is-white">
-                                                        <span class="icon is-small" (click)="removeExercise(item.subject.id, exercise.id)">
-                                                            <i class="fas fa-trash"></i>
-                                                        </span>
-                                                    </button>
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </li>
+                                <ng-container *ngFor="let item of addedExerciseList">
+                                    <li *ngIf="item.exercises.length > 0">
+                                        <a class="subject" [class.is-not-empty]="item.exercises.length > 0">
+                                            {{ item.subject.getName() | titlecase }}
+                                            <i *ngIf="item.subject.isPrivate">&nbsp;(Prywatny)</i>
+                                        </a>
+                                        <div [appCollapsible]="false">
+                                            <ul class="menu-list">
+                                                <li *ngFor="let exercise of item.exercises">
+                                                    <a class="is-flex is-align-items-center is-justify-content-space-between">
+                                                        <span>{{ exercise.name | titlecase }}</span>
+                                                        <button class="button action is-white">
+                                                            <span class="icon is-small" (click)="removeExercise(item.subject.id, exercise.id)">
+                                                                <i class="fas fa-trash"></i>
+                                                            </span>
+                                                        </button>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </li>
+                                </ng-container>
                             </ul>
                         </aside>
                     </div>

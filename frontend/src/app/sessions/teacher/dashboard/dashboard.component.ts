@@ -21,7 +21,7 @@ enum Modal {
 export class SessionTeacherDashboardComponent implements OnInit, OnDestroy {
     teamId?: number;
     team?: string;
-    private sessionStatus?: SessionStatus;
+    sessionStatus?: SessionStatus;
     exerciseList?: ViewExercise[];
     isSessionFinished?: boolean;
 
@@ -35,7 +35,11 @@ export class SessionTeacherDashboardComponent implements OnInit, OnDestroy {
     modalErrorCode: number | null = null;
 
     openModal(modal: Modal) {
-        this._openedModal = modal;
+        if (modal !== Modal.REPORT) this._openedModal = modal;
+        else {
+            this.refreshStatus()
+                .then(() => this._openedModal = modal);
+        }
     }
     closeModal() {
         if (!this.isModalLoading) {
@@ -88,7 +92,7 @@ export class SessionTeacherDashboardComponent implements OnInit, OnDestroy {
         return this.sessionStatus!.exercises[index].subject;
     }
 
-    refreshStatus() {
+    refreshStatus(): Promise<ViewExercise[]> {
         if (this.teamId) {
             this.isLoading = true;
             this.errorCode = null;
@@ -100,7 +104,10 @@ export class SessionTeacherDashboardComponent implements OnInit, OnDestroy {
                     return this.getViewExercises(sessionStatus.exercises);
                 })
                 .then((exercises) => (this.exerciseList = exercises))
-                .catch((error) => (this.errorCode = getErrorCode(error)))
+                .catch((error) => {
+                    this.errorCode = getErrorCode(error);
+                    throw error;
+                })
                 .finally(() => (this.isLoading = false));
         }
         return Promise.reject({ status: INTERNAL_ERROR });

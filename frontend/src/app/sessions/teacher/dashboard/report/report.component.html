@@ -1,0 +1,72 @@
+<div class="modal-background"></div>
+<div class="modal-card">
+    <header class="modal-card-head">
+        <p class="modal-card-title"><b>Raport</b></p>
+        <button type="button" class="delete" aria-label="close" (click)="closeModal()"></button>
+    </header>
+    <section *ngIf="!isLoading && errorCode === null && viewStatus" class="modal-card-body">
+        <div class="is-flex is-align-items-center is-justify-content-space-between px-3 py-2">
+            <p class="subtitle mb-0">
+                <span class="status">Status:</span> {{ getSessionState(viewStatus) }}
+            </p>
+            <button class="button is-primary">Zapisz raport</button>
+        </div>
+        <div class="table-wrapper">
+            <table class="table is-bordered">
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th class="is-sticky-left">Imię</th>
+                        <th *ngFor="let exercise of viewStatus.exercises" class="exercise-name">{{ exercise.name | titlecase }}</th>
+                        <th class="total"><b>Niezrobione</b></th>
+                        <th class="total"><b>Źle</b></th>
+                        <th class="total"><b>Częściowo</b></th>
+                        <th class="total"><b>Dobrze</b></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let user of viewStatus.users; let i = index">
+                        <td>{{ getUserNumber(user) }}</td>
+                        <th>{{ user.name | titlecase }}</th>
+                        <td *ngFor="let exerciseState of user.exercises" class="exercise-state">
+                            <p *ngIf="exerciseState !== '☐'" class="exercise-state is-unselectable">
+                                <span [ngClass]="getExerciseStateColor(exerciseState)">■</span>
+                                <span>☐</span>
+                            </p>
+                        </td>
+                        <!--TODO Include important stats -->
+                        <td>{{ countStateUser(user, '☐') }}</td>
+                        <td>{{ countStateUser(user, '☒') }}</td>
+                        <td>{{ countStateUser(user, '⚀') }}</td>
+                        <td>{{ countStateUser(user, '☑') }}</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td class="total"></td>
+                        <th class="total"><b>Niezrobione</b></th>
+                        <td *ngFor="let exercise of viewStatus.exercises; let i = index">{{ countStateExercise(viewStatus, i, '☐') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="total"></td>
+                        <th class="total"><b>Źle</b></th>
+                        <td *ngFor="let exercise of viewStatus.exercises; let i = index">{{ countStateExercise(viewStatus, i, '☒') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="total"></td>
+                        <th class="total"><b>Częściowo</b></th>
+                        <td *ngFor="let exercise of viewStatus.exercises; let i = index">{{ countStateExercise(viewStatus, i, '⚀') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="total"></td>
+                        <th class="total"><b>Dobrze</b></th>
+                        <td *ngFor="let exercise of viewStatus.exercises; let i = index">{{ countStateExercise(viewStatus, i, '☑') }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <app-loading *ngIf="isLoading && errorCode === null"></app-loading>
+        <app-error *ngIf="errorCode !== null" [code]="errorCode"></app-error>
+        </section>
+</div>

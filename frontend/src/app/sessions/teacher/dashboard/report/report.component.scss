@@ -1,0 +1,132 @@
+@use "src/styles.variables.scss" as *;
+$tablet: nth($size_breakpoints, 2);
+
+:host {
+    padding-top: 4.25rem;
+}
+
+.modal-card {
+    max-height: 90%;
+    
+    @media screen and (min-width: nth($tablet, 2)) {
+        width: auto;
+        min-width: 640px;
+        max-width: 80%;
+    }
+}
+
+.modal-card-body {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+
+    & span.status {
+        font-weight: 700;
+    }
+}
+
+.table-wrapper {
+    position: sticky;
+    overflow: auto;
+}
+
+.exercise-name, thead th.total {
+    font-weight: normal;
+    writing-mode: vertical-rl;
+    text-orientation: sideways;
+    transform: scale(-1);
+}
+
+.table {
+    margin-top: -1px;
+    border-collapse: separate;
+}
+
+thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    
+    & th {
+        background-color: white;
+        background-clip: padding-box;
+
+        &:not(.exercise-name):not(.total) {
+            vertical-align: bottom;
+        }
+
+        &.total {
+            font-weight: bold;
+        }
+
+        &.is-sticky-left {
+            z-index: 3;
+        }
+    }
+}
+
+thead th.is-sticky-left, tbody tr th, tfoot th {
+    position: sticky;
+    left: 0;
+    background-color: white;
+    background-clip: padding-box;
+    z-index: 1;
+}
+
+tbody {
+    & td {
+        text-align: center;
+        vertical-align: middle;
+
+        &.exercise-state {
+            padding: 0;
+            font-size: 2em;
+            text-align: center;
+            vertical-align: middle;
+        }
+    }
+
+    & th {
+        font-weight: normal;
+    }
+
+    & p.exercise-state {
+        display: flex;
+        position: relative;
+        align-items: center;
+        justify-content: center;
+
+        & > span {
+            position: absolute;
+        }
+    }
+}
+
+tfoot {
+    & td {
+        text-align: center;
+        vertical-align: middle;
+
+        &.total {
+            border-right: none;
+        }   
+    }
+
+    & th.total {
+        border-left: none;
+        text-align: right;
+    }
+}
+
+.state-wrong {
+    color: hsl(347, 90%, 70%);
+}
+
+.state-partial {
+    color: hsl(48, 100%, 80%);
+}
+
+.state-correct {
+    color: hsl(142, 52%, 75%);
+}

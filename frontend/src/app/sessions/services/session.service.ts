@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { Exercise } from 'src/app/exercise-service/exercises';
-import { TYPE_ERROR } from 'src/app/helper/utils';
+import { getErrorCode, TYPE_ERROR } from 'src/app/helper/utils';
 import { ViewExercise } from 'src/app/subjects/dashboard/exercise-previews/preview.component';
 import {
     Subject,
@@ -15,9 +15,12 @@ import * as ServerRoutes from '../../server-routes';
 import {
     isSessionExercises,
     isSessionStatus,
+    isUser,
     mapExercise,
+    mapUser,
     SessionExercises,
-    SessionStatus
+    SessionStatus,
+    SessionUser
 } from './session.utils';
 
 @Injectable({
@@ -39,6 +42,8 @@ export class SessionService {
     saveExerciseInCache(subjectId: string, exercise: ViewExercise) {
         this.exerciseCache.set(`${subjectId}-${exercise.id}`, exercise);
     }
+
+    private userCache = new Map<string, SessionUser>();
 
     constructor(
         private http: HttpClient,
@@ -95,6 +100,37 @@ export class SessionService {
                 )
             )
             .toPromise();
+    }
+
+    getStatusUsers(status: SessionStatus): Promise<SessionUser[]> {
+        return Promise.all(
+            status.report.map(async (statusUser) => {
+                const fromCache = this.userCache.get(statusUser.userId);
+                if (fromCache) return fromCache;
+
+                return this.http
+                    .post(ServerRoutes.userInfo, { userId: statusUser.userId })
+                    .pipe(
+                        switchMap((response) =>
+                            isUser(response)
+                                ? of(mapUser(statusUser, response))
+                                : throwError({ status: TYPE_ERROR })
+                        )
+                    )
+                    .toPromise()
+                    .then((user) => {
+                        this.userCache.set(user.userId, user);
+                        return user;
+                    })
+                    .catch((error) => {
+                        console.error(
+                            `User error (${getErrorCode(error)})`,
+                            error
+                        );
+                        throw error;
+                    });
+            })
+        );
     }
 
     //#region Session modification

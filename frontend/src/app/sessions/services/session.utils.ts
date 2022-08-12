@@ -60,6 +60,8 @@ export function isSessionStatus(object: any): object is SessionStatus {
     );
 }
 
+export type ExerciseState = '☐' | '☒' | '⚀' | '☑';
+
 export type StatusExercise = {
     subject: string;
     exerciseId: string;
@@ -71,9 +73,9 @@ function isStatusExercise(object: any): object is StatusExercise {
     ]);
 }
 
-type StatusUser = {
+export type StatusUser = {
     userId: string;
-    exercises: string[];
+    exercises: ExerciseState[];
 };
 function isStatusUser(object: any): object is StatusUser {
     return (
@@ -83,6 +85,41 @@ function isStatusUser(object: any): object is StatusUser {
         ]) && object.exercises.every((state) => typeof state === 'string')
     );
 }
+
+//#region Users
+export type SessionUser = {
+    userId: string;
+    name: string;
+    number: number | null;
+    exercises: ExerciseState[];
+};
+
+export type UserInfo = {
+    name: string;
+    teamId: number;
+    number: number | null;
+};
+
+export function isUser(object: any): object is UserInfo {
+    return isObject<UserInfo>(object, [
+        ['name', ['string']],
+        ['teamId', ['number']],
+        ['number', ['number', 'null']]
+    ]);
+}
+
+export function mapUser(
+    statusUser: StatusUser,
+    userInfo: UserInfo
+): SessionUser {
+    return {
+        userId: statusUser.userId,
+        name: userInfo.name,
+        number: userInfo.number,
+        exercises: statusUser.exercises
+    };
+}
+//#endregion
 //#endregion
 
 export function mapExercise(exercise: Exercise, id: string): ViewExercise {

@@ -59,6 +59,9 @@
 <app-loading *ngIf="isLoading && errorCode === null"></app-loading>
 <app-error *ngIf="errorCode !== null" [code]="errorCode"></app-error>
 
+<!-- Modal Report -->
+<app-current-report *ngIf="openedModal === MODALS.REPORT && sessionStatus" [sessionStatus]="sessionStatus" (onClose)="closeModal()"></app-current-report>
+
 <!--#region Modal End Session -->
 <app-card-modal [title]="'Zakończ test'" [open]="openedModal === MODALS.END" (onClose)="closeModal()">
     <section>

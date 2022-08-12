@@ -10,11 +10,13 @@ import { SessionService } from '../services/session.service';
 import { SubjectModule } from 'src/app/subjects/subject.module';
 import { AddSessionExercisesComponent } from './exercises/exercises.component';
 import { SubjectService } from 'src/app/subjects/subject.service/subject.service';
+import { CurrentReportComponent } from './dashboard/report/report.component';
 
 @NgModule({
     declarations: [
         SessionTeacherDashboardComponent,
-        AddSessionExercisesComponent
+        AddSessionExercisesComponent,
+        CurrentReportComponent
     ],
     imports: [
         CommonModule,
