@@ -258,6 +258,16 @@ export async function initSessionTests(
     });
   }, true);
 
+  await ffm.test("[BOB] get correct session/list", async () => { // {{053}}}
+    let response = await endpoint("alice", "/api/session/list", undefined, 200);
+    assert(Array.isArray(response) && response.length == 1);
+    response = response[0];
+    assertEquals(
+      Object.keys(response).sort(),
+      "description,done,exerciseId,name,subject,type".split(","),
+    );
+  });
+
   await ffm.test("[ALICE] beat her score", async () => { // {{055}}}
     await endpoint("alice", "/api/subject/problem/submit", {
       ...deuid("easy/double"),
