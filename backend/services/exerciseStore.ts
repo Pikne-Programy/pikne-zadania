@@ -226,6 +226,7 @@ export class ExerciseStore implements IExerciseStore {
 
   readonly unlisted = (subject: string) => ({
     get: () => this._unlisted[subject],
+    set: (exercises: string[]) => this._unlisted[subject] = exercises,
   });
 
   add(subject: string, exerciseId: string, content: string) {

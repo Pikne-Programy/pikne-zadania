@@ -67,7 +67,7 @@ export async function constructApp(cfg: IConfigService = new ConfigService()) {
   await target.us.init();
   await target.ts.init();
   const es = new ExerciseStore(cfg);
-  const ss = new SubjectStore(db, es);
+  const ss = new SubjectStore(cfg, db, es);
   await ss.init();
   const ex = new ExerciseService(es);
   const jwt = new JWTService(cfg, target.us);

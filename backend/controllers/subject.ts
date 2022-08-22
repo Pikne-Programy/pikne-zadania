@@ -312,7 +312,7 @@ export class SubjectController extends Authorizer {
         subject: schemas.exercise.subject,
         raw: vs.boolean({ strictType: true }),
       }); //! R
-      if (!this.parent.es.listSubjects().includes(req.subject)) {
+      if (!(await this.parent.ss.list()).includes(req.subject)) {
         throw new httpErrors["NotFound"]();
       } //! E
       const iterateSection = async (section: Section[]) => {

@@ -15,9 +15,10 @@ export interface IExerciseStore {
     get(): Section[];
     set(value: Section[]): CustomDictError<"ExerciseAlreadyExists"> | void;
   };
-  unlisted(subject: string): ({
+  unlisted(subject: string): {
     get: () => string[];
-  });
+    set: (exercises: string[]) => void;
+  };
   add(
     subject: string,
     id: string,

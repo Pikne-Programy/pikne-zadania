@@ -5,6 +5,7 @@
 
 import { CustomDictError } from "../types/mod.ts";
 import {
+  IConfigService,
   IDatabaseService,
   IExerciseStore,
   ISubjectStore,
@@ -13,6 +14,7 @@ import { Subject } from "../models/mod.ts"; // TODO: get rid off
 
 export class SubjectStore implements ISubjectStore {
   constructor(
+    private cfg: IConfigService,
     private db: IDatabaseService,
     private exs: IExerciseStore,
   ) {}
@@ -46,6 +48,12 @@ export class SubjectStore implements ISubjectStore {
     if (await subject.exists()) {
       return await new CustomDictError("SubjectAlreadyExists", { subject: id });
     }
+    const subjectPath = `${this.cfg.EXERCISES_PATH}${id}`;
+    Deno.mkdirSync(subjectPath);
+    Deno.createSync(`${subjectPath}/index.yml`).close();
+    this.exs.unlisted(id).set([]);
+    this.exs.structure(id).set([]);
+
     this.db.subjects!.insertOne({ id, assignees });
   }
 }
