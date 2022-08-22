@@ -159,9 +159,11 @@ export class SessionController extends Authorizer {
         const report = await team.session.report.get();
         if (ex instanceof CustomDictError) return null;
         return {
+          type: ex.type,
+          name: ex.name,
           subject: this.es.deuid(e)!.subject,
           exerciseId: this.es.deuid(e)!.exerciseId,
-          ...ex,
+          description: ex.problem.main,
           done: report[user.id][e] ?? null,
         };
       }),

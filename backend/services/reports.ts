@@ -66,17 +66,32 @@ export class ReportsService implements IReportsService {
     report: ReportType,
   ) {
     let rows: string[][] = [];
-    let exercises: string[] = [];
+    const exercises: string[] = await this.ts.get(tid).session.exercises.get();
+    const ustats = ["Niezrobione", "Źle", "Częściowo", "Dobrze"];
+
     for (const uid in report) {
       const user = this.us.get(uid);
-      rows.push([`${await user.name.get()} nr${await user.number.get()}`]);
+      rows.push([
+        await user.name.get(),
+        (await user.number.get() ?? "").toString(),
+      ]);
       for (const ex in report[uid]) {
         const cell = report[uid][ex]?.toString() ?? "null";
         rows[rows.length - 1].push(cell);
       }
-      exercises = Object.keys(report[uid]);
+
+      const uex = Object.keys(report[uid]);
+      const incorrect = uex.filter((k) => report[uid][k] == 0).length;
+      const correct = uex.filter((k) => report[uid][k] == 1).length;
+      const partial = uex.length - incorrect - correct;
+      const unattempted = exercises.length - incorrect - correct - partial;
+      for (const x of [unattempted, incorrect, partial, correct]) {
+        rows[rows.length - 1].push(x.toString());
+      }
     }
-    rows = [exercises, ...rows];
+    const headers = ["No.", "Imię", ...exercises, ...ustats];
+    rows = [headers, ...rows];
+    console.log(rows);
 
     const filename = this.generateFileName(tid);
     const path = this.getReportPath(filename);
@@ -88,8 +103,8 @@ export class ReportsService implements IReportsService {
       });
       await writeCSV(f, rows);
       f.close();
-    } catch {
-      throw new Error("deno open"); // TODO: Error message
+    } catch (e) {
+      throw new Error(e);
     }
     const team = this.ts.get(tid);
     await team.reports.push(filename);
