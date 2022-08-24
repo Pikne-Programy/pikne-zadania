@@ -119,6 +119,7 @@ export class SubjectPermitComponent
 
     submit(nextRoute?: string) {
         if (this.subjectId && this.assignees) {
+            this.isSubmitLoading = true;
             this.subjectService
                 .setAssignees(
                     this.subjectId,
@@ -159,6 +160,7 @@ export class SubjectPermitComponent
         else this.router.navigate(['../'], { relativeTo: this.route });
     }
 
+    /* istanbul ignore next */
     ngOnDestroy() {
         this.params$?.unsubscribe();
     }

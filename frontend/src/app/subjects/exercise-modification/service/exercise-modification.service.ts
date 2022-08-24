@@ -18,6 +18,8 @@ export { Exercise, ExerciseHeader } from './exercise-modification.utils';
 export class ExerciseModificationService {
     constructor(private http: HttpClient) {}
 
+    //NOTE Deprecated: API includes this functionality
+    /* istanbul ignore next */
     private extractExercises(tree: ServerResponseNode): string[] {
         if (!Array.isArray(tree.children)) return [tree.children];
 

@@ -15,8 +15,8 @@
             <app-loading *ngIf="isLoading"></app-loading>
         </div>
         <div class="buttons is-right">
-            <button type="button" class="button is-success" (click)="submit()">Zapisz</button>
-            <button type="button" class="button is-danger" (click)="cancel()">Odrzuć</button>
+            <button type="button" class="button is-success" [class.is-loading]="isSubmitLoading" (click)="submit()">Zapisz</button>
+            <button type="button" class="button is-danger" (click)="cancel()" [disabled]="isSubmitLoading">Odrzuć</button>
         </div>
         <p *ngIf="submitErrorCode !== null" class="error-warning help is-danger">Coś poszło nie tak (kod błędu: {{ submitErrorCode }})</p>
     </div>

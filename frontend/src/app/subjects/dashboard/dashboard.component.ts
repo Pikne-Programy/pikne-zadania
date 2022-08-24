@@ -175,6 +175,7 @@ export class SubjectDashboardComponent implements OnInit, OnDestroy {
         return `Błąd podczas ładowania zadania '${exerciseError.id}'`;
     }
 
+    /* istanbul ignore next */
     ngOnDestroy() {
         this.param$?.unsubscribe();
     }

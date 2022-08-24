@@ -53,6 +53,23 @@ describe('Service: Theme', () => {
             }
         }
     });
+
+    it('should return default theme', inject(
+        [ThemeService],
+        (service: ThemeService) => {
+            spyOn(themes, 'find').and.returnValue(undefined);
+            expect(service).toBeTruthy();
+
+            const stylesheet = 'dark.css';
+            const dummy = createThemeElement();
+            document.getElementById = jasmine
+                .createSpy('HTML Element')
+                .and.returnValue(dummy);
+            dummy.href = stylesheet;
+
+            expect((service as any).getTheme(stylesheet)).toBe('default');
+        }
+    ));
 });
 
 function createThemeElement(): HTMLLinkElement {

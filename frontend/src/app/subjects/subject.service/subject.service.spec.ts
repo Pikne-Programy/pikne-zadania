@@ -144,9 +144,11 @@ describe('Service: Subject', () => {
                             'Sb1',
                             'Sb4',
                             '_Sb3',
-                            'Sb3'
+                            'Sb3',
+                            'Sb1'
                         ];
                         const expectedList = [
+                            'Sb1',
                             'Sb1',
                             'Sb2',
                             '_Sb2',
@@ -280,6 +282,7 @@ describe('Service: Subject', () => {
                     (service: SubjectService) => {
                         expect(service).toBeTruthy();
                         const result = new ExerciseTreeNode('mock', null);
+                        result.children.push(new ExerciseTreeNode('mock-child', result));
                         spyOn(
                             TreeSubject,
                             'checkSubjectValidity'

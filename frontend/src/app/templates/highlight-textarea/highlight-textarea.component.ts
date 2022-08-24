@@ -127,6 +127,7 @@ implements OnInit, AfterViewInit, OnDestroy {
         return '';
     }
 
+    /* istanbul ignore next */
     ngOnDestroy() {
         this.theme$?.unsubscribe();
     }

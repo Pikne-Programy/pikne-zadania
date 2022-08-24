@@ -26,3 +26,25 @@ export function getStringFromAny(
             return anyFallback;
     }
 }
+
+export class Params {
+    constructor(
+        private entries: [key: string, value: string][],
+        private timeout: number = 20
+    ) {}
+
+    subscribe: (next: (params: Map<string, string>) => void) => Subscription = (
+        next
+    ) => {
+        setTimeout(() => {
+            const map = new Map<string, string>();
+            for (const [key, value] of this.entries) map.set(key, value);
+            next(map);
+        }, this.timeout);
+        return new Subscription();
+    };
+}
+
+export class Subscription {
+    unsubscribe() {}
+}

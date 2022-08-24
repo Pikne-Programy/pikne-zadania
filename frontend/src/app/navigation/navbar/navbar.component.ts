@@ -44,6 +44,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         });
     }
 
+    /* istanbul ignore next */
     ngOnDestroy() {
         this.opened$?.unsubscribe();
         this.menu$?.unsubscribe();

@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { LoadingComponent } from './loading.component';
 
-xdescribe('LoadingComponent', () => {
+describe('LoadingComponent', () => {
     let component: LoadingComponent;
     let fixture: ComponentFixture<LoadingComponent>;
 

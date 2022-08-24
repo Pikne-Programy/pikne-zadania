@@ -121,7 +121,10 @@
             ],
             "scripts": [],
             "codeCoverageExclude": [
-              "src/app/helper/tests/*.ts"
+              "src/app/helper/tests/*.ts",
+              //FIXME Remove if implemented
+              "src/app/user/dashboard/**/*.ts",
+              "src/app/user/achievements/**/*.ts"
             ]
           }
         },

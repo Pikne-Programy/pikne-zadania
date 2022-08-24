@@ -9,7 +9,7 @@ import { Subject, SubjectService } from '../subject.service/subject.service';
 interface UserItem extends AssigneeUser {
     isSelected: boolean;
 }
-function mapUsers(list: AssigneeUser[]): UserItem[] {
+export function mapUsers(list: AssigneeUser[]): UserItem[] {
     return list.map((user) => ({
         userId: user.userId,
         name: user.name,

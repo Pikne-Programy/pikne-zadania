@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { ImagePlaceholderComponent } from './image-placeholder.component';
 
-xdescribe('ImagePlaceholderComponent', () => {
+describe('ImagePlaceholderComponent', () => {
     let component: ImagePlaceholderComponent;
     let fixture: ComponentFixture<ImagePlaceholderComponent>;
 
@@ -22,6 +22,23 @@ xdescribe('ImagePlaceholderComponent', () => {
     });
 
     it('should create', () => {
+        const path = 'assets/misc/mock_pic';
+        const alt = 'mock_alt';
+        component.src = `${path}.png`;
+        component.srcset = `${path}.svg`;
+        component.alt = alt;
         expect(component).toBeTruthy();
+
+        expect(component.src).toBe(`${path}.png`);
+        expect(component.srcset).toBe(`${path}.svg`);
+        expect(component.alt).toBe(alt);
+    });
+
+    it('should create default', () => {
+        expect(component).toBeTruthy();
+
+        expect(component.src).toBe('assets/misc/png/exercise_placeholder.png');
+        expect(component.srcset).toBe('assets/misc/exercise_placeholder.svg');
+        expect(component.alt).toBe('');
     });
 });

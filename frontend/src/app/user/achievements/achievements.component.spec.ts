@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { AchievementsComponent } from './achievements.component';
 
+//FIXME Add to coverage when implemented (angular.json > test > codeCoverageExclude)
 xdescribe('AchievementsComponent', () => {
     let component: AchievementsComponent;
     let fixture: ComponentFixture<AchievementsComponent>;

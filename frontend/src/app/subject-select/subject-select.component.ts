@@ -18,9 +18,9 @@ export class SubjectSelectComponent implements AfterContentInit {
     errorCode: number | null = null;
 
     constructor(
-    private subjectService: SubjectService,
-    private router: Router,
-    private route: ActivatedRoute
+        private subjectService: SubjectService,
+        private router: Router,
+        private route: ActivatedRoute
     ) {}
 
     ngAfterContentInit() {
@@ -28,7 +28,6 @@ export class SubjectSelectComponent implements AfterContentInit {
             .getSubjects()
             .then((response) => {
                 this.list = response;
-                this.isLoading = false;
                 if (this.list.length === 1) {
                     this.router.navigate(['subjects', this.list[0].id], {
                         relativeTo: this.route,
@@ -37,7 +36,8 @@ export class SubjectSelectComponent implements AfterContentInit {
                     });
                 }
             })
-            .catch((error) => (this.errorCode = getErrorCode(error)));
+            .catch((error) => (this.errorCode = getErrorCode(error)))
+            .finally(() => (this.isLoading = false));
     }
 
     getSubjectList(): SpecialPanelItem[] {

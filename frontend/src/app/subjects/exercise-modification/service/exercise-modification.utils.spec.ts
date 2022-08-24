@@ -100,9 +100,17 @@ describe('Exercise modification Utils', () => {
     });
 
     describe('Exercise', () => {
+        const header = '---\ntype: EqEx\nname: Pociągi dwa\n---';
         const content =
             'Z miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n';
-        const apiContent = `---\ntype: EqEx\nname: Pociągi dwa\n---\n${content}`;
+        const apiContent = `${header}\n${content}`;
+
+        it('should return instance', () => {
+            expect(
+                new Exercise(new ExerciseHeader('EqEx', 'Ex1'), 'content')
+            ).toBeInstanceOf(Exercise);
+            expect(new Exercise()).toBeInstanceOf(Exercise);
+        });
 
         describe('createInstance', () => {
             it('create instance of Exercise', () => {
@@ -126,6 +134,17 @@ describe('Exercise modification Utils', () => {
                 catch (error: any) {
                     const message: string = error.message;
                     expect(message).toBe('Wrong exercise header');
+                }
+            });
+
+            it('should throw error (wrong content)', () => {
+                try {
+                    Exercise.createInstance(header);
+                    fail('should throw error');
+                }
+                catch (error: any) {
+                    const message: string = error.message;
+                    expect(message).toBe('Wrong exercise content');
                 }
             });
         });
@@ -219,6 +238,12 @@ describe('Exercise modification Utils', () => {
     });
 
     describe('EqExHeader', () => {
+        it('should return instance', () => {
+            expect(new EqExHeader('Ex1', 'src/pic1')).toBeInstanceOf(
+                EqExHeader
+            );
+        });
+
         describe('isEqExHeader', () => {
             it('should return true', () => {
                 const list = [

@@ -41,32 +41,33 @@ describe('Service: ExerciseModification', () => {
             ['Type error', TYPE_ERROR, [{ name: 'Trash :P' }]]
         ];
         for (const [testMess, errorCode, serverResponse] of list) {
-            it(
-                `should throw ${testMess}`,
-                waitForAsync(
-                    inject(
-                        [ModificationService, HttpClient],
-                        (service: ModificationService) => {
-                            expect(service).toBeTruthy();
+            it(`should throw ${testMess}`, waitForAsync(
+                inject(
+                    [ModificationService, HttpClient],
+                    (service: ModificationService) => {
+                        expect(service).toBeTruthy();
 
-                            service
-                                .getAllExercises(subjectId)
-                                .then(() => fail('should be rejected'))
-                                .catch((error) =>
-                                    expect(error.status).toBe(errorCode)
-                                );
-                            const req = httpController.expectOne(
-                                ServerRoutes.subjectExerciseList
+                        service
+                            .getAllExercises(subjectId)
+                            .then(() => fail('should be rejected'))
+                            .catch((error) =>
+                                expect(error.status).toBe(errorCode)
                             );
-                            expect(req.request.method).toEqual('POST');
-                            expect(req.request.body).toEqual(expectedBody);
-                            if (errorCode !== TYPE_ERROR)
-                                req.flush(testMess, { status: errorCode, statusText: 'Error' });
-                            else req.flush(serverResponse);
+                        const req = httpController.expectOne(
+                            ServerRoutes.subjectExerciseList
+                        );
+                        expect(req.request.method).toEqual('POST');
+                        expect(req.request.body).toEqual(expectedBody);
+                        if (errorCode !== TYPE_ERROR) {
+                            req.flush(testMess, {
+                                status: errorCode,
+                                statusText: 'Error'
+                            });
                         }
-                    )
+                        else req.flush(serverResponse);
+                    }
                 )
-            );
+            ));
         }
 
         it('should return Set of all Exercise ids', inject(
@@ -122,68 +123,93 @@ describe('Service: ExerciseModification', () => {
             ]
         ];
         for (const [testMess, errorCode, serverResponse] of list) {
-            it(
-                `should throw ${testMess}`,
-                waitForAsync(
-                    inject(
-                        [ModificationService, HttpClient],
-                        (service: ModificationService) => {
-                            expect(service).toBeTruthy();
-
-                            service
-                                .getExercise(subjectId, exerciseId)
-                                .then(() => fail('should be rejected'))
-                                .catch((error) =>
-                                    expect(error.status).toBe(errorCode)
-                                );
-                            const req = httpController.expectOne(
-                                ServerRoutes.subjectExerciseGet
-                            );
-                            expect(req.request.method).toEqual('POST');
-                            expect(req.request.body).toEqual(expectedBody);
-                            if (errorCode !== TYPE_ERROR)
-                                req.flush(testMess, { status: errorCode, statusText: 'Error' });
-                            else req.flush(serverResponse);
-                        }
-                    )
-                )
-            );
-        }
-
-        it(
-            'should return Exercise',
-            waitForAsync(
+            it(`should throw ${testMess}`, waitForAsync(
                 inject(
                     [ModificationService, HttpClient],
                     (service: ModificationService) => {
                         expect(service).toBeTruthy();
-                        const content =
-                            'Z miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n';
-                        const serverResponse = {
-                            content: `---\ntype: EqEx\nname: Pociągi dwa\n---\n${content}`
-                        };
 
                         service
                             .getExercise(subjectId, exerciseId)
-                            .then((response) => {
-                                expect(response).toBeInstanceOf(Exercise);
-                                expect(response.header.type).toBe('EqEx');
-                                expect(response.header.name).toBe(
-                                    'Pociągi dwa'
-                                );
-                                expect(response.content).toBe(content);
-                            })
-                            .catch(() => fail('should be resolved'));
+                            .then(() => fail('should be rejected'))
+                            .catch((error) =>
+                                expect(error.status).toBe(errorCode)
+                            );
                         const req = httpController.expectOne(
                             ServerRoutes.subjectExerciseGet
                         );
                         expect(req.request.method).toEqual('POST');
                         expect(req.request.body).toEqual(expectedBody);
-                        req.flush(serverResponse);
+                        if (errorCode !== TYPE_ERROR) {
+                            req.flush(testMess, {
+                                status: errorCode,
+                                statusText: 'Error'
+                            });
+                        }
+                        else req.flush(serverResponse);
                     }
                 )
+            ));
+        }
+
+        it(`should throw Type error (Exercise instance creation, generic error)`, waitForAsync(
+            inject(
+                [ModificationService, HttpClient],
+                (service: ModificationService) => {
+                    expect(service).toBeTruthy();
+                    const consoleSpy = spyOn(console, 'error');
+                    const errorObj = { reason: 'Generic error' };
+                    spyOn(Exercise, 'createInstance').and.callFake(() => {
+                        throw errorObj;
+                    });
+
+                    service
+                        .getExercise(subjectId, exerciseId)
+                        .then(() => fail('should be rejected'))
+                        .catch((error) => {
+                            expect(error.status).toBe(TYPE_ERROR);
+                            // eslint-disable-next-line jasmine/prefer-toHaveBeenCalledWith
+                            expect(consoleSpy).toHaveBeenCalled();
+                        });
+                    const req = httpController.expectOne(
+                        ServerRoutes.subjectExerciseGet
+                    );
+                    expect(req.request.method).toEqual('POST');
+                    expect(req.request.body).toEqual(expectedBody);
+                    req.flush({ content: 'abc' });
+                }
             )
-        );
+        ));
+
+        it('should return Exercise', waitForAsync(
+            inject(
+                [ModificationService, HttpClient],
+                (service: ModificationService) => {
+                    expect(service).toBeTruthy();
+                    const content =
+                        'Z miast \\(A\\) i \\(B\\) odległych o d=300km wyruszają jednocześnie\ndwa pociągi z prędkościami v_a=[40;60]km/h oraz v_b=[60;80]km/h.\nW jakiej odległości x=?km od miasta \\(A\\) spotkają się te pociągi?\nPo jakim czasie t=?h się to stanie?\n---\nt=d/(v_a+v_b)\nx=t*v_a\n';
+                    const serverResponse = {
+                        content: `---\ntype: EqEx\nname: Pociągi dwa\n---\n${content}`
+                    };
+
+                    service
+                        .getExercise(subjectId, exerciseId)
+                        .then((response) => {
+                            expect(response).toBeInstanceOf(Exercise);
+                            expect(response.header.type).toBe('EqEx');
+                            expect(response.header.name).toBe('Pociągi dwa');
+                            expect(response.content).toBe(content);
+                        })
+                        .catch(() => fail('should be resolved'));
+                    const req = httpController.expectOne(
+                        ServerRoutes.subjectExerciseGet
+                    );
+                    expect(req.request.method).toEqual('POST');
+                    expect(req.request.body).toEqual(expectedBody);
+                    req.flush(serverResponse);
+                }
+            )
+        ));
     });
 
     describe('addExercise', () => {
@@ -220,55 +246,50 @@ describe('Service: ExerciseModification', () => {
         const subject = 'Sb1';
 
         //TODO Tests w/ seed
-        it(
-            'should throw server error',
-            waitForAsync(
-                inject(
-                    [ModificationService, HttpClient],
-                    (service: ModificationService) => {
-                        expect(service).toBeTruthy();
-                        const errorCode = 500;
+        it('should throw server error', waitForAsync(
+            inject(
+                [ModificationService, HttpClient],
+                (service: ModificationService) => {
+                    expect(service).toBeTruthy();
+                    const errorCode = 500;
 
-                        service
-                            .getExercisePreview(exercise, subject)
-                            .then(() => fail('should be rejected'))
-                            .catch((error) =>
-                                expect(error.status).toBe(errorCode)
-                            );
-                        const req = httpController.expectOne(
-                            ServerRoutes.subjectExercisePreview
-                        );
-                        expect(req.request.method).toEqual('POST');
-                        req.flush('Server error', { status: errorCode, statusText: 'Error' });
-                    }
-                )
+                    service
+                        .getExercisePreview(exercise, subject)
+                        .then(() => fail('should be rejected'))
+                        .catch((error) => expect(error.status).toBe(errorCode));
+                    const req = httpController.expectOne(
+                        ServerRoutes.subjectExercisePreview
+                    );
+                    expect(req.request.method).toEqual('POST');
+                    req.flush('Server error', {
+                        status: errorCode,
+                        statusText: 'Error'
+                    });
+                }
             )
-        );
+        ));
 
-        it(
-            'should throw Type error (not an Exercise)',
-            waitForAsync(
-                inject(
-                    [ModificationService, HttpClient],
-                    (service: ModificationService) => {
-                        expect(service).toBeTruthy();
+        it('should throw Type error (not an Exercise)', waitForAsync(
+            inject(
+                [ModificationService, HttpClient],
+                (service: ModificationService) => {
+                    expect(service).toBeTruthy();
 
-                        service
-                            .getExercisePreview(exercise, subject)
-                            .then(() => fail('should be rejected'))
-                            .catch((error) =>
-                                expect(error.status).toBe(TYPE_ERROR)
-                            );
-                        const req = httpController.expectOne(
-                            ServerRoutes.subjectExercisePreview
+                    service
+                        .getExercisePreview(exercise, subject)
+                        .then(() => fail('should be rejected'))
+                        .catch((error) =>
+                            expect(error.status).toBe(TYPE_ERROR)
                         );
-                        expect(req.request.method).toEqual('POST');
-                        expect(req.request.body).toEqual(stringifiedExercise);
-                        req.flush({ abc: 'I am trash :P' });
-                    }
-                )
+                    const req = httpController.expectOne(
+                        ServerRoutes.subjectExercisePreview
+                    );
+                    expect(req.request.method).toEqual('POST');
+                    expect(req.request.body).toEqual(stringifiedExercise);
+                    req.flush({ abc: 'I am trash :P' });
+                }
             )
-        );
+        ));
 
         it('should throw Type error (not a PreviewExercise)', inject(
             [ModificationService, HttpClient],
@@ -345,41 +366,43 @@ describe('Service: ExerciseModification', () => {
             ['throw server error', 500]
         ];
         for (const [testMess, errorCode] of list.concat(specialCases)) {
-            it(
-                `should ${testMess}`,
-                waitForAsync(
-                    inject(
-                        [ModificationService, HttpClient],
-                        (service: ModificationService) => {
-                            expect(service).toBeTruthy();
+            it(`should ${testMess}`, waitForAsync(
+                inject(
+                    [ModificationService, HttpClient],
+                    (service: ModificationService) => {
+                        expect(service).toBeTruthy();
 
-                            const promise =
-                                url === ServerRoutes.subjectExerciseAdd
-                                    ? service.addExercise(subjectId, exercise)
-                                    : service.updateExercise(
-                                          subjectId,
-                                          id,
-                                          exercise
-                                      );
-                            promise
-                                .then(() => {
-                                    if (errorCode !== null)
-                                        fail('should be rejected');
-                                })
-                                .catch((error) => {
-                                    if (errorCode !== null)
-                                        expect(error.status).toBe(errorCode);
-                                    else fail('should resolve');
-                                });
-                            const req = httpController.expectOne(url);
-                            expect(req.request.method).toEqual('POST');
-                            expect(req.request.body).toEqual(expectedBody);
-                            if (errorCode === null) req.flush({});
-                            else req.flush(testMess, { status: errorCode, statusText: 'Error' });
+                        const promise =
+                            url === ServerRoutes.subjectExerciseAdd
+                                ? service.addExercise(subjectId, exercise)
+                                : service.updateExercise(
+                                      subjectId,
+                                      id,
+                                      exercise
+                                  );
+                        promise
+                            .then(() => {
+                                if (errorCode !== null)
+                                    fail('should be rejected');
+                            })
+                            .catch((error) => {
+                                if (errorCode !== null)
+                                    expect(error.status).toBe(errorCode);
+                                else fail('should resolve');
+                            });
+                        const req = httpController.expectOne(url);
+                        expect(req.request.method).toEqual('POST');
+                        expect(req.request.body).toEqual(expectedBody);
+                        if (errorCode === null) req.flush({});
+                        else {
+                            req.flush(testMess, {
+                                status: errorCode,
+                                statusText: 'Error'
+                            });
                         }
-                    )
+                    }
                 )
-            );
+            ));
         }
     }
 });

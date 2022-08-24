@@ -26,6 +26,7 @@ export class ImagePreviewComponent implements OnInit, OnDestroy {
         this.previewService.closePreview();
     }
 
+    /* istanbul ignore next */
     ngOnDestroy() {
         this.preview$?.unsubscribe();
     }

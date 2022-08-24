@@ -59,7 +59,9 @@ export class Exercise {
     }
 
     toString(): string {
-        return `---\n${stringifyYaml(JSON.parse(JSON.stringify(this.header)))}---\n${this.content}`;
+        return `---\n${stringifyYaml(
+            JSON.parse(JSON.stringify(this.header))
+        )}---\n${this.content}`;
     }
 
     generateId(): string {
@@ -85,26 +87,18 @@ export class ExerciseHeader {
 }
 
 export class EqExHeader extends ExerciseHeader {
-    constructor(
-        type: ExerciseType,
-        name: string,
-        public img?: string | string[]
-    ) {
-        super(type, name);
+    constructor(name: string, public img?: string | string[]) {
+        super('EqEx', name);
     }
 
     static isEqExHeader(object: ExerciseHeader): object is EqExHeader {
         return (
-            (isExerciseType(object.type) &&
-                isObject<EqExHeader>(object, [
-                    ['img', ['string', 'undefined']]
-                ])) ||
-            (isObject<EqExHeader>(object, [['img', 'array|undefined']]) &&
-                (object.img
-                    ? (object.img as unknown[]).every(
-                          (val) => typeof val === 'string'
-                      )
-                    : true))
+            isExerciseType(object.type) &&
+            (isObject<EqExHeader>(object, [['img', ['string', 'undefined']]]) ||
+                (isObject<EqExHeader>(object, [['img', 'array']]) &&
+                    (object.img as unknown[]).every(
+                        (val) => typeof val === 'string'
+                    )))
         );
     }
 }

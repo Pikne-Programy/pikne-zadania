@@ -149,6 +149,7 @@ export class EqEx extends Exercise {
 
 //#region Previews
 abstract class PreviewExerciseType {
+    /* istanbul ignore next */
     readonly correctAnswer: ObjectType = {};
 
     static isPreviewExercise: (exercise: Exercise) => boolean;

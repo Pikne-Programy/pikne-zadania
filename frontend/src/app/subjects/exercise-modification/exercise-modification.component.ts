@@ -39,6 +39,7 @@ export abstract class ExerciseModComponent
 
     abstract ngOnInit(): void;
 
+    /* istanbul ignore next */
     ngOnDestroy() {
         this.param$?.unsubscribe();
     }

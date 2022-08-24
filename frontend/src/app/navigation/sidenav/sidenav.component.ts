@@ -38,6 +38,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
         });
     }
 
+    /* istanbul ignore next */
     ngOnDestroy() {
         this.menu$?.unsubscribe();
         this.buttons$?.unsubscribe();

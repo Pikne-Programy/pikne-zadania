@@ -95,7 +95,9 @@ export class SubjectDashboardPreviewComponent implements AfterViewInit {
     async setMath() {
         await setAsyncTimeout(50);
         return MathJax.typesetPromise().then(() => {
-            removeMathTabIndex();
+            this.removeMathTabIndex();
         });
     }
+
+    removeMathTabIndex = removeMathTabIndex;
 }
