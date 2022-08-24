@@ -102,7 +102,11 @@ export class SessionService {
         return Promise.all(
             status.report.map(async (statusUser) => {
                 const fromCache = this.userCache.get(statusUser.userId);
-                if (fromCache) return fromCache;
+                if (fromCache) {
+                    fromCache.exercises = statusUser.exercises;
+                    this.userCache.set(fromCache.userId, fromCache);
+                    return fromCache;
+                }
 
                 return this.http
                     .post(ServerRoutes.userInfo, { userId: statusUser.userId })

@@ -8,7 +8,7 @@
                     Test&nbsp;-&nbsp;{{ team | titlecase }}
                 </span>
                 <span class="buttons is-right">
-                    <a class="button is-primary" [routerLink]="['/tests/add-exercises', teamId]">
+                    <a *ngIf="isSessionFinished !== true" class="button is-primary" [routerLink]="['/tests/add-exercises', teamId]">
                         <span class="icon is-small">
                             <i class="fas fa-plus"></i>
                         </span>

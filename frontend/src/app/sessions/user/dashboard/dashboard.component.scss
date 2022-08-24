@@ -15,3 +15,7 @@ $mobile: nth($size_breakpoints, 1);
         @include hideOnBreakpoint(max-width, nth($mobile, 3));
     }
 }
+
+.button i.fa-sync-alt.is-spinning {
+    animation: spinAround 1000ms infinite linear;
+}

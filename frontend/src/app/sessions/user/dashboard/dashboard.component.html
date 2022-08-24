@@ -3,12 +3,15 @@
     <div class="height-full column is-one-quarter-tablet is-one-fifth-desktop hide-on-mobile when-exercise" [ngClass]="{ 'exercise': currentExercise }">
       <div class="panel is-primary height-full p-0">
         <aside class="menu height-full is-flex is-flex-direction-column">
-          <p class="panel-heading">
-            Zadania
+          <p class="panel-heading is-flex is-align-items-center is-justify-content-space-between">
+            <span>Zadania</span>
+            <button class="button is-primary" title="Odśwież zadania" (click)="refreshSessionState(true)">
+                <i class="fas fa-sync-alt" [class.is-spinning]="isRefreshing"></i>
+            </button>
           </p>
           <!--#region Exercise list -->
           <div class="height-full scrollable px-4">
-            <ul class="menu-list py-3">
+            <ul class="menu-list py-3" [class.is-hidden]="isRefreshing">
               <li *ngFor="let exercise of exerciseList" tabindex="0" (keydown.enter)="selectExercise(exercise)">
                 <a [ngClass]="{ 'is-active': isExerciseSelected(exercise)}" (click)="selectExercise(exercise)" class="menu-element is-flex is-align-items-baseline">
                   <span class="column p-0">{{ exercise.name | titlecase }}</span>
@@ -47,12 +50,12 @@
           </div>
         </nav>
         <!--#endregion-->
-        <div *ngIf="currentExercise && !isExerciseLoading && exerciseErrorCode === null" class="height-full scrollable">
+        <div *ngIf="currentExercise && !isExerciseLoading && exerciseErrorCode === null" class="height-full scrollable" [class.is-hidden]="isRefreshing">
           <app-exercise [exercise]="currentExercise" (onAnswers)="refreshSessionState()"></app-exercise>
         </div>
-        <app-image-placeholder *ngIf="!currentExercise && !isExerciseLoading && exerciseErrorCode === null"></app-image-placeholder>
-        <app-loading *ngIf="isExerciseLoading && exerciseErrorCode === null"></app-loading>
-        <app-error *ngIf="exerciseErrorCode !== null" [code]="exerciseErrorCode" [message]="getExerciseErrorMessage(exerciseErrorCode)"></app-error>
+        <app-image-placeholder *ngIf="!currentExercise && !isExerciseLoading && exerciseErrorCode === null" [class.is-hidden]="isRefreshing"></app-image-placeholder>
+        <app-loading *ngIf="isExerciseLoading && exerciseErrorCode === null" [class.is-hidden]="isRefreshing"></app-loading>
+        <app-error *ngIf="exerciseErrorCode !== null" [code]="exerciseErrorCode" [message]="getExerciseErrorMessage(exerciseErrorCode)" [class.is-hidden]="isRefreshing"></app-error>
       </div>
     </div>
     <!--#endregion-->

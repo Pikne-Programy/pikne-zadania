@@ -22,6 +22,7 @@ export class SessionUserDashboardComponent implements OnInit {
     errorCode: number | null = null;
     isExerciseLoading = false;
     exerciseErrorCode: number | null = null;
+    isRefreshing = false;
 
     constructor(private sessionService: UserSessionService) {}
 
@@ -48,7 +49,10 @@ export class SessionUserDashboardComponent implements OnInit {
                 this.errorCode = getErrorCode(error);
                 return Promise.reject(error);
             })
-            .finally(() => (this.isLoading = false));
+            .finally(() => {
+                this.isLoading = false;
+                this.isRefreshing = false;
+            });
     }
 
     private getExercise(sessionExercise: SessionExercise) {
@@ -63,14 +67,18 @@ export class SessionUserDashboardComponent implements OnInit {
             .finally(() => (this.isExerciseLoading = false));
     }
 
-    refreshSessionState(isFromSelection: boolean = false): Promise<unknown> {
+    refreshSessionState(
+        setLoading: boolean = false,
+        isFromSelection: boolean = false
+    ): Promise<unknown> {
         this.isPristine = false;
+        if (setLoading) this.isRefreshing = true;
         if (isFromSelection) return this.getSession();
         else return this.getSession().catch(() => {});
     }
 
     selectExercise(exercise: SessionExercise) {
-        this.refreshSessionState(true)
+        this.refreshSessionState(false, true)
             .then(() => this.getExercise(exercise))
             .catch(() => {});
     }
