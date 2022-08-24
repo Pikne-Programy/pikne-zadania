@@ -1,0 +1,17 @@
+@use "src/styles.variables.scss" as *;
+$mobile: nth($size_breakpoints, 1);
+
+@mixin hideOnBreakpoint($property, $value) {
+    @media only screen and ($property: $value) {
+        display: none;
+    }
+}
+
+.hide-on-mobile {
+    &.when-exercise.exercise {
+        @include hideOnBreakpoint(max-width, nth($mobile, 3));
+    }
+    &.when-null:not(.exercise) {
+        @include hideOnBreakpoint(max-width, nth($mobile, 3));
+    }
+}

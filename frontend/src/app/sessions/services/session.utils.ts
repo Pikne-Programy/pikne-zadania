@@ -6,6 +6,10 @@ import {
 import { isObject } from 'src/app/helper/utils';
 import { ViewExercise } from 'src/app/subjects/dashboard/exercise-previews/preview.component';
 
+export const SESSION_FINISHED_SERVER_ERROR = 409;
+export const EXERCISE_NOT_FOUND_SERVER_ERROR = 404;
+export const SESSION_FINISHED_ERROR = 40009;
+
 //#region Exercises
 export type SessionExercise = {
     type: string;
@@ -15,7 +19,7 @@ export type SessionExercise = {
     description: string;
     done: number | null;
 };
-export function isSessionExercises(object: any): object is SessionExercises {
+export function isSessionExercises(object: any): object is SessionExercise[] {
     return (
         Array.isArray(object) &&
         object.every(
@@ -31,11 +35,6 @@ export function isSessionExercises(object: any): object is SessionExercises {
         )
     );
 }
-export type SessionExercises = {
-    subject: string;
-    exerciseId: string;
-    done: number | null;
-}[];
 //#endregion
 
 //#region Status

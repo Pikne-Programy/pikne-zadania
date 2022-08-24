@@ -13,12 +13,10 @@ import {
 import { isTeam } from 'src/app/user/team.service/types';
 import * as ServerRoutes from '../../server-routes';
 import {
-    isSessionExercises,
     isSessionStatus,
     isUser,
     mapExercise,
     mapUser,
-    SessionExercises,
     SessionStatus,
     SessionUser
 } from './session.utils';
@@ -27,8 +25,6 @@ import {
     providedIn: 'root'
 })
 export class SessionService {
-    readonly SESSION_FINISHED_SERVER_ERROR = 409;
-    readonly SESSION_FINISHED_ERROR = 40009;
     private readonly EXERCISE_TYPE_ERROR = 40890;
     private readonly TEAM_ERROR = 48900;
 
@@ -190,24 +186,4 @@ export class SessionService {
             .toPromise();
     }
     //#endregion
-
-    /**
-     * Fetching exercises for students
-     */
-    getExercises(): Promise<SessionExercises> {
-        return this.http
-            .post(ServerRoutes.sessionListExercises, {})
-            .pipe(
-                switchMap((response) =>
-                    isSessionExercises(response)
-                        ? response.length > 0
-                            ? of(response)
-                            : throwError({
-                                status: this.SESSION_FINISHED_ERROR
-                            })
-                        : throwError({ status: TYPE_ERROR })
-                )
-            )
-            .toPromise();
-    }
 }

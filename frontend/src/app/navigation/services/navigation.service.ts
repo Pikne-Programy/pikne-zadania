@@ -153,6 +153,7 @@ const menuElements: MenuElement[] = [
 ];
 const userElements: MenuElement[] = [
     new MenuElement('Baza zadań', '/public-exercises'),
+    new MenuElement('Testy', '/exam'),
     // ['/user/achievements', 'Osiągnięcia'], //TODO Add when ready
     new MenuElement('O projekcie', '/about', undefined, ['relative'])
 ];

@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { NavComponent } from '../../navigation/nav.component';
+import { SessionUserDashboardComponent } from './dashboard/dashboard.component';
 
 const routes: Routes = [
     {
@@ -9,7 +10,8 @@ const routes: Routes = [
         children: [
             {
                 path: '',
-                pathMatch: 'full'
+                pathMatch: 'full',
+                component: SessionUserDashboardComponent
             }
         ]
     }

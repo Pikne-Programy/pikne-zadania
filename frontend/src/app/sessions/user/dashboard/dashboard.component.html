@@ -1,0 +1,62 @@
+<div *ngIf="!isLoading && errorCode === null" class="columns height-full m-0">
+    <!--#region Exercises -->
+    <div class="height-full column is-one-quarter-tablet is-one-fifth-desktop hide-on-mobile when-exercise" [ngClass]="{ 'exercise': currentExercise }">
+      <div class="panel is-primary height-full p-0">
+        <aside class="menu height-full is-flex is-flex-direction-column">
+          <p class="panel-heading">
+            Zadania
+          </p>
+          <!--#region Exercise list -->
+          <div class="height-full scrollable px-4">
+            <ul class="menu-list py-3">
+              <li *ngFor="let exercise of exerciseList" tabindex="0" (keydown.enter)="selectExercise(exercise)">
+                <a [ngClass]="{ 'is-active': isExerciseSelected(exercise)}" (click)="selectExercise(exercise)" class="menu-element is-flex is-align-items-baseline">
+                  <span class="column p-0">{{ exercise.name | titlecase }}</span>
+                  <span *ngIf="exercise.done !== null" class="icon is-small p-0" [ngClass]="{
+                    'is-success': exercise.done === 1,
+                    'is-warning': exercise.done < 1 && exercise.done > 0,
+                    'is-danger': exercise.done === 0
+                  }">
+                    <i class="fas" [ngClass]="{
+                      'fa-check': exercise.done === 1,
+                      'fa-minus': exercise.done < 1 && exercise.done > 0,
+                      'fa-times': exercise.done === 0
+                    }" aria-hidden="true"></i>
+                  </span>
+                </a>
+              </li>
+            </ul>
+          </div>
+          <!--#endregion-->
+        </aside>
+      </div>
+    </div>
+    <!--#endregion-->
+    <!--#region Exercise -->
+    <div class="column height-full hide-on-mobile when-null" [ngClass]="{ 'exercise': currentExercise }">
+      <div class="box height-full is-flex is-flex-direction-column p-0">
+        <!--#region Back button -->
+        <nav class="level divider-bottom is-hidden-tablet p-2 m-0">
+          <div class="level-left">
+            <button class="button is-rounded is-small" (click)="resetExercise()">
+              <span class="icon">
+                <i class="fas fa-chevron-left"></i>
+              </span>
+              <span>Wróć</span>
+            </button>
+          </div>
+        </nav>
+        <!--#endregion-->
+        <div *ngIf="currentExercise && !isExerciseLoading && exerciseErrorCode === null" class="height-full scrollable">
+          <app-exercise [exercise]="currentExercise" (onAnswers)="refreshSessionState()"></app-exercise>
+        </div>
+        <app-image-placeholder *ngIf="!currentExercise && !isExerciseLoading && exerciseErrorCode === null"></app-image-placeholder>
+        <app-loading *ngIf="isExerciseLoading && exerciseErrorCode === null"></app-loading>
+        <app-error *ngIf="exerciseErrorCode !== null" [code]="exerciseErrorCode" [message]="getExerciseErrorMessage(exerciseErrorCode)"></app-error>
+      </div>
+    </div>
+    <!--#endregion-->
+  </div>
+  <app-loading *ngIf="isLoading && errorCode === null"></app-loading>
+  <app-error *ngIf="errorCode !== null" [code]="getErrorCode(errorCode)" [message]="getErrorMessage(errorCode)"></app-error>
+  

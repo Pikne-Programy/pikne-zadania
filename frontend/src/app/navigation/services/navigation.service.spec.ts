@@ -415,7 +415,6 @@ describe('Service: Navigation', () => {
                     else {
                         account$.observable.next({} as any);
                         await setAsyncTimeout(20);
-                        //FIXME Change to not.toEqual (userElements should have different elements than default)
                         expect(service.menuElements.getValue()).toEqual(
                             MenuElements.userElements
                         );
